@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1997-09-27
 
-;; $Id: vcard.el,v 1.4 1998/02/10 11:02:00 friedman Exp $
+;; $Id: vcard.el,v 1.5 1998/06/05 19:56:06 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@ Vcard data is normally in the form
     key2;subkey2: field1;field2;field3
     end:          vcard
 
+\(Whitespace after the colon separating the key and field is optional.\)
 If supplied to this function an alist of the form
 
     ((\"key1\" \"field\")
@@ -69,7 +70,7 @@ would be returned."
       (setq raw-pos (match-end 0))
       (while (and (< raw-pos (length raw))
                   (string-match
-                   "^[ \t]*\\([^:]+\\):[ \t]+\\(.*\\)[ \t]*[\n\r]+"
+                   "^[ \t]*\\([^:]+\\):[ \t]*\\(.*\\)[ \t]*[\n\r]+"
                    raw raw-pos))
         (setq key (vcard-matching-substring 1 raw))
         (setq data (vcard-matching-substring 2 raw))
