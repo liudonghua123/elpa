@@ -1,13 +1,13 @@
-;;; vcard.el --- vcard parsing and formatting routines
+;;; vcard.el --- vcard parsing and display routines
 
 ;; Copyright (C) 1997 Noah S. Friedman
 
-;; Author: Noah Friedman <friedman@prep.ai.mit.edu>
-;; Maintainer: friedman@prep.ai.mit.edu
+;; Author: Noah Friedman <friedman@splode.com>
+;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 ;; Created: 1997-09-27
 
-;; $Id: vcard.el,v 1.1 1997/10/01 11:55:52 friedman Exp $
+;; $Id: vcard.el,v 1.2 1997/10/14 19:38:18 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,18 +25,52 @@
 ;; Inc.; 59 Temple Place, Suite 330; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
+
+;; The display routines here are just an example.  The primitives in the
+;; first section can be used to construct other vcard formatters.
+
 ;;; Code:
 
-(defun vcard-parse-string (raw)
+(defvar vcard-standard-filters '(vcard-filter-html)
+  "*Standard list of filters to apply to parsed vcard data.
+These filters are applied sequentially to vcard data records when
+the function `vcard-standard-filter' is supplied as the second argument to
+`vcard-parse-string'.")
+
+(defun vcard-parse-string (raw &optional filter)
+  "Parse RAW vcard data as a string, and return an alist representing data.
+
+If the optional function FILTER is specified, apply that filter to the
+data record of each key before splitting fields.  Filters should accept
+two arguments: the key and the data.  They are expected to operate on
+\(and return\) a modified data value.
+
+Vcard data is normally in the form
+
+    begin:        vcard
+    key1:         field
+    key2;subkey1: field
+    key2;subkey2: field1;field2;field3
+    end:          vcard
+
+If supplied to this function an alist of the form
+
+    ((\"key1\" \"field\")
+     (\"key2\"
+      (\"subkey2\" \"field1\" \"field2\" \"field3\")
+      (\"subkey1\" \"field\")))
+
+would be returned."
   (save-match-data
     (let ((raw-pos 0)
           (vcard-data nil)
           key data)
-      (string-match "^begin:[ \t]*vcard[ \t]*[\r\n]+" raw raw-pos)
+      (string-match "^[ \t]*begin:[ \t]*vcard[ \t]*[\r\n]+" raw raw-pos)
       (setq raw-pos (match-end 0))
       (while (and (< raw-pos (length raw))
-                  (string-match "^\\([^:]+\\):[ \t]+\\(.*\\)[ \t]*[\n\r]+"
-                                raw raw-pos))
+                  (string-match
+                   "^[ \t]*\\([^:]+\\):[ \t]+\\(.*\\)[ \t]*[\n\r]+"
+                   raw raw-pos))
         (setq key (vcard-matching-substring 1 raw))
         (setq data (vcard-matching-substring 2 raw))
         (setq raw-pos (match-end 0))
@@ -44,6 +78,8 @@
          ((string= key "end")
           (setq raw-pos (length raw)))
          (t
+          (and filter
+               (setq data (funcall filter key data)))
           (setq vcard-data
                 (vcard-set-alist-slot vcard-data
                                       (vcard-split-string key ";")
@@ -51,22 +87,64 @@
       (nreverse vcard-data))))
 
 (defun vcard-ref (key vcard-data)
+  "Return the vcard data associated with KEY in VCARD-DATA.
+Key may be a list of nested keys or a single string of colon-separated
+keys."
   (cond ((listp key)
-         (vcard-nested-alist-assoc key vcard-data))
+         (vcard-alist-assoc key vcard-data))
         ((and (stringp key)
               (save-match-data
                 (string-match ";" key)))
-         (vcard-nested-alist-assoc (vcard-split-string key ";") vcard-data))
+         (vcard-alist-assoc (vcard-split-string key ";") vcard-data))
         ((stringp key)
          (cdr (assoc key vcard-data)))))
 
 
-(defun vcard-nested-alist-assoc (keys alist)
+;;; Vcard data filters.
+
+;; These receive both the key and data, but are expected to operate on (and
+;; return) just the data.
+;;
+;; There is probably no overwhelming need for this, except that some lusers
+;; put HTML in their vcards under the misguided notion that it's a standard
+;; feature of vcards just because Netscape supports this feature.  (Or
+;; perhaps those lusers just don't care that their vcards look like shit in
+;; every other MUA).
+;;
+;; On the other hand, perhaps someone will devise some other use for these
+;; filters, such as noticing common phone number formats and re-formatting
+;; them to fit personal preferences.
+
+(defun vcard-filter-apply-filter-list (filter-list key data)
+  (while filter-list
+    (setq data (funcall (car filter-list) key data))
+    (setq filter-list (cdr filter-list)))
+  data)
+
+(defun vcard-standard-filter (key data)
+  (vcard-filter-apply-filter-list vcard-standard-filters key data))
+
+(defun vcard-filter-html (key data)
+  (save-match-data
+    (while (string-match "<[^<>\n]+>" data)
+      (setq data (concat (substring data 0 (match-beginning 0))
+                         (substring data (match-end 0)))))
+    data))
+
+
+;;; Utility routines.
+
+;; This does most of the dirty work of key lookup for vcard-ref.
+(defun vcard-alist-assoc (keys alist)
   (while (and keys alist)
     (setq alist (cdr (assoc (car keys) alist)))
     (setq keys (cdr keys)))
   alist)
 
+;; In ALIST, set KEY-LIST's value to VALUE, and return new value of ALIST.
+;; KEY-LIST should be a list of nested keys, if ALIST is an alist of alists.
+;; If any key is not present in an alist, the key and value pair will be
+;; inserted into the parent alist.
 (defun vcard-set-alist-slot (alist key-list value)
   (let* ((key (car key-list))
          (elt (assoc key alist)))
@@ -92,7 +170,6 @@
                     (setcar alist new))))))
     alist))
 
-
 ;; Return substring matched by last search.
 ;; N specifies which match data pair to use
 ;; Value is nil if there is no Nth match.
@@ -114,6 +191,94 @@
         (setq list (cons (substring string pos (match-beginning 0)) list))
         (setq pos (match-end 0)))
       (nreverse (cons (substring string pos) list)))))
+
+(defun vcard-flatten (l)
+  (if (consp l)
+      (apply 'nconc (mapcar 'vcard-flatten l))
+    (list l)))
+
+
+;;; Sample formatting routines.
+
+(defun vcard-display-string (vcard-data)
+  "Format VCARD-DATA into a string suitable for presentation.
+VCARD-DATA should be a parsed vcard alist.  The result is a string
+with formatted vcard information which can be inserted into a mime
+presentation buffer."
+  (let* ((name  (vcard-display-get-name      vcard-data))
+         (title (vcard-display-ref "title"   vcard-data))
+         (org   (vcard-display-ref "org"     vcard-data))
+         (addr  (vcard-display-get-address   vcard-data))
+         (tel   (vcard-display-get-telephone vcard-data))
+         (lines (delete nil (vcard-flatten (list name title org addr))))
+         (col-template (format "%%-%ds%%s"
+                               (vcard-display-offset lines tel)))
+         (l lines))
+    (while tel
+      (setcar l (format col-template (car l) (car tel)))
+      (setq l (cdr l))
+      (setq tel (cdr tel)))
+    (mapconcat 'identity lines "\n")))
+
+(defun vcard-display-get-name (vcard-data)
+  (let ((name (vcard-display-ref "fn" vcard-data))
+        (email (or (vcard-display-ref '("email" "internet") vcard-data)
+                   (vcard-display-ref "email" vcard-data))))
+    (if email
+        (format "%s <%s>" name email)
+      name)))
+
+(defun vcard-display-get-address (vcard-data)
+  (let* ((addr (or (vcard-display-ref '("adr" "dom") vcard-data)
+                   (vcard-display-ref "adr" vcard-data)))
+         (street (delete "" (list (nth 0 addr) (nth 1 addr) (nth 2 addr))))
+         (city-list (delete "" (nthcdr 3 addr)))
+         (city (cond ((null (car city-list)) nil)
+                     ((cdr city-list)
+                      (format "%s, %s"
+                              (car city-list)
+                              (mapconcat 'identity (cdr city-list) " ")))
+                     (t (car city-list)))))
+    (delete nil
+            (if city
+                (append street (list city))
+              street))))
+
+(defun vcard-display-get-telephone (vcard-data)
+  (delete nil
+          (mapcar (function (lambda (x)
+                              (let ((result (vcard-display-ref (car x)
+                                                               vcard-data)))
+                                (and result
+                                     (concat (cdr x) result)))))
+                  '((("tel" "work") . "Work: ")
+                    (("tel" "home") . "Home: ")
+                    (("tel" "fax")  . "Fax:  ")))))
+
+(defun vcard-display-ref (key vcard-data)
+  (setq key (vcard-ref key vcard-data))
+  (or (cdr key)
+      (setq key (car key)))
+  (and (stringp key)
+       (string= key "")
+       (setq key nil))
+  key)
+
+(defun vcard-display-offset (row1 row2 &optional maxwidth)
+  (or maxwidth (setq maxwidth (frame-width)))
+  (let ((max1 (vcard-display-max-length row1))
+        (max2 (vcard-display-max-length row2)))
+    (+ max1 (min 5 (max 1 (- maxwidth (+ max1 max2)))))))
+
+(defun vcard-display-max-length (strings)
+  (let ((maxlen 0)
+        (len 0))
+    (while strings
+      (setq len (length (car strings)))
+      (setq strings (cdr strings))
+      (and (> len maxlen)
+           (setq maxlen len)))
+    maxlen))
 
 (provide 'vcard)
 
