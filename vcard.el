@@ -7,7 +7,7 @@
 ;; Keywords: vcard, mail, news
 ;; Created: 1997-09-27
 
-;; $Id: vcard.el,v 1.9 2000/02/03 20:51:51 friedman Exp $
+;; $Id: vcard.el,v 1.10 2000/02/23 19:39:15 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -109,6 +109,11 @@ the function `vcard-standard-filter' is supplied as the second argument to
 
 ;;; No user-settable options below.
 
+;; XEmacs 21 ints and chars are disjoint types.
+;; For all else, treat them as the same.
+(defalias 'vcard-char-to-int
+  (if (fboundp 'char-to-int) 'char-to-int 'identity))
+
 ;; This is just the version number for this package; it does not refer to
 ;; the vcard format specification.  Currently, this package does not yet
 ;; support the full vcard 3.0 specification.
@@ -139,7 +144,7 @@ the function `vcard-standard-filter' is supplied as the second argument to
          (tbl (make-vector 123 nil))
          (i 0))
     (while (< i len)
-      (aset tbl (char-to-int (aref a i)) i)
+      (aset tbl (vcard-char-to-int (aref a i)) i)
       (setq i (1+ i)))
     tbl))
 
@@ -498,7 +503,7 @@ US domestic telephone numbers are replaced with international format."
                (delete-region (point) (point-max)))
               (t
                (setq n (+ n (aref vcard-region-decode-base64-table
-                                  (char-to-int c))))
+                                  (vcard-char-to-int c))))
                (setq count (1+ count))
                (cond ((= count 4)
                       (insert (logand 255 (lsh n -16))
