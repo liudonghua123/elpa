@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1997-09-27
 
-;; $Id: vcard.el,v 1.3 1997/10/15 07:10:25 friedman Exp $
+;; $Id: vcard.el,v 1.4 1998/02/10 11:02:00 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -229,9 +229,15 @@ presentation buffer."
          (l lines))
     (while tel
       (setcar l (format col-template (car l) (car tel)))
+      ;; If we stripped away too many nil slots from l, add empty strings
+      ;; back in so setcar above will work on next iteration.
+      (and (cdr tel)
+           (null (cdr l))
+           (setcdr l (cons "" nil)))
       (setq l (cdr l))
       (setq tel (cdr tel)))
     lines))
+
 
 (defun vcard-format-get-name (vcard-data)
   (let ((name (vcard-format-ref "fn" vcard-data))
