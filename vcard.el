@@ -7,7 +7,7 @@
 ;; Keywords: vcard, mail, news
 ;; Created: 1997-09-27
 
-;; $Id: vcard.el,v 1.10 2000/02/23 19:39:15 friedman Exp $
+;; $Id: vcard.el,v 1.11 2000/06/29 17:07:55 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -468,6 +468,11 @@ US domestic telephone numbers are replaced with international format."
 
 ;;; Decoding methods.
 
+(defmacro vcard-hexstring-to-ascii (s)
+  (if (string-lessp emacs-version "20")
+      `(format "%c" (car (read-from-string (format "?\\x%s" ,s))))
+    `(format "%c" (string-to-number ,s 16))))
+
 (defun vcard-region-decode-quoted-printable (&optional beg end)
   (save-excursion
     (save-restriction
@@ -479,7 +484,7 @@ US domestic telephone numbers are replaced with international format."
         (goto-char (point-min))
         (while (re-search-forward "=[0-9A-Za-z][0-9A-Za-z]" nil t)
           (let ((s (buffer-substring (1+ (match-beginning 0)) (match-end 0))))
-            (replace-match (format "%c" (string-to-number s 16)) t t)))))))
+            (replace-match (vcard-hexstring-to-ascii s) t t)))))))
 
 (defun vcard-region-decode-base64 (&optional beg end)
   (save-restriction
