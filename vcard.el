@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1997-09-27
 
-;; $Id: vcard.el,v 1.2 1997/10/14 19:38:18 friedman Exp $
+;; $Id: vcard.el,v 1.3 1997/10/15 07:10:25 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -200,37 +200,50 @@ keys."
 
 ;;; Sample formatting routines.
 
-(defun vcard-display-string (vcard-data)
+(defun vcard-format-box (vcard-data)
+  "Like `vcard-format-string', but put an ascii box around text."
+  (let* ((lines (vcard-format-lines vcard-data))
+         (len (vcard-format-max-length lines))
+         (edge (concat "\n+" (make-string (+ len 2) ?-) "+\n"))
+         (line-fmt (format "| %%-%ds |" len)))
+    (concat edge
+            (mapconcat (function (lambda (s) (format line-fmt s))) lines "\n")
+            edge)))
+
+(defun vcard-format-string (vcard-data)
   "Format VCARD-DATA into a string suitable for presentation.
 VCARD-DATA should be a parsed vcard alist.  The result is a string
 with formatted vcard information which can be inserted into a mime
 presentation buffer."
-  (let* ((name  (vcard-display-get-name      vcard-data))
-         (title (vcard-display-ref "title"   vcard-data))
-         (org   (vcard-display-ref "org"     vcard-data))
-         (addr  (vcard-display-get-address   vcard-data))
-         (tel   (vcard-display-get-telephone vcard-data))
+  (mapconcat 'identity (vcard-format-lines vcard-data) "\n"))
+
+(defun vcard-format-lines (vcard-data)
+  (let* ((name  (vcard-format-get-name      vcard-data))
+         (title (vcard-format-ref "title"   vcard-data))
+         (org   (vcard-format-ref "org"     vcard-data))
+         (addr  (vcard-format-get-address   vcard-data))
+         (tel   (vcard-format-get-telephone vcard-data))
          (lines (delete nil (vcard-flatten (list name title org addr))))
          (col-template (format "%%-%ds%%s"
-                               (vcard-display-offset lines tel)))
+                               (vcard-format-offset lines tel)))
          (l lines))
     (while tel
       (setcar l (format col-template (car l) (car tel)))
       (setq l (cdr l))
       (setq tel (cdr tel)))
-    (mapconcat 'identity lines "\n")))
+    lines))
 
-(defun vcard-display-get-name (vcard-data)
-  (let ((name (vcard-display-ref "fn" vcard-data))
-        (email (or (vcard-display-ref '("email" "internet") vcard-data)
-                   (vcard-display-ref "email" vcard-data))))
+(defun vcard-format-get-name (vcard-data)
+  (let ((name (vcard-format-ref "fn" vcard-data))
+        (email (or (vcard-format-ref '("email" "internet") vcard-data)
+                   (vcard-format-ref "email" vcard-data))))
     (if email
         (format "%s <%s>" name email)
       name)))
 
-(defun vcard-display-get-address (vcard-data)
-  (let* ((addr (or (vcard-display-ref '("adr" "dom") vcard-data)
-                   (vcard-display-ref "adr" vcard-data)))
+(defun vcard-format-get-address (vcard-data)
+  (let* ((addr (or (vcard-format-ref '("adr" "dom") vcard-data)
+                   (vcard-format-ref "adr" vcard-data)))
          (street (delete "" (list (nth 0 addr) (nth 1 addr) (nth 2 addr))))
          (city-list (delete "" (nthcdr 3 addr)))
          (city (cond ((null (car city-list)) nil)
@@ -244,18 +257,18 @@ presentation buffer."
                 (append street (list city))
               street))))
 
-(defun vcard-display-get-telephone (vcard-data)
+(defun vcard-format-get-telephone (vcard-data)
   (delete nil
           (mapcar (function (lambda (x)
-                              (let ((result (vcard-display-ref (car x)
-                                                               vcard-data)))
+                              (let ((result (vcard-format-ref (car x)
+                                                              vcard-data)))
                                 (and result
                                      (concat (cdr x) result)))))
                   '((("tel" "work") . "Work: ")
                     (("tel" "home") . "Home: ")
                     (("tel" "fax")  . "Fax:  ")))))
 
-(defun vcard-display-ref (key vcard-data)
+(defun vcard-format-ref (key vcard-data)
   (setq key (vcard-ref key vcard-data))
   (or (cdr key)
       (setq key (car key)))
@@ -264,13 +277,13 @@ presentation buffer."
        (setq key nil))
   key)
 
-(defun vcard-display-offset (row1 row2 &optional maxwidth)
+(defun vcard-format-offset (row1 row2 &optional maxwidth)
   (or maxwidth (setq maxwidth (frame-width)))
-  (let ((max1 (vcard-display-max-length row1))
-        (max2 (vcard-display-max-length row2)))
+  (let ((max1 (vcard-format-max-length row1))
+        (max2 (vcard-format-max-length row2)))
     (+ max1 (min 5 (max 1 (- maxwidth (+ max1 max2)))))))
 
-(defun vcard-display-max-length (strings)
+(defun vcard-format-max-length (strings)
   (let ((maxlen 0)
         (len 0))
     (while strings
