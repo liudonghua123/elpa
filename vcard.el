@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1997-09-27
 
-;; $Id: vcard.el,v 1.5 1998/06/05 19:56:06 friedman Exp $
+;; $Id: vcard.el,v 1.6 1998/07/21 20:35:40 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -206,10 +206,12 @@ keys."
   (let* ((lines (vcard-format-lines vcard-data))
          (len (vcard-format-max-length lines))
          (edge (concat "\n+" (make-string (+ len 2) ?-) "+\n"))
-         (line-fmt (format "| %%-%ds |" len)))
-    (concat edge
-            (mapconcat (function (lambda (s) (format line-fmt s))) lines "\n")
-            edge)))
+         (line-fmt (format "| %%-%ds |" len))
+         (formatted-lines
+          (mapconcat (function (lambda (s) (format line-fmt s))) lines "\n")))
+    (if (string= formatted-lines "")
+        formatted-lines
+      (concat edge formatted-lines edge))))
 
 (defun vcard-format-string (vcard-data)
   "Format VCARD-DATA into a string suitable for presentation.
@@ -249,8 +251,11 @@ presentation buffer."
       name)))
 
 (defun vcard-format-get-address (vcard-data)
-  (let* ((addr (or (vcard-format-ref '("adr" "dom") vcard-data)
-                   (vcard-format-ref "adr" vcard-data)))
+  (let* ((addr-raw (or (vcard-format-ref '("adr" "dom") vcard-data)
+                       (vcard-format-ref "adr" vcard-data)))
+         (addr (if (consp addr-raw)
+                   addr-raw
+                 (list addr-raw)))
          (street (delete "" (list (nth 0 addr) (nth 1 addr) (nth 2 addr))))
          (city-list (delete "" (nthcdr 3 addr)))
          (city (cond ((null (car city-list)) nil)
