@@ -1,13 +1,13 @@
 ;;; vcard.el --- vcard parsing and display routines
 
-;; Copyright (C) 1997 Noah S. Friedman
+;; Copyright (C) 1997, 1999 Noah S. Friedman
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 ;; Created: 1997-09-27
 
-;; $Id: vcard.el,v 1.6 1998/07/21 20:35:40 friedman Exp $
+;; $Id: vcard.el,v 1.7 1999/10/25 05:49:12 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,6 +28,11 @@
 
 ;; The display routines here are just an example.  The primitives in the
 ;; first section can be used to construct other vcard formatters.
+
+;; The vcard 2.1 format is defined by the versit consortium.
+;; See http://www.imc.org/pdi/vcard-21.ps
+;; RFC 2426 defines the vcard 3.0 format.
+;; See ftp://ftp.rfc-editor.org/in-notes/rfc2426.txt
 
 ;;; Code:
 
@@ -63,7 +68,8 @@ If supplied to this function an alist of the form
 
 would be returned."
   (save-match-data
-    (let ((raw-pos 0)
+    (let ((case-fold-search t)
+          (raw-pos 0)
           (vcard-data nil)
           key data)
       (string-match "^[ \t]*begin:[ \t]*vcard[ \t]*[\r\n]+" raw raw-pos)
@@ -72,7 +78,7 @@ would be returned."
                   (string-match
                    "^[ \t]*\\([^:]+\\):[ \t]*\\(.*\\)[ \t]*[\n\r]+"
                    raw raw-pos))
-        (setq key (vcard-matching-substring 1 raw))
+        (setq key (downcase (vcard-matching-substring 1 raw)))
         (setq data (vcard-matching-substring 2 raw))
         (setq raw-pos (match-end 0))
         (cond
@@ -147,7 +153,8 @@ keys."
 ;; If any key is not present in an alist, the key and value pair will be
 ;; inserted into the parent alist.
 (defun vcard-set-alist-slot (alist key-list value)
-  (let* ((key (car key-list))
+  (let* ((orig-key-list key-list)
+         (key (car key-list))
          (elt (assoc key alist)))
     (setq key-list (cdr key-list))
     (cond ((and (cdr elt) key-list)
@@ -157,7 +164,7 @@ keys."
           (elt (setcdr elt value))
           (t
            (let ((new))
-             (setq key-list (nreverse (cons key key-list)))
+             (setq key-list (reverse orig-key-list))
              (while key-list
                (if new
                    (setq new (cons (car key-list) (cons new nil)))
