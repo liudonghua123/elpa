@@ -7,7 +7,7 @@
 ;; Keywords: vcard, mail, news
 ;; Created: 1997-09-27
 
-;; $Id: vcard.el,v 1.8 2000/02/03 17:54:50 friedman Exp $
+;; $Id: vcard.el,v 1.9 2000/02/03 20:51:51 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -275,7 +275,7 @@ Note: this function modifies the buffer!"
              ;; chars and those which were encoded in order to quote them
              ;; against being treated as field separators.
              (goto-char beg)
-             (setq pos (new-marker (point)))
+             (setq pos (set-marker (make-marker) (point)))
              (setq match-beg (make-marker))
              (setq match-end (make-marker))
              (save-match-data
