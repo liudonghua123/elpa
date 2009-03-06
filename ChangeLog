@@ -1,5 +1,9 @@
 2009-03-06  Helmut Eller  <eller.helmut@gmail.com>
 
+	* peg.el (peg-ex-arith): Minor cleanups.
+
+2009-03-06  Helmut Eller  <eller.helmut@gmail.com>
+
 	Introduce an operator to match string literals.
 
 	* peg.el (translate =): Add = operator.

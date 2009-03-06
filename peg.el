@@ -666,6 +666,10 @@ input.  PATH is the list of rules that we have visited so far."
   (assert (equal (peg-parse-string ((s `(-- 1 2))) "") '(t (2 1))))
   (assert (equal (peg-parse-string ((s `(-- 1 2) `(a b -- a b))) "")
 		 '(t (2 1))))
+  (assert (equal (peg-parse-string ((s (or (and (any) s)
+					   (substring [0-9]))))
+				   "ab0cd1ef2gh")
+		 '(t ("2"))))
   (assert (equal (peg-parse-string ((s (list x y))
 				    (x `(-- 1))
 				    (y `(-- 2)))
@@ -744,22 +748,16 @@ input.  PATH is the list of rules that we have visited so far."
 ;; Parse arithmetic expressions and compute the result as side effect.
 (defun peg-ex-arith ()
   (peg-parse 
-   (expr (or (and ws sum eol)
+   (expr (or (and _ sum eol)
 	     (and (* (not eol) (any)) eol error)))
-   (sum product (* (or (and plus product `(a b -- (+ a b)))
-		       (and minus product `(a b -- (- a b))))))
-   (product value (* (or (and times value `(a b -- (* a b)))
-			 (and divide value `(a b -- (/ a b))))))
+   (sum product (* (or (and "+" _ product `(a b -- (+ a b)))
+		       (and "-" _ product `(a b -- (- a b))))))
+   (product value (* (or (and "*" _ value `(a b -- (* a b)))
+			 (and "/" _ value `(a b -- (/ a b))))))
    (value (or (and (substring number) `(string -- (string-to-number string)))
-	      (and open sum close)))
-   (number (+ [0-9]) ws)
-   (plus "+" ws)
-   (minus "-" ws)
-   (times "*" ws)
-   (divide "/" ws)
-   (open "(" ws)
-   (close ")" ws)
-   (ws (* (or " " "\t")))
+	      (and "(" _ sum ")" _)))
+   (number (+ [0-9]) _)
+   (_ (* [" \t"]))
    (eol (or "\n" "\r\n" "\r"))
    (error (action (error "Parse error at: %s" (point))))))
 
@@ -827,7 +825,6 @@ input.  PATH is the list of rules that we have visited so far."
    (lowalpha [a-z])
    (upalpha [A-Z])
    (digit [0-9])))
-
 ;; (peg-ex-uri)file:/bar/baz.html?foo=df#x
 ;; (peg-ex-uri)http://luser@www.foo.com:8080/bar/baz.html?x=1#foo
 
