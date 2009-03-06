@@ -81,7 +81,7 @@
 ;; (substring E)  ; match E and push the substring for the matched region
 ;; (region E)     ; match E and push the corresponding start and end positions
 ;; (replace E RPL); match E and replace the matched region with RPL.
-;; (list E)       ; match E and push a list of all items that E produces.
+;; (list E)       ; match E and push a list out of the items that E produces.
 ;;
 ;; Regexp equivalents:
 ;;
@@ -225,7 +225,7 @@ Note: a PE can't \"call\" rules by name."
 	 (error "Invalid parsing expression: %S" exp))))
 
 (defvar peg-leaf-types '(null fail any call action char range str set
-			      bob eob bol eol bow eow bos eos syntax-class))
+			      bob eob bol eol bow eow bos eos syntax-class =))
 
 (dolist (type peg-leaf-types)
   (puthash type `(lambda (&rest args) (cons ',type args)) 
@@ -421,6 +421,12 @@ Note: a PE can't \"call\" rules by name."
 	  (t (error "Invalid syntax class: %S\nMust be one of: %s" class
 		    (mapcar #'car peg-syntax-classes))))))
 
+(peg-add-method translate = (string)
+  `(let ((str ,string))
+     (when (zerop (length str)) 
+       (error "Empty strings not allowed for ="))
+     (search-forward str (+ (point) (length str)) t)))
+
 (peg-add-method translate * (e)
   (let ((cp (peg-make-choicepoint)))
     `(progn (while (,@(peg-save-choicepoint cp)
@@ -584,6 +590,7 @@ input.  PATH is the list of rules that we have visited so far."
 (peg-add-method detect-cycles eow   (path)       t)
 (peg-add-method detect-cycles bos   (path)       t)
 (peg-add-method detect-cycles eos   (path)       t)
+(peg-add-method detect-cycles =     (path s)     nil)
 (peg-add-method detect-cycles syntax-class (p n) nil)
 (peg-add-method detect-cycles action (path form) t)
 
@@ -653,6 +660,9 @@ input.  PATH is the list of rules that we have visited so far."
   (assert (not (peg-parse-string ((s (bos))) " x")))
   (assert (peg-parse-string ((s "x" (eos))) "x"))
   (assert (peg-parse-string ((s (syntax-class whitespace))) " "))
+  (assert (peg-parse-string ((s (= "foo"))) "foo"))
+  (assert (let ((f "foo")) (peg-parse-string ((s (= f))) "foo")))
+  (assert (not (peg-parse-string ((s (= "foo"))) "xfoo")))
   (assert (equal (peg-parse-string ((s `(-- 1 2))) "") '(t (2 1))))
   (assert (equal (peg-parse-string ((s `(-- 1 2) `(a b -- a b))) "")
 		 '(t (2 1))))
@@ -820,6 +830,39 @@ input.  PATH is the list of rules that we have visited so far."
 
 ;; (peg-ex-uri)file:/bar/baz.html?foo=df#x
 ;; (peg-ex-uri)http://luser@www.foo.com:8080/bar/baz.html?x=1#foo
+
+;; Split STRING where SEPARATOR occurs.
+(defun peg-ex-split (string separator)
+  (peg-parse-string ((s (list (* (* sep) elt)))
+		     (elt (substring (+ (not sep) (any))))
+		     (sep (= separator)))
+		    string))
+
+;; (peg-ex-split "-abc-cd-" "-")
+
+;; Find the last digit in a string.
+(defun peg-ex-last-digit (string)
+  (peg-parse-string ((s (or (and (any) s)
+			    (substring [0-9]))))
+		    string))
+
+;; (peg-ex-last-digit "ab0cd1ef2gh")
+;; (peg-ex-last-digit (make-string 50 ?-))
+;; (peg-ex-last-digit (make-string 1000 ?-))
+
+;; Find the last digit without recursion.
+(defun peg-ex-last-digit2 (string)
+  (peg-parse-string ((s `(-- nil) 
+			(+ (* (not digit) (any))
+			   (substring digit)
+			   `(d1 d2 -- d2)))
+		     (digit [0-9]))
+		    string))
+
+;; (peg-ex-last-digit2 "ab0cd1ef2gh")
+;; (peg-ex-last-digit2 (concat (make-string 500000 ?-) "8a9b"))
+;; (peg-ex-last-digit2 (make-string 500000 ?-))
+;; (peg-ex-last-digit2 (make-string 500000 ?5))
 
 ;; Parse a lisp style Sexp.
 ;; [To keep the example short, ' and . are handled as ordinary symbol.]

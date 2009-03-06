@@ -1,122 +1,104 @@
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Mon Dec 22 09:13:05 2008 +0100
+2009-03-06  Helmut Eller  <eller.helmut@gmail.com>
 
-    Fix typo.
+	Introduce an operator to match string literals.
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Sun Dec 21 09:38:06 2008 +0100
+	* peg.el (translate =): Add = operator.
+	(peg-ex-split): Example use.
 
-    Version 0.5 for savannah.
+2008-12-22  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Thu Dec 18 10:19:18 2008 +0100
+	Fix typo.
 
-    Remove *list op.
+2008-12-21  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Wed Dec 17 18:59:23 2008 +0100
+	Version 0.5 for savannah.
 
-    Bump version number to 0.4.
+2008-12-18  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Wed Dec 17 18:52:55 2008 +0100
+	Remove *list op.
 
-    Add some more operators for actions.
-    list: Factored out of *list.  Collects all items on the stack.
-    region: New. Pushes start and end.
-    replaces: Replaces match.
+2008-12-17  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Wed Dec 17 18:08:28 2008 +0100
+	Bump version number to 0.4.
 
-    Fix normalizer for \`: Push values in left-to-right order.
-    peg-postprocess: turn positions in to markers to
-    support replacement ops in the actions.
+2008-12-17  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Mon Dec 1 19:10:21 2008 +0100
+	Add some more operators for actions.
+	list: Factored out of *list.  Collects all items on the stack.
+	region: New. Pushes start and end.
+	replaces: Replaces match.
 
-    (peg-ex-lisp): Minor change to allow comments in more places.
+2008-12-17  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Mon Dec 1 15:19:31 2008 +0100
+	Fix normalizer for \`: Push values in left-to-right order.
+	peg-postprocess: turn positions in to markers to
+	support replacement ops in the actions.
 
-    (peg-ex-uri): Fix some stack actions so that the file: example works.
+2008-12-01  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Fri Nov 28 15:21:35 2008 +0100
+	(peg-ex-lisp): Minor change to allow comments in more places.
 
-    Remove dups from char sets to avoid clashes with [:CLASS:] syntax.
-    There's still no way to include syntax classes in charsets. There
-    really should be.
+2008-12-01  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Fri Nov 28 12:09:31 2008 +0100
+	(peg-ex-uri): Fix some stack actions so that the file: example works.
 
-    Handle ^ in charsets.
+2008-11-28  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Fri Nov 28 10:12:24 2008 +0100
+	Remove dups from char sets to avoid clashes with [:CLASS:] syntax.
+	There's still no way to include syntax classes in charsets. There
+	really should be.
 
-    Use (declare (indent )) again.  Emacs 21 compatibility is to hard
-    due to broken ,@ or something.
+2008-11-28  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Fri Nov 28 08:50:10 2008 +0100
+	Handle ^ in charsets.
 
-    Don't use (declare (indent 3)) because that doesn' work in Emacs 21.
+2008-11-28  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Fri Nov 28 08:44:03 2008 +0100
+	Use (declare (indent )) again.  Emacs 21 compatibility is to hard
+	due to broken ,@ or something.
 
-    Fix minor spelling error.
+2008-11-28  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Fri Nov 28 08:35:16 2008 +0100
+	Don't use (declare (indent 3)) because that doesn' work in Emacs 21.
 
-    Fix range translator: we need to check for eob.
-    Thanks to Hugo Schmitt.
+2008-11-28  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Thu Nov 27 23:54:18 2008 +0100
+	Fix minor spelling error.
 
-    *** empty log message ***
+2008-11-28  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Thu Nov 27 23:52:25 2008 +0100
+	Fix range translator: we need to check for eob.
+	Thanks to Hugo Schmitt.
 
-    Make file byte-compileable in Emacs 22.
+2008-11-28  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Thu Nov 27 10:07:40 2008 +0100
+	Make file byte-compileable in Emacs 22.
 
-    Add mini test suite
-    Restore subtring operator.
-    Add translate method for <fail>.
+2008-11-27  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Thu Nov 27 09:26:33 2008 +0100
+	Add mini test suite
+	Restore subtring operator.
+	Add translate method for <fail>.
 
-    Add *list operator.
+2008-11-27  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Sat Nov 8 14:37:40 2008 +0100
+	Add *list operator.
 
-    More friendly syntax for character sets.
-    For example (set A-Z 0-9 "_!-" ?%).
-    [A-Z] is now the same as (set A-Z) which should look familiar.
+2008-11-08  Helmut Eller  <eller.helmut@gmail.com>
 
-    Fix bug in *-loops.  We must backtrack.
+	More friendly syntax for character sets.
+	For example (set A-Z 0-9 "_!-" ?%).
+	[A-Z] is now the same as (set A-Z) which should look familiar.
 
-    Add somewhat bigger examples to parse URIs and Lisp-style Sexps.
+	Fix bug in *-loops.  We must backtrack.
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Thu Nov 6 12:18:26 2008 +0100
+	Add somewhat bigger examples to parse URIs and Lisp-style Sexps.
 
-    Detect infinite loops.
-    Use a single peg-add-method macro for all gfs.
+2008-11-06  Helmut Eller  <eller.helmut@gmail.com>
 
-Author: Helmut Eller <eller.helmut@gmail.com>
-Date:   Wed Nov 5 23:12:05 2008 +0100
+	Detect infinite loops.
+	Use a single peg-add-method macro for all gfs.
 
-    Add peg.el.
+2008-11-06  Helmut Eller  <eller.helmut@gmail.com>
+
+	Add peg.el.
