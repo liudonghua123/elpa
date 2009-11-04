@@ -1,3 +1,24 @@
+2009-11-04  Helmut Eller  <eller.helmut@gmail.com>
+
+	Add some error reporting.  If a parse fails, move to the
+	right-most position and show the alternatives for that position.
+
+	Also only return a signle value: the stack.  Failures are
+	signalled with an error.  To avoid signalling errors you can add a
+	rule which matches everything but indicates failure in some other
+	way e.g. by setting a global variable.
+
+	* peg.el (peg-errors): New variable.
+	(peg-translate-rules): Use it.  Also raise errors at the
+	right-most point of failure.
+	(peg-translate-exp): Record failures.
+	(peg-record-failure): New function.
+	(peg-merge-errors): Used for error reporting.
+	(peg-postprocess): Just return the stack. Errors can be indicated
+	by leaving something on the stack.
+	(peg-parse-string): Add a NOERROR argument.  Hopefully more in
+	line with string-match. Update tests accordingly.
+
 2009-03-06  Helmut Eller  <eller.helmut@gmail.com>
 
 	* peg.el (peg-ex-arith): Minor cleanups.
