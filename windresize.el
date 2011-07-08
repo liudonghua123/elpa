@@ -3,7 +3,6 @@
 ;; Copyright (C) 2011  Free Software Foundation, Inc.
 ;;
 ;; Filename: windresize.el
-;; Version: 0.6d
 ;; Author: Bastien <bzg AT altern DOT org>
 ;; Maintainer: Bastien <bzg AT altern DOT org>
 ;; Keywords: window
