@@ -1,3 +1,4 @@
+;;; -*- Mode: Emacs-Lisp; byte-compile-dynamic: t;-*-
 ;;; File to make aliases
 ;;; Ritter & Nichols
 ;;; Nov. 1994

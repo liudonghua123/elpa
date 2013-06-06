@@ -1,4 +1,4 @@
-;;;; -*- Mode: Emacs-Lisp -*- 
+;;;; -*- Mode: Emacs-Lisp; byte-compile-dynamic: t;-*-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; 
 ;;;; File            : semi-coder.el

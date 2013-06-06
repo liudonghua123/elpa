@@ -94,7 +94,7 @@
    ("FPrin.       Print a text only version to a file." dis-make-report)
    ("PPrin.       Print a copy to a printer (M-x print-buffer also sorta works)."
                   dis-print-report)
-   ("Dump         Dump a version to a file." dis-dump-menu)
+   ("Dump/        Dump a version to a file." dis-dump-menu)
    ("Unpage       Strip page breaks from a report." dis-unpaginate)
    ("Quit         Quit dismal-mode on a file." kill-buffer)
 ))
@@ -103,12 +103,14 @@
 (def-menu 'dis-dump-menu
   "Dis Dump"
   "" ;help prompt
- '(("Dump        Dump a tabbed version to a file (w/ arg, save formulas)." 
+ '(("DumpTF      Dump a tabbed version to a file (w/ arg, save formulas)." 
                  dis-write-tabbed-file)
    ("RDump.      Dump a range to a tabbed file." dis-dump-range)
    ("TDump.      Dump a range to a tabbed file for TeX." dis-tex-dump-range)
    ("2TDump.     Dump a range to a tabbed file for TeX, complete with full header." 
                  dis-tex-dump-range-file)
+   ("HDump.      Dump a range to a file for HTML." dis-html-dump-range)
+   ("3HDump.     Dump file to a file for HTML." dis-html-dump-file)
 ))
 
 
@@ -318,6 +320,9 @@
                    dis-set-metacolumn)
    ("Field-sep     Set the field seperator in files read in." 
                    dis-set-dis-field-sep)
+   ("Show-updt     Toggle showing the variables getting updated." 
+                   dis-toggle-show-update)
+
 ))
 
 

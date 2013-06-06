@@ -26,7 +26,7 @@ Dismal: A spreadsheet for GNU-Emacs
 (For GNU release 18.5X and 19)
 and
 dismal 0.9 and higher
-November 7, 1994
+25 July 1997
 
 Frank E. Ritter,Sarah C. Nichols, and Shara K. Lochun
 ritter@@psyc.nott.ac.uk
@@ -123,9 +123,6 @@ ritter@@psyc.nott.ac.uk
 @comment Frank E. Ritter,Sarah C. Nichols, and Shara K. Lochun
 @comment ritter@psyc.nott.ac.uk
 @comment 
-@comment AI Group
-@comment and
-@comment ESRC Centre for Research in Development, Instruction and Training
 @comment Psychology Department
 @comment U. of Nottingham
 @comment Nottingham, England
@@ -157,11 +154,9 @@ This work was sponsored in part by a training grant from the Air Force
 Office of Scientific Research, Bolling AFB, DC; and in part by the
 Avionics Laboratory, Wright Research and Development Center,
 Aeronautical Systems Division (AFSC), U.S. Air Force, Wright-Patterson
-AFB, OH 45433-6543 under Contract F33615-90-C-1465, ARPA Order
-No. 7597.  It is currently supported by the Economic and Social
-Science Research Council's Centre for Research in Development,
-Instruction and Training and by a grant from the Joint Council
-Initiative in HCI and Cognitive Science, number SPG 9018736.
+AFB, OH 45433-6543 under Contract F33615-90-C-1465, ARPA Order No. 7597.
+It was supported by a grant from the Joint Council Initiative in HCI and
+Cognitive Science, number SPG 9018736, and by a grant from the DRA(UK).
 
 The views and conclusions contained in this document are those of the
 authors and should not be interpreted as representing the official
@@ -1501,7 +1496,8 @@ font.
 
 @end table
 
-For more advanced worksheet manipulations, changing the following variables might also be useful:
+For more advanced worksheet manipulations, changing the following
+variables might also be useful:
 
 @table @code
 
@@ -1609,6 +1605,20 @@ dis-read-cell-plain.  Examining dismal.el, you will find that this
 function references the expression (the string, number or expression
 that is evaluated to give the cell's value) through dismal-get-exp.
 
+You should try to use functions that start with dis-, for these are
+pretty stable.  If you have to, and you will, functions that start with
+dismal- are less stable, and access internal data structures, and you
+can get youself more easily in trouble this way.
+
+If you really want to live dangerously (and this is documented for that
+person), you can use dynamically bound variables.  When dismal evaluates
+a cell it binds r and c to the row and column of the cell getting
+evaluated.  If you first set r and c to be variables, the input parser
+will recognize them as top-level variables, and let them be variables,
+not strings.  You can then use them in functions, such as (+ r c) will
+add the current row and column of the cell itself.  Maybe this is a good
+idea, but it makes me nervous.
+
 @section Using the Keystroke level model in dismal
 
 As an example set of functions, the Keystroke model of Card, Moran and
@@ -1673,9 +1683,10 @@ There are also functions for dumping output for direct use by TeX and
 gnuplot. dis-tex-dump-range and dis-tex-dump-range-file will dump a file
 and a range for tex to use.  The only difference between the two tex
 functions is that one of them outputs just the
-\begin{tabular}... \end{tabular} whereas the other one also outputs
-\begin{document}...\end{document} so that the file can be immediately
-run through latex.
+\begin@{tabular@} ... 
+\end@{tabular@} whereas the other one also outputs 
+\begin@{document@} ... \end@{document@} so that 
+the file can be immediately run through latex.
 
 dis-gnuplot-range will dump a range into gnuplot.  You should see the
 function itself to further documentation.  Some users use this, but I

@@ -1,3 +1,4 @@
+;;;; -*- Mode: Emacs-Lisp; byte-compile-dynamic: t;-*-
 ;;; Sarah Nichols
 ;;; University of Nottingham
 ;;; 23/XII/94

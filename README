@@ -1,9 +1,9 @@
                              dismal-mode
-                             Release 1.1 or later
+                             Release 1.2 or later
 
                            Frank E. Ritter
-                    Frank.Ritter@nottingham.ac.uk
-                              2-Jan-97
+                    <Frank.Ritter@nottingham.ac.uk>
+                              25-Jul-97
 
 INTRODUCTION
 ------------
@@ -68,10 +68,9 @@ To install the system:
    GNU emacs at your site is not called "emacs", but something else (e.g.,
    some places use "gmacs"), then compile the .el files using the alternative
    command "make EMACS=xxxx" where "xxxx" is the name of your emacs program.
-   There are a lot of compiler warnings generated in 19.17.
+   There are a lot of compiler warnings generated in 19.28.
 
-3) Please read the file "dismal-mode.doc".  It is very important, and explains
-   the basics of dismal.
+3) Please read the dismal.info files.  They are the manual.
 
 4) At U-N, where dismal is installed in /psyc/lang/soar/utils/dismal/VERSION,
    users can set up their Emacs to use dismal by adding the following to
@@ -81,8 +80,11 @@ To install the system:
 
    To use dismal at your site, change the pathname to
    correspond to the location of the dismal files at your site.  More
-   information about installing and using dismal are contained in the file
-   dismal-mode.doc. 
+   information about installing and using dismal are contained in the 
+   online help, available within dismal as C-h m, 
+   or in the info files themselves (dismal-manual.tex and
+   dismal-manual.txt)
+   
 
 FILES
 -----
@@ -93,16 +95,15 @@ The files included in the package are:
     Makefile             dismal-simple-menus.el
     README               dismal-metacolumn.el
     REFCARD              dismal-mouse-x.el
-    dismal-mode.doc      dismal-mode-defaults.el
+    dismal-manual.txt    dismal-mode-defaults.el
           
 
-   *float.el            *popper.el (v. 2.11)
+   *float.el            
    *float-changes.el    *vectors.el
    *heaps.el            *rmatrix.el
-   *utilities/soar-misc.el
-   *utilities/insert-date.el
-   *utilities/simple-menu.el
-   *utilities/goto-manual.el
+   *soar-misc.el        *simple-menu.el
+   *insert-date.el
+
 
 The last group of files marked with "*" are not part of dismal proper,
 but dismal depends on them.  It should be possible for later releases
@@ -112,7 +113,8 @@ files are gone already.
 MISCELLANEOUS
 -------------
 
-Some features which are not implemented yet, but will eventually be, are:
+Some features which are not fully implemented yet, but will eventually
+be, are:
 
     use of Emacs 19's features (defsubs)
     the use of sparse matrices to represent the spreadsheet
@@ -125,8 +127,8 @@ A previous version of the manual in Microsoft Word is also available
  upon request. 
 
 If you would like to hear about updates and other such things, please
-let me know and I'll put you on my dismal mailing list.
+let me know and I'll put you on the dismal users mailing list.
 
-Frank.Ritter@nottingham.ac.uk
+<Frank.Ritter@nottingham.ac.uk>
 
 

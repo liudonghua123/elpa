@@ -66,21 +66,20 @@
 ;;;
 
 (define-key dismal-map [menu-bar model]
-  (cons "Model" (make-sparse-keymap "Model")))
+  (cons "dModel" (make-sparse-keymap "Model")))
 
 (define-key dismal-map [menu-bar model Utils]
-  '("Utilities" . dis-utils-menu))
+  '("Utils" . dis-utils-menu))
 (define-key dismal-map [menu-bar model Stats]
-  '("Statistics" . dis-stat))
+  '("Stats" . dis-stat))
 (define-key dismal-map [menu-bar model Codes]
   '("Codes" . dis-code))
 (define-key dismal-map [menu-bar model KLM]
-  '("Keystroke model" . dis-klm))
+  '("KL model" . dis-klm))
 
 
 ;; UTILS pop-up-menu
-(defvar dis-utils-menu
-  (make-sparse-keymap "Utilities"))
+(defvar dis-utils-menu (make-sparse-keymap "Utilities"))
 ;; This is a common idiom.  It makes the keymap available as a function 
 ;; call, somehow.  It is done for all the submenus.
 (fset 'dis-utils dis-utils-menu)
@@ -92,8 +91,7 @@
 
 
 ;; STATS pop-up-menu
-(defvar dis-stat-menu
-  (make-sparse-keymap "Statistics"))
+(defvar dis-stat-menu (make-sparse-keymap "Statistics"))
 (fset 'dis-stat dis-stat-menu)
 
 (define-key dis-stat-menu [stats]
@@ -103,8 +101,7 @@
 
 
 ;; CODES pop-up-menu
-(defvar dis-code-menu
-  (make-sparse-keymap "Codes"))
+(defvar dis-code-menu (make-sparse-keymap "Codes"))
 (fset 'dis-code dis-code-menu)
 
 (define-key dis-code-menu [init]
@@ -117,8 +114,7 @@
   '("Save" . dis-save-op-code))
 
 ;; KLM pop-up-menu
-(defvar dis-klm-menu
-  (make-sparse-keymap "KLM"))
+(defvar dis-klm-menu (make-sparse-keymap "KLM"))
 (fset 'dis-klm dis-klm-menu)
 
 (define-key dis-klm-menu [init]
@@ -132,7 +128,7 @@
 ;;;
 
 (define-key dismal-map [menu-bar options]
-  (cons "Options" (make-sparse-keymap "Options")))
+  (cons "dOpts" (make-sparse-keymap "Options")))
 
 (define-key dismal-map [menu-bar options zrange]
   '("Redraw Range" . dis-redraw-range))
@@ -161,6 +157,8 @@
   '("Toggle Ruler" . dis-set-ruler))
 (define-key dis-setv-menu [ruler-row]
   '("Ruler Row" . dis-set-ruler-rows))
+(define-key dis-setv-menu [auto-update]
+  '("Show update" . dis-toggle-show-update))
 ;; changed to ruler-rowS, 25-May-96 -FER
 
 
@@ -170,7 +168,7 @@
 ;;;
 
 (define-key dismal-map [menu-bar doc.]
-  (cons "Doc" (make-sparse-keymap "Doc.")))
+  (cons "dDoc" (make-sparse-keymap "Doc.")))
 
 (define-key dismal-map [menu-bar doc. show]
   '("Full Dismal Documentation" . dis-open-dis-manual))
@@ -188,7 +186,7 @@
 ;;;
 
 (define-key dismal-map [menu-bar format]
-  (cons "Format" (make-sparse-keymap "Format")))
+  (cons "dFormat" (make-sparse-keymap "Format")))
 
 (define-key dismal-map [menu-bar format update-r]
   '("Update Ruler" . dis-update-ruler))
@@ -215,7 +213,7 @@
 ;;;
 
 (define-key dismal-map [menu-bar commands]
-  (cons "Commands" (make-sparse-keymap "Commands")))
+  (cons "dComms" (make-sparse-keymap "Commands")))
 
 (define-key dismal-map [menu-bar commands 0log]
   '("Logging-Off" . log-quit))
@@ -250,7 +248,7 @@
 ;;;
 
 (define-key dismal-map [menu-bar go]
-  (cons "Go" (make-sparse-keymap "Go")))
+  (cons "dGo" (make-sparse-keymap "Go")))
 (define-key dismal-map [menu-bar go Jump]
   '("Jump to cell>" . dis-jump))
 (define-key dismal-map [menu-bar go End]
@@ -296,35 +294,40 @@
 (define-key dis-column-menu [forward]
   '("Forward a column" . dis-forward-column))
 (define-key dis-column-menu [last]
-  '("Goto Last column" . dis-end-of-column))
+  '("Goto Last column" . dis-end-of-col))
 (define-key dis-column-menu [first]
-  '("Goto First column" . dis-start-of-column))
+  '("Goto First column" . dis-start-of-col))
 
 
 ;;;
 ;;;	II.g	EDIT item on menu-bar and all sub-menus
 ;;;
 
-(define-key dismal-map [menu-bar edit]
-  (cons "dis Edit" (make-sparse-keymap "Edit")))
+;; Remove other edit, since it contains dangerous commands.
+(define-key dismal-map [menu-bar edit] 'undefined)
+(define-key dismal-map [menu-bar search] 'undefined)
+(define-key dismal-map [menu-bar files] 'undefined)
 
-(define-key dismal-map [menu-bar edit modify]
+(define-key dismal-map [menu-bar dedit]
+  (cons "dEdit" (make-sparse-keymap "DEdit")))
+
+(define-key dismal-map [menu-bar dedit modify]
   '("Modify cell justification" . dis-modify))
-(define-key dismal-map [menu-bar edit delete]
+(define-key dismal-map [menu-bar dedit delete]
   '("Delete" . dis-delete))
-(define-key dismal-map [menu-bar edit insert]
+(define-key dismal-map [menu-bar dedit insert]
   '("Insert" . dis-insert))
-(define-key dismal-map [menu-bar edit set]
+(define-key dismal-map [menu-bar dedit set]
   '("Edit cell" . dis-edit-cell-plain))
-(define-key dismal-map [menu-bar edit erase]
+(define-key dismal-map [menu-bar dedit erase]
   '("Erase range" . dis-erase-range))
-(define-key dismal-map [menu-bar edit yank]
+(define-key dismal-map [menu-bar dedit yank]
   '("Yank" . dis-paste-range))
-(define-key dismal-map [menu-bar edit copy]
+(define-key dismal-map [menu-bar dedit copy]
   '("Copy range" . dis-copy-range))
-(define-key dismal-map [menu-bar edit kill]
+(define-key dismal-map [menu-bar dedit kill]
   '("Kill range" . dis-kill-range))
-;; (define-key dismal-map [menu-bar edit undo]
+;; (define-key dismal-map [menu-bar dedit undo]
 ;;  '("Undo" . dis-no-op))
 
 
@@ -363,19 +366,20 @@
 ;; INSERT pop-up-menu
 (defvar dis-insert-menu
   (make-sparse-keymap "Insert"))
+
 (fset 'dis-insert dis-insert-menu)
 
-(define-key dis-insert-menu [z-box]
-  '("Z-Box" . dis-insert-z-box))
-(define-key dis-insert-menu [marked-range]
-  '("Marked-Range" . dis-insert-range))
-(define-key dis-insert-menu [lcells]
-  '("Cells" . dis-insert-cells))
-(define-key dis-insert-menu [column]
-  '("Column" . dis-insert-column))
-(define-key dis-insert-menu [row]
-  '("Row" . dis-insert-row))
-
+(unless (string-match "XEmacs\\|Lucid" emacs-version)
+  (define-key dis-insert-menu [z-box]
+    '("Z-Box" . dis-insert-z-box))
+  (define-key dis-insert-menu [marked-range]
+    '("Marked-Range" . dis-insert-range))
+  (define-key dis-insert-menu [lcells]
+    '("Cells" . dis-insert-cells))
+  (define-key dis-insert-menu [column]
+    '("Column" . dis-insert-column))
+  (define-key dis-insert-menu [row]
+    '("Row" . dis-insert-row)))
 
 ;; SET pop-up-menu
 (defvar dis-set-menu
@@ -397,37 +401,42 @@
 ;;;
 ;;; These are pushed on, it appears.
 
-(define-key dismal-map [menu-bar file]
-  (cons "File" (make-sparse-keymap "File")))
+(define-key dismal-map [menu-bar Dfile]
+  (cons "dFile" (make-sparse-keymap "DFile")))
 
-(define-key dismal-map [menu-bar file Quit]
-  '("Quit this buffer" . kill-buffer))
-(define-key dismal-map [menu-bar file Unpage]
+(define-key dismal-map [menu-bar Dfile Quit]
+  '("Kill current buffer" . kill-buffer))
+(define-key dismal-map [menu-bar Dfile Unpage]
   '("Unpaginate dismal report" . dis-unpaginate))
 
-(define-key dismal-map [menu-bar file TeXdump1]
+(define-key dismal-map [menu-bar Dfile TeXdump1]
   '("TeX Dump file (raw)" . dis-tex-dump-range))
-(define-key dismal-map [menu-bar file TeXdump2]
+(define-key dismal-map [menu-bar Dfile TeXdump2]
   '("TeX Dump file (with TeX header)" . dis-tex-dump-range-file))
 
-(define-key dismal-map [menu-bar file Rdump]
+(define-key dismal-map [menu-bar Dfile htmldumprange]
+  '("Dump range as HTML table" . dis-html-dump-range))
+(define-key dismal-map [menu-bar Dfile htmldumpfile]
+  '("Dump file as HTML table" . dis-html-dump-file))
+
+(define-key dismal-map [menu-bar Dfile Rdump]
   '("Range-Dump (tabbed)" . dis-dump-range))
-(define-key dismal-map [menu-bar file Tdump]
+(define-key dismal-map [menu-bar Dfile Tdump]
   '("Tabbed-Dump file" . dis-write-tabbed-file))
 
-(define-key dismal-map [menu-bar file PPrin]
+(define-key dismal-map [menu-bar Dfile PPrin]
   '("Paper-Print" . dis-print-report))
-(define-key dismal-map [menu-bar file FPrin]
+(define-key dismal-map [menu-bar Dfile FPrin]
   '("File-Print" . dis-make-report))
-(define-key dismal-map [menu-bar file 2Prin]
+(define-key dismal-map [menu-bar Dfile 2Prin]
   '("Print Setup" . dis-print-setup))
-(define-key dismal-map [menu-bar file insert-file]
-  '("Insert File" . dis-insert-file))
-(define-key dismal-map [menu-bar file Write]
-  '("Write" . dis-write-file))
-(define-key dismal-map [menu-bar file Save]
+(define-key dismal-map [menu-bar Dfile insert-file]
+  '("Insert File..." . dis-insert-file))
+(define-key dismal-map [menu-bar Dfile Write]
+  '("Save buffer as..." . dis-write-file))
+(define-key dismal-map [menu-bar Dfile Save]
   '("Save" . dis-save-file))
-(define-key dismal-map [menu-bar file Open]
+(define-key dismal-map [menu-bar Dfile Open]
   '("Open file" . find-file))
-(define-key dismal-map [menu-bar file New]
+(define-key dismal-map [menu-bar Dfile New]
   '("New sheet" . dis-find-file))

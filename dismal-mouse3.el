@@ -17,14 +17,14 @@
 ;;;;    the dismal spreadsheet.
 ;;;;
 ;;;; Bugs:
-;;;; * select column is slow, probbaly due to how it walks the matrix
+;;;; * select column is slow, probably due to how it walks the matrix
 ;;;;   consider using just character changes.  Not currently offered as a 
 ;;;;   binding.
 ;;;;
 ;;;; TABLE OF CONTENTS
 ;;;;
 ;;;;	i.	Modify `dismal-map' to cope with new mouse controls
-;;;;	ii.	Find-cell function
+;;;;	ii.	dismal-find-cell function
 ;;;;
 ;;;;	I.	mouse-highlight-cell-or-range bound to [down-mouse-1]
 ;;;;	II.	mouse-highlight-column bound to [down-mouse-2]
@@ -50,21 +50,31 @@
 ;;; Keymap additions to dismal-map keymap, allowing the mouse to
 ;;; be used with dismalfor selecting cells and ranges of cells.
 
-(define-key dismal-map [down-mouse-1] 'mouse-highlight-cell-or-range)
+(define-key dismal-map [down-mouse-1] 'dis-mouse-highlight-cell-or-range)
 (define-key dismal-map [double-mouse-1] 'ignore)
 (define-key dismal-map [triple-mouse-1] 'ignore)
 
 ;; These are too slow, because of how the matrix is represented, 
 ;; so don't offer to user.
-;; (define-key dismal-map [down-mouse-2] 'mouse-highlight-column)
-;; (define-key dismal-map [mouse-2] 'mouse-highlight-column)
+;; (define-key dismal-map [down-mouse-2] 'dis-mouse-highlight-column)
+;; (define-key dismal-map [mouse-2] 'dis-mouse-highlight-column)
+;; had been mouse-yank-at-point, which is a mess with plain text
 
-(define-key dismal-map [down-mouse-3] 'mouse-highlight-row)
-(define-key dismal-map [mouse-3] 'mouse-highlight-row)
+(define-key dismal-map [down-mouse-2] 'dis-mouse-highlight-cell-or-range)
+(define-key dismal-map [mouse-2] 'dis-mouse-highlight-cell-or-range)
+(define-key dismal-map [double-mouse-2] 'ignore)
+(define-key dismal-map [triple-mouse-2] 'ignore)
+
+
+(define-key dismal-map [down-mouse-3] 'dis-mouse-highlight-row)
+(define-key dismal-map [mouse-3] 'dis-mouse-highlight-row)
+(define-key dismal-map [double-mouse-3] 'ignore)
+(define-key dismal-map [triple-mouse-3] 'ignore)
+
 
 
 ;;;
-;;;	ii.	Find-cell function
+;;;	ii.	dismal-find-cell function
 ;;;
 ;;; Used to set dismal point and mark based on mouse clicks.
 ;;;
@@ -73,88 +83,124 @@
 ;;; these mouse coordinates point to.
 
 
-(defun find-cell ()
+;; replaced 7-May-97 -FER
+;; I don't know how it ever worked, clever stuff moved into new version
+;;
+;;  (defun dismal-find-cell ()
+;;    "Find cell that the mouse is pointing to at the moment."
+;;    (interactive)
+;;    (setq bb (mouse-position))
+;;  
+;;    (save-window-excursion
+;;    ;; Store position of point and mouse-position
+;;    (setq x-pos (car (cdr (mouse-position)))
+;;  	y-pos (cdr (cdr (mouse-position))))
+;;    (setq click-pos (point))
+;;    
+;;    ;; read the row from the front of the column
+;;    (beginning-of-line)
+;;    (setq row (read (current-buffer)))
+;;                    
+;;    ;; set absolute values for x and y position of mouse in window
+;;    (setq x-pos-abs (- click-pos (point)))
+;;    (setq y-pos-abs (count-lines (point-min) (point)))
+;;    
+;;    ;; check for the values being out of too small or too big
+;;    (if (< y-pos-abs 2)
+;;        (setq y-pos-abs 2))
+;;    (if (< x-pos-abs 3)
+;;        (setq x-pos-abs 3))
+;;    (if (> (- y-pos-abs 1) dismal-max-row)
+;;        (setq y-pos-abs (+ dismal-max-row 2)))
+;;    
+;;    ;; goto line 2 of buffer to find column point is in
+;;    (goto-line 2)
+;;    
+;;    ;; scan forward for point to find end of column
+;;    (forward-char (+ 0 x-pos-abs))
+;;    (setq x-pos-abs (+ x-pos-abs (skip-chars-forward "^+")))
+;;    (setq end-point (point))
+;;    
+;;    ;; from here move to top line and scan backwards to find column marking
+;;    (goto-line 1)
+;;    (forward-char (+ 0 x-pos-abs))
+;;    (skip-chars-backward "^a-zA-Z")
+;;    
+;;    ;; column marking found now convert into the correct number
+;;    (backward-char 2)
+;;    (if (equal (char-after (point)) 32)
+;;        (setq col (- (char-after (+ (point) 1)) 65)) 
+;;      (setq col (+ (- (char-after (+ (point) 1)) 65)
+;;  		 (* 26 (- (char-after (point)) 64)))))
+;;    
+;;    ;; goto line beginning of line y-pos-abs and convert row marking
+;;    (goto-line (1+ y-pos-abs))
+;;    (if (< dismal-max-row 10)
+;;  
+;;        ;; if max row is less than 10 then spreadsheet is 1 char to the left 
+;;        ;; and only one digit needs decoding
+;;        (setq row (- (char-after (point)) 48))
+;;  
+;;    ;; max rox is greater than 10 so decode both digits (first maybe a space)
+;;      (if (equal (char-after (point)) 32)
+;;  	(setq row (- (char-after (+ (point) 1)) 48))
+;;        (setq row (+ (- (char-after (+ (point) 1)) 48)
+;;  		   (* 10 (- (char-after (point)) 48))))))
+;;      
+;;    ;; column and row of cell which mouse points to are now known 
+;;    ;; leave them as the return of the defun
+;;    ;; inserted a guard, for seems to get wacky values
+;;    (if (> col dismal-max-col) (setq col dismal-max-col))
+;;    (if (> row dismal-max-row) (setq col dismal-max-row))
+;;    (cons col row)))
+
+(defun dismal-find-cell ()
   "Find cell that the mouse is pointing to at the moment."
   (interactive)
 
-  ;; store position of point
+  ;; (setq bb (mouse-position))  ;used for debugging
+
+  (save-window-excursion
+
+  ;; Store position of point and mouse-position
   (setq x-pos (car (cdr (mouse-position)))
 	y-pos (cdr (cdr (mouse-position))))
   (setq click-pos (point))
+  
+  ;; Read the row from the front of the column. (!)
   (beginning-of-line)
-                  
-  ;; set absolute values for x and y position of mouse in window
-  (setq x-pos-abs (- click-pos (point)))
-  (setq y-pos-abs (count-lines (point-min) (point)))
-  
-  ;; check for the values being out of too small or too big
-  (if (< y-pos-abs 2)
-      (setq y-pos-abs 2))
-  (if (< x-pos-abs 3)
-      (setq x-pos-abs 3))
-  (if (> (- y-pos-abs 1) dismal-max-row)
-      (setq y-pos-abs (+ dismal-max-row 2)))
-  
-  ;; goto line 2 of buffer to find column point is in
-  (goto-line 2)
-  
-  ;; scan forward for point to find end of column
-  (forward-char (+ 0 x-pos-abs))
-  (setq x-pos-abs (+ x-pos-abs (skip-chars-forward "^+")))
-  (setq end-point (point))
-  
-  ;; from here move to top line and scan backwards to find column marking
-  (goto-line 1)
-  (forward-char (+ 0 x-pos-abs))
-  (skip-chars-backward "^a-zA-Z")
-  
-  ;; column marking found now convert into the correct number
-  (backward-char 2)
-  (if (equal (char-after (point)) 32)
-      (setq col (- (char-after (+ (point) 1)) 65)) 
-    (setq col (+ (- (char-after (+ (point) 1)) 65)
-		 (* 26 (- (char-after (point)) 64)))))
-  
-  ;; goto line beginning of line y-pos-abs and convert row marking
-  (goto-line (1+ y-pos-abs))
-  (if (< dismal-max-row 10)
+  (setq row (read (current-buffer)))
 
-      ;; if max row is less than 10 then spreadsheet is 1 char to the left 
-      ;; and only one digit needs decoding
-      (setq row (- (char-after (point)) 48))
-
-    ;; max rox is greater than 10 so decode both digits (first maybe a space)
-    (if (equal (char-after (point)) 32)
-	(setq row (- (char-after (+ (point) 1)) 48))
-      (setq row (+ (- (char-after (+ (point) 1)) 48)
-		   (* 10 (- (char-after (point)) 48))))))
+  ;; Get the column width directly from y-pos of point
+  (setq col (dismal-raw-column-to-dismal-column x-pos))
     
   ;; column and row of cell which mouse points to are now known 
   ;; leave them as the return of the defun
   ;; inserted a guard, for seems to get wacky values
   (if (> col dismal-max-col) (setq col dismal-max-col))
   (if (> row dismal-max-row) (setq col dismal-max-row))
-  (cons col row))
+  (cons col row)))
 
 
 ;;;
-;;;	iii.	mouse-highlight-cell-or-range bound to [down-mouse-1]
+;;;	iii.	dis-mouse-highlight-cell-or-range bound to [down-mouse-1]
 ;;;
 ;;;  Function is bound to [down-mouse-1] in dismal-map keymap.
 ;;;  It allows the user to select a single cell, or drag the mouse
 ;;;  and select a range of cells.
 ;;;
 
-(defun mouse-highlight-cell-or-range ()
+(defun dis-mouse-highlight-cell-or-range ()
   "Highlights a cell or range of cells as choosen by the mouse."
   (interactive)
   (mouse-set-point last-command-event)
-
-  ;; grab mouse position now and highlight the current cell, store
+  ;; (setq aa last-command-event)
+  ;; Grab mouse position now and highlight the current cell, store
   ;; the cell information incase a drag is performed
   (mouse-set-point last-command-event)
+  ;; First, clear out old highlight.
   (dismal-add-text-properties (point-min) (point-max) (list 'face 'default))
-  (setq start-drag (find-cell))
+  (setq start-drag (dismal-find-cell))
 
   (dismal-highlight-cell (car start-drag) (cdr start-drag))
 
@@ -177,13 +223,13 @@
            (if (not mouse-char)
                (setq mouse-char (point-max)))
            (goto-char mouse-char))
-	(setq last-drag (find-cell))
+	(setq last-drag (dismal-find-cell))
 	(message (format "Range from: %s  to: %s" 
 			 (dismal-cell-name (cdr start-drag)(car start-drag))
 			 (dismal-cell-name (cdr last-drag)(car last-drag))))
 
 	(dismal-highlight-range (car start-drag) (cdr start-drag)
-			     (car last-drag) (cdr last-drag)))
+                                (car last-drag) (cdr last-drag)))
 
        ;; Mouse button release at the same place it was pressed
        ;; visit cell and stop tracking motion
@@ -199,7 +245,7 @@
        ((equal (car mouse-event) 'drag-mouse-1)
 	(setq drag-on nil)
         (if (or (not (boundp 'last-drag)) last-drag)
-            (setq last-drag (find-cell)))
+            (setq last-drag (dismal-find-cell)))
 	;; make sure that start-drag is top-left corner of selection
 	;; and that last-drag is the bottom-right corner of selection
 	(let ((t-start-drag (cons (min (car start-drag) (car last-drag))
@@ -226,7 +272,7 @@
 
 
 ;;;
-;;;	I.	mouse-highlight-column bound to [down-mouse-2]
+;;;	I.	dis-mouse-highlight-column bound to [down-mouse-2]
 ;;;
 ;;;        Deprecated 6-Oct-96 - can be real slow.
 ;;;
@@ -234,7 +280,7 @@
 ;;; It highlights the column the mouse pointer is over.
 ;;;
 ;;
-;; (defun mouse-highlight-column ()
+;; (defun dis-mouse-highlight-column ()
 ;;  "Highlight column that mouse button 2 has been clicked upon."
 ;;  (interactive)
 ;;  (message "Please wait selecting column......")
@@ -243,7 +289,7 @@
 ;;  (mouse-set-point last-command-event) ; may go as well
 ;;   
 ;;  ;; find out what colum is to be highlighted and highlight it
-;;  (setq column (car (find-cell)))
+;;  (setq column (car (dismal-find-cell)))
 ;;  (dis-highlight-range column 0 column dismal-max-row)
 ;;  (dismal-goto-row 0 t)
 ;;  (dismal-goto-column column)
@@ -251,12 +297,12 @@
 
 
 ;;;
-;;;	II.	mouse-highlight-row bound to [down-mouse-3]
+;;;	II.	dis-mouse-highlight-row bound to [down-mouse-3]
 ;;;
 ;;;        Function is bound to [down-mouse-3] in dismap-map keymap.
 ;;;        It highlights the row the mouse pointer is over.
 
-(defun mouse-highlight-row ()
+(defun dis-mouse-highlight-row ()
   "Highlight row that mouse button 3 has been clicked upon, and set to be 
 current range."
   (interactive)
@@ -266,8 +312,8 @@ current range."
   ;; set point to position of mouse on window
   (mouse-set-point last-command-event)
 
-  ;; find out what row is to be highlighted and highlight it
-  (setq row (cdr (find-cell)))
+  ;; Find out what row is to be highlighted and highlight it.
+  (setq row (cdr (dismal-find-cell)))
   (dismal-highlight-range 0 row dismal-max-col row)
   (dismal-goto-row row t)
   (dismal-goto-column 0)
@@ -311,37 +357,37 @@ current range."
   (dismal-add-text-properties (point-min) (point-max) (list 'face 'default))
   (let ((oxend x-end) (oyend  y-end)
         range-start range-end y-now)
-  ;; make sure x-start is smaller that x-end
+
+  ;; Make sure x-start is smaller that x-end.
   (if (> x-start x-end)
       (let ((temp))
 	(setq temp x-start
 	      x-start x-end 
 	      x-end temp)))
-  
-  ;; make sure y-start is smaller than y-end
+  ;; Make sure y-start is smaller than y-end.
   (if (> y-start y-end)
       (let ((temp))
 	(setq temp y-start
 	      y-start y-end 
 	      y-end temp)))
 
-  ;; go through lines one by one highlighting the cells
+  ;; Go through lines one by one highlighting the cells.
   (setq y-now y-start)
   (while (<= y-now y-end)
     
-    ;; jump to left-most cell and find start-point of cell
+    ;; Jump to left-most cell and find start-point of cell.
     (dismal-goto-row y-now t)
     (dismal-goto-column x-start)
     (setq range-start (1+ (- (point) (dismal-column-width x-start))))
     
-    ;; jump to right-most cell and find end-point of cell
+    ;; Jump to right-most cell and find end-point of cell.
     (dismal-goto-column x-end)
     (setq range-end (1+ (point)))
     
-    ;; now highlight line by line from range-start to range-end each line
+    ;; Now highlight line by line from range-start to range-end each line.
     (dismal-add-text-properties range-start range-end (list 'face 'underline))
 
-    ;; increase y-now by 1
+    ;; Increase y-now by 1.
     (setq y-now (1+ y-now)))
 
     ;; now go back to where you were meant to end up
@@ -367,7 +413,9 @@ current range."
   (dismal-add-text-properties cell-start cell-end (list 'face 'underline)))
 ;;highlight
 
-(defun dismal-add-text-properties (start end props &optional object)
+;; helper function
+
+(defsubst dismal-add-text-properties (start end props &optional object)
  "Add properties while preserving the modified flag."
  (let ((original-modified-p (buffer-modified-p)))
    (add-text-properties start end props object)

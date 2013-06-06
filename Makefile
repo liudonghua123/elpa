@@ -25,15 +25,18 @@
 ## (d) change version in LCD-entry
 ## (e) change verison in README
 ## (c) cd ~/tools/emacs/dismal/new/
-## (f) type "make" to compile dismal (on keats, upsyc is not set up right)
+## (f) type "make" to compile dismal (on keats or maybe vpsyc
+##      (upsyc is not set up right)
+## (f2) goto granby or pine to makeinfo info nodes, or M-x makeinfo-buffer
 ## (g) type "make package" to make a new directory, tar file, etc.
 ## (h) change dismal-version in dismal.el back to +
 ## (i) put copy out on granby
 ##     ftp granby
 ##     cd pub
-##     put dismal-1.1/dismal-1.1.tar.gz
+##     binary
+##     put dismal-1.2/dismal-1.2.tar.gz  dismal-1.2.tar.gz
 ## (j) put a copy on vpsyc
-##     cp ~/tools/emacs/dismal/dismal-1.1/dismal-1.1.tar.gz ~/ftp-ritter/dismal-1.04.tar.gz
+##     cp ~/tools/emacs/dismal/dismal-1.2/dismal-1.2.tar.gz ~/ftp-ritter/dismal-1.2.tar.gz
 ## Optional arguments to make:
 ##    all - same as no argument, compiles
 ##    package - compiles and makes version for distribution
@@ -47,15 +50,15 @@ EMACS    = emacs
 COMPILER = cc
 
 # no user changeable variables below here.
-RELEASE = dismal-1.1
+RELEASE = dismal-1.2
 
 # main files that will be loaded during compiles
 # in .elc format.
 OBJS    = dismal.elc \
 	  dismal-simple-menus.elc \
 	  dismal-metacolumn.elc \
-	  nigel-mouse3.elc \
-	  nigel-menu3.elc \
+	  dismal-mouse3.elc \
+	  dismal-menu3.elc \
 	  dismal-mode-defaults.elc \
 	  auto-aligner.elc \
 	  dismal-model-extensions.elc \
@@ -70,23 +73,19 @@ EXTRAOBJS = float-changes.elc \
           dismal-data-structures.elc \
           soar-misc.elc \
           ritter-math.elc \
-          insert-date.elc \
           simple-menu.elc \
 	  keystroke.elc \
-	  popper.elc \
 	  log.elc \
 	  dismal-mode-defaults.elc
-#          goto-manual.elc
-
+#	  popper.elc
 
 # files that will be compiled
 SRCS    = dismal-data-structures.el \
 	  dismal.el \
 	  dismal-simple-menus.el \
           dismal-metacolumn.el \
-	  nigel-mouse3.el \
-	  nigel-menu3.el \
-          popper.el \
+	  dismal-mouse3.el \
+	  dismal-menu3.el \
           float-changes.el \
           vectors.el \
           heaps.el \
@@ -94,7 +93,6 @@ SRCS    = dismal-data-structures.el \
           dismal-mode-defaults.el \
           ritter-math.el \
           soar-misc.el \
-          insert-date.el \
           simple-menu.el \
 	  auto-aligner.el \
 	  dismal-model-extensions.el \
@@ -103,7 +101,6 @@ SRCS    = dismal-data-structures.el \
 	  make-km-aliases.el \
 	  log.el \
 	  emergency.el
-#          goto-manual.el
 
 # files along for the ride not compiled
 MISC 	= COPYING \
@@ -119,13 +116,14 @@ MISC 	= COPYING \
 	  examples/test.dis \
 	  checkout-dismal.script \
 	  dismal-manual.tex \
+	  dismal-manual.txt \
 	  dismal.info \
 	  dismal.info-1 \
 	  dismal.info-2 \
-	  timer.c \
-	  popper.lcd \
-	  dismal-manual.ps
-#	  dismal-manual.rtf \
+	  timer.c
+#	  popper.lcd
+#	  dismal-manual.ps
+#	  dismal-manual.rtf
 
 all:	${EXTRAOBJS} ${OBJS} tags log
 
@@ -138,14 +136,11 @@ package: ${SRCS} ${MISC}
 	mkdir ../${RELEASE}
 #	Copy latest utilities up
 #	cp ./utilities/goto-manual.el .
-	cp ./utilities/insert-date.el .
 	cp ./utilities/x-mouse.el .
-#	cp ./manuals6/* .
 	cp ${SRCS} ../${RELEASE}
 	cp ${MISC} ../${RELEASE}
 #	cp ${OBJS} ../${RELEASE}
 #	rm ./goto-manual.el
-#	rm ./insert-date.el
 #	rm ./ritter-math.el
 #	rm ./simple-menu.el
 #	rm ./soar-misc.el
@@ -175,10 +170,10 @@ ${EXTRAOBJS}:
 # dismal-mode-defaults is most important, for it makes sure that current 
 # directory is on load-path
 BASICLOADS =  -l ./dismal-mode-defaults.elc dismal-data-structures.elc \
-	./popper.elc \
+#	./popper.elc \
 	./float-changes.elc ./vectors.elc ./heaps.elc ./rmatrix.elc \
 	./ritter-math.elc ./soar-misc.elc \
-	./insert-date.elc ./simple-menu.elc
+	./simple-menu.elc
 #	./goto-manual.elc
 
 .el.elc:
@@ -192,12 +187,10 @@ BASICLOADS =  -l ./dismal-mode-defaults.elc dismal-data-structures.elc \
 
 # Dependencies.
 
-dismal-simple-menus.elc:  dismal.elc ./dismal-simple-menus.el 
 
 ## Not used yet: (taken from edb makefile)
 ## info: database.texi
-## 	makeinfo -o edb.info database.texi
-## 	texi2dvi database.texi
-##
+## done by hand
 ## 	makeinfo -o dismal.info dismal-manual.tex
 ## 	texi2dvi dismal-manual.tex
+##  (or texinfo-format-buffer and save....)

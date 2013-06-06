@@ -120,17 +120,13 @@
 ;;;; 
 ;;;; * should check before saving files.
 ;;;; * should write a header, of what it is and who it's for.
-;;;;
+;;;; * 19.29 now has (current-time), which could replace much of this
 
 ;; Command usage log for Michael Hucka ("hucka" on krusty.eecs.umich.edu)
 ;; GNU Emacs 19.28.1 (sparc-sun-sunos4.1.3_U1, X toolkit) of Thu Nov  3 1994 
 ;; on bullwinkle.eecs.umich.edu
 ;; Started Tue Dec 13 16:01:11 1994
 ;; Ended Tue Dec 13 16:12:39 1994
-
-;; 2-Jan-97 -FER, shoudl be faster in 19.28
-;; (defsubst log-keystroke (the-keymap the-command)
-;; also made log-stop safer.
 
 ;;;; Uses after-command-hook.
 ;;;; 
@@ -285,12 +281,8 @@
   (interactive)
   (setq post-command-hook
         (remove 'log-stamp-date post-command-hook))
-  (log-do-auto-save)
-  (setq log-auto-save-counter log-auto-save-interval)
   (setq log-running nil)
-  (message "logging turned off.  File saved in %s/Log.<type>.timestamp"
-           *log-data-directory*))
-
+  (message "logging turned off."))
 
 ;; only interesting for 18
 (defun log-modify-keymaps ()
@@ -504,8 +496,7 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
     ;; ELSE
     (execute-kbd-macro command)))	; keyboard macro
 
-;; 2-Jan-97 -FER, shoudl be faster in 19.28
-(defsubst log-keystroke (the-keymap the-command)
+(defun log-keystroke (the-keymap the-command)
   (let ((log-buffer (get-buffer-create log-keys-buffer-name))
 	(orig-buffer (current-buffer))
 	(indent-tabs-mode nil))		; indent with spaces
@@ -620,11 +611,19 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
 	;; (process-kill-without-query log-timer-process)
 	(save-excursion
 	  (set-buffer buf)
+          ;; inserted load through 'uptime', 7-Jul-97 -FER
 	  (insert (format "User: %s\nCreation-date: %s\nSystem: %s\nStart-buffer: %s\n"
 			  (user-full-name)
 			  (current-time-string)
 			  (system-name)
-			  cbuf))
+			  cbuf
+                          ))
+          (insert "Uptime: ")
+          ;; This should put it in current buf.
+          ;; there appears to be some problems at Nottingham or in gnu with
+          ;; the other args options.
+          (shell-command "uptime" t)
+          (insert "\n")
 	  (auto-save-mode -1)))))
 
 
@@ -1611,7 +1610,8 @@ Sample code for emergency .el:  ;; extra space before .el??  -fer
 ;; 6-25-93 - need to load just to get access to parsing files:
 ;; (log-initialize)
 (if log-initialized
-    (message (concat "Already logging, to " *log-data-directory*))
+    (message (concat "Already logging, to "
+		     *log-data-directory*))
   (message "To start logging, M-x log-initialize."))
 (sleep-for 1)
 

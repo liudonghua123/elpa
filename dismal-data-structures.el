@@ -63,7 +63,7 @@
 (defmacro dis-cell-row (cell) (list 'nth 1 cell))
 (defmacro dis-cell-col (cell) (list 'nth 2 cell))
 
-(defun dismal-cellp (arg)
+(defsubst dismal-cellp (arg)
    (and (listp arg) 
         (= (length arg) 3)
         ;; could add tests here for valus of cell
@@ -115,11 +115,13 @@
          (progn (message  (,@ body))
                 (sit-for 2)))))
 
-(defmacro mapc (function alist)
- (` (let ((blist (, alist)))
-     (while blist
-      (funcall (, function) (car blist))
-      (setq blist (cdr blist))    ))))
+;; now in the main release of 19.34 in cl-extra.el, 28-May-97 -FER
+;; I don't think as nice, but easier to debug.
+;(defmacro mapc (function alist)
+; (` (let ((blist (, alist)))
+;     (while blist
+;      (funcall (, function) (car blist))
+;      (setq blist (cdr blist))    ))))
 
 
 (defmacro dismal-save-excursion-quietly (&rest body)

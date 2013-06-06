@@ -1,4 +1,4 @@
-r;;;; -*- Mode: Emacs-Lisp -*- 
+;;;; -*- Mode: Emacs-Lisp; byte-compile-dynamic: t;-*-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; 
 ;;;; File            : dismal-model-extensions.el

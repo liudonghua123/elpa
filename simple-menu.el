@@ -247,12 +247,13 @@
 ;; ))
 
 
-(defmacro mapc (function alist)
- "A macro like CL mapc: map but don't return anything."
- (` (let ((blist (, alist)))
-     (while blist
-      (funcall (, function) (car blist))
-      (setq blist (cdr blist))    ))))
+;; now available in 19.34, autoloading from lisp/cl-extra.el
+;; (defmacro mapc (function alist)
+;;  "A macro like CL mapc: map but don't return anything."
+;; (` (let ((blist (, alist)))
+;;     (while blist
+;;      (funcall (, function) (car blist))
+;;      (setq blist (cdr blist))    ))))
 
 
 ;;;
@@ -268,9 +269,13 @@
   (message "No function to do this menu item yet."))
 
 ;;*created this function to quit simple-menu
+;; allows a cleaner quit with C-g, 19-May-97 -FER
 (defun sm-quit ()
  "Quit simple-menu to abort, or after a command has been evaluated."
- (sm-note-function-key command current-key-map)
+ (if (boundp 'command) 
+     (sm-note-function-key command current-key-map)
+   (beep)
+   (message "Quiting simple-menu"))
  ;; (beep) (message "hi") (sit-for 1)
  (setq run-menu-flag nil)
  ;; (keyboard-quit)
@@ -623,8 +628,8 @@ TO and FROM are ints, FUN is a symbol."
 
 (fset 'run-menu 'sm-run-menu)
 
-;;created this function to reduce the length of sm-run-menu code -RO 6/94
-(defun sm-eval-raw-prompt(amenu)
+;; Created this function to reduce the length of sm-run-menu code -RO 6/94
+(defun sm-eval-raw-prompt (amenu)
  "This makes a full prompt, & saves it for later use."
  (let ((raw-prompt (get amenu 'prompt-header))
        (full-prompt (get amenu 'full-prompt))      
