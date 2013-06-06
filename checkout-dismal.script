@@ -1,0 +1,125 @@
+;;;; -*- Mode: text -*- 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; 
+;;;; File            : checkout-dismal.script
+;;;; Author          : Frank Ritter
+;;;; Created On      : 27-Feb-92
+;;;; Last Modified By: Frank Ritter
+;;;; Last Modified On: Mon Aug 24 23:42:44 1992
+;;;; Update Count    : 9
+;;;; 
+;;;; PURPOSE
+;;;; 	Checkout script for dismal-mode.
+;;;; TABLE OF CONTENTS
+;;;; 	|>Contents of this module<|
+;;;; 
+;;;; Copyright 1991, Frank E. Ritter.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+I.  You should first recompile and assemble everything with release-dismal
+
+   a.    (setq debug-on-error t)
+    
+II. simple testing: startup
+
+    a) startup emacs with 
+  emacs -q  -wn testings-dismal  \
+  -i /psyc/lang/soar/emacs/utils/dismal/new/checkout-dismal.script  &
+
+  ;; /afs/cs/user/ritter/spa/spa-mode/new/dismal/0.6/checkout-dismal.script  &
+    
+
+   (load
+     "/psyc/lang/soar/emacs/utils/dismal/new/dismal-mode-defaults.el")
+ ;; "/afs/cs/user/ritter/spa/spa-mode/new/dismal/0.6/dismal-mode-defaults.el"
+
+    b) call  (dismal-mode) on an empty buffer
+
+    c) call C-x C-f on a file.dis
+    
+    d) check for simple doc string  ^h m
+    
+    e) Write it out, and read it in.
+
+
+III.   The menu:  simple parts
+
+    1) get help on main menu to come up
+
+    2) Test about & ?
+
+    C) get help on all menus
+
+IV.   The menu:  all the parts
+
+    A) I/O
+
+    
+V.   Dismal key stroke commands
+    
+    A.  Movement commands
+
+    C-a    go to beginning of line
+    C-e    go to the end of filled column
+    ESC e  go to actual end of column
+    C-f    go Forward one column
+    ESC f  go Forward one filled column 
+    ESC >  dismal-first-cell
+    ESC <  dismal-last-cell
+
+VI.  Functions
+
+     A. 
+        1.  Put dis-count into a1 for a2:a4
+        2.  Delete a cell, a4, and make it update count.
+
+VII.  mousable items
+
+   MOUSE                   ACTION
+   left                    set point     
+   middle                  paste text     left for the user to set]
+   right                   select text
+   SHIFT-left              
+   SHIFT-middle            
+   SHIFT-right             
+   CONTROL-left            
+   CONTROL-middle          
+   CONTROL-right           
+
+
+VII.  Hard stuff
+
+1. check out the dismal-mode hook
+
+;; example set up for stuff to do when putting a buffer into dismal-mode
+(setq soar-mode-hook
+     '((lambda ()
+        (define-key soar-mode-map "\C-c\C-t" 'favorite-cmd)
+        )))
+
+2. checkout recompile-dismal-mode
+
+VIII.  Very hard stuff
+
+(defun dismal-hard-test ()
+  (interactive)
+  (switch-to-buffer "test-dismal")
+  (dismal-mode)
+  (dismal-beginning-of-buffer)
+  (dismal-read-cell-plain 1)
+  (dismal-forward-row 1)
+  (dismal-read-cell-plain 2)
+  (dismal-forward-row 1)
+  (dismal-read-cell-plain '(dis-sum a0:a1))
+  (dismal-forward-row 1)
+  (dismal-read-cell-plain '(dis-plus a0 a1))
+  (dismal-forward-column 1)
+  (dismal-read-cell-plain '(+ a0 a1))
+  (dismal-beginning-of-buffer)
+  (dismal-end-of-buffer)
+  (dismal-forward-column 1)
+  (dismal-read-cell-rightjust "a string")
+  (dismal-read-column-format 15)
+  (message "Dismal successfully tested.")
+)
