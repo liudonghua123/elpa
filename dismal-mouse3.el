@@ -1,55 +1,39 @@
-;;;; -*- Mode: Emacs-Lisp -*- 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;              
-;;;; File            : dismal-mouse-nigel.el
-;;;; Authors         : Nigel Jenkins, nej@cs.nott.ac.uk
-;;;;                                  lpyjnej@psyc.nott.ac.uk  
-;;;; Created On      : 30th April 1996
-;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: 1-3-97
-;;;; Update Count    : ???
-;;;; 
-;;;; PURPOSE
-;;;;    DISMAL - Dis Mode Ain't Lotus.
-;;;; 	Spreadsheet program for gnu-emacs.
-;;;;    
-;;;;    This program supplies functionality for using a mouse inside of  
-;;;;    the dismal spreadsheet.
-;;;;
+;;; dismal-mouse3.el --- Functionality for using a mouse inside of Dismal
+
+;; Copyright (C) 1997, 2013 Free Software Foundation, Inc.
+
+;; Author: Nigel Jenkins, nej@cs.nott.ac.uk
+;;                        lpyjnej@psyc.nott.ac.uk  
+;; Created-On: 30th April 1996
+
+;; This is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
 ;;;; Bugs:
-;;;; * select column is slow, probably due to how it walks the matrix
-;;;;   consider using just character changes.  Not currently offered as a 
-;;;;   binding.
-;;;;
-;;;; TABLE OF CONTENTS
-;;;;
-;;;;	i.	Modify `dismal-map' to cope with new mouse controls
-;;;;	ii.	dismal-find-cell function
-;;;;
-;;;;	I.	mouse-highlight-cell-or-range bound to [down-mouse-1]
-;;;;	II.	mouse-highlight-column bound to [down-mouse-2]
-;;;;            Deprecated 6-Oct-96 -, can be real slow.
-;;;;	III.	dismal-highlight-cell
-;;;;	IV.	dismal-highlight-range
-;;;;	V.	Redefinition of dismal-goto-cell to allow highlighting
-;;;;
-;;;;
-;;;;
-;;;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;;	Mouse functions system for using with DISMAL spreadsheet
-;;;;
-;;;; Optimazations by  Mikio Nakajima <minakaji@osaka.email.ne.jp> 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; * select column is slow, probably due to how it walks the matrix
+;;   consider using just character changes.  Not currently offered as a 
+;;   binding.
 
+;; Optimazations by  Mikio Nakajima <minakaji@osaka.email.ne.jp> 
 
-
-;;;
-;;;	i.	Modify `dismal-map' to cope with new mouse controls
-;;;
-;;; Keymap additions to dismal-map keymap, allowing the mouse to
-;;; be used with dismalfor selecting cells and ranges of cells.
+;;; Code:
+
+;;;; i.	Modify `dismal-map' to cope with new mouse controls
+
+;; Keymap additions to dismal-map keymap, allowing the mouse to
+;; be used with dismalfor selecting cells and ranges of cells.
 
 (define-key dismal-map [down-mouse-1] 'dis-mouse-highlight-cell-or-range)
 (define-key dismal-map [double-mouse-1] 'ignore)
@@ -74,14 +58,13 @@
 
 
 
-;;;
-;;;	ii.	dismal-find-cell function
-;;;
-;;; Used to set dismal point and mark based on mouse clicks.
-;;;
-;;; Function give to arguments for x and y position in
-;;; the window will output the dismal cell in which
-;;; these mouse coordinates point to.
+;;;; ii.	dismal-find-cell function
+
+;; Used to set dismal point and mark based on mouse clicks.
+;;
+;; Function give to arguments for x and y position in
+;; the window will output the dismal cell in which
+;; these mouse coordinates point to.
 
 
 ;; replaced 7-May-97 -FER
@@ -183,16 +166,15 @@
   (cons col row)))
 
 
-;;;
-;;;	iii.	dis-mouse-highlight-cell-or-range bound to [down-mouse-1]
-;;;
-;;;  Function is bound to [down-mouse-1] in dismal-map keymap.
-;;;  It allows the user to select a single cell, or drag the mouse
-;;;  and select a range of cells.
-;;;
+;;;; iii.	dis-mouse-highlight-cell-or-range bound to [down-mouse-1]
+
+;;  Function is bound to [down-mouse-1] in dismal-map keymap.
+;;  It allows the user to select a single cell, or drag the mouse
+;;  and select a range of cells.
+;;
 
 (defun dis-mouse-highlight-cell-or-range ()
-  "Highlights a cell or range of cells as choosen by the mouse."
+  "Highlight a cell or range of cells as choosen by the mouse."
   (interactive)
   (mouse-set-point last-command-event)
   ;; (setq aa last-command-event)
@@ -273,14 +255,12 @@
 			 )))))))
 
 
-;;;
-;;;	I.	dis-mouse-highlight-column bound to [down-mouse-2]
-;;;
-;;;        Deprecated 6-Oct-96 - can be real slow.
-;;;
-;;; Function is bound to [down-mouse-2] in dismap-map keymap.
-;;; It highlights the column the mouse pointer is over.
-;;;
+;;;; I.	dis-mouse-highlight-column bound to [down-mouse-2]
+;;        Deprecated 6-Oct-96 - can be real slow.
+;;
+;; Function is bound to [down-mouse-2] in dismap-map keymap.
+;; It highlights the column the mouse pointer is over.
+;;
 ;;
 ;; (defun dis-mouse-highlight-column ()
 ;;  "Highlight column that mouse button 2 has been clicked upon."
@@ -298,11 +278,10 @@
 ;;  (message (format "Column %s has been selected." column)))
 
 
-;;;
-;;;	II.	dis-mouse-highlight-row bound to [down-mouse-3]
-;;;
-;;;        Function is bound to [down-mouse-3] in dismap-map keymap.
-;;;        It highlights the row the mouse pointer is over.
+;;;; II.	dis-mouse-highlight-row bound to [down-mouse-3]
+
+;;        Function is bound to [down-mouse-3] in dismap-map keymap.
+;;        It highlights the row the mouse pointer is over.
 
 (defun dis-mouse-highlight-row ()
   "Highlight row that mouse button 3 has been clicked upon, and set to be 
@@ -324,10 +303,9 @@ current range."
   (message (format "Row %s has been selected." row))))
 
 
-;;;
-;;;	III.	dismal-highlight-cell
-;;;
-;;; This function highlights the cell the mouse-pointer is over.
+;;;; III.	dismal-highlight-cell
+
+;; This function highlights the cell the mouse-pointer is over.
 
 (defun dismal-highlight-cell (x-cell y-cell)
   "Function highlights the cell inverting the colours on screen."
@@ -345,12 +323,11 @@ current range."
 
 
 
-;;;
-;;;	IV.	dismal-highlight-range 
-;;;
-;;;  This function highlights a range of cells, supplied to it in
-;;;  the form of four arguments, which are x and y positions for
-;;;  two opposing corners.
+;;;; IV.	dismal-highlight-range 
+
+;;  This function highlights a range of cells, supplied to it in
+;;  the form of four arguments, which are x and y positions for
+;;  two opposing corners.
 
 (defun dismal-highlight-range (x-start y-start x-end y-end)
   "Highlights a range of cells in a dismal buffer."
@@ -397,12 +374,11 @@ current range."
     (dismal-goto-column oxend)))
 
 
-;;;
-;;;	V.	Redefinition of dismal-goto-cell to allow highlighting
-;;;
-;;;  This function is a redefinition of the original function found
-;;;  in `dismal.el', it highlights the selected cell that dismal-point
-;;;  is currently pointing to.
+;;;; V.	Redefinition of dismal-goto-cell to allow highlighting
+
+;;  This function is a redefinition of the original function found
+;;  in `dismal.el', it highlights the selected cell that dismal-point
+;;  is currently pointing to.
 
 (defun dismal-goto-cell (row column interactivep)
   ;; Move cursor to the end of the cell at ROW, COLUMN.
@@ -423,3 +399,7 @@ current range."
    (add-text-properties start end props object)
     ;; don't let highlighting a cell mark it as modified.23-May-96 -FER
    (set-buffer-modified-p original-modified-p)))
+
+(provide 'dismal-mouse3)
+
+;;; dismal-mouse3.el ends here

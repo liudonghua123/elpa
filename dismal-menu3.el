@@ -1,46 +1,27 @@
-;;;; -*- Mode: Emacs-Lisp -*- 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;              
-;;;; File            : dismal-menu.el
-;;;; Author          : Nigel Jenkins, nej@cs.nott.ac.uk
-;;;;                                  lpyjnej@psyc.nott.ac.uk  
-;;;; Created On      : 15th March 1996
-;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: 3-Jan-97
-;;;; 
-;;;; PURPOSE
-;;;;     DISMAL - Dis Mode Ain't Lotus.
-;;;; 	Spreadsheet program for gnu-emacs.
-;;;;    
-;;;;    This program supplies functionality for using a pop-up menu
-;;;;    with DISMAL.
-;;;;
-;;;; TABLE OF CONTENTS
-;;;;
-;;;;	I.	Set up menus for use in Dismal-mode buffer.
-;;;;	II.	Defining Menu-bar for Dismal.
-;;;;	II.a	MODEL item on menu-bar and all sub-menus
-;;;;	II.b	OPTIONS item on menu-bar and all sub-menus
-;;;;	II.c	DOC item on menu-bar and all sub-menus
-;;;;	II.d	FORMAT item on menu-bar and all sub-menus
-;;;;	II.e	COMMANDS item on menu-bar and all sub-menus
-;;;;	II.f	GO item on menu-bar and all sub-menus
-;;;;	II.g	EDIT item on menu-bar and all sub-menus
-;;;;	II.h	File item on menu-bar and all sub-menus
-;;;;
-;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;;	Menu system for using with DISMAL spreadsheet
-;;;;              
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; dismal-menu3.el --- Menu system for using with Dismal spreadsheet
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;;	I.	Set up of menu ready for use in Dismal-mode buffer
-;;;                  
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Copyright (C) 1991, 2013 Free Software Foundation, Inc.
+
+;; Author: Nigel Jenkins, nej@cs.nott.ac.uk
+;;                        lpyjnej@psyc.nott.ac.uk 
+;; Created-On: 15th March 1996
+
+;; This is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;;	I.	Set up of menu ready for use in Dismal-mode buffer
 
 
 ;; (define-key dismal-map [menu-bar edit] ())
@@ -52,18 +33,7 @@
 ;;      (use-global-map dis-global-map)
 ;;    (use-global-map global-map))
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;;	II.	Defining Menu-bar for Dismal.
-;;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;;;
-;;;	II.a	MODEL item on menu-bar and all sub-menus
-;;;
+;;; Code:
 
 (define-key dismal-map [menu-bar model]
   (cons "dModel" (make-sparse-keymap "Model")))
@@ -118,9 +88,9 @@
 (fset 'dis-klm dis-klm-menu)
 
 (define-key dis-klm-menu [init]
-  '("Initialize" . init-make-aliases))
+  '("Initialize" . dismal-init-make-aliases))
 (define-key dis-klm-menu [dups]
-  '("Display dups" . display-dup-aliases))
+  '("Display dups" . dismal-display-dup-aliases))
 
 
 ;;;
@@ -177,8 +147,7 @@
 
 (defun dis-open-dis-manual ()
   (interactive)
-  (info (concat dismal-directory "/dismal.info"))
-  (message "Use 'C-h m' to learn how to use info mode."))
+  (info "(dismal)"))
 
 
 ;;;
@@ -369,17 +338,16 @@
 
 (fset 'dis-insert dis-insert-menu)
 
-(unless (string-match "XEmacs\\|Lucid" emacs-version)
-  (define-key dis-insert-menu [z-box]
-    '("Z-Box" . dis-insert-z-box))
-  (define-key dis-insert-menu [marked-range]
-    '("Marked-Range" . dis-insert-range))
-  (define-key dis-insert-menu [lcells]
-    '("Cells" . dis-insert-cells))
-  (define-key dis-insert-menu [column]
-    '("Column" . dis-insert-column))
-  (define-key dis-insert-menu [row]
-    '("Row" . dis-insert-row)))
+(define-key dis-insert-menu [z-box]
+  '("Z-Box" . dis-insert-z-box))
+(define-key dis-insert-menu [marked-range]
+  '("Marked-Range" . dis-insert-range))
+(define-key dis-insert-menu [lcells]
+  '("Cells" . dis-insert-cells))
+(define-key dis-insert-menu [column]
+  '("Column" . dis-insert-column))
+(define-key dis-insert-menu [row]
+  '("Row" . dis-insert-row))
 
 ;; SET pop-up-menu
 (defvar dis-set-menu
@@ -440,3 +408,6 @@
   '("Open file" . find-file))
 (define-key dismal-map [menu-bar Dfile New]
   '("New sheet" . dis-find-file))
+
+(provide 'dismal-menu3)
+;;; dismal-menu3.el ends here

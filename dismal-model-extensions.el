@@ -1,40 +1,31 @@
-;;;; -*- Mode: Emacs-Lisp; byte-compile-dynamic: t;-*-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; 
-;;;; File            : dismal-model-extensions.el
-;;;; Author          : Frank Ritter
-;;;; Created On      : Wed May 20 15:50:22 1992
-;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: Fri Sep 24 21:13:50 1993
-;;;; Update Count    : 42
-;;;; 
-;;;; PURPOSE
-;;;; 	Specialized extensions to dismal to support the ability to 
-;;;; use dismal to align two data streams, say data, and sequential predictions.
-;;;; TABLE OF CONTENTS
-;;;;
-;;;;	i.	Changes to variables
-;;;;	I.	model-match-dc
-;;;;            model-match-op
-;;;;	II.	model-rate
-;;;; 
-;;;; Copyright 1992, Frank Ritter.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Status          : Unknown, Use with caution!
-;;;; HISTORY
-;;;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; dismal-model-extensions.el --- Specialized extensions to dismal
 
-(provide 'dismal-extensions)
+;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
 
-;;;
-;;;	i.	Changes to variables
-;;;
+;; Author: Frank E. Ritter, ritter@cs.cmu.edu
+;; Created-On: Wed May 20 15:50:22 1992
 
-
-;;;
-;;;	I.	model-match
-;;;
+;; This is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Specialized extensions to dismal to support the ability to use dismal to
+;; align two data streams, say data, and sequential predictions.
+
+;;; Code:
+
+;;;; I.	model-match
 
 (defun dis-model-match (range-list)
   "Given a cell RANGE-LIST computes the percentage of colA matched
@@ -80,9 +71,7 @@ that is in order."
    (dis-div (float matches) (float total)) ))
 
 
-;;;
-;;;	II.	dis-model-rate
-;;;
+;;;; II.	dis-model-rate
 
 ;;                 #  name   matchs       start
 ;;                               s   type    end
@@ -151,3 +140,6 @@ that is in order."
 ;                 (push (cons time dc) results) ))
 ;      (setq start-row (1+ start-row))  ))
 
+
+(provide 'dismal-model-extensions)
+;;; dismal-model-extensions.el ends here

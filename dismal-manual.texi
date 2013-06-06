@@ -1100,15 +1100,7 @@ Set mark in Dismal buffers to current cell
 @node Analysing And Calculating A Worksheet, Management Of Sequential Data, Using A Spreadsheet, Top
 @chapter Analysing And Calculating A Worksheet
 
-It used to be the case that two types of numbers were used within
-Dismal -- integers and floating points.  The two conversion functions,
-fint and f changed these types and there were two sets of arithmetic
-operators which dealt with either floats or integers.  Now, versions
-of emacs 19 and later handle floating point numbers, and so the normal
-arithmetic operators can be used within Dismal.  However, there are
-still some problems with these numbers and so the old floating point
-operators remain for those people who do not have the latest versions
-of Emacs.  It is also sometimes the case that the Emacs floats are so
+It is sometimes the case that the Emacs floats are so
 long that they cannot be displayed on the spreadsheet -- if the column
 width is too short then they appear as a row of asterisks.  As a
 temporary solution to this problem, a short lisp function has been
@@ -1187,16 +1179,7 @@ line in their .Emacs file:
 
 @section Entering Functions As Cell Values
 
-There are still two types of number used in the Dismal spreadsheet,
-integers and floats.  They both can be coerced into each other with
-the functions f and fint.  Most functions starting with 'dis-' should
-be able to translate for you on the fly, but the functions that begin
-with f require that their input be floating points numbers (and will
-cause an error otherwise).
-
-You can put @code{(f+ NUM1 NUM2)} as the value of a cell.  @code{f+}
-does not take more than two arguments. (Is there a good way around
-this?  Could we make it a macro?)
+You can put @code{(+ NUM1 NUM2)} as the value of a cell.
 
 You can also use the following lisp functions to compute a cell's
 value.  The format for all of them is a lisp S-expressions.  A simple
@@ -1593,8 +1576,8 @@ dismal-mode-load-hook are called.  If you wish to load additions, you
 can put them in a file, and put a lambda expression to load them
 there.  For example,
 @example
-(setq dis-load-hook 
-   '(lambda () (load "/afs/nott/usr/ritter/my-dismal-file.el")))
+(add-hook 'dis-load-hook
+          (lambda () (load "/afs/nott/usr/ritter/my-dismal-file.el")))
 @end example
 
 The functions you need to modify and manipulate cells are available in
@@ -1655,10 +1638,10 @@ Moran and Newell (1983).
 
 The second function is make-alias, which takes a command as a string and
 creates an alias for it.  If the command is over 5 letters, it does so
-by taking the first letter of each hyphanated word in it, otherwise,
+by taking the first letter of each hyphenated word in it, otherwise,
 just the first letter.  make-alias keeps track of aliases it has made,
-and keeps them on *new-aliases*, and puts duplicate aliases on
-*dup-aliases*.   There is a helper function, init-make-aliases, to
+and keeps them on dismal-new-aliases, and puts duplicate aliases on
+dismal-dup-aliases.   There is a helper function, dismal-init-make-aliases, to
 initialize these variables. 
 
 
@@ -1836,11 +1819,7 @@ under Unix.  The latest version of Dismal that works in 18.59 is 0.86.
 In this version all its initial features worked.  We do not recommend
 using this version of Emacs or of Dismal.  Dismal currently works best
 under version 19, and has been tested up to release 19.24, although it
-takes relatively little advantage of any of the new features.  It has
-not been tested to our knowledge under Lucid-Emacs, or GNU-Emacs for
-VMS, DOS machines (Demacs), or versions compiled for Macintosh
-machines.  We would be interested in hearing from users who have used
-Dismal under these configurations.
+takes relatively little advantage of any of the new features.
 
 As you might expect, different versions of Dismal work best with
 different releases of GNU-Emacs.  For the most recent releases of

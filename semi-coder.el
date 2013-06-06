@@ -1,39 +1,34 @@
-;;;; -*- Mode: Emacs-Lisp; byte-compile-dynamic: t;-*-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; 
-;;;; File            : semi-coder.el
-;;;; Author          : Frank Ritter
-;;;; Created On      : Sun Jul 19 02:04:03 1992
-;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: Sat Sep 25 16:23:28 1993
-;;;; Update Count    : 22
-;;;; 
-;;;; PURPOSE
-;;;; 	Let users insert codes from model into Soar/PA sheets.
-;;;; Note: users must have new pscm-stats loaded.
-;;;;      
-;;;; TABLE OF CONTENTS
-;;;;	i.	Variables & constants
-;;;;	I.	op-code-segment
-;;;;	II.	save-op-codes
-;;;;	III.	load-op-codes
-;;;;	IV.	Utilities
-;;;; 
-;;;; Copyright 1992, Frank E. Ritter.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Status          : Unknown, Use with caution!
-;;;; HISTORY
-;;;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; semi-coder.el --- Let users insert codes from model into Soar/PA sheets.
 
-(provide 'semi-coder)
+;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+
+;; Author: Frank Ritter
+;; Created-On: Sun Jul 19 02:04:03 1992
+
+;; This is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Note: users must have new pscm-stats loaded.
+
+;;; Code:
+
 (require 'dismal-data-structures)
 (require 'rmatrix)
 
 
-;;;
-;;;	i.	Variables & constants
-;;;
+;;;; i.	Variables & constants
 
 (defvar dis-operator-codes nil
   "Operator names taken from Soar that can be used to code segments.")
@@ -42,11 +37,9 @@
   "Operator code to insert (? for complete list): ")
 
 
-;;;
-;;;	I.	dis-op-code-segment
-;;;
+;;;; I.	dis-op-code-segment
 
-;;; would be useful to allow new codes to be added.
+;; would be useful to allow new codes to be added.
 
 (defun dis-op-code-segment ()
   "Code a segment with an operator name."
@@ -68,12 +61,10 @@
     (dismal-redraw-cell dismal-current-row dismal-current-col t)) ))
 
 
-;;;
-;;;	II.	dis-save-op-codes
-;;;
+;;;; II.	dis-save-op-codes
 
 (defun dis-save-op-codes (file)
-  "Write dismal operator codes out to a file."
+  "Write dismal operator codes out to a FILE."
  (interactive (list (dismal-read-minibuffer "Dump op codes in: "
                         'editable (expand-file-name dis-codes-file))))
   ;; (interactive "FFile to dump operator codes into: ")
@@ -90,9 +81,7 @@
     (kill-buffer (current-buffer)))))
 
 
-;;;
-;;;	III.	dis-load-op-codes
-;;;
+;;;; III.	dis-load-op-codes
 
 (defun dis-load-op-codes (file &optional union-or-replace)
  "Load operator codes into dismal.  UNION-OR-REPLACE can be either."
@@ -121,9 +110,7 @@
  (kill-buffer code-buffer)))
 
 
-;;;
-;;;	IV.	Utilities
-;;;
+;;;; IV.	Utilities
 
 ;; (defconst dis-init-op-codes-prompt "Attempt to load codes from DSI or TAQL: ")
 
@@ -157,3 +144,6 @@
                             dis-operator-codes))
             (call-interactively 'dis-load-op-codes)) )
         (t (call-interactively 'dis-load-op-codes))) ))
+
+(provide 'semi-coder)
+;;; semi-coder.el ends here

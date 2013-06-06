@@ -1,35 +1,34 @@
-;;;; -*- Mode: Emacs-Lisp -*- 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; 
-;;;; File            : vectors.el
-;;;; Author          : David Fox, fox@cs.nyu.edu
-;;;; Created On      : Mon Jan  6 14:19:40 1992
-;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: Mon Aug  3 16:14:59 1992
-;;;; Update Count    : 31
-;;;; 
-;;;; PURPOSE
-;;;; Vectors are arrays that on access automatically allocate space on end 
-;;;; when new positions are accessed, and insert new and delete extant elements
-;;;; like a list.  New space on addition is always double, so size increases
-;;;; log rather than linear.
-;;;; TABLE OF CONTENTS
-;;;; 	|>Contents of this module<|
-;;;; 
-;;;; Copyright 1992, David Fox & Frank Ritter.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Status          : Unknown, Use with caution!
-;;;; HISTORY
-;;;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; vectors.el --- Vectors as arrays that grow automatically
 
-(provide 'vectors)
+;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+
+;; Author: David Fox, fox@cs.nyu.edu
+;; Created-On: Mon Jan  6 14:19:40 1992
+
+;; This is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Vectors are arrays that on access automatically allocate space on end 
+;; when new positions are accessed, and insert new and delete extant elements
+;; like a list.  New space on addition is always double, so size increases
+;; log rather than linear.
+
+;;; Code:
 
 
-;;;
-;;;	i.	Variables
-;;;
-;;;
+;;;; i.	Variables
 
 (defvar vector-expansion-function (function (lambda (x) (1+ x)))
   "How much to expand vector when space is needed as a function of its 
@@ -37,9 +36,7 @@ current size.")
 ;; used to be (lambda (x) (* 2 x)), but this was way too big...
 
 
-;;;
-;;; 	I.	Vectors
-;;; 
+;;;; I.	Vectors
 
 ;;
 ;; VECTOR FUNCTIONS: A vector is implemented as a 4 tuple:
@@ -152,9 +149,7 @@ current size.")
        nil
        spot)))
 
-;;;
-;;;	Vector-delete
-;;;
+;;;; Vector-delete
 
 ;(defun create-vaa ()
 ;   (setq vaa (vector-create nil))
@@ -274,3 +269,7 @@ current size.")
       (setq col (1- col))
       (apply function (list row col) (aref vector-cells col) nil))))
 
+
+(provide 'vectors)
+
+;;; vectors.el ends here

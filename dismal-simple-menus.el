@@ -1,56 +1,35 @@
-;;;; -*- Mode: Emacs-Lisp -*- 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;              
-;;;; File            : dismal-simple-menus.el
-;;;; Author          : Frank Ritter
-;;;; Created On      : Mon Jan  6 21:19:01 1992
-;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: Mon Oct 11 19:24:06 1993
-;;;; Update Count    : 129
-;;;; 
-;;;; PURPOSE
-;;;; 	Describe the simple-menus in dismal-mode.
-;;;; TABLE OF CONTENTS
-;;;;
-;;;;	i.	Requires and provides
-;;;;
-;;;;	I.	Main menu
-;;;;	II.	File menu and children
-;;;;	III.	Edit menu and children
-;;;;	IV.	Move menu and children
-;;;;	V.	Commands menu
-;;;;	VI.	Format menus
-;;;;	VII.	Options menu
-;;;;	VIII.	Set variables menu
-;;;;	IX.	Model menus 
-;;;;	X.	Misc. menus used outside of main menu
-;;;; 
-;;;; Copyright 1992, Frank Ritter.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Status          : Unknown, Use with caution!
-;;;; HISTORY
-;;;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; dismal-simple-menus.el --- Describe the simple-menus in dismal-mode
 
-
-;;;
-;;;	i.	Requires and provides
-;;;
+;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+
+;; Author: Frank Ritter
+;; Created-On: Mon Jan  6 21:19:01 1992
+
+;; This is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;;; Code:
 
 (require 'simple-menu)
-(provide 'dismal-simple-menus)
-
-
-;;;
-;;;	I.	Main menu and driver
-;;;
 
 (defun dis-run-menu ()
   "Provide a menu of commands for dismal."
   (interactive)
-  (run-menu 'dismal-menu))
+  (sm-run-menu 'dismal-menu))
 
-(def-menu 'dismal-menu
+(sm-def-menu 'dismal-menu
   "Dismal" ;main prompt
   "This menu allows you to select all command options in dismal."
    ;123456789012345
@@ -59,7 +38,7 @@
    ("Edit/           Edit the spreadsheet." dismal-edit-menu)
    ("Go/             Move around." dismal-move-menu)
    ("Commands/       Special commands." dismal-commands-menu)
-   ("Format/         Set up the format of cells, columns, and the sheet." 
+   ("Format/         Set up the format of cells, columns, and the sheet."
                      dismal-format-menu)
    ("Doc.            Read the dismal documentation."
                      (info (concat dismal-directory "/dismal.info")))
@@ -81,14 +60,14 @@
 ;;;	II.	File menu and children
 ;;;
 
-(def-menu 'dismal-file-menu
+(sm-def-menu 'dismal-file-menu
   "Dis I/O"
   "" ;help prompt
  '(("New.         Open a new file." dis-find-file)
    ("Open.        Open a dismal file." find-file)
    ("Save         Save a file." dis-save-file)
    ("Write.       Write file to new name" dis-write-file)
-   ("Insert.      Insert a tabbed file starting at current cell." 
+   ("Insert.      Insert a tabbed file starting at current cell."
                   dis-insert-file)
    ("2Prin.       Setup to print." dis-print-setup)
    ("FPrin.       Print a text only version to a file." dis-make-report)
@@ -100,14 +79,14 @@
 ))
 
 
-(def-menu 'dis-dump-menu
+(sm-def-menu 'dis-dump-menu
   "Dis Dump"
   "" ;help prompt
- '(("DumpTF      Dump a tabbed version to a file (w/ arg, save formulas)." 
+ '(("DumpTF      Dump a tabbed version to a file (w/ arg, save formulas)."
                  dis-write-tabbed-file)
    ("RDump.      Dump a range to a tabbed file." dis-dump-range)
    ("TDump.      Dump a range to a tabbed file for TeX." dis-tex-dump-range)
-   ("2TDump.     Dump a range to a tabbed file for TeX, complete with full header." 
+   ("2TDump.     Dump a range to a tabbed file for TeX, complete with full header."
                  dis-tex-dump-range-file)
    ("HDump.      Dump a range to a file for HTML." dis-html-dump-range)
    ("3HDump.     Dump file to a file for HTML." dis-html-dump-file)
@@ -118,7 +97,7 @@
 ;;;	III.	Edit menu and children
 ;;;
 
-(def-menu 'dismal-edit-menu
+(sm-def-menu 'dismal-edit-menu
   "Dis Edit"
   "" ;help prompt
  '(("Undo*        Undo the previous command." dis-no-op)
@@ -132,34 +111,34 @@
    ("Modify/      Modify a cell." dismal-modify-cell-menu)
 ))
 
-(def-menu 'dismal-modify-cell-menu
+(sm-def-menu 'dismal-modify-cell-menu
   "Dis modify"
   ""
- '((">          Edit a cell and set format to right justified." 
+ '((">          Edit a cell and set format to right justified."
     dis-edit-cell-rightjust)
-   ("<          Edit a cell and set format to left justified." 
+   ("<          Edit a cell and set format to left justified."
     dis-edit-cell-leftjust)
-   ("=          Edit a cell, set format to default (#'s right, strings left)." 
+   ("=          Edit a cell, set format to default (#'s right, strings left)."
     dis-edit-cell-default)
-   ("|          Edit a cell, set format to centered." 
+   ("|          Edit a cell, set format to centered."
     dis-edit-cell-center)
    ("e          Edit a cell and don't change format."
     dis-edit-cell-plain)))
 
 
-(def-menu 'dismal-insert-menu 
+(sm-def-menu 'dismal-insert-menu
   "Dis insert"
   "" ;help prompt
  '(("Row           Insert a row." dis-insert-row)
    ("Column        Insert a column." dis-insert-column)
-   ("Lcells        Insert some cells pushing down or sideways." 
+   ("Lcells        Insert some cells pushing down or sideways."
                    dis-insert-cells)
    ("Marked-range  Insert cells based on marked range." dis-insert-range)
-   ("Z-box         Insert Z shaped box of cells based on marked range." 
+   ("Z-box         Insert Z shaped box of cells based on marked range."
                    dis-insert-z-box)
 ))
 
-(def-menu 'dismal-delete-menu
+(sm-def-menu 'dismal-delete-menu
   "Dis deleteable items"
   "" ;help prompt
  '(("Row           Delete a row." dis-delete-row)
@@ -167,7 +146,7 @@
    ("Marked-range  Delete cells based on marked range." dis-delete-range)
 ))
 
-(def-menu 'dismal-set-cell-parameters-menu
+(sm-def-menu 'dismal-set-cell-parameters-menu
   "Dis cell options"
   "" ;help prompt
  '(("Center.      Set a cell center justified." dis-edit-cell-center)
@@ -181,7 +160,7 @@
 ;;;	IV.	Move menu and children
 ;;;
 
-(def-menu 'dismal-move-menu
+(sm-def-menu 'dismal-move-menu
   "Dis Go"
   "" ;help prompt
  '(("Column/     Move to a column." dismal-move-col-menu)
@@ -193,7 +172,7 @@
    ("Jump.       Jump to prompted for cell." dis-jump)
 ))
 
-(def-menu 'dismal-move-col-menu
+(sm-def-menu 'dismal-move-col-menu
   "Dis Column movements"
   "Move columns: " ;help prompt
  '(("1st         First column." dis-start-of-col)
@@ -202,7 +181,7 @@
    ("Forward     Forward a column." dis-forward-column)
 ))
 
-(def-menu 'dismal-move-row-menu
+(sm-def-menu 'dismal-move-row-menu
   "Dis row movements"
   "Move rows" ;help prompt
  '(("1st         First row." dis-first-row)
@@ -216,11 +195,11 @@
 ;;;	V.	Commands menu
 ;;;
 
-(def-menu 'dismal-commands-menu
+(sm-def-menu 'dismal-commands-menu
   "DisCom"
   "" ;help prompt
  '(("Align        Align metacolumns based on mark and point." dis-align-metacolumns)
-   ("Cp2dis       Copy column of space delimited numbers or words from another 
+   ("Cp2dis       Copy column of space delimited numbers or words from another
                   buffer to dismal." dis-copy-to-dismal)
    ;; ("Depend-clean Clean up the dependencies." dismal-fix-dependencies)
    ("Expnd        Expand the columns of width 0 in range to be of width 1."
@@ -228,14 +207,14 @@
    ("FilRng       Fill the range with incrementing numbers." dis-fill-range)
    ("LisFns       List the available functions for cells." dis-show-functions)
    ("QRep         Query-replace for Dismal." dis-query-replace)
-   ("DeBlnk       Delete all blank rows in given range." 
+   ("DeBlnk       Delete all blank rows in given range."
                   dis-delete-blank-rows)
    ("1log         Turn loggin on."   log-initialize)
    ("0log         Turn loggin off."  log-quit)
    ("Upd*         Update commands." dismal-update-commands-menu)
 ))
 
-(def-menu 'dismal-update-commands-menu
+(sm-def-menu 'dismal-update-commands-menu
   "DisUCom"
   "" ;help prompt
  '(
@@ -251,27 +230,21 @@
 ;;;	VI.	Format menus
 ;;;
 
-(def-menu 'dismal-format-menu
+(sm-def-menu 'dismal-format-menu
   "Dis Format"
   "Formating" ;help prompt
  '(("Number.     Set format for numbers." dis-set-column-decimal)
-   ("Align.      Set alignment for range or column." 
+   ("Align.      Set alignment for range or column."
                    dis-set-alignment)
    ("Width.      Set width for column." dis-read-column-format)
-   ("1Auto-width  Set the width to be as wide as the widest element." 
+   ("1Auto-width  Set the width to be as wide as the widest element."
                  dis-auto-column-width)
-   ("Fonts/      Set the font for the sheet." dis-set-font)
    ("UpdateR     Redraw the ruler." dis-update-ruler)
 ))
 
-(defun dis-set-font ()
-   (interactive)
-   (call-interactively 'mouse-set-font))
-
-
 ;; ;; get fonts from xlsfonts
 ;; 
-;; (def-menu 'dismal-font-menu
+;; (sm-def-menu 'dismal-font-menu
 ;;   "Dis Fonts"
 ;;   "Font use for the whole sheet (actually all buffers):" ;help prompt
 ;;  '( ;;("VTiny       A very tiny font, 4x13." "4x8")
@@ -290,7 +263,7 @@
 ;;;	VII.	Options menu
 ;;;
 
-(def-menu 'dismal-options-menu
+(sm-def-menu 'dismal-options-menu
   "Dis Options"
   "" ;help prompt
  '(("SetV           Set dismal user variables." dismal-set-variables-menu)
@@ -310,7 +283,7 @@
 ;;;	VIII.	Set variables menu
 ;;;
 
-(def-menu 'dismal-set-variables-menu
+(sm-def-menu 'dismal-set-variables-menu
   "Dis Set variables"
   "" ;help prompt
  '(("RulerRow      Set the ruler's row." dis-set-ruler-rows)
@@ -318,26 +291,26 @@
    ("Auto-update   Toggle auto-updating." dis-toggle-auto-update)
    ("Middle-col    Set the last col, that is grouped with the LHS when aligning."
                    dis-set-metacolumn)
-   ("Field-sep     Set the field seperator in files read in." 
+   ("Field-sep     Set the field seperator in files read in."
                    dis-set-dis-field-sep)
-   ("Show-updt     Toggle showing the variables getting updated." 
+   ("Show-updt     Toggle showing the variables getting updated."
                    dis-toggle-show-update)
 
 ))
 
 
 ;;;
-;;;	IX.	Model menus 
+;;;	IX.	Model menus
 ;;;
 
-(def-menu 'dismal-model-menu
+(sm-def-menu 'dismal-model-menu
    "DisMod"
    ""
  '(("Codes/       Setup, use, and save operator codes." dis-codes-menu)
    ("Stats/       Various stats that can be created." dis-stats-menu)
    ("Utils/       Other things to do in Soar/PA mode." dis-code-utils-menu)))
 
-(def-menu 'dis-codes-menu
+(sm-def-menu 'dis-codes-menu
   "DisCodes"
   "" ;help prompt
  '(("Save         Write dismal operator codes out to a file."  dis-save-op-codes)
@@ -347,7 +320,7 @@
      dis-initialize-operator-codes)
 ))
 
-(def-menu 'dis-code-utils-menu
+(sm-def-menu 'dis-code-utils-menu
   "DisCode utils"
   "" ;help prompt
  '(("AutoAlign.   Auto align the two meta columns." dis-auto-align-model)
@@ -355,7 +328,7 @@
                   dis-align-columns)
 ))
 
-(def-menu 'dis-stats-menu
+(sm-def-menu 'dis-stats-menu
   "DisCode stats"
   "" ;help prompt
  '(("Stats*       Print out stats (not defined yet)." dis-no-op)
@@ -368,29 +341,32 @@
 ;;;
 
 
-(def-menu 'dismal-row-or-column-menu
+(sm-def-menu 'dismal-row-or-column-menu
   "Move Rows (vertically) or Columns (horizontally)" ;main prompt
   "This menu allows you to select how to insert new cell(s)."
  '(("Rows        Move the cells vertically adding or removing rows." 'rows)
-   ("Columns     Move the cells horizontally adding or removing columns." 
+   ("Columns     Move the cells horizontally adding or removing columns."
                  'columns)
-   ("H           Move the cells horizontally adding or removing columns." 
+   ("H           Move the cells horizontally adding or removing columns."
                  'columns)
    ("V           Move the cells vertically adding or removing rows." 'rows)
 ))
 
-(def-menu 'dismal-range-or-col-menu
-  "Use selected range (r) or column (c)" 
+(sm-def-menu 'dismal-range-or-col-menu
+  "Use selected range (r) or column (c)"
   "This menu allows you to select to operate on a range or the current column."
  '(("Range         Apply command to the current range." 'range)
    ("Column        Apply command to the current column." 'column)))
 
-(def-menu 'dismal-alignment-style-menu
+(sm-def-menu 'dismal-alignment-style-menu
   "Select alignment style"
   "This menu allows you to select the alignment style."
  '(("Left         Flush left." 'left)
    ("Center       Centered." 'center)
-   ("Default      Text flush left & numbers flush right." 
+   ("Default      Text flush left & numbers flush right."
                     'default)
    ("Right        Flush right." 'right))
 )
+
+(provide 'dismal-simple-menus)
+;;; dismal-simple-menus.el ends here

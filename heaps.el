@@ -1,36 +1,31 @@
-;;;; -*- Mode: Emacs-Lisp -*- 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; 
-;;;; File            : heaps.el
-;;;; Author          : David Fox, fox@cs.nyu.edu
-;;;; Created On      : Mon Jan  6 14:19:10 1992
-;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: Thu Mar 19 10:20:50 1992
-;;;; Update Count    : 3
-;;;; 
-;;;; PURPOSE
-;;;; 	|>Describe module's purpose<|
-;;;; TABLE OF CONTENTS
-;;;; 	|>Contents of this module<|
-;;;; 
-;;;; Copyright 1992, Frank Ritter & David Fox.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Status          : Unknown, Use with caution!
-;;;; HISTORY
-;;;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; heaps.el --- Some kind of heap data structure of Dismal
 
-(provide 'heaps)
+;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
 
-;; (if (fboundp 'proclaim-inline)
-;;  (proclaim-inline heap-insert heap-create))
+;; Author: David Fox, fox@cs.nyu.edu
+;; Created-On: Mon Jan  6 14:19:10 1992
 
-
-;;;
-;;;	IV.	Heaps
-;;;
+;; This is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; FIXME: Use GNU ELPA's `heap' package instead!
+
+;;; Code:
+
+;;;; IV.	Heaps
+
 ;; PRIORITY QUEUE - A heap, implemented as a 4-tuple:
 ;;      [compare-function
 ;;       vector-size
@@ -47,7 +42,8 @@
 ;;                                        address of last element
 
 (defmacro heap-compare (h a b)
-  "Use HEAP's compare function to compare elements A and B."
+  "Use HEAP's compare function to compare elements A and B.
+Argument H "
   (list 'apply (list 'aref h 0) a b nil))
 
 (defmacro heap-space (h)
@@ -184,3 +180,6 @@ to the lesser of the corresponding elements."
 ;;  (heap-insert dismal-invalid-heap (cons 2 0))
 ;;  
 ;;  (setq addr (heap-deletemin dismal-invalid-heap))
+
+(provide 'heaps)
+;;; heaps.el ends here

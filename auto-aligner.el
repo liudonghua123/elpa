@@ -1,42 +1,39 @@
-;;;; -*- Mode: Emacs-Lisp; byte-compile-dynamic: t;-*-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; 
-;;;; File            : auto-aligner.el
-;;;; Author          : Frank Ritter
-;;;; Created On      : Wed May 20 15:50:22 1992
-;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: Sat Sep 25 15:42:46 1993
-;;;; Update Count    : 117
-;;;; 
-;;;; PURPOSE
-;;;; 	Specialized extensions to dismal to support aligning two sequences.
-;;;; TABLE OF CONTENTS
-;;;;
-;;;;	i.	dis-auto-align-model variables
-;;;;	I.	dis-auto-align-model
-;;;;	II.	Utilities
-;;;; 
-;;;; Copyright 1992, Frank Ritter.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Status          : Unknown, Use with caution!
-;;;; HISTORY
-;;;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; auto-aligner.el --- Specialized extensions to Dismal to support aligning two sequences
 
-(provide 'auto-aligner)
+;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+
+;; Author: Frank Ritter
+;; Created-On: Wed May 20 15:50:22 1992
+
+;; This is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;;; Code:
+
 (require 'dismal-data-structures)
 (require 'rmatrix)
 
 
-;;;
-;;;	i.	dis-auto-align-model variables
-;;;
-;;; General algorithm taken from p. 190, Card, Moran, & Newell.
-;;; Extensions:  
-;;;  * our predseq ends up being a list of cell references
-;;;  * we don't just want to compute the final comparison, we also want
-;;;    to realign
-;;;  * has to be run in buffer with dismal-matrix bound
+;;;; i.	dis-auto-align-model variables
+
+;; General algorithm taken from p. 190, Card, Moran, & Newell.
+;; Extensions:  
+;;  * our predseq ends up being a list of cell references
+;;  * we don't just want to compute the final comparison, we also want
+;;    to realign
+;;  * has to be run in buffer with dismal-matrix bound
 
 ;; How to use this:
 ;; . turn auto-update off
@@ -61,17 +58,16 @@
 ;; 1.1 has improved moving up in lineness
 
 
-;;;
-;;;	I.	auto-align-model variables
-;;;
-;;; (dis-auto-align-model "B" "J" 82 498) ; for unit
-;;; (dis-auto-align-model "D" "M" 64 380) ; for old unit
-;;; (dis-auto-align-model "B" "J" 64 380) ; for unit
-;;; (dis-auto-align-model "B" "J" 50 555) ; for array
-;;; (dis-auto-align-model "B" "J" 50 640) ; for array5, after auto-align
-;;; (dis-auto-align-model "B" "J" 50 640) ; for array5, after auto-align
-;;; (dis-auto-align-model "B" "J" 42 222) ; for precision
-;;; (dis-auto-align-model "B" "J" 42 222) ; for axis
+;;;; I.	auto-align-model variables
+
+;; (dis-auto-align-model "B" "J" 82 498) ; for unit
+;; (dis-auto-align-model "D" "M" 64 380) ; for old unit
+;; (dis-auto-align-model "B" "J" 64 380) ; for unit
+;; (dis-auto-align-model "B" "J" 50 555) ; for array
+;; (dis-auto-align-model "B" "J" 50 640) ; for array5, after auto-align
+;; (dis-auto-align-model "B" "J" 50 640) ; for array5, after auto-align
+;; (dis-auto-align-model "B" "J" 42 222) ; for precision
+;; (dis-auto-align-model "B" "J" 42 222) ; for axis
 
 (defun dis-auto-align-model (obs-col pred-col start-row end-row)
   "Aligns the two meta-column rows based on matching up what's in OBS-COL 
@@ -94,8 +90,8 @@ nEnding row: ")
  (setq obs-col (dismal-convert-colname-to-number obs-col))
  (setq pred-col (dismal-convert-colname-to-number pred-col))
  (setq obs-range-list
-       (make-range start-row obs-col end-row obs-col))
- (setq pred-range-list (make-range start-row pred-col end-row pred-col))
+       (dismal-make-range start-row obs-col end-row obs-col))
+ (setq pred-range-list (dismal-make-range start-row pred-col end-row pred-col))
  (setq obsseq (dis-match-list obs-range-list obs-regexps))
  (setq predseq (dis-match-list pred-range-list pred-regexps))
 
@@ -227,9 +223,7 @@ nEnding row: ")
  (message "Thank you for using dis-auto-align-model.")   )))
 
 
-;;; 
-;;;	II.	Utilities 
-;;;
+;;;; II.	Utilities 
 
 ;; (string-match "place-atom \\([0-9]*\\), \\1" "place-atom 33, 33")
 ;; move the edit references so that they are later.
@@ -665,3 +659,6 @@ nEnding row: ")
 ;                                            p-row dismal-max-col offset))))))
 ;   (setq i (1+ i)) )
 ; (max p-offset o-offset))
+
+(provide 'auto-aligner)
+;;; auto-aligner.el ends here

@@ -108,11 +108,9 @@ The files included in the package are:
     dismal-manual.txt    dismal-mode-defaults.el
           
 
-   *float.el            
-   *float-changes.el    *vectors.el
+   *vectors.el
    *heaps.el            *rmatrix.el
-   *soar-misc.el        *simple-menu.el
-   *insert-date.el
+   *simple-menu.el
 
 
 The last group of files marked with "*" are not part of dismal proper,

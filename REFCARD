@@ -5,11 +5,10 @@ dismal Mode: A major mode for editing SpreadSheets.
 
 A command menu is available by typing C-c C-m (C-m is also RET).
 
-All the numerical values in the spreadsheet are floating point numbers as
-implemented in the float.el package in the standard GNU emacs distribution.
+All the numerical values in the spreadsheet are floating point numbers.
 Therefore you can put arbitrary emacs expressions into the cells which use
-the floating point functions f+, f-, f*, f/, abs, fabs, f%, f=, f>, f>=,
-f<, f<=, f/=, fmin, fmax, fzerop, float-to-string.
+the floating point functions +, -, *, /, abs, mod, =, >, >=,
+<, <=, /=, min, max, zerop, number-to-string.
 
 General movement commands:
 
@@ -144,9 +143,3 @@ Functions that can go in a cell taking more or less:
     (dis-current-date)
     (dis-date-to-days DATE-AS-INTEGER)
     (dis-match-list RANGE REGEXPs)
-
-Numeric functions:
-    (dis-div NUM1 NUM2) dis-plus
-    f                   ftrunc
-    fint                f+ f/ f* f-
-    fmax                fmin

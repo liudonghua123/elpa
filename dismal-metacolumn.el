@@ -1,36 +1,31 @@
-;;;; -*- Mode: Emacs-Lisp; byte-compile-dynamic: t;-*-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; 
-;;;; File            : dismal-metacolumn.el
-;;;; Author          : Frank Ritter
-;;;; Created On      : Mon Jun  1 13:05:14 1992
-;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: Mon Sep  7 14:37:01 1992
-;;;; Update Count    : 31
-;;;; 
-;;;; PURPOSE
-;;;; 	Implement metacolumn manipulations for dismal.
-;;;; TABLE OF CONTENTS
-;;;;	I.	dis-set-metacolumn
-;;;;	II.	dis-insert-metacolumn-cells
-;;;;	III.	dis-insert-z-box
-;;;;	IV.	dis-align-metacolumns
-;;;;	V.	Utilities
-;;;; 
-;;;; Copyright 1992, Frank E. Ritter.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Status          : Unknown, Use with caution!
-;;;; HISTORY
-;;;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; dismal-metacolumn.el --- Implement metacolumn manipulations for dismal
 
-(provide 'dismal-metacolumn)
+;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+
+;; Author: Frank E. Ritter, ritter@cs.cmu.edu
+;; Created-On: Mon Jun  1 13:05:14 1992
+
+;; This is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;;; Code:
+
 (require 'dismal-data-structures)
 
 
-;;;
-;;;	I.	dis-set-metacolumn
-;;;
+;;;; I.	dis-set-metacolumn
 
 (defun dis-set-metacolumn (initial-col)
  "Set the first metacolumn to include up INITIAL-COL."
@@ -54,9 +49,7 @@
        ( t (error "dis-middle-col must be a number")))))
 
 
-;;;
-;;;	II.	dis-insert-metacolumn-cells
-;;;
+;;;; II.	dis-insert-metacolumn-cells
 
 (defun dis-insert-metacolumn-cells (&optional arg col row)
   "Insert ARG cells in the metacolumn that COL (default, current-col) is in,
@@ -77,9 +70,7 @@ at ROW (default, current-row)."
   (dismal-insert-range-cells row 0 row dis-middle-col arg))))
 
 
-;;;
-;;;	III.	dis-insert-z-box
-;;;
+;;;; III.	dis-insert-z-box
 
 (defun dis-insert-z-box (initial-arg)
   "Insert ARG rows of cells on each side of dis-middle-col,
@@ -111,9 +102,7 @@ sides of the middle-col."
 ;; (dismal-insert-range-cells 10 3 10 5 1)
 
 
-;;;
-;;;	IV.	dis-align-metacolumns
-;;;
+;;;; IV.	dis-align-metacolumns
 
 (defun dis-align-metacolumns ()
   "Align the metacolumns so that point and mark are on the same line,
@@ -188,12 +177,13 @@ keeping other parts of the columns still aligned."
         (beep t)))  )))
 
 
-;;;
-;;;	V.	Utilities
-;;;
+;;;; V.	Utilities
 
 ;; provides a set of tests to make sure that you can play with the meta-columns
 (defun dismal-metacolumn-guards ()
   (cond ((not (aref dismal-mark 0)) (error "Mark not set."))
         ((or (not dis-middle-col) (not (numberp dis-middle-col)))
          (error "dis-middle-col not set."))))
+
+(provide 'dismal-metacolumn)
+;;; dismal-metacolumn.el ends here

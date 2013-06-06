@@ -99,10 +99,9 @@ VII.  Hard stuff
 1. check out the dismal-mode hook
 
 ;; example set up for stuff to do when putting a buffer into dismal-mode
-(setq soar-mode-hook
-     '((lambda ()
-        (define-key soar-mode-map "\C-c\C-t" 'favorite-cmd)
-        )))
+(add-hook 'soar-mode-hook
+          (lambda ()
+            (define-key soar-mode-map "\C-c\C-t" 'favorite-cmd)))
 
 2. checkout recompile-dismal-mode
 

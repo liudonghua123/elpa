@@ -1,58 +1,37 @@
-;;;; -*- Mode: Emacs-Lisp -*- 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; 
-;;;; File            : rmatrix.el
-;;;; Author          : David Fox, fox@cs.nyu.edu
-;;;; Created On      : Mon Jan  6 14:17:56 1992
-;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: Sat Sep  5 03:53:36 1992
-;;;; Update Count    : 43
-;;;; 
-;;;; PURPOSE
-;;;; Provides matrixs that are implemented as vector of vectors, along
-;;;; with common matrix operations.  This version gives rows priority.
-;;;; 	
-;;;; TABLE OF CONTENTS
-;;;; 	I.	Matrix creation and major modification
-;;;;	II.	Cell insertion and deletion
-;;;;	III.	Mapping functions
-;;;;	IV.	Useful test functions
-;;;; 
-;;;; Copyright 1992, David Fox & Frank Ritter.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Status          : Unknown, Use with caution!
-;;;; HISTORY
-;;;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; rmatrix.el --- Matrices implemented as vector of vectors, gives rows priority
+
+;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+
+;; Author: David Fox, fox@cs.nyu.edu
+;; Created-On: Mon Jan  6 14:17:56 1992
+
+;; This is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Provides matrices that are implemented as vector of vectors, along
+;; with common matrix operations.  This version gives rows priority.
+
+;;; Code:
 
 (provide 'rmatrix)
 
-;;  (if (fboundp 'proclaim-inline)
-;;    (proclaim-inline
-;;      matrix-create
-;;      matrix-delete-rows
-;;      matrix-delete-cols  cut in after debugged
-;;      matrix-insert-nil-cols
-;;      matrix-insert-nil-row-cells
-;;      matrix-insert-nil-column-cells
-;;      matrix-delete-row-cells
-;;      matrix-delete-column-cells
-;;      matrix-mapl
-;;      matrix-map-rc
-;;      ;; matrix-copy
-;;      matrix-funcall-rc
-;;      matrix-insert-nil-rows
-;;      matrix-ref
-;;      matrix-set))
+;;;; I.	Matrix creation and major modification
 
-
-;;;
-;;; 	I.	Matrix creation and major modification
-;;;
-
-;; Matrixs look like:   [rows-allocated rows-in-use row-vector]
+;; Matrices look like:   [rows-allocated rows-in-use row-vector]
 ;;
-;; Each row is an array.  When new cells are accessed, the matrix is 
+;; Each row is an array.  When new cells are accessed, the matrix is
 ;; grown dynamically.  Only the row accessed is grown, and it
 ;; is only grown far enough out to hold the new item.
 ;;
@@ -62,27 +41,27 @@
 ;;   (matrix-ref m r c)                - Return M's element at (R C).
 ;;   (matrix-mapl f m)                 - Pass every cell to a function
 ;;   (matrix-map-rc f m)               - Pass every cell and its address to f
-;;   (matrix-funcall-rc f r1 c1 r2 c2 m) 
-;;                                     - Map FUNCTION across the cells of MATRIX 
+;;   (matrix-funcall-rc f r1 c1 r2 c2 m)
+;;                                     - Map FUNCTION across the cells of MATRIX
 ;;                                       starting and stopping (inclusive) as
-;;                                       indicated.  FUNCTION gets funcalled with 
+;;                                       indicated.  FUNCTION gets funcalled with
 ;;                                       args (r c matrix-value).
-;;   (matrix-insert-nil-rows m i n)    - 
-;;   (matrix-insert-nil-row-cells   
+;;   (matrix-insert-nil-rows m i n)    -
+;;   (matrix-insert-nil-row-cells
 ;;                          m c r n)   - Insert N nil cells at r,c, moving the
 ;;                                       remaining cells over.
-;;   (matrix-insert-nil-column-cells  
+;;   (matrix-insert-nil-column-cells
 ;;                          m c r n)   - Insert N nil cells at r,c, moving the
 ;;                                       remaining cells down.
-;;   (matrix-insert-nil-cols m i n)    - 
-;;   (matrix-delete-rows m i n)        - 
-;;   (matrix-delete-cols m i n)        - 
-;;   (matrix-delete-column-cells m c r n) - delete n cells, moving items up 
-;;   (matrix-delete-row-cells 
+;;   (matrix-insert-nil-cols m i n)    -
+;;   (matrix-delete-rows m i n)        -
+;;   (matrix-delete-cols m i n)        -
+;;   (matrix-delete-column-cells m c r n) - delete n cells, moving items up
+;;   (matrix-delete-row-cells
 ;;                            m c r n) - delete n cells, moving items left
 ;;   (matrix-copy start-r start-c
 ;;       stop-r  stop-c
-;;       donor-start-r donor-start-c  
+;;       donor-start-r donor-start-c
 ;;       donor   recipient)            - copy cells in donor to recipient
 ;;                                       starting and stopping as specified
 
@@ -129,9 +108,7 @@
       (vector-insert (aref matrix-cells r) col ncol))))
 
 
-;;;
-;;;	II.	Cell insertion and deletion
-;;;
+;;;; II.	Cell insertion and deletion
 
 ;; users of this function should note that the matrix might grow
 (defsubst matrix-insert-nil-row-cells (matrix row col ncol)
@@ -171,9 +148,7 @@
      (setq nrow (1- nrow))) ))
 
 
-;;;
-;;;	III.	Mapping functions
-;;;
+;;;; III.	Mapping functions
 
 ;; maps FUNCTION across the cells of MATRIX starting and stopping (inclusive)
 ;; as indicated.  FUNCTION gets funcalled with args (row col matrix-value).
@@ -211,12 +186,12 @@
      (setq don-c don-start-c)
      (setq rec-c rec-start-c)
      (while (<= don-c don-stop-c)
-       ;(message "Copying from donor[%d %d] to rec[%d %d] val: %s" 
+       ;(message "Copying from donor[%d %d] to rec[%d %d] val: %s"
        ;          don-start-r don-c rec-start-r rec-c
        ;          (matrix-ref donor don-start-r don-c)) (sit-for 1)
        (setq donor-cell (matrix-ref donor don-start-r don-c))
        (matrix-set recipient rec-start-r rec-c
-                   (if donor-cell 
+                   (if donor-cell
                        (vconcat donor-cell)
                      nil))
        (setq don-c (1+ don-c))
@@ -228,9 +203,7 @@
 ; (inspect bb)
 
 
-;;;
-;;;	IV.	Useful test functions
-;;;
+;;;; IV.	Useful test functions
 
 ;; looks like matrixes are stored as a vector of columns
 
@@ -243,16 +216,16 @@
 ;  (matrix-set aa 3 1 'r3c1)
 ;  (matrix-set aa 0 2 'r0c2)
 ;  (matrix-set aa 0 3 'r0c3))
-;; Note that these results are different from matrix.el 
+;; Note that these results are different from matrix.el
 ;; (which is column based).
-; (inspect aa)  [1 1 [[1 0 [nil] nil]] [1 0 [nil] nil]] 
+; (inspect aa)  [1 1 [[1 0 [nil] nil]] [1 0 [nil] nil]]
 ; (matrix-set aa 0 0 'r0c0)
-; (inspect aa) [1 1 [[1 1 [r0c0] nil]] [1 0 [nil] nil]] 
+; (inspect aa) [1 1 [[1 1 [r0c0] nil]] [1 0 [nil] nil]]
 ; (matrix-set aa 0 1 'r0c1)
-; (inspect aa) [1 1 [[2 2 [r0c0 r0c1] nil]] [1 0 [nil] nil]] 
+; (inspect aa) [1 1 [[2 2 [r0c0 r0c1] nil]] [1 0 [nil] nil]]
 ; (matrix-set aa 1 1 'r1c1)
 ; (inspect aa)
-;             [2 2 [[2 2 [r0c0 r0c1] nil][2 2 [nil r1c1] nil]][1 0 [nil] nil]] 
+;             [2 2 [[2 2 [r0c0 r0c1] nil][2 2 [nil r1c1] nil]][1 0 [nil] nil]]
 ; (matrix-set aa 3 3 'r3c3)
 ; (matrix-set aa 3 1 'r3c1)
 ; (matrix-set aa 0 2 'r0c2)
@@ -264,8 +237,11 @@
 ;        [4 4 [nil r3c1 nil r3c3] nil]] [1 0 [nil] nil]]
 ; (matrix-delete-column-cells aa 0 1 1)
 ; (matrix-width aa)
-; (inspect aa)  
+; (inspect aa)
 ;  [4 4 [[4 4 [r0c0 r1c1 r0c2 r0c3] nil]
 ;        [2 2 [nil nil] nil]
 ;        [2 2 [nil r3c1] nil]
 ;        [4 4 [nil nil nil r3c3] nil]] [1 0 [nil] nil]]
+
+(provide 'rmatrix)
+;;; rmatrix.el ends here
