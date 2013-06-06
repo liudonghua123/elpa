@@ -83,7 +83,6 @@
 ;;;;    17647.703  ^[h        backward-kill-word             text
 ;;;;    17647.890  ^[h        backward-kill-word             cut
 ;;;;                                                         text
-;;;;    17649.125  ^Xo        popper-other-window            foo
 ;;;;    17650.406  [G]^Y      yank                           cut
 ;;;;                                                         text
 ;;;;    % 
@@ -611,13 +610,12 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
 	;; (process-kill-without-query log-timer-process)
 	(save-excursion
 	  (set-buffer buf)
-          ;; inserted load through 'uptime', 7-Jul-97 -FER
+          ;; insert system load with 'uptime', 7-Jul-97 -FER
 	  (insert (format "User: %s\nCreation-date: %s\nSystem: %s\nStart-buffer: %s\n"
 			  (user-full-name)
 			  (current-time-string)
 			  (system-name)
-			  cbuf
-                          ))
+			  cbuf))
           (insert "Uptime: ")
           ;; This should put it in current buf.
           ;; there appears to be some problems at Nottingham or in gnu with
@@ -1010,7 +1008,7 @@ Optional PREFIX is inserted first."
 (defvar log-old-other-window nil)
 (defvar log-new-other-window
   '(lambda (arg)
-     (interactive "p")	; should this be "P"? see popper-other-window.
+     (interactive "p")	; should this be "P"?
      (funcall log-old-other-window arg)
      (log-modify-keymap (current-local-map) "[L]")	; just in case
      (log-command-in-process-buffer (log-current-buffer))))

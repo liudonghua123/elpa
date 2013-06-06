@@ -1,17 +1,19 @@
                              dismal-mode
-                             Release 1.2 or later
+                             Release 1.3 or later
 
                            Frank E. Ritter
                     <Frank.Ritter@nottingham.ac.uk>
-                              25-Jul-97
+<http://www.psychology.nottingham.ac.uk/staff/ritter/papers/dismal/dismal.html>
+
+                              8-Nov-97
 
 INTRODUCTION
 ------------
 
 This is an introduction for dismal (Dis' Mode Ain't lotus), a major
-mode in GNU-emacs that implements a spreadsheet.  It includes how to
+mode in GNU-emacs that implements a spreadsheet (!), including how to
 load, run, and use dismal and dismal spreadsheets.  Dismal provides
-the basic spreadsheet functions.  Because it is based on GNU-emacs it
+the basic spreadsheet functions.  Because it is based on GNU-Emacs it
 offers several relatively novel features for a spreadsheet.  It is
 designed to be keystroke driven rather than mouse/menu driven
 (although it can be menu driven).  It is extensible, so that users can
@@ -26,27 +28,36 @@ of Card, Moran and Newell.  These were reported at CHI:
   Nichols, S., & Ritter, F. E. (1994).  A theoretically motivated tool
   for automatically generating command aliases.  Proceedings of CHI
   '95. 393-400.
-  (http://www.psyc.nott.ac.uk/aigr/research/cmat/Chi95.html). 
+  (http://www.psychology.nottingham.ac.uk/aigr/research/cmat/Chi95.html). 
+
 
 
 For futher information, please see the dismal-manual.* files
-accompanying the release.
+accompanying the release, or 
+http://www.psychology.nottingham.ac.uk/staff/ritter/papers/dismal/dismal.html
+
+
+If you would like to contribute, there remain numerous problems with
+dismal (noted in the todo list in dismal.el), but I use it at least
+weekly and now know of at 20 users outside of Nottingham.
 
 OBTAINING AND INSTALLING THE PACKAGE
 ------------------------------------
 
-dismal-mode is available via anonymous ftp from host 128.243.40.43
-(granby.ccc.nottingham.ac.uk, but many machines don't know it, so you
-can use the numbers) in the directory "pub/lpzfr" (From within ftp
-only the part of the tree rooted at /usr/ftp is visible) and updated
-less frequently from the Elisp archives at The OSU and
+dismal-mode is available via anonymous ftp from host
+(ftp.nottingham.ac.uk, but many machines don't know it, so you can use
+the numbers 128.243.40.43, which is a specific ftp machine) in the
+directory "pub/lpzfr" (From within ftp only the part of the tree
+rooted at /usr/ftp is visible) and updated less frequently from the
+Elisp archives at The OSU and
 centro.soar.cs.cmu.edu:/afs/cs/project/soar/public/Soar6/.
 
 There is a mirror site at ftp://cs.nyu.edu/pub/local/fox/dismal that
 may be updated nightly.
 
-There is a mirror site at ftp://vpsyc.nott.ac.uk/pub/ritter/dismal
-that I maintain.
+There is a mirror site at
+ftp://vpsyc.psychology.nottingham.ac.uk/pub/ritter/dismal that I
+maintain.
 
 The file is named "pub/lpzfr/dismal-VERSION.tar.gz" (so use
 binary mode by issuing the "binary" command), where version gives you
@@ -68,7 +79,8 @@ To install the system:
    GNU emacs at your site is not called "emacs", but something else (e.g.,
    some places use "gmacs"), then compile the .el files using the alternative
    command "make EMACS=xxxx" where "xxxx" is the name of your emacs program.
-   There are a lot of compiler warnings generated in 19.28.
+   There are a lot of compiler warnings generated in 19.28.  You may
+   also have to change the compiler name in the makefile.
 
 3) Please read the dismal.info files.  They are the manual.
 
@@ -108,7 +120,7 @@ The files included in the package are:
 The last group of files marked with "*" are not part of dismal proper,
 but dismal depends on them.  It should be possible for later releases
 of dismal to replace them with smarter and faster code.  Some of these
-files are gone already.
+files are, in fact, gone already.
 
 MISCELLANEOUS
 -------------
@@ -123,11 +135,10 @@ Version 1.1 makes some use of defsubst and of fonts and menus
 
 There are too many bugs or missing features to list them here.
 Interested users should consult the dismal.el file.
-A previous version of the manual in Microsoft Word is also available
- upon request. 
 
-If you would like to hear about updates and other such things, please
-let me know and I'll put you on the dismal users mailing list.
+If you would like to hear about updates and other such things or to
+help maintain it, please let me know and I'll put you on the dismal
+users mailing list.
 
 <Frank.Ritter@nottingham.ac.uk>
 

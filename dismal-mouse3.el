@@ -39,7 +39,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;;	Mouse functions system for using with DISMAL spreadsheet
-;;;;              
+;;;;
+;;;; Optimazations by  Mikio Nakajima <minakaji@osaka.email.ne.jp> 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -208,7 +209,8 @@
   ;; set DRAG-ON variable to true so as to track the mouse movement.
   (setq drag-on t)
   (track-mouse
-    (while (not (equal drag-on nil))
+    ;; optimization here from Mikio Nakajima <minakaji@osaka.email.ne.jp>
+    (while drag-on
       
       ;; read an event
       (setq mouse-event (read-event))
@@ -217,7 +219,7 @@
       (cond
 
        ;; mouse-movement is sensed move cursor and highlight the range
-       ((equal (car mouse-event) 'mouse-movement)
+       ((eq (car mouse-event) 'mouse-movement)
 ;; was	(goto-char (car (cdr (car (cdr mouse-event)))))
         (let ((mouse-char  (car (cdr (car (cdr mouse-event))))))
            (if (not mouse-char)
@@ -233,7 +235,7 @@
 
        ;; Mouse button release at the same place it was pressed
        ;; visit cell and stop tracking motion
-       ((equal (car mouse-event) 'mouse-1)
+       ((eq (car mouse-event) 'mouse-1)
 	(dismal-jump-to-cell (cdr start-drag)
 			   (car start-drag))
 	(setq drag-on nil
@@ -242,7 +244,7 @@
 
        ;; Drag motion of mouse has been completed turn tracking off and 
        ;; highlight the selected range of cells
-       ((equal (car mouse-event) 'drag-mouse-1)
+       ((eq (car mouse-event) 'drag-mouse-1)
 	(setq drag-on nil)
         (if (or (not (boundp 'last-drag)) last-drag)
             (setq last-drag (dismal-find-cell)))

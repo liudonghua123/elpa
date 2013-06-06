@@ -30,11 +30,11 @@
 ## (f2) goto granby or pine to makeinfo info nodes, or M-x makeinfo-buffer
 ## (g) type "make package" to make a new directory, tar file, etc.
 ## (h) change dismal-version in dismal.el back to +
-## (i) put copy out on granby
-##     ftp granby
+## (i) put copy out on ftp.nottingham
+##     ftp ftp.nottingham
 ##     cd pub
 ##     binary
-##     put dismal-1.2/dismal-1.2.tar.gz  dismal-1.2.tar.gz
+##     put dismal-1.3a/dismal-1.3a.tar.gz  dismal-1.3a.tar.gz
 ## (j) put a copy on vpsyc
 ##     cp ~/tools/emacs/dismal/dismal-1.2/dismal-1.2.tar.gz ~/ftp-ritter/dismal-1.2.tar.gz
 ## Optional arguments to make:
@@ -50,7 +50,7 @@ EMACS    = emacs
 COMPILER = cc
 
 # no user changeable variables below here.
-RELEASE = dismal-1.2
+RELEASE = dismal-1.3
 
 # main files that will be loaded during compiles
 # in .elc format.
@@ -72,12 +72,10 @@ EXTRAOBJS = float-changes.elc \
           rmatrix.elc \
           dismal-data-structures.elc \
           soar-misc.elc \
-          ritter-math.elc \
           simple-menu.elc \
 	  keystroke.elc \
 	  log.elc \
 	  dismal-mode-defaults.elc
-#	  popper.elc
 
 # files that will be compiled
 SRCS    = dismal-data-structures.el \
@@ -91,7 +89,6 @@ SRCS    = dismal-data-structures.el \
           heaps.el \
           rmatrix.el \
           dismal-mode-defaults.el \
-          ritter-math.el \
           soar-misc.el \
           simple-menu.el \
 	  auto-aligner.el \
@@ -116,12 +113,10 @@ MISC 	= COPYING \
 	  examples/test.dis \
 	  checkout-dismal.script \
 	  dismal-manual.tex \
-	  dismal-manual.txt \
 	  dismal.info \
 	  dismal.info-1 \
 	  dismal.info-2 \
 	  timer.c
-#	  popper.lcd
 #	  dismal-manual.ps
 #	  dismal-manual.rtf
 
@@ -141,7 +136,6 @@ package: ${SRCS} ${MISC}
 	cp ${MISC} ../${RELEASE}
 #	cp ${OBJS} ../${RELEASE}
 #	rm ./goto-manual.el
-#	rm ./ritter-math.el
 #	rm ./simple-menu.el
 #	rm ./soar-misc.el
 #	rm ./x-mouse.el
@@ -170,9 +164,8 @@ ${EXTRAOBJS}:
 # dismal-mode-defaults is most important, for it makes sure that current 
 # directory is on load-path
 BASICLOADS =  -l ./dismal-mode-defaults.elc dismal-data-structures.elc \
-#	./popper.elc \
 	./float-changes.elc ./vectors.elc ./heaps.elc ./rmatrix.elc \
-	./ritter-math.elc ./soar-misc.elc \
+	./soar-misc.elc \
 	./simple-menu.elc
 #	./goto-manual.elc
 
@@ -182,7 +175,7 @@ BASICLOADS =  -l ./dismal-mode-defaults.elc dismal-data-structures.elc \
 # Special rules.
 
 #dismal.elc:  
-#	${EMACS} -batch -q -l ./popper.elc \
+#	${EMACS} -batch -q -l  \
 #		./float-changes.elc -f batch-byte-compile dismal.el
 
 # Dependencies.

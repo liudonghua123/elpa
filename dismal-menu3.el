@@ -128,7 +128,7 @@
 ;;;
 
 (define-key dismal-map [menu-bar options]
-  (cons "dOpts" (make-sparse-keymap "Options")))
+  (cons "dOpts" (make-sparse-keymap "Dis Options")))
 
 (define-key dismal-map [menu-bar options zrange]
   '("Redraw Range" . dis-redraw-range))
@@ -168,7 +168,7 @@
 ;;;
 
 (define-key dismal-map [menu-bar doc.]
-  (cons "dDoc" (make-sparse-keymap "Doc.")))
+  (cons "dDoc" (make-sparse-keymap "Dis Doc")))
 
 (define-key dismal-map [menu-bar doc. show]
   '("Full Dismal Documentation" . dis-open-dis-manual))
@@ -186,7 +186,7 @@
 ;;;
 
 (define-key dismal-map [menu-bar format]
-  (cons "dFormat" (make-sparse-keymap "Format")))
+  (cons "dFormat" (make-sparse-keymap "Dis Format")))
 
 (define-key dismal-map [menu-bar format update-r]
   '("Update Ruler" . dis-update-ruler))
@@ -213,7 +213,7 @@
 ;;;
 
 (define-key dismal-map [menu-bar commands]
-  (cons "dComms" (make-sparse-keymap "Commands")))
+  (cons "dComms" (make-sparse-keymap "Dis Commands")))
 
 (define-key dismal-map [menu-bar commands 0log]
   '("Logging-Off" . log-quit))
@@ -248,7 +248,7 @@
 ;;;
 
 (define-key dismal-map [menu-bar go]
-  (cons "dGo" (make-sparse-keymap "Go")))
+  (cons "dGo" (make-sparse-keymap "Dis Go")))
 (define-key dismal-map [menu-bar go Jump]
   '("Jump to cell>" . dis-jump))
 (define-key dismal-map [menu-bar go End]
@@ -309,7 +309,7 @@
 (define-key dismal-map [menu-bar files] 'undefined)
 
 (define-key dismal-map [menu-bar dedit]
-  (cons "dEdit" (make-sparse-keymap "DEdit")))
+  (cons "dEdit" (make-sparse-keymap "Dis Edit")))
 
 (define-key dismal-map [menu-bar dedit modify]
   '("Modify cell justification" . dis-modify))
@@ -402,7 +402,7 @@
 ;;; These are pushed on, it appears.
 
 (define-key dismal-map [menu-bar Dfile]
-  (cons "dFile" (make-sparse-keymap "DFile")))
+  (cons "dFile" (make-sparse-keymap "Dis File")))
 
 (define-key dismal-map [menu-bar Dfile Quit]
   '("Kill current buffer" . kill-buffer))

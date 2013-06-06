@@ -20,7 +20,7 @@
 ;;;;	iv.	HISTORY
 ;;;; 	v.	Global user visible variables
 ;;;; 	vi.	Requires and loads and autoloads
-;;;;	vii.	Data structures
+;;;;	vii.	Former ritter-math
 ;;;; 	viii.	System constants
 ;;;; 	ix.	Mandatory variables - must be set in/by the control file
 ;;;;	x.	Internal variables
@@ -71,6 +71,8 @@
 ;;;; and altmann@cs.cmu.edu.  David Lamkins (DBLamkins@aol.com): Speed 
 ;;;; up file format and modifications for use with Marc Parmet's 
 ;;;; Macintosh port. Some date improvements by amy@vts.ed.ray.com.
+;;;; Some speed ups and clarity added by Mikio Nakajima 
+;;;; (minakaji@osaka.email.ne.jp)
 ;;;;
 ;;;; 
 ;;;; Formated in a modified Milnes style, based on
@@ -252,8 +254,6 @@ versions this should be set to nil.")
   "*Default field separator character when reading in with other system
 dump files (default TAB).")
 
-(defvar dis-gplot-name "gplot"
-  "*Name of gplot program (shell interface for gnuplot).")
 
 ;;;
 ;;; dis-dump-range and TeX dumping Variables
@@ -367,8 +367,16 @@ confirmed on entering.")
   "*Saved files are compressed upon save.")
 (make-variable-buffer-local 'dismal-save-compression)
 
+;; When you write a new function for the user, put it on here.
 (defvar dis-user-cell-functions
-  nil "Functions the user can put in a cell.")
+  '(dis-count dis-count-words-in-range
+    dis-count-regexp-in-range
+    dis-count-if-regexp-match
+    dis-match-list
+    dis-sum dis-mean dis-product dis-div dis-plus
+    dis-current-date dis-date-to-days
+    dis-copy-to-dismal dis-grader dis-ungrader)
+  "Functions the user can put in a cell.")
 
 ;; not really user settable, but needed by loads up here, 19-Jun-96 -FER
 (defvar dismal-map nil "")
@@ -391,7 +399,7 @@ confirmed on entering.")
 (setq log-compress! nil)
 (load "log.el")
 
-;; so popper won't clobber ^Z
+;; so popper won't clobber
 ;;(if (or (not (boundp 'dis-use-popper)) dis-use-popper)
 ;;    (setq popper-load-hook 
 ;;         (function (lambda ()
@@ -421,11 +429,6 @@ confirmed on entering.")
 (require 'dismal-data-structures)
 (require 'dismal-simple-menus)
 (require 'soar-misc)
-(require 'ritter-math)
-
-;; (require 'goto-manual)
-
-;; (push dismal-directory doc-manual-homes)
 
 ;; (require 'dismal-metacolumn)
 (autoload 'dis-set-metacolumn
@@ -451,7 +454,7 @@ keeping other parts of the columns still aligned.")
 
 
 ;; now assume that we get our directory in load path
-(global-set-key "\C-cd" 'insert-date-string)
+(global-set-key "\C-cd" 'dis-insert-date-string)
 
 
 ;; can't require this (it has no provide), but we'll try
@@ -568,20 +571,57 @@ with something in colA-1.  Only counts stuff that is in order." t)
 ;;    rangep (in dismal-data-structures.el)
 ;;    dismal-query-replace-guts
 ;;    dismal-addressp  (in dismal-data-structures.el)
+
+;;;
+;;;	vii.	Former ritter-math
+;;;
 
+;;;  Some simple math extensions to elisp.
+;;; Formerly a separate file called ritter-math.
+;;;
+
+;; log10 is now in emacs 19!  19-Oct-97-FER
+;; but it now returns a real, not an integer...
+;;
+;;   (defun log10plus (x)
+;;     (let ((dividend (/ x 10)))
+;;     (if (not (= 0 dividend))
+;;         (+ 1 (log10plus dividend))
+;;        0)))
+;;   
+;;   (defsubst log10minus (x)
+;;     (error "log10minus in dismal not defined."))
+;;   
+;;   (defsubst log10 (x)
+;;     (if (< x 0) (error "log10 error."))
+;;     (if (> x 1)
+;;         (log10plus x)
+;;       (if (= x 1)
+;;           0
+;;       (log10minus x))))
+
+(defmacro signp (arg)
+  (list 'if (list '> arg 0) 1 -1))
 
 
 ;;;
 ;;; 	viii.	System Constants
 ;;;
 
-(defconst dismal-version "1.2"
+(defconst dismal-version "1.3"
   "Version of dismal-mode implementation.")
 
-(defun dismal-version ()
-  (interactive)
-  (message dismal-version) 
-  dismal-version)
+(defun dismal-version (&optional here)
+  "Show the version of dismal.el in the minibuffer.
+If optional argument HERE is non-nil, insert info at point."
+  (interactive "P")
+  (let ((version-string 
+         (format "Version of \`dismal.el\': %s" dismal-version)))
+    (if here 
+        (insert version-string)
+      (if (interactive-p)
+          (message "%s" version-string)
+        version-string))))
 
 ;; (string-match dismal-cell-name-regexp " aa23")
 
@@ -974,29 +1014,13 @@ in the status line."
   (setq dismal-current-row r)
   (setq dismal-current-col c))
 
+;; bummed by Mikio Nakajima <minakaji@osaka.email.ne.jp>, 3-Sep-97 -FER
 (defsubst dismal-goto-row (row interactivep)
   ;; Move the cursor to the requested ROW.
-  (let* ((current-window-row (current-line-in-window))
-         (window-rows (1- (window-height)))
-         ;; (put-rule-up-later nil)
-         (raw-offset (- row dismal-current-row)) )
-  ;; autoshowing ruler is too slow
-  ;; (if (and dis-show-ruler interactivep)
-  ;;     (cond ((< (+ current-window-row raw-offset) 2)   ;scrolling up
-  ;;            (dismal-undraw-ruler-rows)
-  ;;            (setq put-rule-up-later t)
-  ;;            (scroll-down-in-place (+ (- raw-offset) 2)) )
-  ;;           ((>= (+ current-window-row raw-offset) window-rows) ;scrlng down
-  ;;            (dismal-undraw-ruler-rows)
-  ;;            (setq put-rule-up-later t))
-  ;;           (t nil)))
   (let ((rows-missing (goto-line (+ row dismal-first-data-line))))
     (if (not (bolp)) (setq rows-missing (1+ rows-missing)))
     (open-line rows-missing)
-    (forward-char rows-missing))
-  ;; (if (and interactivep put-rule-up-later)
-  ;;    (dismal-draw-ruler row))
-  )  )
+    (forward-char rows-missing))    )
 
 
 (defun dis-transpose-cells ()
@@ -1008,8 +1032,10 @@ Flips the current cell and the one to its left."
   (dismal-save-excursion
   (if (= 0 dismal-current-col)
       (setq dismal-current-col (1+ dismal-current-col)))
-  (let* ((cell1 (dismal-get-or-make-cell dismal-current-row dismal-current-col))
-         (cell2 (dismal-get-or-make-cell dismal-current-row (1+ dismal-current-col)))
+  (let* ((cell1 (dismal-get-or-make-cell dismal-current-row
+                                         dismal-current-col))
+         (cell2 (dismal-get-or-make-cell dismal-current-row
+                                        (1+ dismal-current-col)))
          (exp (dismal-get-cell-exp cell1))
          (val (dismal-get-cell-val cell1))
          (dep (dismal-get-cell-dep cell1))
@@ -1033,6 +1059,13 @@ Flips the current cell and the one to its left."
 (defsubst dismal-create-matrix ()
   (let ((m (matrix-create)))
     (vector-insert m 0 1)))
+
+;; (inspect (matrix-create)) 
+;; should look like:  [1 0 [[1 0 [nil] nil]] [1 0 [nil] nil]]
+;; (inspect (dismal-create-matrix))
+;;  should look like:  [1 1 [ [1 0 [nil] nil]] [1 0 [nil] nil]]
+;; bug looks like:     [1 1 [ [1 0 #1 nil] ]   [1 0 [[1 0 #2 nil]] nil]]
+
 
 ;; 
 ;; (dismal-possible-live-sexp '(+ (dismal-get-val dismal-current-row (-
@@ -1160,6 +1193,7 @@ Flips the current cell and the one to its left."
 ;; ? continued popper problems and specific popper error:
 ;;   As of 19.14, `length' no longer works with compiled-function objects:
 ;;   2-Jan-97 -FER
+;; 2 (60) Should have a submit bug command.
 ;; 2 (300) Check for and note circular references.
 ;; 3 (200) Insert cell references when they are created in formula
 ;;         more generally, probbaly have to have a check when creating a new
@@ -1333,11 +1367,12 @@ and right mouse button is bound to dis-mouse-highlight-row.
         (eval-region matrix-point (point-max)))
       (setq dismal-first-printed-column 
             ;; DBL: next line was (max 10 ...)
-            (+ (1+ (log10 (max 1 dismal-max-row))) ; numbers
+            (+ (1+ (truncate (log10 (max 1 dismal-max-row)))) ; numbers
                1 ; space
                (if dismal-row-label-lined 1 0)))
       (setq dismal-row-label-format
-                  (format "%%%dd %s" (1+ (log10 (max 1 dismal-max-row)))
+                  (format "%%%dd %s" 
+                          (1+ (truncate (log10 (max 1 dismal-max-row))))
                           (if dismal-row-label-lined "|" "")))
       (if (or (not dismal-write-file-version)
               (not (string-equal dismal-write-file-version dismal-version)))
@@ -1555,11 +1590,10 @@ C-x C-q to change read-only.")))
                                 (dismal-column-width 0)))
              (dismal-display-current-cell-expr 0 0))))
 
-(if (not (member 'dismal-find-file-hook find-file-hooks))
-    (push 'dismal-find-file-hook find-file-hooks))
+(add-hook 'find-file-hooks 'dismal-find-file-hook)
 
 (defun dismal-set-first-printed-column ()
- (let* ((width (log10 (max 1 dismal-max-row)))
+ (let* ((width (truncate (log10 (max 1 dismal-max-row))))
         (old-dismal-first-printed-column dismal-first-printed-column)
         (difference nil) )
  (setq dismal-first-printed-column
@@ -1571,7 +1605,7 @@ C-x C-q to change read-only.")))
  (if (not (= 0 difference))
      (dismal-save-excursion 
         (setq dismal-row-label-format
-              (format "%%%dd %s" (1+ (log10 (max 1 dismal-max-row)))
+              (format "%%%dd %s" (1+ (truncate (log10 (max 1 dismal-max-row))))
                       (if dismal-row-label-lined "|" "")))
         (if (> difference 0)
             (string-rectangle (point-min) (point-max) " ")
@@ -1601,7 +1635,7 @@ C-x C-q to change read-only.")))
            "/dismal-mouse-x"
            "/dismal-mode-defaults"   "soar-misc"
            "/simple-menu"
-           "/goto-manual"  "/dismal")
+           "/dismal")
   "For development only.  Use make instead.")
 
 ;; (defun dismal-compile-n-load-dismal ()
@@ -2035,32 +2069,36 @@ C-x C-q to change read-only.")))
            (buffer-name (current-buffer)))
   (bury-buffer nil))
 
-(defsubst dismal-query-replace-guts (i j prompt)
-  (if (cond ((stringp cell-value)
-             (setq match-start
-                   (string-match from-string cell-value)))
+;; old dismal-query-replace-guts by FER
+(defun dismal-query-replace-guts (i j prompt)
+  (if (cond ((and (stringp cell-value)
+             (string-match from-string cell-value)))
             (t (equal cell-value from-string)))
       (progn (dismal-jump-to-cell i j)  ;; present match
         (message prompt)                ;; query for action
         (setq prompt-result (downcase (read-char)))
         (dismal-save-excursion
         (cond ((or (= prompt-result ?\ ) (= prompt-result ?y))
+               (setq match-start
+                   (string-match from-string cell-value))
                (dismal-set-exp i j  ;; need to be careful about
                (dismal-set-val i j  ;; need to be careful about
                    (if (stringp from-string)
                        (concat (substring cell-value 0 match-start)
                                to-string
-                               (substring cell-value (match-end 0)))
+                               (if (> (match-end 0) (length cell-value))
+                                   ""
+                                        (substring cell-value (match-end 0))))
                       to-string)))
                (dismal-redraw-cell i j t))
-              ;; skip on del (127) and n
+             ;; skip on del (127) and n
               ((or (= prompt-result ?n) (= prompt-result 127)))
               ;; C-h goes here too to give help
               ((= prompt-result ?\h)
                (with-output-to-temp-buffer "*Help*"
                  (princ query-replace-help)))
               ;; quit on anything else
-              (t (setq done t)))))))
+             (t (setq done t)))))))
 
 (defun dis-query-replace (from-string to-string)
   "Replace some occurrences of FROM-STRING with TO-STRING.
@@ -2085,9 +2123,10 @@ only matches surrounded by word boundaries."
   (interactive
    (let ((f-string (dismal-convert-input-to-cellexpr 
                       (read-string "Dismal query replace: "))))
-   (list f-string
-         (dismal-convert-input-to-cellexpr
-             (read-string (format "Dismal query replace %s with: " f-string))))))
+     (list f-string
+           (dismal-convert-input-to-cellexpr
+               (read-string (format "Dismal query replace %s with: " 
+                                    f-string))))))
 
   (dismal-set-mark dismal-current-row dismal-current-col)
   (let ((i dismal-current-row)
@@ -2529,16 +2568,32 @@ C-g when search is successful aborts and moves point to starting point."
 ;;; Original code by Erik Altmann.
 ;;;
 
-(defvar insert-date-with-month-namep nil
+(defvar dis-insert-date-with-month-namep t
   "*Print out the month in insert-date-string as letters, and in
 30-Oct-91 order, rather than as 10-30-91.")
 
 ;; 3-6-91 -  tested only for march:
-(defconst *date-table*
-    '(("Jan" 1) ("Feb" 2) ("Mar" 3) ("Apr" 4)
-      ("May" 5) ("Jun" 6) ("Jul" 7) ("Aug" 8)
-      ("Sep" 9) ("Oct" 10) ("Nov" 11) ("Dec" 12))
+(defconst dismal-date-table
+    '(("Jan" . 1) ("Feb" . 2) ("Mar" . 3) ("Apr" . 4)
+      ("May" . 5) ("Jun" . 6) ("Jul" . 7) ("Aug" . 8)
+      ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12))
   "Maps into numbers the month strings returned by current-time-string.")
+
+(defvar dismal-national-weekday-table nil
+  "*Alist that consists of weekday and its local representation.
+Replace the second item in each list to use it.")
+;; Shipped with English version, that is, no table.
+
+;; Rough approximation table for Spanish use
+;; '( ("Sun"  "Dom") ("Mon"  "Lun") ("Tue"  "Mar") ("Wed"  "Mie")
+;;    ("Thu"  "Whe") ("Fri"  "Vie") ("Sat"  "Sab"))
+
+(defvar dis-use-yymmdd-rep t
+  "*Use yy/mm/dd format to represent a day." )
+
+(defvar dis-insert-weekday-first t
+  "*" )
+
 
 
 ;;;
@@ -2565,30 +2620,14 @@ C-g when search is successful aborts and moves point to starting point."
   (insert-before-markers
    (format "%s" (current-time-string))) )
 
-(defun insert-date-string (arg)
-  "Inserts the current date after point, in m-d-y format.  With prefix
-argument, inserts the weekday first."
+;; (dis-insert-date-string nil)
+;; (setq dis-insert-date-with-month-namep t)
+(defun dis-insert-date-string (arg)
+  "Inserts the current date after point, in d-m-y format.  With prefix
+argument, inserts the month first."
   (interactive "P")
-  (let ((time-string (current-time-string)))
-    (if arg
-        ;; insert day before date:
-        (insert-before-markers
-        (format "%s " (downcase (substring time-string 0 3)))))
-    ;; insert date:
-    (insert-before-markers
-     (if insert-date-with-month-namep
-	 (format "%s-%s-%s -"
-		 (if (string-equal " " (substring time-string 8 9))
-		     (substring time-string 9 10)
-		   (substring time-string 8 10))
-		 (substring time-string 4 7)
-		 (substring time-string  -2 nil))
-	 (format "%s-%s-%s - "
-		 (car (cdr (assoc (substring time-string 4 7) *date-table*)))
-		 (if (string-equal " " (substring time-string 8 9))
-		     (substring time-string 9 10)
-		   (substring time-string 8 10))
-		 (substring time-string  -2 nil))))))
+  (insert-before-markers (dis-current-date arg)) )
+
 
 
 ;;;
@@ -2730,12 +2769,12 @@ nil.  Leaves point in same row and column of window [which seems wrong]."
     (cond ((and (plusp increment) (= dismal-current-row dismal-max-row))
            (beep) ;; leave this beep without a t
            (and dismal-interactive-p 
-                (progn (message "Wrapping around forwards...") (sit-for 1)))
+                (message "Wrapping around forwards...") (sit-for 1))
            (setq dismal-current-row 0))
           ((and (minusp increment) (= dismal-current-row 0))
            (beep) 
            (and dismal-interactive-p
-                (progn (message "Wrapping around backwards...") (sit-for 1)))
+                (message "Wrapping around backwards...") (sit-for 1))
            (setq dismal-current-row dismal-max-row))
           (t (setq dismal-current-row (+ increment dismal-current-row)))))
  (if (= start-row dismal-current-row)
@@ -3391,7 +3430,7 @@ This gives the cell(s) characters all in upper case."
 (defsubst dismal-evaluate-cellref (addr)
   (let ((value (dismal-evaluate-cell (dismal-address-row addr)
                                      (dismal-address-col addr))))
-    (if value value 0)))
+    (or value 0)))
 
 (defun dismal-r-c- (row column) (dismal-evaluate-cellref (cons row column)))
 (defun dismal-rfc- (row column) (dismal-evaluate-cellref (cons row column)))
@@ -4238,12 +4277,15 @@ If direction is columns, move cells left to fill."
         (if (eq (car sexp) 'dismal-range)
             (dismal-do (function (lambda (row2 col2 dummy)
                             (dismal-set-deps row2 col2
-                                 (dismal-del (dismal-make-address row col)
-                                             (dismal-get-deps row2 col2)))))
+                                 ;; used to be dismal-del
+                                 (delete (dismal-make-address row col)
+                                         (dismal-get-deps row2 col2)))))
                         sexp nil)
           (if (memq (car sexp) dismal-cell-types)
-              (dismal-set-deps row col (dismal-del (dismal-make-address row col)
-                                                   (dismal-get-deps row col)))
+              (dismal-set-deps row col 
+                               ;; used to be dismal-del
+                               (delete (dismal-make-address row col)
+                                           (dismal-get-deps row col)))
             (dismal-erase-dependencies row col (car sexp))
             (dismal-erase-dependencies row col (cdr sexp)))))))
 
@@ -4475,10 +4517,9 @@ some types of deletions."
             (not dismal-saving-file))
        (dis-save-file)))
 
-;; Written to run in 18 & 19
-(setq write-file-hooks
-      (cons 'dismal-write-file-hook
-            write-file-hooks))
+;; Written to run in 19
+(add-hook 'write-file-hooks 'dismal-write-file-hook)
+
 
 ;;;
 ;;;    XIVb.	File I/O - Translation functions between Excel and Forms
@@ -4932,7 +4973,9 @@ Writes an extra tab if last field is empty for use in other programs, like S."
 ;;;	XIVe.	File I/O - Working with gnuplot
 ;;;
 
-;; This section written by Stephen Eglen <stephene@cogs.susx.ac.uk>
+;; This section written by Stephen Eglen <stephen@cns.ed.ac.uk>.
+;; Feel free to contact him if you have problems getting gplot to
+;; work (it does not work at Nottingham, alas).
 ;; Date: Tue, 7 Jan 97 12:17 GMT
 ;;
 ;;  As for the gnuplot code, that was much simpler, because of the gplot
@@ -4954,21 +4997,21 @@ Writes an extra tab if last field is empty for use in other programs, like S."
 
 
 (defvar dis-gnuplot-name "gplot" 
-  "Name of the gplot command name.")
+  "*Name of the gplot command name.")
 
 (defun dis-gnuplot-range ()
   "Run gplot on current range."
   (interactive)
   (let ( (gnufile "/tmp/disgnu.gp"))
     (dis-dump-range gnufile nil nil)
-    (dis-send-cmd-to-shell (format "%s %s" dis-gnuplot-name gnufile) 
+    (dismal-send-cmd-to-shell (format "%s %s" dis-gnuplot-name gnufile) 
                            nil)))
 
 (defvar dis-gnuplot-kill-gplot t
-  "Non-nil means run hook to quit gplot before killing gplot buffer.")
+  "*Non-nil means run hook to quit gplot before killing gplot buffer.")
 
-;;; Internal vars
-
+;;; Internal variables
+;;;  (they start with "dismal-")
 (defvar dismal-gnuplot-finish nil)
 (defvar dismal-gnuplot-shell "dis-gnuplot")
 (defvar dismal-gnuplot-shell-name "*dis-gnuplot*")
@@ -4988,7 +5031,7 @@ Writes an extra tab if last field is empty for use in other programs, like S."
 	  ;; function, so do it the hard way for now.
 	  (make-local-variable 'dismal-gnuplot-finish)
 	  (setq dismal-gnuplot-finish dis-gnuplot-kill-gplot)
-	  (add-hook 'kill-buffer-hook 'dismal-gnuplot-finished)
+	  (add-hook 'kill-buffer-hook 'dis-gnuplot-finished)
 	  ;;(shell)
 	  ))
     (let ((shell-process (get-buffer-process dismal-gnuplot-shell-name))
@@ -5010,13 +5053,15 @@ Writes an extra tab if last field is empty for use in other programs, like S."
 	    (other-window 1)))          )    )  )
 
 (defun dis-gnuplot-finished ()
-  "Kill the gplot process."
+  "Kill the gplot process.
+This should be executed in the *dis-gnuplot* buffer 
+either interactively or via the kill-buffer-hook for that buffer."
   (interactive)
   (if (and  (boundp dismal-gnuplot-finish) dismal-gnuplot-finish)
-      (dismal-send-cmd-to-shell "gplot quit" t))
-  ;; need a little delay to kill gplot
-  (sleep-for 2))
-
+      (progn
+	(dismal-send-cmd-to-shell "gplot quit" t)
+	;; need a little delay to kill gplot
+	(sleep-for 2))))
 
 
 ;;;
@@ -5063,10 +5108,11 @@ redraws with point in the center.  Adjusts somewhat for rulers."
   (let ((cell-name (dismal-cell-name row column)))
   (setq dismal-current-cell cell-name)
   (if dismal-interactive-p
-      (message (concat cell-name
-               ": "
-               (dismal-convert-cellexpr-to-string
-                  (dismal-get-exp row column))
+      (let ((message-log-max nil))
+        (message (concat cell-name
+                 ": "
+                 (dismal-convert-cellexpr-to-string
+                    (dismal-get-exp row column))
 ;; The rest of this function is for debugging
 ;           ", val: "
 ;           (dismal-convert-cellexpr-to-string
@@ -5077,7 +5123,7 @@ redraws with point in the center.  Adjusts somewhat for rulers."
 ;           ", rct: "
 ;           (prin1-to-string
 ;            (dismal-get-mrk dismal-current-row dismal-current-col))
-            )))))
+            ))))))
 
 (defun dis-redraw (hard-redraw)
   "Redraw all the cells in the spreadsheet. If HARD-REDRAW, clear lines first."
@@ -5453,10 +5499,10 @@ redraws with point in the center.  Adjusts somewhat for rulers."
 ; (dismal-convert-input-to-cellexpr "a23")
 ; (dismal-convert-input-to-cellexpr " a23")
 ; (dismal-convert-input-to-cellexpr " e6")
-; (dismal-convert-input-to-cellexpr "a$23")
+; (setq aa (dismal-convert-input-to-cellexpr "a$23"))
 ; (dismal-convert-input-to-cellexpr "a$23$")
 ; (dismal-convert-input-to-cellexpr '(dismal-r-c- 23 0))
-;(dismal-convert-input-to-cellexpr "(dis-count-if-regexp-match B1:B3 \"B\\+$\")")
+; (dismal-convert-input-to-cellexpr "(dis-count-if-regexp-match B1:B3 \"B\\+$\")")
 
 (defun dismal-convert-input-to-cellexpr (sexp)
   ;; Recursively replace symbols in SEXP that look like cell names with
@@ -5465,7 +5511,8 @@ redraws with point in the center.  Adjusts somewhat for rulers."
   ;; equivalent string
   (cond ((and sexp (listp sexp))
          (if (eq (car sexp) 'setq)
-             (append (list 'setq (cadr sexp))
+             (nconc (list 'setq (cadr sexp))  
+             ; safe b/c we are getting a list call here, otherwise use append
                    (dismal-convert-input-to-cellexpr (cddr sexp)))
              (cons (dismal-convert-input-to-cellexpr (car sexp))
                    (dismal-convert-input-to-cellexpr (cdr sexp)))))
@@ -5904,7 +5951,7 @@ redraws with point in the center.  Adjusts somewhat for rulers."
 (defsubst dismal-raw-column-to-dismal-column (raw)
   (let ((sum 0) (dcol 0))
   ;; Update sum to include row numbers, plus 1 space
-  (setq sum (+ 1 1 (log10 (max 1 dismal-max-row))))
+  (setq sum (+ 1 1 (truncate (log10 (max 1 dismal-max-row)))))
   (while (>= raw sum)
     (setq sum (+ sum (dismal-column-width dcol)))
     (setq dcol (+ dcol 1)))
@@ -6016,20 +6063,36 @@ in a file created by the log program."
 ;; 17-Jun-97 -FER
 ;; (dismal-insert-n-times 32 10)
 ;; this is now a candidate for cutting 18-Jun-97 -FER
-(defsubst dismal-insert-n-times (item N)  ;(dismal-insert-n-times "a" t)
-  ;; Insert ITEM (abs N) (t=1) times.
-  (if (numberp N)
-      (insert (make-string (abs N) item)) 
-    (if N (insert item))))
+;; cut 18-Oct-97 -FER
+;; (defsubst dismal-insert-n-times (item N)  ;(dismal-insert-n-times "a" t)
+;;   ;; Insert ITEM (abs N) (t=1) times.
+;;   (if (numberp N)
+;;       (insert (make-string (abs N) item)) 
+;;     (if N (insert item))))
 
-(defun dis-current-date (&optional day-first)
-  "Insert current date as string. If DAY-FIRST is t, do that."
+
+;; (dis-current-date )
+(defun dis-current-date (&optional month-first)
+  "Insert current date as string. If MONTH-FIRST is t, do that."
   (let ((time-string (current-time-string)))
-    (if day-first
+    (if month-first
+     ;; insert month second:
+     (if dis-insert-date-with-month-namep
+	 (format "%s-%s-%s"
+		 (substring time-string 4 7)
+		 (if (string-equal " " (substring time-string 8 9))
+		     (substring time-string 9 10)
+		   (substring time-string 8 10))
+		 (substring time-string  -2 nil))
+	 (format "%s-%s-%s"
+		 (if (string-equal " " (substring time-string 8 9))
+		     (substring time-string 9 10)
+		   (substring time-string 8 10))
+		 (car (cdr (assoc (substring time-string 4 7)
+                           dismal-date-table)))
+		 (substring time-string  -2 nil)))
         ;; insert day before date:
-        (format "%s " (downcase (substring time-string 0 3)))
-     ;; insert date:
-     (if insert-date-with-month-namep
+     (if dis-insert-date-with-month-namep
 	 (format "%s-%s-%s"
 		 (if (string-equal " " (substring time-string 8 9))
 		     (substring time-string 9 10)
@@ -6037,7 +6100,8 @@ in a file created by the log program."
 		 (substring time-string 4 7)
 		 (substring time-string  -2 nil))
 	 (format "%s-%s-%s"
-		 (car (cdr (assoc (substring time-string 4 7) *date-table*)))
+		 (car (cdr (assoc (substring time-string 4 7)
+                                  dismal-date-table)))
 		 (if (string-equal " " (substring time-string 8 9))
 		     (substring time-string 9 10)
 		   (substring time-string 8 10))
@@ -6058,7 +6122,7 @@ in a file created by the log program."
 	  (setq styear (string-to-int (substring startdate 7 nil)))
 	  (setq stday (string-to-int (substring startdate 0 2)))
 	  (setq stmonth
-                (dis-get-month-int (downcase (substring startdate 3 6))))))
+                (dis-get-month-int (substring startdate 3 6)))))
   (while (> days 366)
     (cond ((= 0 (% styear 4)) ; leap year
            (setq days (- days 366))
@@ -6110,7 +6174,7 @@ Includes leap years."
 	(stmonth 0)
 	(year (string-to-int (substring date 7 nil)))
 	(day  (string-to-int (substring date 0 2)))
-	(month (dis-get-month-int (downcase (substring date 3 6))))
+	(month (dis-get-month-int (substring date 3 6)))
 	(days 0)
 	(hold 0)
 	(leaps 0))
@@ -6119,7 +6183,7 @@ Includes leap years."
 	  (setq styear (string-to-int (substring startdate 7 nil)))
 	  (setq stday (string-to-int (substring startdate 0 2)))
 	  (setq stmonth
-                (dis-get-month-int (downcase (substring startdate 3 6))))))
+                (dis-get-month-int (substring startdate 3 6)))))
   ;; I would allow negative numbers, so comment this out. -fer
   ;;  (if (> styear year)
   ;;        (error "Invalid date range.")
@@ -6163,19 +6227,30 @@ Includes leap years."
   (+ days leaps)))
 
 ;; (dis-get-month-int "JAN")
+;; (defun dis-get-month-int (month-string)
+;;   "Turn a month string into a number (or index)."
+;;   (interactive)
+;;   (setq month-string (downcase month-string))
+;;   (let ((months '("jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec"))
+;; 	(ind 0))
+;;     (while (and (< ind 12)
+;; 		(not (string= (downcase (nth ind months)) 
+;;                               month-string)))
+;;       (setq ind (1+ ind)))
+;;     (if (< ind 12)
+;; 	ind
+;;       (error "Invalid month name given: %s." month-string))))
+
+;; faster, cleaner version by Mikio Nakajima <minakaji@osaka.email.ne.jp>
+;; (dis-get-month-int "Jan")
 (defun dis-get-month-int (month-string)
-  "Turn a month string into a number (or index)."
-  (interactive)
-  (setq month-string (downcase month-string))
-  (let ((months '("jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec"))
-	(ind 0))
-    (while (and (< ind 12)
-		(not (string= (downcase (nth ind months)) 
-                              month-string)))
-      (setq ind (1+ ind)))
-    (if (< ind 12)
-	ind
-      (error "Invalid month name given: %s." month-string))))
+ "Turn a month string into a number 1 to 12."
+ (interactive)
+ (or (cdr (assoc (capitalize month-string) dismal-date-table))
+     (error "Invalid month name given: %s." month-string) ))
+  
+
+
 
 ;; updated by Amy Ludlam
 (defun dis-days-to-eoy (month day)
@@ -6212,33 +6287,30 @@ Includes leap years."
     (apply function (car list) nil)
     (dismal-map-apply function (cdr list))))
 
-;; (setq aa '(1 2 1 3 4))
+;; (setq aa '(1 2 (1 . 2) 3 4))
 ;; (dismal-del 1 aa)
+;; (dismal-del '(1 . 2) aa)
+;; (delete 1 aa)
+;; (delete '(1 . 2) aa)
 
-;; this is a destructive version, I think 14-Mar-92 -FER
-(defun dismal-del (elt alist)
-  ;; Delete any elements equal to ELT in LIST.
-  (let ((n nil)
-        (copy-list nil))
-    (while (eq (car alist) elt)
-       (setq alist (cdr alist)))
-    (setq n (length alist))
-    (setq copy-list alist)
-    (while (> n 0)
-      (if (equal elt (cadr copy-list))
-          (setcdr copy-list (cddr copy-list)))
-      (pop copy-list)
-      (setq n (1- n)) )   )
-  alist)
-
-;(defun dismal-del (elt list)
-;  "Delete any elements 'equal' to ELT in LIST."
-;  (if (null list)
-;      nil
-;    (if (listp list)
-;        (if (equal elt (car list))
-;            (dismal-del elt (cdr list))
-;          (cons (car list) (dismal-del elt (cdr list)))))))
+;; bummed for speed, <minakaji@osaka.email.ne.jp> 3-Sep-97 -FER
+;; (for it is just the new 'delete' subr.)
+;; ;; this is a destructive version, I think 14-Mar-92 -FER
+;; ;; need to setq the results since only first ele might be deleted
+;; (defun dismal-del (elt alist)
+;;   ;; Delete any elements equal to ELT in LIST.
+;;   (let ((n nil)
+;;         (copy-list nil))
+;;     (while (eq (car alist) elt)
+;;        (setq alist (cdr alist)))
+;;     (setq n (length alist))
+;;     (setq copy-list alist)
+;;     (while (> n 0)
+;;       (if (equal elt (cadr copy-list))
+;;           (setcdr copy-list (cddr copy-list)))
+;;       (pop copy-list)
+;;       (setq n (1- n)) )   )
+;;   alist)
 
 (defun oldfloatp (fnum)
   "Returns t if the arg is an old (Rosenblatt) floating point number, 
@@ -6253,6 +6325,7 @@ nil otherwise."
 
 (defvar *grade-cut-points* nil 
   "Cut points for grades used by dis-grader and dis-ungrader.")
+;; They are assoc lists
 
 (setq *grade-cut-points*
       '( (77 "A+")
@@ -6273,6 +6346,7 @@ nil otherwise."
          (0 "Z")))
 
 (defvar *grade-points* nil)
+;; They are assoc lists
 (setq *grade-points*
       '( (77 "A+")
          (75 "A")
@@ -6356,18 +6430,6 @@ Also see dis-grader."
 
 ; (dis-count '(dismal-range (dismal-r-c- 0 0) (dismal-r-c- 3 0)))
 ; (dis-count "a0:a3")
-
-(setq dis-user-cell-functions
-   (append
-  '(dis-count dis-count-words-in-range
-    dis-count-regexp-in-range
-    dis-count-if-regexp-match
-    dis-match-list
-    dis-sum dis-mean dis-product dis-div dis-plus
-    dis-current-date dis-date-to-days
-    dis-copy-to-dismal dis-grader dis-ungrader
-    )
-  dis-user-cell-functions))
 
 (defvar dd-result nil "Where dismal-do stores its results.")
 
@@ -6576,11 +6638,12 @@ can use."
          (/ arg1  arg2))
         (t (error "Tried to dis-div %s and %s" arg1 arg2)))))
 
+;; bummed by Mikio Nakajima <minakaji@osaka.email.ne.jp>
 (defun dismal-safe-* (arg1 arg2)
   "A safe version of * that gives non-numbers the value of 1."
-  (let ((real-arg1 (if (numberp arg1) arg1 1))
-        (real-arg2 (if (numberp arg2) arg2 1)) )
-    (* real-arg1 real-arg2)))
+  (* (if (numberp arg1) arg1 1)
+     (if (numberp arg2) arg2 1)) )
+
 
 ;; (defun dismal-coerce-to-float (arg default)
 ;; (cond ((stringp arg) default)
@@ -6687,15 +6750,6 @@ can use."
           dis-user-cell-functions)
     (goto-char (point-min))  ))
 
-;;;; on older version of popper was a macro.
-;;(if dis-use-popper
-;;    (cond ((not (listp (symbol-function 'popper-wrap)))      ;; 19
-;;           (popper-wrap 'dis-show-functions help-buffer))
-;;          ((eq 'lambda (car (symbol-function 'popper-wrap))) ;; 18 popper fun
-;;           (popper-wrap 'dis-show-functions help-buffer))
-;;          (t                                                ;; 18 popper macro
-;;            (popper-wrap dis-show-functions help-buffer))))
-
 
 ;;;
 ;;;	XX.	Testing functions
@@ -6704,17 +6758,59 @@ can use."
 (defun dis-test-dismal ()
   "A function to test a few things."
   (interactive)
+  (if (bufferp (get-buffer "test-dismal"))
+      (kill-buffer (get-buffer "test-dismal")))
   (switch-to-buffer-other-window "test-dismal")
   (dismal-mode)
   (dis-edit-cell-plain 1)
   (dis-forward-row 2)
-  (dis-edit-cell-plain "Left just")
+  (dis-edit-cell-plain "<Left just")
+  (message "calling dis-insert-column")
   (call-interactively 'dis-insert-column)
   (dis-forward-row 1)
   (dis-edit-cell-plain '(+ 2 3))
   (dis-forward-column 1)
   (dis-read-column-format 15)
-  (dis-edit-cell-plain "a full 15 wide")
+  (dis-edit-cell-plain "a full 15 widee")
+  (dis-jump 2 0)
+  (dis-edit-cell-rightjust "flush>")
+  (dis-jump 4 0)
+  (dis-edit-cell-center 'a2)
+  ;; test references and updating them
+  (dis-jump 10 0)
+  (dis-edit-cell-plain 1)
+  (dis-jump 11 0)
+  (dis-edit-cell-plain 2)
+  (dis-jump 12 0)
+  (dis-edit-cell-plain 3)
+  (dis-jump 13 0)
+  (dis-edit-cell-plain 4)
+  (dis-jump 14 0)
+  (dis-edit-cell-plain 5)
+  (dis-jump 15 0)
+  (dis-edit-cell-plain 6)
+
+  (dis-jump 10 1)
+  (dis-edit-cell-plain 'a10)
+  (dis-jump 11 1)
+  (dis-edit-cell-plain 'a11)
+  (dis-jump 12 1)
+  (dis-edit-cell-plain 'a12)
+  (dis-jump 13 1)
+  (dis-edit-cell-plain 'a13)
+  (dis-jump 14 1)
+  (dis-edit-cell-plain 'a14)
+  (dis-jump 15 1)
+  (dis-edit-cell-plain 'a15)
+  ;; copy down  
+  (dis-jump 10 1)
+  (dis-set-mark)
+  (dis-jump 15 1)
+  (dis-copy-range)
+  (dis-forward-row 1)
+  (dis-paste-range)
+  (dis-forward-row 3)
+  (dis-open-line 1)
 )
 
 

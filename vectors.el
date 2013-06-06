@@ -25,22 +25,6 @@
 
 (provide 'vectors)
 
-;;  (if (fboundp 'proclaim-inline)
-;;    (proclaim-inline 
-;;      ;; vec-copy-sequence-r, recursive, can't do this
-;;      vector-create
-;;      vector-delete
-;;      vector-expand
-;;      vector-insert
-;;      vector-mapl
-;;      vector-map-rc
-;;      vector-push
-;;      vector-push-unique
-;;      vector-ref
-;;      vector-remove
-;;      vector-set
-;;    ))
-
 
 ;;;
 ;;;	i.	Variables
@@ -95,7 +79,8 @@ current size.")
     (aset (aref v 2) 0 (vec-copy-sequence-r init))
     v))
 
-(defmacro vector-length (vector) (list 'aref vector 1))
+(defmacro vector-length (vector) 
+  `(aref ,vector ,1))
 
 (defsubst vector-expand (vector index)
   "Make sure a VECTOR has space to store into position INDEX."
@@ -127,6 +112,9 @@ current size.")
   (aset vector 1 (max (aref vector 1) (1+ index)))
   (aset (aref vector 2) index value))
 
+;; I tried to revise this to bind the (aref vector 2), but it didn't work
+;;  more time would be needed to optimize it.  I think it is using the value
+;; dynamically, and cannot be bound in that way.
 (defsubst vector-insert (vector index count)
   "In VECTOR at position INDEX, insert COUNT new elements."
   ;; There is some question as to what this should do if index refers
@@ -136,7 +124,7 @@ current size.")
   ;; greater than the allocated space, and return the default element
   ;; if unallocated spaces were referred to (I think that happens now.)
   ;; Oh well, I should check it out, but I have other fish to fry.
-  (if (<= index (aref vector 1))
+  (if (<= index (aref vector 1)) ;; you are in the array's range
       (let ((oldlen (aref vector 1))
             (vector-cells (aref vector 2))
             (vector-default (aref vector 3))
@@ -180,7 +168,8 @@ current size.")
 
 ;; David left a rather bad bug in here, and I think (!) I've fixed it -FER
 ;; test code in case I didn't
-;; (setq vaa (vector-create nil)) [1 0 [nil] nil]
+;; (setq vaa (vector-create nil)) 
+;;          = >  [1 0 [nil] nil]
 ;; (vector-ref vaa 3)
 ;; (inspect vaa)  [1 0 [nil] nil]
 ;; (vector-insert vaa 0 1)
@@ -258,10 +247,22 @@ current size.")
 
 (defsubst vector-mapl (function vector)
   (let ((row (aref vector 1))
-        (vector-cells (aref vector 2)))
-    (while (> row 0)
-      (setq row (1- row))
+       (vector-cells (aref vector 2)))
+   (while (> row 0)
+     (setq row (1- row))
       (apply function (aref vector-cells row) nil))))
+
+;; (aref dismal-formula-cells 2)
+;; (aref dismal-formula-cells 1)
+
+;; Optimization From: Dan Nicolaescu <done@ece.arizona.edu>, 2 Aug
+;; 1997 10:20:05 -0700 (MST).  Looks clean, although it reverses the
+;; order of application across the vector.  4-Nov-97-FER
+;; Added guard to check that there are items in the vector. -FER
+;;(defsubst vector-mapl (function vector)
+;;  (if (> (aref vector 1) 0)
+;;      (mapcar function  (aref vector 2))))
+
 
 (defsubst vector-map-rc (function row vector)
   (let ((col (aref vector 1))

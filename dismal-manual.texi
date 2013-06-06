@@ -23,12 +23,12 @@
 
 @ifinfo
 Dismal: A spreadsheet for GNU-Emacs
-(For GNU release 18.5X and 19)
+(For GNU Emacs release 19 and 20)
 and
 dismal 0.9 and higher
-25 July 1997
+8-Nov-97
 
-Frank E. Ritter,Sarah C. Nichols, and Shara K. Lochun
+Frank E. Ritter, Sarah C. Nichols, and Shara K. Lochun
 ritter@@psyc.nott.ac.uk
 @end ifinfo
 
@@ -163,12 +163,13 @@ authors and should not be interpreted as representing the official
 policies, either expressed or implied, of the U.S. or
 U.K. Governments.
 
-Dismal was created by Frank E. Ritter and David Fox (fox@@cs.nyu.edu)
-of Dept. of Computer Science, New York University.  The manual and
-code have benefited from comments from Erik Altmann (ema@@cs.cmu.edu),
-Robert Chassell (bob@@gnu.ai.mit.edu), Todd Johnson
-(tj@@med.ohio-state.edu), and see the source for comments from David
-Lamkins (DBLamkins@@aol.com).
+Dismal was created by Frank E. Ritter and David Fox (fox@@cs.nyu.edu) of
+Dept. of Computer Science, New York University.  The manual and code
+have benefited from comments from Erik Altmann (ema@@cs.cmu.edu), Robert
+Chassell (bob@@gnu.ai.mit.edu), Todd Johnson (tj@@med.ohio-state.edu),
+and see the source for comments from David Lamkins (DBLamkins@@aol.com)
+and several other people who have significantly influenced the
+development of dismal by providing some really quite good code.
 
 @section Distribution Notes
 
@@ -277,6 +278,7 @@ start to describe dismal, which you can cite or request.
   special issue on Exploratory Sequential Data Analysis. 9 (3&4).
   345-383.
 
+  http://www.psychology.nottingham.ac.uk/staff/ritter/papers/dismal/dismal.html
 
 @section Design Features of Dismal
 
@@ -377,9 +379,9 @@ section number titled `User settable variables' (Chapter 8).
 @section Site Installation
 
 The latest release of Dismal is typically available via anonymous FTP
-from host 128.243.40.43 (granby.ccc.nott.ac.uk, but many machines
-don't know it, so you may need to use the numbers), in the directory
-"/pub/lpzfr".  Within this directory, the file is named
+from host ftp.nottingham.ac.uk (or granby.ccc.nott.ac.uk, but some
+machines don't know it, so you may need to use 128.243.40.43), in the
+directory "/pub/lpzfr".  Within this directory, the file is named
 "dismal-VERSION.tar.Z", where version gives the version of Dismal that
 you are getting.  A more stable version of Dismal resides in THE Ohio
 State elisp archive.  The Dismal release that you can run depends upon
@@ -721,6 +723,8 @@ Dismal will recognise data as a number if it either contains a decimal
 point or if it references a cell which contains data which has
 previously been recognised as a float.  If data contains any
 characters which are not numbers then it will be treated as a string.
+
+Also see the section on 'Limitations on column and row sizes'.
 
 @section Modifying the Format of Cells
 
@@ -1817,12 +1821,12 @@ This allows by default 676 columns in a spreadsheet.  If more columns
 are needed, the source code can be modified to allow for three or more
 letter referenced columns (search for dismal-cell-name-regexp).
 
-Dismal accepts cell references up to XXXXNN or XXNNNN.  This means
-that cell values like John89 will be parsed as a cell reference rather
-than text, like a citation.  You can get around this by putting such
+Dismal accepts cell references up to XXXXNN or XXNNNN.  This means that
+cell values like John89 will be parsed as a cell reference rather than
+text, like a citation.  You can get around this by putting such
 references in as quoted strings ('"Eb1"' instead of 'Eb1'), or by
-putting a space or other character on the front of such strings ('
-Eb1' instead of 'Eb1').
+putting a space or other character on the front of such strings
+('<space>Eb1' instead of 'Eb1').
 
 @node GNU-Emacs/Dismal compatibility, Detailed Dismal Site Installation, Known Bugs And Interactions, Top
 @chapter GNU-Emacs/Dismal compatibility
@@ -1862,12 +1866,12 @@ Nottingham.
 
 First get into the directory where you wish to install the package, then type:
 @example
-ftp granby.ccc.nott.ac.uk
+ftp ftp.nottingham.ac.uk
 @end example
 
-If your machine doesn't recognise granby as a host, try typing:
+If your machine doesn't recognise ftp.nottingham.ac.uk as a host, try typing:
 @example
-ftp 128.243.40.43
+ftp granby.nottingham.ac.uk  or  ftp 128.243.40.43
 @end example
 
 If this works, you should be faced with a prompt asking you for your name.
@@ -1882,8 +1886,9 @@ email address, e.g.,
 ritter@@psyc.nott.ac.uk
 @end example
 
-You should now be logged on to granby.  The next command notes that
-you will be pulling a file that may contain control characters:
+You should now be logged on to a machine at Nottinhgam.  The next
+command notes that you will be pulling a file that may contain control
+characters:
 @example
 binary
 @end example
