@@ -53,7 +53,7 @@
 ;;;
 
 (defun dismal-x-mouse-display-cell (arg)
-  (cond ((member major-mode '(dismal-mode spa-mode))
+  (cond ((member major-mode '(dismal-mode))
          (dismal-visit-cell dismal-current-row dismal-current-col)
          (if (fboundp old-x-button-left-up)
              (funcall old-x-button-left-up arg)))
@@ -65,7 +65,7 @@
   "Select Emacs window mouse is on, and move point to mouse position,
 even if in dimsal."
   (x-mouse-set-point arg)
-  (if (not (member major-mode '(dismal-mode spa-mode)))
+  (if (not (member major-mode '(dismal-mode)))
       (if (fboundp old-x-button-left-down)
           (funcall old-x-button-left-down arg))
     (dismal-jump-to-cell (- (count-lines (point-min) (point))

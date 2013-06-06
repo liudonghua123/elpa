@@ -64,7 +64,7 @@
   "Inserts a full time-stamp after point."
   (interactive)
   (insert-before-markers
-   (format "%s%s" (current-time-string))) )
+   (format "%s" (current-time-string))) )
 
 (defun insert-date-string (arg)
   "Inserts the current date after point, in m-d-y format.  With prefix

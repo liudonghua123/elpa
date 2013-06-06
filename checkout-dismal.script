@@ -5,8 +5,8 @@
 ;;;; Author          : Frank Ritter
 ;;;; Created On      : 27-Feb-92
 ;;;; Last Modified By: Frank Ritter
-;;;; Last Modified On: Mon Aug 24 23:42:44 1992
-;;;; Update Count    : 9
+;;;; Last Modified On: Sat Sep 25 15:44:48 1993
+;;;; Update Count    : 14
 ;;;; 
 ;;;; PURPOSE
 ;;;; 	Checkout script for dismal-mode.
@@ -17,7 +17,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-I.  You should first recompile and assemble everything with release-dismal
+I.  You should first recompile and assemble everything with
+release-dismal or the makefile.
 
    a.    (setq debug-on-error t)
     
@@ -26,6 +27,7 @@ II. simple testing: startup
     a) startup emacs with 
   emacs -q  -wn testings-dismal  \
   -i /psyc/lang/soar/emacs/utils/dismal/new/checkout-dismal.script  &
+     (use appropriate file name here)
 
   ;; /afs/cs/user/ritter/spa/spa-mode/new/dismal/0.6/checkout-dismal.script  &
     
@@ -87,6 +89,10 @@ VII.  mousable items
    CONTROL-middle          
    CONTROL-right           
 
+VIII.	SPA stuff
+
+       \C-c\M-\C-c spa-op-code-segment
+
 
 VII.  Hard stuff
 
@@ -102,10 +108,30 @@ VII.  Hard stuff
 
 VIII.  Very hard stuff
 
+(defun dis-checkout-auto-aligner ()
+  (interactive)
+  (find-file "test-dismal.dis")
+  (dismal-beginning-of-buffer)
+  (dismal-insert-file
+     (concat dismal-directory "/aligner-test-data.txt"))
+  (dismal-set-metacolumn "b")
+  (let ((dis-paired-regexps
+        '(("a" . "a")
+          ("b" . "b")
+          ("c" . "c")
+          ("d" . "d"))))
+    (dis-auto-align-model "B" "D" 0 5))
+   (message "Dis auto-aligner successfully tested.")
+   (beep t)   (beep t)
+   (sit-for 2))
+
 (defun dismal-hard-test ()
+  "Test dismal with a function!"
+  ;; note: this is imcomplete, but getting better.
   (interactive)
   (switch-to-buffer "test-dismal")
   (dismal-mode)
+  (test-dis-auto-aligner)
   (dismal-beginning-of-buffer)
   (dismal-read-cell-plain 1)
   (dismal-forward-row 1)

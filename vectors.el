@@ -113,7 +113,9 @@ current size.")
 
 (defun vector-ref (vector index)
   "Return the VECTOR element at INDEX."
-  (if (>= index (aref vector 1))
+  ;; if index is too high or low return first element
+  (if (or (>= index (aref vector 1))
+          (< index 0))
       (aref vector 3)
     (aref (aref vector 2) index)))
 

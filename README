@@ -1,17 +1,17 @@
                              dismal-mode
-                             Release 0.86
+                             Release 1.0 or later
 
                            Frank E. Ritter
                         ritter@psyc.nott.ac.uk
-                              16-Aug-93
+                              13-Jan-96
 
 INTRODUCTION
 ------------
 
-This is a manual for dismal (Dis' Mode Ain't lotus), a major mode in
-GNU-emacs that implements a spreadsheet.  It includes how to load,
-run, and use dismal and dismal spreadsheets.  Dismal provides the
-basic spreadsheet functions.  Because it is based on GNU-emacs it
+This is an introduction for dismal (Dis' Mode Ain't lotus), a major
+mode in GNU-emacs that implements a spreadsheet.  It includes how to
+load, run, and use dismal and dismal spreadsheets.  Dismal provides
+the basic spreadsheet functions.  Because it is based on GNU-emacs it
 offers several relatively novel features for a spreadsheet.  It is
 designed to be keystroke driven rather than mouse/menu driven
 (although it can be menu driven).  It is extensible, so that users can
@@ -20,20 +20,37 @@ function cell to write to several nearby cells.  A ruler can be put up
 that reflects the semantics of column names past the ones
 automatically provided as letters.
 
-For futher information, please see the dismal-mode.doc file
+It has some useful functions that implement the keystroke level model
+of Card, Moran and Newell.  These were reported at CHI:
+
+  Nichols, S., & Ritter, F. E. (1994).  A theoretically motivated tool
+  for automatically generating command aliases.  Proceedings of CHI
+  '95. 393-400.
+  (http://www.psyc.nott.ac.uk/aigr/research/cmat/Chi95.html). 
+
+
+For futher information, please see the dismal-manual.* files
 accompanying the release.
 
 OBTAINING AND INSTALLING THE PACKAGE
 ------------------------------------
 
-dismal-mode is available via anonymous ftp from host 128.243.40.7
-(unicorn.ccc.nott.ac.uk, but most machines don't know it, so use the
-numbers) in the directory "pub/lpzfr" (From within ftp only the part
-of the tree rooted at /usr/ftp is visible) and eventually from the
-Elisp archives at The OSU.
+dismal-mode is available via anonymous ftp from host 128.243.40.43
+(granby.ccc.nottingham.ac.uk, but many machines don't know it, so you
+can use the numbers) in the directory "pub/lpzfr" (From within ftp
+only the part of the tree rooted at /usr/ftp is visible) and updated
+less frequently from the Elisp archives at The OSU and
+centro.soar.cs.cmu.edu:/afs/cs/project/soar/public/Soar6/.
 
-Again, the file is named "pub/lpzfr/dismal/dismal.tar.Z.uu.VERSION",
-where version gives you the version of dismal that you are getting.
+There is a mirror site at ftp://cs.nyu.edu/pub/local/fox/dismal that
+may be updated nightly.
+
+There is a mirror site at ftp://vpsyc.nott.ac.uk/pub/ritter/dismal
+that I maintain.
+
+The file is named "pub/lpzfr/dismal-VERSION.tar.gz" (so use
+binary mode by issuing the "binary" command), where version gives you
+the version of dismal that you are getting.
 
 If you would like help with using anonymous ftp, feel free to send me
 a message and I will explain the procedure.
@@ -42,23 +59,22 @@ To install the system:
 
 1) Find a directory where you wish to install the package.  (At the
    University of Nottingham we currently put it in ~soar/emacs/utils/dismal.)
-   Transfer dismal.tar.Z.uu to your desired directory,
-    (mv dismal.tar.Z.uu.VERSION nice-directory/dismal/VERSION/dismal.tar.Z.uu)
+   Transfer dismal.tar.gz to your desired directory,
    cd to that directory, and do 
 
-   uudecode dismal.tar.Z
-   zcat dismal.tar.Z | tar xvf -
+   gunzip dismal.tar.gz | tar xvf -
 
 2) Execute "make" in that directory.  This will compile the .el files.  If
    GNU emacs at your site is not called "emacs", but something else (e.g.,
    some places use "gmacs"), then compile the .el files using the alternative
    command "make EMACS=xxxx" where "xxxx" is the name of your emacs program.
+   There are a lot of compiler warnings generated in 19.17.
 
 3) Please read the file "dismal-mode.doc".  It is very important, and explains
    the basics of dismal.
 
 4) At U-N, where dismal is installed in /psyc/lang/soar/utils/dismal/VERSION,
-   users can set up their Emacs to use SDE by adding the following to
+   users can set up their Emacs to use dismal by adding the following to
    their ~/.emacs files: 
 
    (load "/psyc/lang/soar/utils/dismal/VERSION/dismal-mode-defaults")
@@ -90,19 +106,22 @@ The files included in the package are:
 
 The last group of files marked with "*" are not part of dismal proper,
 but dismal depends on them.  It should be possible for later releases
-of dismal to replace them with smarter and faster code.
+of dismal to replace them with smarter and faster code.  Some of these
+files are gone already.
 
 MISCELLANEOUS
 -------------
 
 Some features which are not implemented yet, but will eventually be, are:
 
-    use of Emacs 19's features   
-    the use of sparse matrices to represent the sheet
-    use of compression technology to reduce the size of the sheet
-    use of a "picture" of a buffer to draw the display at startup faster
+    use of Emacs 19's features (menus, defsubs, fonts)
+    the use of sparse matrices to represent the spreadsheet
 
 There are too many bugs or missing features to list them here.
 Interested users should consult the dismal.el file.
+A previous version of the manual in Microsoft Word is also available
+ upon request. 
 
-Frank Ritter <ritter@psyc.nott.ac.uk>
+Frank.Ritter@nottingham.ac.uk
+
+
