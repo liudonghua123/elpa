@@ -246,20 +246,23 @@ current size.")
 
 
 (defsubst vector-mapl (function vector)
-  (let ((row (aref vector 1))
-       (vector-cells (aref vector 2)))
-   (while (> row 0)
-     (setq row (1- row))
+   (let ((row (aref vector 1))
+        (vector-cells (aref vector 2)))
+    (while (> row 0)
+      (setq row (1- row))
       (apply function (aref vector-cells row) nil))))
 
 ;; (aref dismal-formula-cells 2)
 ;; (aref dismal-formula-cells 1)
 
+;; this walks past the end of vectors!
+;; arg!  3-Dec-97- FER
 ;; Optimization From: Dan Nicolaescu <done@ece.arizona.edu>, 2 Aug
 ;; 1997 10:20:05 -0700 (MST).  Looks clean, although it reverses the
 ;; order of application across the vector.  4-Nov-97-FER
 ;; Added guard to check that there are items in the vector. -FER
-;;(defsubst vector-mapl (function vector)
+
+;; (defsubst vector-mapl (function vector)
 ;;  (if (> (aref vector 1) 0)
 ;;      (mapcar function  (aref vector 2))))
 

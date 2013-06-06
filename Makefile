@@ -35,13 +35,14 @@
 ##     cd pub
 ##     binary
 ##     put dismal-1.3a/dismal-1.3a.tar.gz  dismal-1.3a.tar.gz
+##     quit
 ## (j) put a copy on vpsyc
-##     cp ~/tools/emacs/dismal/dismal-1.2/dismal-1.2.tar.gz ~/ftp-ritter/dismal-1.2.tar.gz
+##     cp ~/tools/emacs/dismal/dismal-1.3/dismal-1.3.tar.gz ~/ftp-ritter/dismal-1.3.tar.gz
 ## Optional arguments to make:
 ##    all - same as no argument, compiles
 ##    package - compiles and makes version for distribution
 ##    clean   - remove all .elc files and any other cruft
-
+## (j) change dismal-version in dismal.el and save the file
 
 # First define all of our aliases.
 # Beware, if "emacs" is aliased to "emacs -q", then -batch below will be 
@@ -50,7 +51,7 @@ EMACS    = emacs
 COMPILER = cc
 
 # no user changeable variables below here.
-RELEASE = dismal-1.3
+RELEASE = dismal-1.4
 
 # main files that will be loaded during compiles
 # in .elc format.
