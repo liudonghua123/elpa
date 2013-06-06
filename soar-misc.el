@@ -24,27 +24,27 @@
 (require 'cl)
 (provide 'soar-misc)
 
-(if (fboundp 'proclaim-inline)
-  (proclaim-inline
-    string-trim
-    string-left-trim
-    string-right-trim
-    string-left-trim-index
-    string-right-trim-index
-    schar
-))
+;; (if (fboundp 'proclaim-inline)
+;;   (proclaim-inline
+;;     string-trim
+;;     string-left-trim
+;;     string-right-trim
+;;     string-left-trim-index
+;;     string-right-trim-index
+;;     schar
+;; ))
 
 
 ;;;
 ;;; 	I.	line-not-commented 
 ;;;
 
-(defun line-not-commented ()
-  "Returns t if line does not start with a ;"
-  (interactive)
-  (save-excursion
-    (beginning-of-line)
-    (not (looking-at ";"))))
+;; (defun line-not-commented ()
+;;   "Returns t if line does not start with a ;"
+;;   (interactive)
+;;   (save-excursion
+;;     (beginning-of-line)
+;;     (not (looking-at ";"))))
 
 ;;; stolen from the net
 
@@ -72,8 +72,8 @@ bindings to use in the edit buffer."
                   (bury-buffer))))))
 
 ;;; String trimming functions
-;;;-----------------------------------------------------------------------------
-;;; Pieces stolen from PSL/PCLS 3.2 (Stan Shebs/Sandra Loosemore, Univ. of Utah) 
+;;;---------------------------------------------------------------------------
+;;; Pieces stolen from PSL/PCLS 3.2 (Stan Shebs/Sandra Loosemore, U. of Utah) 
 
 (defun string-trim (bag s)
   "Returns a substring of the string specified by S that has had every

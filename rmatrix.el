@@ -27,23 +27,23 @@
 
 (provide 'rmatrix)
 
-(if (fboundp 'proclaim-inline)
-  (proclaim-inline
-    matrix-create
-    matrix-delete-rows
-    ;; matrix-delete-cols  cut in after debugged
-    ;; matrix-insert-nil-cols
-    ;; matrix-insert-nil-row-cells
-    ;; matrix-insert-nil-column-cells
-    ;; matrix-delete-row-cells
-    ;; matrix-delete-column-cells
-    ;; matrix-mapl
-    ;; matrix-map-rc
-    ;; matrix-copy
-    matrix-funcall-rc
-    matrix-insert-nil-rows
-    matrix-ref
-    matrix-set))
+;;  (if (fboundp 'proclaim-inline)
+;;    (proclaim-inline
+;;      matrix-create
+;;      matrix-delete-rows
+;;      matrix-delete-cols  cut in after debugged
+;;      matrix-insert-nil-cols
+;;      matrix-insert-nil-row-cells
+;;      matrix-insert-nil-column-cells
+;;      matrix-delete-row-cells
+;;      matrix-delete-column-cells
+;;      matrix-mapl
+;;      matrix-map-rc
+;;      ;; matrix-copy
+;;      matrix-funcall-rc
+;;      matrix-insert-nil-rows
+;;      matrix-ref
+;;      matrix-set))
 
 
 ;;;
@@ -91,37 +91,37 @@
 
 ;; length will vary based on what's in each column
 
-(defun matrix-create ()
+(defsubst matrix-create ()
   ;; Create an empty matrix.
   (vector-create (vector-create nil)))
 
-(defun matrix-ref (matrix row column)
+(defsubst matrix-ref (matrix row column)
   (let ((r (vector-ref matrix row)))
     (if r
         (vector-ref r column)
       (aref matrix 3))))
 
-(defun matrix-set (matrix row column value)
+(defsubst matrix-set (matrix row column value)
   ;; Set the MATRIX element ROW, COLUMN to VALUE and return the result.
   (vector-expand matrix row)
   (let ((r (aref (aref matrix 2) row)))
     (aset matrix 1 (max (aref matrix 1) (1+ row)))
     (vector-set r column value)))
 
-(defun matrix-delete-rows (matrix row nrow)
+(defsubst matrix-delete-rows (matrix row nrow)
   (vector-delete matrix row nrow))
 
-(defun matrix-insert-nil-rows (matrix row nrow)
+(defsubst matrix-insert-nil-rows (matrix row nrow)
   (vector-insert matrix row nrow))
 
-(defun matrix-delete-cols (matrix col ncol)
+(defsubst matrix-delete-cols (matrix col ncol)
   (let ((r (matrix-height matrix))
         (matrix-cells (aref matrix 2)))
     (while (> r 0)
       (setq r (1- r))
       (vector-delete (aref matrix-cells r) col ncol))))
 
-(defun matrix-insert-nil-cols (matrix col ncol)
+(defsubst matrix-insert-nil-cols (matrix col ncol)
   (let ((r (matrix-height matrix))
         (matrix-cells (aref matrix 2)))
     (while (> r 0)
@@ -134,13 +134,13 @@
 ;;;
 
 ;; users of this function should note that the matrix might grow
-(defun matrix-insert-nil-row-cells (matrix row col ncol)
+(defsubst matrix-insert-nil-row-cells (matrix row col ncol)
    (vector-insert (aref (aref matrix 2) row) col ncol))
 
 ;; (matrix-insert-nil-column-cells dismal-matrix 2 0 2 )
 ;; users of this function should note that the matrix might grow
 
-(defun matrix-insert-nil-column-cells (matrix row col nrow)
+(defsubst matrix-insert-nil-column-cells (matrix row col nrow)
   (let ((max-row (aref matrix 1))) ; careful, this is not 0 based
     (while (> max-row row)  ;; copy it over
       (setq max-row (1- max-row))
@@ -151,13 +151,13 @@
       (matrix-set matrix (+ nrow row) col nil))))
 
 ;; users of this function should note that the matrix might shrink
-(defun matrix-delete-row-cells (matrix row col ncol)
+(defsubst matrix-delete-row-cells (matrix row col ncol)
    (vector-delete (aref (aref matrix 2) row) col ncol))
 
 ;; these matrix sets might be done leaving structure there
 
 ;; users of this function should note that the matrix might shrink
-(defun matrix-delete-column-cells (matrix row col nrow)
+(defsubst matrix-delete-column-cells (matrix row col nrow)
   ;; delete cells in COL column, starting at ROW, moving down NROWs
   (let ((max-row (aref matrix 1)))
     (while (<= (+ nrow row) max-row)  ;; copy it over
@@ -177,7 +177,7 @@
 
 ;; maps FUNCTION across the cells of MATRIX starting and stopping (inclusive)
 ;; as indicated.  FUNCTION gets funcalled with args (row col matrix-value).
-(defun matrix-funcall-rc (function mfstart-r mfstart-c mfstop-r mfstop-c
+(defsubst matrix-funcall-rc (function mfstart-r mfstart-c mfstop-r mfstop-c
                           mfmatrix)
   (let ((mfc nil))
   (while (<= mfstart-r mfstop-r)
@@ -187,7 +187,7 @@
        (setq mfc (1+ mfc)) )
      (setq mfstart-r (1+ mfstart-r)))))
 
-(defun matrix-mapl (function matrix)
+(defsubst matrix-mapl (function matrix)
   (let ((max-row (1- (matrix-height matrix)))
         (matrix-cells (aref matrix 2))
         (row 0))
@@ -195,7 +195,7 @@
       (vector-mapl function (aref matrix-cells row))
       (setq row (1+ row)))))
 
-(defun matrix-map-rc (function matrix)
+(defsubst matrix-map-rc (function matrix)
   (let ((max-row (1- (matrix-height matrix)))
         (matrix-cells (aref matrix 2))
         (row 0))

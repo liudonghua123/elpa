@@ -22,8 +22,8 @@
 
 (provide 'heaps)
 
-(if (fboundp 'proclaim-inline)
-  (proclaim-inline heap-insert heap-create))
+;; (if (fboundp 'proclaim-inline)
+;;  (proclaim-inline heap-insert heap-create))
 
 
 ;;;
@@ -36,11 +36,13 @@
 ;;       vector-size
 ;;       element-count
 ;;       element-vector]
+;;
 ;; Entry points:
 ;;      (heap-create compare-function)  - create an empty heap
 ;;      (heap-insert heap element)      - insert an element
 ;;      (heap-deletemin heap)           - delete and return smallest
 ;;      (heap-empty heap)               - empty heap predicate
+;;      (heap-space heap)               - amount used by heap
 
 (defmacro heap-compare (h a b)
   "Use HEAP's compare function to compare elements A and B."
@@ -69,14 +71,14 @@
   "Return t if HEAP is empty."
   (list '= (list 'heap-last h) 0))
 
-(defun heap-swap (h i j)
+(defsubst heap-swap (h i j)
   "Swap HEAP's I'th and J'th elements."
   (let ((elem1 (heap-aref h i))
         (elem2 (heap-aref h j)))
     (heap-aset h i elem2)
     (heap-aset h j elem1)))
 
-(defun heap-create (compare-function)
+(defsubst heap-create (compare-function)
   "Create an empty priority queue (heap) with the given COMPARE-FUNCTION."
   (let ((heap (make-vector 4 nil)))
     (aset heap 0 compare-function)
@@ -85,21 +87,7 @@
     (aset heap 3 (make-vector 1 nil))
     heap))
 
-(defun heap-insert (heap element)
-  "Usage: (heap-insert heap element) Insert ELEMENT into HEAP."
-  (if (= (heap-space heap) (heap-last heap))
-      (progn
-        (aset heap 3 (vconcat (aref heap 3)
-                              (make-vector (heap-space heap) nil)))
-        (heap-set-space heap (+ (heap-space heap)
-                                          (heap-space heap)))))
-  ;; Put the new element in the next free position in the heap vector
-  (heap-aset heap (heap-last heap) element)
-  ;; Increment the element count
-  (heap-bubble-up heap (heap-last heap))
-  (heap-set-last heap (1+ (heap-last heap))))
-
-(defun heap-bubble-up (heap index)
+(defsubst heap-bubble-up (heap index)
   "Helping function for heap-insert."
   (if (> index 0)
       (let* ((half (/ (1- index) 2))
@@ -112,6 +100,22 @@
           (heap-aset heap half elem)
           (heap-bubble-up heap half)))))
 
+
+(defsubst heap-insert (heap element)
+  "Usage: (heap-insert heap element) Insert ELEMENT into HEAP."
+  ;; grow the heap if there is no space, doubling it
+  (if (= (heap-space heap) (heap-last heap))
+      (progn
+        (aset heap 3 (vconcat (aref heap 3)
+                              (make-vector (heap-space heap) nil)))
+        (heap-set-space heap (+ (heap-space heap)
+                                          (heap-space heap)))))
+  ;; Put the new element in the next free position in the heap vector
+  (heap-aset heap (heap-last heap) element)
+  ;; Increment the element count
+  (heap-bubble-up heap (heap-last heap))
+  (heap-set-last heap (1+ (heap-last heap))))
+
 (defun heap-deletemin (heap)
   "Delete and return the minimum element from the HEAP."
   (if (heap-empty heap)
@@ -123,7 +127,7 @@
       (heap-bubble-down heap 0)
       minelem)))
 
-(defun heap-index-of-min (heap i j)
+(defsubst heap-index-of-min (heap i j)
   "Given a HEAP and two indices I and J, return the index that points
 to the lesser of the corresponding elements."
   (if (> 0 (heap-compare heap (heap-aref heap i) (heap-aref heap j))) i j))
@@ -145,3 +149,14 @@ to the lesser of the corresponding elements."
         (heap-bubble-down heap minchild)))))
 
 
+;; Some test code:
+;;
+;;  (setq dismal-invalid-heapA (heap-create 'dismal-address-compare))
+;;  (setq dismal-invalid-heap dismal-invalid-heapA)
+;;  
+;;  (heap-empty dismal-invalid-heap)
+;;  (heap-insert dismal-invalid-heap (cons 2 0))
+;;  (heap-insert dismal-invalid-heap (cons 3 0))
+;;  (heap-insert dismal-invalid-heap (cons 4 0))
+;;  
+;;  (setq addr (heap-deletemin dismal-invalid-heap))

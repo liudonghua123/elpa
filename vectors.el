@@ -25,21 +25,21 @@
 
 (provide 'vectors)
 
-(if (fboundp 'proclaim-inline)
-  (proclaim-inline 
-    ;; vec-copy-sequence-r, recursive, can't do this
-    vector-create
-    vector-delete
-    vector-expand
-    vector-insert
-    vector-mapl
-    vector-map-rc
-    vector-push
-    vector-push-unique
-    vector-ref
-    vector-remove
-    vector-set
-  ))
+;;  (if (fboundp 'proclaim-inline)
+;;    (proclaim-inline 
+;;      ;; vec-copy-sequence-r, recursive, can't do this
+;;      vector-create
+;;      vector-delete
+;;      vector-expand
+;;      vector-insert
+;;      vector-mapl
+;;      vector-map-rc
+;;      vector-push
+;;      vector-push-unique
+;;      vector-ref
+;;      vector-remove
+;;      vector-set
+;;    ))
 
 
 ;;;
@@ -72,6 +72,8 @@ current size.")
 ;;      (vector-length v)       - Macro that returns length of V.
 ;;      (vec-copy-sequence-r seq) -
 
+;; Can't be a defsubst, recursive...
+
 (defun vec-copy-sequence-r (seq)
   "Recursive copy-sequence."
   (if seq
@@ -86,7 +88,7 @@ current size.")
                         (aref seq len))))
       new)))
 
-(defun vector-create (init)
+(defsubst vector-create (init)
   "Create a vector whose elements are initialized to sequence INIT."
   (let ((v (vec-copy-sequence-r [1 0 [nil] nil])))
     (aset v 3 (vec-copy-sequence-r init))
@@ -95,7 +97,7 @@ current size.")
 
 (defmacro vector-length (vector) (list 'aref vector 1))
 
-(defun vector-expand (vector index)
+(defsubst vector-expand (vector index)
   "Make sure a VECTOR has space to store into position INDEX."
   (if (>= index (aref vector 0))
       (let ((oldspace (aref vector 0))
@@ -111,7 +113,7 @@ current size.")
           (setq oldspace (1+ oldspace)))
         (aset vector 0 newspace))))
 
-(defun vector-ref (vector index)
+(defsubst vector-ref (vector index)
   "Return the VECTOR element at INDEX."
   ;; if index is too high or low return first element
   (if (or (>= index (aref vector 1))
@@ -119,13 +121,13 @@ current size.")
       (aref vector 3)
     (aref (aref vector 2) index)))
 
-(defun vector-set (vector index value)
+(defsubst vector-set (vector index value)
   "Set the VECTOR element at INDEX to VALUE and return the value."
   (vector-expand vector index)
   (aset vector 1 (max (aref vector 1) (1+ index)))
   (aset (aref vector 2) index value))
 
-(defun vector-insert (vector index count)
+(defsubst vector-insert (vector index count)
   "In VECTOR at position INDEX, insert COUNT new elements."
   ;; There is some question as to what this should do if index refers
   ;; to a position past the end of the vector (it does nothing) and
@@ -152,7 +154,7 @@ current size.")
         (aset vector 1 newlen)))
   vector)
 
-(defun vector-member (v object) 
+(defsubst vector-member (v object) 
  ;; returns first position of X, or nil
  (let ((spot 0)
        (length (vector-length v)))
@@ -161,46 +163,9 @@ current size.")
    (if (> spot length)
        nil
        spot)))
-   
-(defun vector-remove (vector object)
- ;; remove object once from vector
- (let ((spot (vector-member vector object)))
-   (if spot
-       (vector-delete vector spot 1))))
 
-(defun vector-push (vector object)
- ;; add object to vector
- (vector-insert vector 0 1)
- (vector-set vector 0 object))
-
-(defun vector-push-unique (vector object)
- (if (not (vector-member vector object))
-     (vector-push vector object)))
-
-;; redone below
-;(defun vector-delete (vector start count)
-;  "In VECTOR at position START delete COUNT elements."
-;  (let* ((oldlen (aref vector 1))
-;         (newlen (- oldlen count))
-;         (i start)
-;         (real-vector (aref vector 2)))
-;  (if (> start (aref vector 1))
-;      ()
-;    (setq count (min count (- oldlen start)))  ;revise count
-;    (aset vector 1 newlen)
-;    (while (< i oldlen)
-;      (aset real-vector i
-;              (aref real-vector (+ i count)))
-;      (setq i (1+ i)))
-;    (setq i count)
-;    (while (> i 0)
-;      (aset real-vector (- oldlen i)
-;              (vec-copy-sequence-r (aref vector 3)))
-;      (setq i (1- i))))))
-
-
 ;;;
-;;;
+;;;	Vector-delete
 ;;;
 
 ;(defun create-vaa ()
@@ -228,7 +193,7 @@ current size.")
 ;; (inspect vaa)[8 5 [3 4 5 6 7 nil nil nil] nil]
 ;; (vector-ref vaa 6)
 
-(defun vector-delete (vector index count)
+(defsubst vector-delete (vector index count)
   "In VECTOR at position INDEX delete COUNT elements."
   ;; keeping raw size of vector still large
   ;; not deleteing more then you have to
@@ -251,14 +216,54 @@ current size.")
                 (vec-copy-sequence-r (aref vector 3)))
           (setq index (1+ index)))))))
 
-(defun vector-mapl (function vector)
+   ;; redone above
+;(defun vector-delete (vector start count)
+;  "In VECTOR at position START delete COUNT elements."
+;  (let* ((oldlen (aref vector 1))
+;         (newlen (- oldlen count))
+;         (i start)
+;         (real-vector (aref vector 2)))
+;  (if (> start (aref vector 1))
+;      ()
+;    (setq count (min count (- oldlen start)))  ;revise count
+;    (aset vector 1 newlen)
+;    (while (< i oldlen)
+;      (aset real-vector i
+;              (aref real-vector (+ i count)))
+;      (setq i (1+ i)))
+;    (setq i count)
+;    (while (> i 0)
+;      (aset real-vector (- oldlen i)
+;              (vec-copy-sequence-r (aref vector 3)))
+;      (setq i (1- i))))))
+
+
+
+(defsubst vector-remove (vector object)
+ ;; remove object once from vector
+ (let ((spot (vector-member vector object)))
+   (if spot
+       (vector-delete vector spot 1))))
+
+(defsubst vector-push (vector object)
+ ;; add object to vector
+ (vector-insert vector 0 1)
+ (vector-set vector 0 object))
+
+(defsubst vector-push-unique (vector object)
+ (if (not (vector-member vector object))
+     (vector-push vector object)))
+
+
+
+(defsubst vector-mapl (function vector)
   (let ((row (aref vector 1))
         (vector-cells (aref vector 2)))
     (while (> row 0)
       (setq row (1- row))
       (apply function (aref vector-cells row) nil))))
 
-(defun vector-map-rc (function col vector)
+(defsubst vector-map-rc (function col vector)
   (let ((row (aref vector 1))
         (vector-cells (aref vector 2)))
     (while (> row 0)

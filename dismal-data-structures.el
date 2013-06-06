@@ -51,7 +51,7 @@
 (defmacro dismal-address-row (address) (list 'car address))
 (defmacro dismal-address-col (address) (list 'cdr address))
 
-(defun dismal-addressp (arg)
+(defsubst dismal-addressp (arg)
    (and (consp arg)
         (numberp (car arg))
         (numberp (cdr arg))))
@@ -93,7 +93,7 @@
 
 (defvar dismal-range 'dismal-range)
 
-(defun rangep (arg)
+(defsubst rangep (arg)
   (and (listp arg)
        (eq (car arg) 'dismal-range)
        (= (length arg) 3)))

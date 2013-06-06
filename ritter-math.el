@@ -23,12 +23,12 @@
 
 (provide 'ritter-math)
 
-(if (fboundp 'proclaim-inline)
-  (proclaim-inline
-    log10    
-    ;; log10plus  ; recursive, so hard to do this to...
-    log10minus
-))
+;; (if (fboundp 'proclaim-inline)
+;;   (proclaim-inline
+;;     log10    
+;;     ;; log10plus  ; recursive, so hard to do this to...
+;;     log10minus
+;; ))
 
 
 ;;;
@@ -41,10 +41,10 @@
       (+ 1 (log10plus dividend))
      0)))
 
-(defun log10minus (x)
+(defsubst log10minus (x)
   (error "log10minus in ritter-math not defined."))
 
-(defun log10 (x)
+(defsubst log10 (x)
   (if (< x 0) (error "log10 error."))
   (if (> x 1)
       (log10plus x)

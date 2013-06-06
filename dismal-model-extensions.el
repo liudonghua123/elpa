@@ -51,7 +51,7 @@ with something in colA-1.  Only counts stuff that is in order."
                             (1+ matches) 
                            matches)))))
              range-list 0)
-   (dis-div (f matches) (f total)) ))
+   (dis-div (float matches) (float total)) ))
 
 ;; these are not easily combined with the function abov
 (defun dis-model-match-op (range-list)
@@ -77,7 +77,7 @@ that is in order."
                                  (1+ matches)
                                 matches)))))))
              range-list 0)
-   (dis-div (f matches) (f total)) ))
+   (dis-div (float matches) (float total)) ))
 
 
 ;;;

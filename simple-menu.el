@@ -27,6 +27,7 @@
 ;;;;	iii.	Update information and how to get copies
 ;;;;	iv.	OVERVIEW/INTRODUCTION
 ;;;;	v.	Requires/provides/compile info
+;;;;	vi.	Utilities
 ;;;;
 ;;;; 	I.	Variables and constants 
 ;;;; 	II.	Creating functions
@@ -39,6 +40,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Status          : Released version 1.2.
 ;;; HISTORY
+;;; 1-3-97 - included defsubst, and cleaned up a bit.  version 1.7
 ;;; 30-Aug-94 incorporated numerous changes by Roberto Ong.
 ;;;           Can now backup a level.  Duplicate initial letters are caught.
 ;;;           Generally cleaner and more robust code.
@@ -231,18 +233,19 @@
 
 ;; Compiler info for JWZ's byte compiler.
 ;; they add about 2k to the .elc file.
-(if (fboundp 'proclaim-inline)
-  (proclaim-inline
-    sm-menu-p
-    sm-eval-single-menu
-    sm-make-help
-    sm-find-binding
-    sm-menu-ized-items
-    sm-setup-menu-item
-    sm-note-function-key
-    first-word
-    first-letter
-))
+;; (if (fboundp 'proclaim-inline)
+;;   (proclaim-inline
+;;     sm-menu-p
+;;     sm-eval-single-menu
+;;     sm-make-help
+;;     sm-find-binding
+;;     sm-menu-ized-items
+;;     sm-setup-menu-item
+;;     sm-note-function-key
+;;     first-word
+;;     first-letter
+;; ))
+
 
 (defmacro mapc (function alist)
  "A macro like CL mapc: map but don't return anything."
@@ -250,6 +253,67 @@
      (while blist
       (funcall (, function) (car blist))
       (setq blist (cdr blist))    ))))
+
+
+;;;
+;;; 	vi.	Utilities
+;;; 
+
+;; (first-word '("asdf" fun1))
+;; (first-letter '("Asdf" fun1))
+
+(defun sm-cant-do-this ()
+  "Dummy function for menu item not yet implemented."
+  (interactive)
+  (message "No function to do this menu item yet."))
+
+;;*created this function to quit simple-menu
+(defun sm-quit ()
+ "Quit simple-menu to abort, or after a command has been evaluated."
+ (sm-note-function-key command current-key-map)
+ ;; (beep) (message "hi") (sit-for 1)
+ (setq run-menu-flag nil)
+ ;; (keyboard-quit)
+)
+
+(defsubst first-word (menu-item)
+ "Return the first word of the first part (a string) of MENU-ITEM."
+ (let ((string  (car menu-item)))
+   (substring string 0 (string-match " " string))) )
+
+(defsubst first-letter (menu-item)
+ "Return the first letter of the first part (a string) of MENU-ITEM."
+ (let ((string  (first-word menu-item)))
+   (downcase (substring string 0 1))) )
+
+;;*created the following functions for checking menu items with the same
+;;*first letter
+(defsubst first-letter-items (items)
+ "Return the list of the first letters of the menu items."
+ (if (null items)
+     nil
+   (let ((item (car items)))
+        (append (list (first-letter item))
+                (first-letter-items (cdr items)))) ))
+
+(defsubst first-letter-tidy (letters)
+ "Return the list of the first letters of the menu items removing any 
+  duplicate letter(s)."
+ (if (null letters)
+     nil
+   (let ((menu-letters))
+      (setq menu-letters (remove-menu-item-letter (car letters) (cdr letters)))
+      (append (list (car letters)) (first-letter-tidy menu-letters))) ))
+
+(defun remove-menu-item-letter (element list)
+ "Return the list of the first-letters of the menu items with 
+  the first-letter referred to by element removed."
+ (cond (  (null list) nil)
+       (  (equal (car list) element)
+          (cdr list))
+       (t (append (list (car list))
+                  (remove-menu-item-letter element (cdr list)))) ))
+
 
 
 ;;; 
@@ -283,7 +347,7 @@ assigned to it.")
 
 
 ;; Not used yet, but kept around for version control and bug reports.
-(defconst simple-menu-version "1.4")
+(defconst simple-menu-version "1.7")
 
 
 ;; menus have the following fields:
@@ -432,8 +496,6 @@ TO and FROM are ints, FUN is a symbol."
   ;; Needed so sm-find-binding can use the right keymap
   "Name of the buffer from which run-menu was called.")
 
-(setq run-menu-flag nil)
-
 ;; * changes by R. Ong, 6/94
 ;; prompt is the initial prompt
 ;; full prompt is what is actually shown to the user, includes choices
@@ -446,7 +508,8 @@ TO and FROM are ints, FUN is a symbol."
      (sm-eval-single-menu amenu)
    (let* ((full-prompt (get amenu 'full-prompt))
           (items (eval amenu))
-          ;(run-menu-flag t)
+          (run-menu-flag t)
+          results
           (the-prompt)
           (last-selection (get amenu 'last-selection))
           (string-default (cond (  (stringp default) default)
@@ -476,7 +539,7 @@ TO and FROM are ints, FUN is a symbol."
 	      (setq sm-current-buffer (current-buffer))
 	      (setq opt (sm-read-char-from-minibuffer the-prompt)))
            (setq sm-current-menu nil))
-;;     (message "about to get results") (sit-for 1)
+;;     (message "about to get results for %s" opt) (sit-for 1)
          (cond ;;*for backing one level up
                (  (eq opt 'pop-level)
                   (setq run-menu-flag nil))
@@ -903,67 +966,7 @@ or the current-local-map."
 
 
 ;;;
-;;; 	V.	Utilities
-;;; 
-
-;; (first-word '("asdf" fun1))
-;; (first-letter '("Asdf" fun1))
-
-(defun sm-cant-do-this ()
-  "Dummy function for menu item not yet implemented."
-  (interactive)
-  (message "No function to do this menu item yet."))
-
-;;*created this function to quit simple-menu
-(defun sm-quit ()
- "Quit simple-menu to abort, or after a command has been evaluated."
- (sm-note-function-key command current-key-map)
- ;; (beep) (message "hi") (sit-for 1)
- (setq run-menu-flag nil)
- ;; (keyboard-quit)
-)
-
-(defun first-word (menu-item)
- "Return the first word of the first part (a string) of MENU-ITEM."
- (let ((string  (car menu-item)))
-   (substring string 0 (string-match " " string))) )
-
-(defun first-letter (menu-item)
- "Return the first letter of the first part (a string) of MENU-ITEM."
- (let ((string  (first-word menu-item)))
-   (downcase (substring string 0 1))) )
-
-;;*created the following functions for checking menu items with the same
-;;*first letter
-(defun first-letter-items (items)
- "Return the list of the first letters of the menu items."
- (if (null items)
-     nil
-   (let ((item (car items)))
-        (append (list (first-letter item))
-                (first-letter-items (cdr items)))) ))
-
-(defun first-letter-tidy (letters)
- "Return the list of the first letters of the menu items removing any 
-  duplicate letter(s)."
- (if (null letters)
-     nil
-   (let ((menu-letters))
-      (setq menu-letters (remove-menu-item-letter (car letters) (cdr letters)))
-      (append (list (car letters)) (first-letter-tidy menu-letters))) ))
-
-(defun remove-menu-item-letter (element list)
- "Return the list of the first-letters of the menu items with 
-  the first-letter referred to by element removed."
- (cond (  (null list) nil)
-       (  (equal (car list) element)
-          (cdr list))
-       (t (append (list (car list))
-                  (remove-menu-item-letter element (cdr list)))) ))
-
-
-;;;
-;;;	VI.	Example menus for Emacs itself
+;;;	V.	Example menus for Emacs itself
 ;;;
 
 ;; (get 'emacs-menu 'prompt-header)

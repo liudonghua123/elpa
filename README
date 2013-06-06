@@ -1,9 +1,9 @@
                              dismal-mode
-                             Release 1.0 or later
+                             Release 1.1 or later
 
                            Frank E. Ritter
-                        ritter@psyc.nott.ac.uk
-                              13-Jan-96
+                    Frank.Ritter@nottingham.ac.uk
+                              2-Jan-97
 
 INTRODUCTION
 ------------
@@ -114,13 +114,18 @@ MISCELLANEOUS
 
 Some features which are not implemented yet, but will eventually be, are:
 
-    use of Emacs 19's features (menus, defsubs, fonts)
+    use of Emacs 19's features (defsubs)
     the use of sparse matrices to represent the spreadsheet
+
+Version 1.1 makes some use of defsubst and of fonts and menus
 
 There are too many bugs or missing features to list them here.
 Interested users should consult the dismal.el file.
 A previous version of the manual in Microsoft Word is also available
  upon request. 
+
+If you would like to hear about updates and other such things, please
+let me know and I'll put you on my dismal mailing list.
 
 Frank.Ritter@nottingham.ac.uk
 

@@ -128,6 +128,10 @@
 ;; Started Tue Dec 13 16:01:11 1994
 ;; Ended Tue Dec 13 16:12:39 1994
 
+;; 2-Jan-97 -FER, shoudl be faster in 19.28
+;; (defsubst log-keystroke (the-keymap the-command)
+;; also made log-stop safer.
+
 ;;;; Uses after-command-hook.
 ;;;; 
 ;;;; Loads either before or after other packages, and loads safely on
@@ -281,8 +285,12 @@
   (interactive)
   (setq post-command-hook
         (remove 'log-stamp-date post-command-hook))
+  (log-do-auto-save)
+  (setq log-auto-save-counter log-auto-save-interval)
   (setq log-running nil)
-  (message "logging turned off."))
+  (message "logging turned off.  File saved in %s/Log.<type>.timestamp"
+           *log-data-directory*))
+
 
 ;; only interesting for 18
 (defun log-modify-keymaps ()
@@ -496,7 +504,8 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
     ;; ELSE
     (execute-kbd-macro command)))	; keyboard macro
 
-(defun log-keystroke (the-keymap the-command)
+;; 2-Jan-97 -FER, shoudl be faster in 19.28
+(defsubst log-keystroke (the-keymap the-command)
   (let ((log-buffer (get-buffer-create log-keys-buffer-name))
 	(orig-buffer (current-buffer))
 	(indent-tabs-mode nil))		; indent with spaces
@@ -1602,8 +1611,7 @@ Sample code for emergency .el:  ;; extra space before .el??  -fer
 ;; 6-25-93 - need to load just to get access to parsing files:
 ;; (log-initialize)
 (if log-initialized
-    (message (concat "Already logging, to "
-		     *log-data-directory*))
+    (message (concat "Already logging, to " *log-data-directory*))
   (message "To start logging, M-x log-initialize."))
 (sleep-for 1)
 

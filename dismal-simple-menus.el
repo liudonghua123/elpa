@@ -62,7 +62,8 @@
    ("Format/         Set up the format of cells, columns, and the sheet." 
                      dismal-format-menu)
    ("Doc.            Read the dismal documentation."
-                     (goto-manual "dismal-mode.doc" 'text-mode))
+                     (info (concat dismal-directory "/dismal.info")))
+;; used to be:  (goto-manual "dismal-mode.doc" 'text-mode)
    ("Options/        Miscellaneous commands." dismal-options-menu)
    ("Model/          Model based manipulations and actions." dismal-model-menu)
 ;; ("1Reload        Reload & compile dismal.  Used mostly/only by Frank"
@@ -93,10 +94,21 @@
    ("FPrin.       Print a text only version to a file." dis-make-report)
    ("PPrin.       Print a copy to a printer (M-x print-buffer also sorta works)."
                   dis-print-report)
-   ("Tdump        Dump a tabbed version to a file (w/ arg, save formulas)." dis-write-tabbed-file)
-   ("RDump.       Dump a range to a tabbed file." dis-dump-range)
+   ("Dump         Dump a version to a file." dis-dump-menu)
    ("Unpage       Strip page breaks from a report." dis-unpaginate)
    ("Quit         Quit dismal-mode on a file." kill-buffer)
+))
+
+
+(def-menu 'dis-dump-menu
+  "Dis Dump"
+  "" ;help prompt
+ '(("Dump        Dump a tabbed version to a file (w/ arg, save formulas)." 
+                 dis-write-tabbed-file)
+   ("RDump.      Dump a range to a tabbed file." dis-dump-range)
+   ("TDump.      Dump a range to a tabbed file for TeX." dis-tex-dump-range)
+   ("2TDump.     Dump a range to a tabbed file for TeX, complete with full header." 
+                 dis-tex-dump-range-file)
 ))
 
 
@@ -252,23 +264,24 @@
 
 (defun dis-set-font ()
    (interactive)
-   (x-set-font (run-menu 'dismal-font-menu "Small")))
+   (call-interactively 'mouse-set-font))
 
-;; get fonts from xlsfonts
 
-(def-menu 'dismal-font-menu
-  "Dis Fonts"
-  "Font use for the whole sheet (actually all buffers):" ;help prompt
- '( ;;("VTiny       A very tiny font, 4x13." "4x8")
-   ("Tiny        A tiny font, 5x8." "5x8")
-   ("4Small      A very short font, 6x9." "6x9")
-   ("3Small      An even slightly shorter font, 6x10." "6x10")
-   ("2Small      A slightly shorter font, 6x12." "6x12")
-   ("Small       Probably your normal font, 6x13." "6x13")
-   ("Medium      A slightly big font, 8x13." "8x13")
-   ("Big         A big font, 9x15."          "9x15")
-   ("Huge        A really big font, 10x20." "10x20")
-))
+;; ;; get fonts from xlsfonts
+;; 
+;; (def-menu 'dismal-font-menu
+;;   "Dis Fonts"
+;;   "Font use for the whole sheet (actually all buffers):" ;help prompt
+;;  '( ;;("VTiny       A very tiny font, 4x13." "4x8")
+;;    ("Tiny        A tiny font, 5x8." "5x8")
+;;    ("4Small      A very short font, 6x9." "6x9")
+;;    ("3Small      An even slightly shorter font, 6x10." "6x10")
+;;    ("2Small      A slightly shorter font, 6x12." "6x12")
+;;    ("Small       Probably your normal font, 6x13." "6x13")
+;;    ("Medium      A slightly big font, 8x13." "8x13")
+;;    ("Big         A big font, 9x15."          "9x15")
+;;    ("Huge        A really big font, 10x20." "10x20")
+;; ))
 
 
 ;;;

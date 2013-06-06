@@ -20,22 +20,23 @@
 ##    or by changing the alias for EMACS defined below.
 ##
 ## To release (in case you don't remember):
-## (a) change release line below and save this file
+## (a) change RELEASE line below and save this file
 ## (b) change dismal-version in dismal.el and save the file
+## (d) change version in LCD-entry
+## (e) change verison in README
 ## (c) cd ~/tools/emacs/dismal/new/
-## (g) change version in LCD-entry
-## (h) change verison in README
-## (d) type "make" to compile dismal (on keats, upsyc is not set up right)
-## (e) type "make package" to make a new directory, tar file, etc.
-## (f) change dismal-version in dismal.el back to +
-## (g) put copy out on granby
+## (f) type "make" to compile dismal (on keats, upsyc is not set up right)
+## (g) type "make package" to make a new directory, tar file, etc.
+## (h) change dismal-version in dismal.el back to +
+## (i) put copy out on granby
 ##     ftp granby
 ##     cd pub
-##     put dismal-1.04/dismal-1.04.tar.gz
-## (h) put a copy on vpsyc
-##     cp ~/tools/emacs/dismal/dismal-1.04/dismal-1.04.tar.gz ~/ftp-ritter/dismal-1.04.tar.gz
+##     put dismal-1.1/dismal-1.1.tar.gz
+## (j) put a copy on vpsyc
+##     cp ~/tools/emacs/dismal/dismal-1.1/dismal-1.1.tar.gz ~/ftp-ritter/dismal-1.04.tar.gz
 ## Optional arguments to make:
-##    package - same as no argument
+##    all - same as no argument, compiles
+##    package - compiles and makes version for distribution
 ##    clean   - remove all .elc files and any other cruft
 
 
@@ -46,14 +47,15 @@ EMACS    = emacs
 COMPILER = cc
 
 # no user changeable variables below here.
-RELEASE = dismal-1.04
+RELEASE = dismal-1.1
 
 # main files that will be loaded during compiles
 # in .elc format.
 OBJS    = dismal.elc \
 	  dismal-simple-menus.elc \
 	  dismal-metacolumn.elc \
-	  dismal-mouse-x.elc \
+	  nigel-mouse3.elc \
+	  nigel-menu3.elc \
 	  dismal-mode-defaults.elc \
 	  auto-aligner.elc \
 	  dismal-model-extensions.elc \
@@ -61,8 +63,7 @@ OBJS    = dismal.elc \
 
 # supporting files that will be used as utilities
 # in .elc format.
-EXTRAOBJS = float.elc \
-          float-changes.elc \
+EXTRAOBJS = float-changes.elc \
           vectors.elc \
           heaps.elc \
           rmatrix.elc \
@@ -71,19 +72,20 @@ EXTRAOBJS = float.elc \
           ritter-math.elc \
           insert-date.elc \
           simple-menu.elc \
-          goto-manual.elc \
 	  keystroke.elc \
 	  popper.elc \
 	  log.elc \
 	  dismal-mode-defaults.elc
+#          goto-manual.elc
+
 
 # files that will be compiled
 SRCS    = dismal-data-structures.el \
 	  dismal.el \
 	  dismal-simple-menus.el \
           dismal-metacolumn.el \
-          dismal-mouse-x.el \
-          float.el \
+	  nigel-mouse3.el \
+	  nigel-menu3.el \
           popper.el \
           float-changes.el \
           vectors.el \
@@ -100,8 +102,8 @@ SRCS    = dismal-data-structures.el \
 	  keystroke.el \
 	  make-km-aliases.el \
 	  log.el \
-	  emergency.el \
-          goto-manual.el
+	  emergency.el
+#          goto-manual.el
 
 # files along for the ride not compiled
 MISC 	= COPYING \
@@ -111,9 +113,10 @@ MISC 	= COPYING \
 	  LCD-entry \
 	  example-codes.txt \
 	  aligner-test-data.txt \
-	  keystroke4.dis \
-	  simple-keystroke.dis \
-	  test.dis \
+	  examples/keystroke4.dis \
+	  examples/soar704-aliases.dis \
+	  examples/simple-keystroke.dis \
+	  examples/test.dis \
 	  checkout-dismal.script \
 	  dismal-manual.tex \
 	  dismal.info \
@@ -134,13 +137,10 @@ package: ${SRCS} ${MISC}
 	rm -fr ../${RELEASE}
 	mkdir ../${RELEASE}
 #	Copy latest utilities up
-	cp ./utilities/goto-manual.el .
+#	cp ./utilities/goto-manual.el .
 	cp ./utilities/insert-date.el .
-	cp ./utilities/ritter-math.el .
-	cp ./utilities/simple-menu.el .
-	cp ./utilities/soar-misc.el .
 	cp ./utilities/x-mouse.el .
-	cp ./manuals6/* .
+#	cp ./manuals6/* .
 	cp ${SRCS} ../${RELEASE}
 	cp ${MISC} ../${RELEASE}
 #	cp ${OBJS} ../${RELEASE}
@@ -175,11 +175,11 @@ ${EXTRAOBJS}:
 # dismal-mode-defaults is most important, for it makes sure that current 
 # directory is on load-path
 BASICLOADS =  -l ./dismal-mode-defaults.elc dismal-data-structures.elc \
-	./popper.elc ./float.elc \
+	./popper.elc \
 	./float-changes.elc ./vectors.elc ./heaps.elc ./rmatrix.elc \
 	./ritter-math.elc ./soar-misc.elc \
-	./insert-date.elc ./simple-menu.elc \
-	./goto-manual.elc
+	./insert-date.elc ./simple-menu.elc
+#	./goto-manual.elc
 
 .el.elc:
 	${EMACS} -batch -q ${BASICLOADS} -f batch-byte-compile $(@:.elc=.el)
@@ -187,22 +187,17 @@ BASICLOADS =  -l ./dismal-mode-defaults.elc dismal-data-structures.elc \
 # Special rules.
 
 #dismal.elc:  
-#	${EMACS} -batch -q -l ./popper.elc ./float.elc \
+#	${EMACS} -batch -q -l ./popper.elc \
 #		./float-changes.elc -f batch-byte-compile dismal.el
 
 # Dependencies.
 
-#dismal.elc:            dismal-simple-menus.elc dismal-metacolumn.elc \
-#		float.elc float-changes.elc heaps.elc dismal-mouse-x.elc \
-#		dismal-mode-defaults.elc popper.elc vectors.elc rmatrix.elc \
-#		utilities/insert-date.elc \
-#		utilities/simple-menu.elc utilities/goto-manual.elc dismal.el
 dismal-simple-menus.elc:  dismal.elc ./dismal-simple-menus.el 
-dismal-mouse-x.elc:    dismal.elc dismal-mouse-x.el
 
 ## Not used yet: (taken from edb makefile)
 ## info: database.texi
 ## 	makeinfo -o edb.info database.texi
 ## 	texi2dvi database.texi
+##
 ## 	makeinfo -o dismal.info dismal-manual.tex
 ## 	texi2dvi dismal-manual.tex

@@ -51,7 +51,7 @@
 ;;;
 ;;; Default specifications for variables - can be changed
 
-(defvar Mop 1.35 "Mental operator value in seconds.")
+(defvar mop 1.35 "Mental operator value in seconds.")
 
 ;;; Word per minute typing speed for average no-secretary expert typist
 (defvar wpm 40 "Typing speed in words per minute.")
@@ -71,38 +71,44 @@
 (setq dis-user-cell-functions 
       (cons 'klm-time dis-user-cell-functions))
 
-(defun klm-time (command &optional nM)
+(defun klm-time (command &optional nm)
   "Time to type COMMAND <SPC | CR>, including the number of mental ops
 (optionally passed in)."
   (interactive)
   (if (not (stringp command)) (error "%s not a string" command))
-  (let (Tk ; keystroke time
-        Tm ; mental time
+  (let (tk ; keystroke time
+        tm ; mental time
         (count 0))   ; count of chars
     ;; read wpm
     (if (= 0 wpm)
         (setq wpm (read-minibuffer "Enter typing speed: ")))
     ;; calculate tk, 10.80/wpm = Time (s) per keypress (Card et al.)
-    (setq Tk (* (1+ (length command))  (/  key-const wpm)))
+    (setq tk (* (1+ (length command))  (/  key-const wpm)))
     ;; check number of mental operators required - one per command 
     ;; and one per dash
-    ;; nM - number of mental operators used
-    (if (numberp nM)
+    ;; nm - number of mental operators used
+    (if (numberp nm)
          nil
-       (setq nM 1) ; you get one for the command
+       (setq nm 1) ; you get one for the command
        (while (< count (length command))
          (if (or (string= "-" (substring command count (1+ count)))
                  (string= " " (substring command count (1+ count))))
-             (setq nM (1+ nM)))
+             (setq nm (1+ nm)))
            (setq count (1+ count))))
     ;; calculate Tm, time for mental ops
-    (setq Tm (* nM Mop))
+    (setq tm (* nm mop))
     ;; calculate keystroke value (Texecute)
     ;; return total time
-    (+ Tk Tm) ))
+    (+ tk tm) ))
 
-;; (command-time "excise")
-;; (command-time "kjsdhfkjsdhkfjhk")
+;; key-val used to be used, but its name has been changed to be 
+;; more clear. 
+
+(defalias 'key-val 'klm-time)
+
+;; (key-val "excise")
+;; (key-val "exciseasdf")
+;; (klm-time "kjsdhfkjsdhkfjhk")
 
 
 ;;;
