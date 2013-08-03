@@ -113,9 +113,6 @@
 (defvar dis-load-hook nil
   "*Hook variable run after dismal-mode is loaded.")
 
-(defvar dis-mode-hooks nil
-  "*Hook functions to be run upon entering dismal-mode.")
-
 (defvar dis-query-on-entry-p nil
   "*Ask for confirmation each time dismal-mode is called.
 Normally
@@ -1186,102 +1183,104 @@ Optional second argument non-nil means use scientific notation."
 (add-to-list 'auto-mode-alist '("\\.dis\\'" . auto-mode-alist))
 
 ;;;###autoload
-(defun dismal-mode (&optional no-query)
+(defun dismal-mode ()
   "A major mode for editing SpreadSheets.
 A command menu is available by typing C-c C-m (C-m is also RET).
 \\[dis-copy-to-dismal] will paste text from another buffer into dismal.
-The left mouse button is bound to dis-mouse-highlight-cell-or-range
-and right mouse button is bound to dis-mouse-highlight-row.
+The left mouse button is bound to `dis-mouse-highlight-cell-or-range'
+and right mouse button is bound to `dis-mouse-highlight-row'.
 
  Special commands:\n\\{dismal-map}\n
  Special commands:\n\\{dismal-minibuffer-map}\n"
   (interactive)
   (if (and (not dismal-setup)
-           (or (not dis-query-on-entry-p) no-query
+           (or (not dis-query-on-entry-p)
                (y-or-n-p (format "Put %s into dismal-mode? "
                                  (buffer-name)))))
-    (progn
-      (kill-all-local-variables)
-      (use-local-map dismal-map)
-      (setq mode-name "dismal")
-      (setq major-mode 'dismal-mode)
-      (auto-save-mode 0)
-      (setq dismal-buffer-auto-save-file-name (make-auto-save-file-name))
-      (setq truncate-lines t)
-      (setq mode-line-format dismal-mode-line-format)
-      ;; must be set in all buffers
-      (setq dismal-matrix (dismal-create-matrix))
-      (setq dismal-invalid-heapA (heap-create 'dismal-address-compare))
-      (setq dismal-invalid-heapB (heap-create 'dismal-address-compare))
-      (setq dismal-invalid-heap dismal-invalid-heapA)
-      (setq dismal-invalid-heap-not dismal-invalid-heapB)
-      (setq dismal-range-buffer [0 0 0])
-      (aset dismal-range-buffer 2 (dismal-create-matrix))
-      (setq dismal-current-row 0   dismal-current-col 0)
-      ;; fixed 28-May-97 -FER
-      (setq dismal-mark [0 0])
-      ;; DBL cut this out, don't know why
-      (setq dismal-column-formats (vector-create nil))
-      (setq dismal-auto-save-counter dis-auto-save-interval)
-      (setq dismal-write-file-version nil)
-      (setq dismal-buffer-read-only buffer-read-only)
-      (if buffer-read-only (setq buffer-read-only nil))
-      (add-hook 'write-contents-functions 'dismal-write-file-hook nil t)
+      (progn
+        (kill-all-local-variables)
+        (use-local-map dismal-map)
+        (setq mode-name "dismal")
+        (setq major-mode 'dismal-mode)
+        (auto-save-mode 0)
+        (setq dismal-buffer-auto-save-file-name (make-auto-save-file-name))
+        (setq truncate-lines t)
+        (setq mode-line-format dismal-mode-line-format)
+        ;; must be set in all buffers
+        (setq dismal-matrix (dismal-create-matrix))
+        (setq dismal-invalid-heapA (heap-create 'dismal-address-compare))
+        (setq dismal-invalid-heapB (heap-create 'dismal-address-compare))
+        (setq dismal-invalid-heap dismal-invalid-heapA)
+        (setq dismal-invalid-heap-not dismal-invalid-heapB)
+        (setq dismal-range-buffer [0 0 0])
+        (aset dismal-range-buffer 2 (dismal-create-matrix))
+        (setq dismal-current-row 0   dismal-current-col 0)
+        ;; fixed 28-May-97 -FER
+        (setq dismal-mark [0 0])
+        ;; DBL cut this out, don't know why
+        (setq dismal-column-formats (vector-create nil))
+        (setq dismal-auto-save-counter dis-auto-save-interval)
+        (setq dismal-write-file-version nil)
+        (setq dismal-buffer-read-only buffer-read-only)
+        (if buffer-read-only (setq buffer-read-only nil))
+        (add-hook 'write-contents-functions 'dismal-write-file-hook nil t)
 
-      ;; eval the stuff that makes sense, and then uncompress
-      ;; 8-17-94 - FER
-      ;; eval upto the dismal-matrix
-      (let ((matrix-point
-                (save-excursion (goto-char 0)
-                    (search-forward "setq dismal-matrix" (point-max) t)
-                             (forward-line -1) (point))))
-        ;; eval this first part, which may define dismal-save-compression
-        (eval-region 0 matrix-point)
-        (if (and dismal-save-compression
-                 (not (= matrix-point 1))) ; new buffer
-            (dismal-compress-region
+        ;; eval the stuff that makes sense, and then uncompress
+        ;; 8-17-94 - FER
+        ;; eval upto the dismal-matrix
+        (let ((matrix-point
+               (save-excursion (goto-char 0)
+                               (search-forward "setq dismal-matrix" (point-max) t)
+                               (forward-line -1) (point))))
+          ;; eval this first part, which may define dismal-save-compression
+          ;; FIXME: ¡¡Major Big security hole!!
+          (eval-region 0 matrix-point)
+          (if (and dismal-save-compression
+                   (not (= matrix-point 1))) ; new buffer
+              (dismal-compress-region
                (progn (goto-char 0)
                       (search-forward "setq dismal-matrix") (point))
                (point-max) t))
-        (eval-region matrix-point (point-max)))
-      (setq dismal-first-printed-column
-            ;; DBL: next line was (max 10 ...)
-            (+ (1+ (truncate (log10 (max 1 dismal-max-row)))) ; numbers
-               1 ; space
-               (if dismal-row-label-lined 1 0)))
-      (setq dismal-row-label-format
-                  (format "%%%dd %s"
-                          (1+ (truncate (log10 (max 1 dismal-max-row))))
-                          (if dismal-row-label-lined "|" "")))
-      (if (or (not dismal-write-file-version)
-              (not (string-equal dismal-write-file-version dismal-version)))
-          (progn
-            (setq dismal-write-file-version dismal-version)))
-      (if (not (dismal-find-and-prepare-image)) ;DBL
-          (progn
-            (erase-buffer)
-            ;; have to do this explicetly
-            (switch-to-buffer (current-buffer))
-            (let ((dis-show-ruler nil))
-              (dis-redraw nil))))
-      (setq dismal-middle-col-name
-            (dismal-convert-number-to-colname dis-middle-col))
-      (dismal-make-ruler)
-      (set-buffer-modified-p nil)
-      (run-hooks 'dis-mode-hooks)
-      (when (and (not (get 'dismal-display-startup-message 'displayed))
-                 (not dis-inhibit-startup-message))
-        (add-hook 'post-command-hook 'dismal-display-startup-message-hook-fn))
-      (setq dismal-setup t)
-   ;; some convolutions here to get redraw to work in 19.34
-   (goto-line 2)
-   (goto-char 2)
-   ;; (message "jumping3!") (sit-for 1)
-   (dismal-visit-cell dismal-current-row dismal-current-col)
-  )
-  ;; if not going to be in dismal-mode, make sure auto-fill is off
-  (auto-fill-mode -1)
-))
+          ;; FIXME: ¡¡Major Big security hole!!
+          (eval-region matrix-point (point-max)))
+        (setq dismal-first-printed-column
+              ;; DBL: next line was (max 10 ...)
+              (+ (1+ (truncate (log10 (max 1 dismal-max-row)))) ; numbers
+                 1                                              ; space
+                 (if dismal-row-label-lined 1 0)))
+        (setq dismal-row-label-format
+              (format "%%%dd %s"
+                      (1+ (truncate (log10 (max 1 dismal-max-row))))
+                      (if dismal-row-label-lined "|" "")))
+        (if (or (not dismal-write-file-version)
+                (not (string-equal dismal-write-file-version dismal-version)))
+            (progn
+              (setq dismal-write-file-version dismal-version)))
+        (if (not (dismal-find-and-prepare-image)) ;DBL
+            (progn
+              (erase-buffer)
+              ;; have to do this explicetly
+              (switch-to-buffer (current-buffer))
+              (let ((dis-show-ruler nil))
+                (dis-redraw nil))))
+        (setq dismal-middle-col-name
+              (dismal-convert-number-to-colname dis-middle-col))
+        (dismal-make-ruler)
+        (set-buffer-modified-p nil)
+        (run-mode-hooks 'dis-mode-hooks 'dismal-mode-hook)
+        (when (and (not (get 'dismal-display-startup-message 'displayed))
+                   (not dis-inhibit-startup-message))
+          (add-hook 'post-command-hook 'dismal-display-startup-message-hook-fn))
+        (setq dismal-setup t)
+        ;; some convolutions here to get redraw to work in 19.34
+        (goto-line 2)
+        (goto-char 2)
+        ;; (message "jumping3!") (sit-for 1)
+        (dismal-visit-cell dismal-current-row dismal-current-col)
+        )
+    ;; if not going to be in dismal-mode, make sure auto-fill is off
+    (auto-fill-mode -1)
+    ))
 
 ;; taken from Hucka's SDE mode
 (defvar dismal-startup-post-command-function 'dismal-display-startup-message)
@@ -1389,7 +1388,7 @@ C-x C-q to change read-only.")))
                                 (dismal-column-width 0)))
              (dismal-display-current-cell-expr 0 0))))
 
-(add-hook 'find-file-hooks 'dismal-find-file-hook)
+(add-hook 'find-file-hook 'dismal-find-file-hook)
 
 (defun dismal-set-first-printed-column ()
  (let* ((width (truncate (log10 (max 1 dismal-max-row))))
