@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(provide 'rmatrix)
+(require 'vectors)
 
 ;;;; I.	Matrix creation and major modification
 

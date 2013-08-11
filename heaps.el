@@ -41,33 +41,34 @@
 ;;      (heap-last heap)                - amount of space used, 
 ;;                                        address of last element
 
-(defmacro heap-compare (h a b)
+(defsubst heap-compare (h a b)
   "Use HEAP's compare function to compare elements A and B.
 Argument H "
-  (list 'apply (list 'aref h 0) a b nil))
+  (funcall (aref h 0) a b))
 
-(defmacro heap-space (h)
+(defsubst heap-space (h)
   "Return the amount of space available in HEAP's vector."
-  (list 'aref h 1))
+  (aref h 1))
 
-(defmacro heap-last (h) 
+(defsubst heap-last (h) 
   "Return the index of the element after the HEAP's last element."
-  (list 'aref h 2))
+  (aref h 2))
 
-(defmacro heap-set-space (h v) (list 'aset h 1 v))
-(defmacro heap-set-last (h v) (list 'aset h 2 v))
+(defsubst heap-set-space (h v) (aset h 1 v))
+(defsubst heap-set-last (h v) (aset h 2 v))
 
-(defmacro heap-aref (h n)
+(defsubst heap-aref (h n)
   "Return the HEAP's Nth element."
-  (list 'aref (list 'aref h 3) n))
+  (aref (aref h 3) n))
 
-(defmacro heap-aset (h n v)
+(defsubst heap-aset (h n v)
   "Set the HEAP's Nth element to V."
-  (list 'aset (list 'aref h 3) n v))
+  (aset (aref h 3) n v))
 
-(defmacro heap-empty (h)
-  "Return t if HEAP is empty."
-  (list '= (list 'heap-last h) 0))
+(defsubst heap-empty-p (h)
+  "Return non-nil iff HEAP is empty."
+  (= (heap-last h) 0))
+(define-obsolete-function-alias 'heap-empty 'heap-empty-p "Dismal-1.5")
 
 (defsubst heap-swap (h i j)
   "Swap HEAP's I'th and J'th elements."
@@ -76,7 +77,7 @@ Argument H "
     (heap-aset h i elem2)
     (heap-aset h j elem1)))
 
-(defsubst heap-create (compare-function)
+(defun heap-create (compare-function)
   "Create an empty priority queue (heap) with the given COMPARE-FUNCTION."
   (let ((heap (make-vector 4 nil)))
     (aset heap 0 compare-function)
@@ -85,18 +86,18 @@ Argument H "
     (aset heap 3 (make-vector 1 nil))
     heap))
 
-(defsubst heap-bubble-up (heap index)
-  "Helping function for heap-insert."
-  (if (> index 0)
-      (let* ((half (/ (1- index) 2))
-             (elem (heap-aref heap index))
-             (parent (heap-aref heap half))
-             (comp (heap-compare heap parent elem)))
-        (if (<= comp 0)
-            ()
-          (heap-aset heap index parent)
-          (heap-aset heap half elem)
-          (heap-bubble-up heap half)))))
+(defun heap--bubble-up (heap index)
+  "Helping function for `heap-insert'."
+  (let* ((half (/ (1- index) 2))
+         (elem (heap-aref heap index))
+         (parent (heap-aref heap half))
+         (comp (heap-compare heap parent elem)))
+    (if (<= comp 0)
+        ()
+      (heap-aset heap index parent)
+      (heap-aset heap half elem)
+      (if (> index 0)
+          (heap--bubble-up heap half)))))
 
 
 (defsubst heap-insert (heap element)
@@ -116,7 +117,8 @@ Argument H "
     ;; Put the new element in the next free position in the heap vector
     (heap-aset heap (heap-last heap) element)
     ;; Increment the element count
-    (heap-bubble-up heap (heap-last heap))
+    (if (> index 0)
+        (heap--bubble-up heap (heap-last heap)))
     (heap-set-last heap (1+ (heap-last heap)))))
 
 (defun heap-deletemin (heap)

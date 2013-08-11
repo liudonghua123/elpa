@@ -151,6 +151,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defvar *log-data-directory*
   (concat (getenv "HOME") "/")
   ;; HERE: should write all files here

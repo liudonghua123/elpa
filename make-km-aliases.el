@@ -92,9 +92,9 @@ word.  \\[dismal-init-make-aliases] must be called first."
 (defun dismal--recursive-match-old-alias (alias cell set)
  "Return t if new alias matches but cell does not."
  (cond ((not set) nil)
-       ((string= alias (car (first set)))
-        (if (and (equal (car cell) (car (cdr (first set))))
-                 (equal (cdr cell) (cdr (cdr (first set)))))
+       ((string= alias (car (car set)))
+        (if (and (equal (car cell) (car (cdr (car set))))
+                 (equal (cdr cell) (cdr (cdr (car set)))))
             (dismal--recursive-match-old-alias alias cell (cdr set))
           ;; return t
           t))
