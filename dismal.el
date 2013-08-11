@@ -263,6 +263,7 @@ confirmed on entering.")
     dis-copy-to-dismal dis-grader dis-ungrader)
   "Functions the user can put in a cell.")
 
+(define-obsolete-variable-alias 'dismal-map 'dismal-mode-map "Dismal-1.5")
 (defvar dismal-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map)
@@ -415,7 +416,6 @@ confirmed on entering.")
     ;; dis-recalculate-matrix
     map)
   "Keymap for Dismal mode.")
-(define-obsolete-variable-alias 'dismal-map 'dismal-mode-map "Dismal-1.5")
 
 
 ;;;; vi.	Requires and loads and autoloads
@@ -430,7 +430,7 @@ confirmed on entering.")
 (require 'rmatrix)
 (require 'dismal-data-structures)
 (require 'dismal-simple-menus)
-(require 'soar-misc)
+;; (require 'soar-misc)
 
 ;; (require 'dismal-metacolumn)
 (autoload 'dis-set-metacolumn
@@ -620,7 +620,7 @@ a list with up to four elements:
 
 (defvar dismal-default-column-format
   (vector dis-default-column-width dis-default-column-decimal
-          dis-default-column-alignment]
+          dis-default-column-alignment)
   "Columns corresponding to nil elements or elements beyond the end of
 dismal-column-formats are considered to have this format.  An array that is
 width, decimals shown, and justification (default, left, right, center).")
@@ -1793,7 +1793,7 @@ C-g when search is successful aborts and moves point to starting point."
   "Do nonincremental search forward for SEARCH-STRING times TIMES."
   (interactive "cDismal search: ")
   (if (not (stringp search-string))
-      (error "Search string %s must be a string"))
+      (error "Search string %S must be a string" search-string))
   (if (not (numberp times)) (setq times 1))
   (let ((i dismal-current-row)
         (j dismal-current-col)
@@ -2175,8 +2175,9 @@ argument, inserts the month first."
 ;;(require 'dismal-mouse-x)
 
 ;; moved down here so they would load, 19-Jun-96 -FER
+(when t ;; Don't do those `require' at compile-time.
 (require 'dismal-mouse3)
-(require 'dismal-menu3)
+(require 'dismal-menu3))
 
 ;; 2-8-93 - EMA: behaves just like move-to-window-line:
 (defun dis-move-to-window-line (arg)
@@ -2884,42 +2885,42 @@ This gives the cell(s) characters all in upper case."
 ;; (heap-aref dismal-invalid-heap 0)
 (defun dismal-update-cycle ()
   (let ((prev nil))
-  (while (not (heap-empty dismal-invalid-heap))
-    (let* ((addr (heap-deletemin dismal-invalid-heap))
-           (r (dismal-address-row addr))
-           (c (dismal-address-col addr))
-           (new-val nil)
-           (old-val (dismal-get-val r c)))
-      (if dis-show-update
-          (message "Starting with old-val of %s:%s of %s" r c old-val))
-      (if (equal addr prev)
-          nil
-        (setq new-val (dismal-set-val r c (dismal-eval (dismal-get-exp r c))))
-        ;;(message "updat'n %s, got [%s] had [%s] equal= %s"
-        ;;        addr new-val old-val (equal old-val new-val))  (sit-for 1)
-        (if (not (equal old-val new-val))
-            (let ((dismal-invalid-heap dismal-invalid-heap-not))
-               (dismal-invalidate-cell addr)))
-        (dismal-redraw-cell r c t))
-      (setq prev addr)))))
+    (while (not (heap-empty dismal-invalid-heap))
+      (let* ((addr (heap-deletemin dismal-invalid-heap))
+             (r (dismal-address-row addr))
+             (c (dismal-address-col addr))
+             (new-val nil)
+             (old-val (dismal-get-val r c)))
+        (if dis-show-update
+            (message "Starting with old-val of %s:%s of %s" r c old-val))
+        (if (equal addr prev)
+            nil
+          (setq new-val (dismal-set-val r c (dismal-eval (dismal-get-exp r c))))
+          ;;(message "updat'n %s, got [%s] had [%s] equal= %s"
+          ;;        addr new-val old-val (equal old-val new-val))  (sit-for 1)
+          (if (not (equal old-val new-val))
+              (let ((dismal-invalid-heap dismal-invalid-heap-not))
+                (dismal-invalidate-cell addr)))
+          (dismal-redraw-cell r c t))
+        (setq prev addr)))))
 
 (defun dismal-invalidate-cell (addr)
   ;; Mark the cell at ADDR invalid (if necessary) and (recursively) all cells
   ;; that depend on it, by inserting their addresses into dismal-invalid-heap.
   (let ((r (dismal-address-row addr))
         (c (dismal-address-col addr)) )
-  ;(message "invalidating %s %s" r c)
-  ;; only invalidate cells that can be updated
-  (if (vector-member dismal-formula-cells addr)
-      (heap-insert dismal-invalid-heap addr)
-     (dismal-redraw-cell r c t))
-  ;;is this necessary? seems to lead to problems...
-  ;(dismal-set-val row col nil)
-  (if (eq 'visited (dismal-get-mrk r c))
-      ()
-    (dismal-set-mrk r c 'visited)
-    (dismal-map-apply 'dismal-invalidate-cell (dismal-get-deps r c))
-    (dismal-set-mrk r c 0))))
+    ;;(message "invalidating %s %s" r c)
+    ;; only invalidate cells that can be updated
+    (if (vector-member dismal-formula-cells addr)
+        (heap-insert dismal-invalid-heap addr)
+      (dismal-redraw-cell r c t))
+    ;;is this necessary? seems to lead to problems...
+    ;;(dismal-set-val row col nil)
+    (if (eq 'visited (dismal-get-mrk r c))
+        ()
+      (dismal-set-mrk r c 'visited)
+      (dismal-map-apply #'dismal-invalidate-cell (dismal-get-deps r c))
+      (dismal-set-mrk r c 0))))
 
 (defun dis-recalculate-matrix ()
   "Recalculate and redraw the whole matrix."
@@ -6132,7 +6133,7 @@ can use."
 
 ;; this needs to be split into dismal-cell and dismal-glbal prints
 ;; including cell dependencies, which are not right on a list of
-;(defun dis-debug-cell (arg)
+(defun dis-debug-cell (arg)
   (interactive "p")
   (let* ((cell (matrix-ref dismal-matrix dismal-current-row
                           dismal-current-col))

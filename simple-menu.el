@@ -181,7 +181,7 @@ duplicate letter(s)."
  (if (null letters)
      nil
    (let ((menu-letters))
-      (setq menu-letters (remove-menu-item-letter (car letters) (cdr letters)))
+      (setq menu-letters (sm-remove-menu-item-letter (car letters) (cdr letters)))
       (append (list (car letters)) (sm-first-letter-tidy menu-letters))) ))
 
 (defun sm-remove-menu-item-letter (element list)
