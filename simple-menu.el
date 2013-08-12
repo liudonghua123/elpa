@@ -1,4 +1,4 @@
-;;; simple-menu.el --- Command-line menus made declaratively
+;;; simple-menu.el --- Command-line menus made declaratively  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1991, 2013 Free Software Foundation, Inc.
 
@@ -130,7 +130,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl-lib))
 
 ;;; 	vi.	Utilities
 
@@ -142,23 +142,26 @@
   (interactive)
   (message "No function to do this menu item yet."))
 
+(defvar sm-run-menu-flag)
+(defvar sm--current-key-map)
+
 ;;*created this function to quit simple-menu
 ;; allows a cleaner quit with C-g, 19-May-97 -FER
 (defun sm-quit ()
- "Quit simple-menu to abort, or after a command has been evaluated."
- (if (boundp 'command)
-     (sm-note-function-key command current-key-map)
-   (beep)
-   (message "Quiting simple-menu"))
- ;; (beep) (message "hi") (sit-for 1)
- (setq sm-run-menu-flag nil)
- ;; (keyboard-quit)
-)
+  "Quit simple-menu to abort, or after a command has been evaluated."
+  (if (boundp 'command)
+      (sm-note-function-key command sm--current-key-map)
+    (beep)
+    (message "Quiting simple-menu"))
+  ;; (beep) (message "hi") (sit-for 1)
+  (setq sm-run-menu-flag nil)
+  ;; (keyboard-quit)
+  )
 
 (defsubst sm-first-word (menu-item)
- "Return the first word of the first part (a string) of MENU-ITEM."
- (let ((string  (car menu-item)))
-   (substring string 0 (string-match " " string))) )
+  "Return the first word of the first part (a string) of MENU-ITEM."
+  (let ((string  (car menu-item)))
+    (substring string 0 (string-match " " string))) )
 
 (defsubst sm-first-letter (menu-item)
  "Return the first letter of the first part (a string) of MENU-ITEM."
@@ -168,21 +171,17 @@
 ;;*created the following functions for checking menu items with the same
 ;;*first letter
 (defsubst sm-first-letter-items (items)
- "Return the list of the first letters of the menu ITEMS."
- (if (null items)
-     nil
-   (let ((item (car items)))
-        (append (list (sm-first-letter item))
-                (sm-first-letter-items (cdr items)))) ))
+  "Return the list of the first letters of the menu ITEMS."
+  (mapcar #'sm-first-letter items))
 
-(defsubst sm-first-letter-tidy (letters)
- "Return the list of the first letters of the menu items removing any
+(defun sm-first-letter-tidy (letters)
+  "Return the list of the first letters of the menu items removing any
 duplicate letter(s)."
- (if (null letters)
-     nil
-   (let ((menu-letters))
-      (setq menu-letters (sm-remove-menu-item-letter (car letters) (cdr letters)))
-      (append (list (car letters)) (sm-first-letter-tidy menu-letters))) ))
+  (if (null letters)
+      nil
+    (let ((menu-letters (sm-remove-menu-item-letter
+                         (car letters) (cdr letters))))
+      (cons (car letters) (sm-first-letter-tidy menu-letters))) ))
 
 (defun sm-remove-menu-item-letter (element list)
  "Return the list of the first-letters of the menu items with
@@ -190,8 +189,8 @@ the first-letter referred to by element removed."
  (cond (  (null list) nil)
        (  (equal (car list) element)
           (cdr list))
-       (t (append (list (car list))
-                  (sm-remove-menu-item-letter element (cdr list)))) ))
+       (t (cons (car list)
+                (sm-remove-menu-item-letter element (cdr list)))) ))
 
 
 
@@ -338,28 +337,28 @@ TO and FROM are ints, FUN is a symbol."
   "Read input char for menu selection from minibuffer."
   (read-from-minibuffer prompt nil sm-select-item-map)
   (cond ;; for backing up one menu level
-        (  (eq last-input-char ?\C-d)
+        (  (eq last-input-event ?\C-d)
            'pop-level)
         ;; for aborting menu (i.e. quit menu)
-        (  (eq last-input-char ?\C-g)
+        (  (eq last-input-event ?\C-g)
            'abort)
         ;; for emacs 18.*
-        (  (or (eq last-input-char ?\r)(eq last-input-char ?\n)
-               (eq last-input-char ?\t)(eq last-input-char 'return))
+        (  (or (eq last-input-event ?\r)(eq last-input-event ?\n)
+               (eq last-input-event ?\t)(eq last-input-event 'return))
            'default)
-        (t last-input-char)) )
+        (t last-input-event)) )
 
 ;; replaced in 1.4
 ;; (defun sm-read-char-from-minibuffer (prompt)
 ;;   (read-from-minibuffer prompt nil sm-select-item-map)
-;;   (if (or (eq last-input-char ?\e) (eq last-input-char ?\C-g))
+;;   (if (or (eq last-input-event ?\e) (eq last-input-event ?\C-g))
 ;;       'abort
 ;;     (if (or ;; for emacs 18.*
-;;             (eq last-input-char ?\r) (eq last-input-char ?\n)
-;; 	    (eq last-input-char ?\t)
-;;             (eq last-input-char 'return))
+;;             (eq last-input-event ?\r) (eq last-input-event ?\n)
+;; 	    (eq last-input-event ?\t)
+;;             (eq last-input-event 'return))
 ;; 	'default
-;;       last-input-char)))
+;;       last-input-event)))
 
 (defvar sm-current-menu nil
   ;; Needed so sm-pop-up-help can find the right documentation
@@ -375,70 +374,71 @@ TO and FROM are ints, FUN is a symbol."
 ;; amenu is an atom.  Not necessary on top level, but this function
 ;; can be called recursively on the object of an item, which will be an atom.
 (defun sm-run-menu (amenu &optional default)
- "Present AMENU.  DEFAULT will be selected on a CR."
- ;; get & present the prompt
- (if (= (length (eval amenu)) 1)
-     (sm-eval-single-menu amenu)
-   (let* ((full-prompt (get amenu 'full-prompt))
-          (items (eval amenu))
-          (sm-run-menu-flag t)
-          results
-          (the-prompt)
-          (last-selection (get amenu 'last-selection))
-          (string-default (cond (  (stringp default) default)
-                                (  (and default (symbolp default))
-                                   (prin1-to-string default))
-                                (  last-selection
-		    	           (setq default t)
-			           (char-to-string last-selection))
-                                (t "")))    )
-     (setq sm-run-menu-flag t)
-     (setq results nil)
-     (if full-prompt
-         (setq the-prompt (format full-prompt string-default))
-         ;;*removed code for evaluating raw-prompt
-         (setq the-prompt (sm-eval-raw-prompt amenu)))
-     ;; read it in & process char choice
-     (if sm-current-menu (error "A menu is already running!"))
-     ;;*added a while loop to make simple-menu back up,
-     ;;*it also loops when no default option exist, and
-     ;;*when user type a non-existing option
-     (while sm-run-menu-flag
-         ;; (setq aa (cons (cons sm-run-menu-flag opt) aa))
-         ;; if the user aborts while reading, be sure to clean up
-         (unwind-protect
-           (progn
+  "Present AMENU.  DEFAULT will be selected on a CR."
+  ;; get & present the prompt
+  (if (= (length (symbol-value amenu)) 1)
+      (sm-eval-single-menu amenu)
+    (let* ((full-prompt (get amenu 'full-prompt))
+           (items (symbol-value amenu))
+           (sm-run-menu-flag t)
+           results
+           (the-prompt)
+           (last-selection (get amenu 'last-selection))
+           (string-default (cond (  (stringp default) default)
+                                 (  (and default (symbolp default))
+                                    (prin1-to-string default))
+                                 (  last-selection
+                                    (setq default t)
+                                    (char-to-string last-selection))
+                                 (t "")))
+           opt) ;; FIXME: Should it be `default' initially?
+      (setq sm-run-menu-flag t)
+      (setq results nil)
+      (if full-prompt
+          (setq the-prompt (format full-prompt string-default))
+        ;;*removed code for evaluating raw-prompt
+        (setq the-prompt (sm-eval-raw-prompt amenu items string-default)))
+      ;; read it in & process char choice
+      (if sm-current-menu (error "A menu is already running!"))
+      ;;*added a while loop to make simple-menu back up,
+      ;;*it also loops when no default option exist, and
+      ;;*when user type a non-existing option
+      (while sm-run-menu-flag
+        ;; (setq aa (cons (cons sm-run-menu-flag opt) aa))
+        ;; if the user aborts while reading, be sure to clean up
+        (unwind-protect
+            (progn
 	      (setq sm-current-menu amenu)
 	      (setq sm-current-buffer (current-buffer))
 	      (setq opt (sm-read-char-from-minibuffer the-prompt)))
-           (setq sm-current-menu nil))
-;;     (message "about to get results for %s" opt) (sit-for 1)
-         (cond ;;*for backing one level up
-               (  (eq opt 'pop-level)
-                  (setq sm-run-menu-flag nil))
-               ;;*quit simple-menu
-               (  (eq opt 'abort)
-                  (setq sm-run-menu-flag nil)
-                  (sm-quit) )
-               ;;*accept default option and evaluate
-               (  (and (eq opt 'default) default)
-                  (setq opt (string-to-char string-default))
-                  (setq opt (downcase opt))
-                  (setq results (sm-eval-menu amenu opt)))
-               ;;*no default option available
-               (  (and (eq opt 'default) (not default))
-                  (message "No default - no action taken.")
-                  (beep))
-               ;;*evaluate option
-               (t (setq opt (downcase opt))
-                  (setq results (sm-eval-menu amenu opt)))))
-    results )))
+          (setq sm-current-menu nil))
+        ;; (message "about to get results for %s" opt) (sit-for 1)
+        (cond ;;*for backing one level up
+         (  (eq opt 'pop-level)
+            (setq sm-run-menu-flag nil))
+         ;;*quit simple-menu
+         (  (eq opt 'abort)
+            (setq sm-run-menu-flag nil)
+            (sm-quit) )
+         ;;*accept default option and evaluate
+         (  (and (eq opt 'default) default)
+            (setq opt (string-to-char string-default))
+            (setq opt (downcase opt))
+            (setq results (sm-eval-menu amenu opt)))
+         ;;*no default option available
+         (  (and (eq opt 'default) (not default))
+            (message "No default - no action taken.")
+            (beep))
+         ;;*evaluate option
+         (t (setq opt (downcase opt))
+            (setq results (sm-eval-menu amenu opt)))))
+      results )))
 
 ;; Created this function to reduce the length of sm-run-menu code -RO 6/94
-(defun sm-eval-raw-prompt (amenu)
+(defun sm-eval-raw-prompt (amenu items string-default)
  "This makes a full prompt, & saves it for later use."
  (let ((raw-prompt (get amenu 'prompt-header))
-       (full-prompt (get amenu 'full-prompt))
+       ;; (full-prompt (get amenu 'full-prompt))
        (prompt))
       (setq prompt
             (cond ;; it is something to be eval
@@ -454,8 +454,8 @@ TO and FROM are ints, FUN is a symbol."
                        raw-prompt))
                   ;; it is an invalid prompt
                   (t (sm-error (format "%s contains an invalid prompt." amenu)))))
-      (mapc (function (lambda (x) (setq prompt (concat prompt x " "))))
-            (mapcar 'sm-first-word items))
+      (mapc (lambda (x) (setq prompt (concat prompt x " ")))
+            (mapcar #'sm-first-word items))
       (setq prompt (concat prompt sm-help-string
                            sm-default-string))
       (if (stringp raw-prompt)
@@ -488,31 +488,31 @@ TO and FROM are ints, FUN is a symbol."
 
 (defun sm-eval-menu (amenu opt)
  "Find in AMENU the command corresponding to OPT, the char the user typed."
- (let ( (items (eval amenu))
-        (current-key-map (current-local-map))
+ (let ( (items (symbol-value amenu))
+        (sm--current-key-map (current-local-map))
         (command nil)
         (results))
    (while items
-      (setq item (pop items))
-      (if (and (third item) (= opt (third item)))
-          (progn (setq items nil)
-                 (setq command (second item))
-	         (put amenu 'last-selection opt)
-                 (setq results (sm-eval-command-item command)))))
+      (let ((item (pop items)))
+        (if (and (cl-third item) (= opt (cl-third item)))
+            (progn (setq items nil)
+                   (setq command (cl-second item))
+                   (put amenu 'last-selection opt)
+                   (setq results (sm-eval-command-item command))))))
    (if (not command) ; no match
        (progn (message "%c did not match a menu name" opt)
               (beep)))
   results) )
 
 (defun sm-eval-single-menu (amenu)
- "Run in AMENU the single only command."
-;;*removed checking if no option match
-;;*since it is not possible to make a choice (i.e. an option)
-;;*because only one menu item is to be run
- (let* ( (item (first (eval amenu)))
-         (command (second item))
-         (current-key-map (current-local-map)) )
-   (sm-eval-command-item command)) )
+  "Run in AMENU the single only command."
+  ;;*removed checking if no option match
+  ;;*since it is not possible to make a choice (i.e. an option)
+  ;;*because only one menu item is to be run
+  (let* ( (item (cl-first (symbol-value amenu)))
+          (command (cl-second item))
+          (sm--current-key-map (current-local-map)) )
+    (sm-eval-command-item command)) )
 
 ;;*created this function for sm-eval-menu and sm-eval-single-menu
 ;;*as shared code
@@ -522,8 +522,7 @@ TO and FROM are ints, FUN is a symbol."
        ;;*made additional checks for determining if command is another menu
        (  (and (symbolp command)
                (boundp  command)
-               (eval command)
-               (listp (eval command)))
+               (consp (symbol-value command)))
           (sm-run-menu command))
        ;; it is a command
        (  (and (not (listp command))
@@ -535,7 +534,7 @@ TO and FROM are ints, FUN is a symbol."
           )
        ;;*removing this function call because key bindings
        ;;*could be easily seen in the help screen
-       ;;*(sm-note-function-key command current-key-map))
+       ;;*(sm-note-function-key command sm--current-key-map))
        ;; it is something to eval
        (  (listp command)
           (setq sm-run-menu-flag nil)
@@ -550,18 +549,18 @@ TO and FROM are ints, FUN is a symbol."
 
 ;; (defun sm-eval-menu (amenu opt)
 ;;  "Find in AMENU the command corresponding to OPT, the char the user typed."
-;;  (let ( (items (eval amenu)) results
-;;         (current-key-map (current-local-map))
+;;  (let ( (items (symbol-value amenu)) results
+;;         (sm--current-key-map (current-local-map))
 ;;         (command nil) )
 ;;   (while items
 ;;      (setq item (pop items))
-;;      (cond ( (and (null (third item))
-;;                   (= opt (second item)))
+;;      (cond ( (and (null (cl-third item))
+;;                   (= opt (cl-second item)))
 ;;              (setq command t)
 ;;              (error "Menu item \"%c\" not implemented yet." opt))
-;;            ( (and (third item) (= opt (third item)))
+;;            ( (and (cl-third item) (= opt (cl-third item)))
 ;;              (setq items nil)
-;;              (setq command (second item))
+;;              (setq command (cl-second item))
 ;; 	     (put amenu 'last-selection opt)
 ;;              (setq results
 ;;                (cond ;; something to be returned
@@ -570,7 +569,7 @@ TO and FROM are ints, FUN is a symbol."
 ;;                      ;; its a command
 ;;                      ((and (not (listp command)) (fboundp command))
 ;;                       (call-interactively command)
-;;                       (sm-note-function-key command current-key-map))
+;;                       (sm-note-function-key command sm--current-key-map))
 ;;                      ;; it is something to eval
 ;;                      ((listp command)
 ;;                       (eval command))
@@ -586,14 +585,14 @@ TO and FROM are ints, FUN is a symbol."
 ;;
 ;; (defun sm-eval-single-menu (amenu)
 ;;  "Run in AMENU the single only command."
-;;  (let* ( (item (first (eval amenu)))
-;;          (command (second item))
-;;          (current-key-map (current-local-map)) )
+;;  (let* ( (item (cl-first (symbol-value amenu)))
+;;          (command (cl-second item))
+;;          (sm--current-key-map (current-local-map)) )
 ;;    (cond ;; its a command
 ;;         ((and (not (listp command))
 ;;               (fboundp command))
 ;;          (call-interactively command)
-;;          (sm-note-function-key command current-key-map))
+;;          (sm-note-function-key command sm--current-key-map))
 ;;         ;; it is something to eval
 ;;         ((listp command)
 ;;          (eval command))
@@ -671,30 +670,32 @@ or the current-local-map."
     (if (sm-menu-p function) nil
       (if (not map)
 	  (setq map
-		(save-excursion
-		  (set-buffer (or sm-current-buffer (current-buffer)))
+		(with-current-buffer (or sm-current-buffer (current-buffer))
 		  (current-local-map))))
       (substitute-command-keys
        (concat "\\<map>\\[" (symbol-name function) "\]")))))
 
 (defun sm-menu-ized-items (items)
- "Strip the first letter off and makes it the third item for ease and speed."
- (let* ((all-sm-first-letter (sm-first-letter-items items))
-        (all-menu-letter (sm-first-letter-tidy all-sm-first-letter))
-        (first-menu-letter))
-   (mapcar (function (lambda (x)
-       (setq first-menu-letter (sm-first-letter x))
-       ;;*check if first letter of menu item has duplicate,
-       ;;*and if menu item is valid (i.e., good)
-       (if (and (member first-menu-letter all-menu-letter)
-                (sm-setup-menu-item x))
-           (progn
-              (setq all-menu-letter
-                (sm-remove-menu-item-letter first-menu-letter all-menu-letter))
-              (append (sm-setup-menu-item x)
-                      (list (string-to-char first-menu-letter))))
-         (sm-error (format "BAD MENU ITEM (doubled use of initial letter?): %s." x)))))
-    items) ))
+  "Strip the first letter off and make it the third item for ease and speed."
+  (let* ((all-sm-first-letter (sm-first-letter-items items))
+         (all-menu-letter (sm-first-letter-tidy all-sm-first-letter))
+         (first-menu-letter))
+    (mapcar (lambda (x)
+              (setq first-menu-letter (sm-first-letter x))
+              ;;*check if first letter of menu item has duplicate,
+              ;;*and if menu item is valid (i.e., good)
+              (if (and (member first-menu-letter all-menu-letter)
+                       (sm-setup-menu-item x))
+                  (progn
+                    (setq all-menu-letter
+                          (sm-remove-menu-item-letter first-menu-letter
+                                                      all-menu-letter))
+                    (append (sm-setup-menu-item x)
+                            (list (string-to-char first-menu-letter))))
+                (sm-error
+                 (format "BAD MENU ITEM (doubled use of initial letter?): %s."
+                         x))))
+            items) ))
 
 (defun sm-setup-menu-item (x)
  "Setup the menu item X, which should have a string and symbol or listp.
