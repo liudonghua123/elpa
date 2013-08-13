@@ -978,7 +978,7 @@ Flips the current cell and the one to its left."
           " by dismal-mode (Vers " dismal-version ")"
           "\n;; This file written ")
   (insert-current-time-string)
-  (insert "\n;; dismal-mode Copyright 1992, Fox & Ritter."
+  (insert "\n;; dismal-mode Copyright since 1992, Free Software Foundation, Inc."
           "\n;; No user serviceable parts, but it is your data.\n\n\n"))
 
 (defsubst dismal-column-width (column)
@@ -1291,7 +1291,7 @@ and right mouse button is bound to `dis-mouse-highlight-row'.
 
 ;; (dismal-display-startup-message)
 (defun dismal-display-startup-message ()
-  "Display the dismal startup messages, including the copyright."
+  "Display the dismal startup messages."
   (setq dismal-startup-post-command-function nil)
   (put 'dismal-display-startup-message 'checked t)
   (message (first dismal-startup-message-lines))
