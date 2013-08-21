@@ -1,3 +1,26 @@
+;;; f90-tests.el --- Tests for f90-interface-browser
+
+;; Copyright (C) 2013  Free Software Foundation, Inc.
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Code:
+
+(require 'cl-lib)
+
+;; FIXME: Convert to use ERT.
+
 (defvar *test-name* nil)
 
 (defvar *test-tests* (make-hash-table :test 'eq))
@@ -16,17 +39,18 @@
 (defmacro test-check (&rest forms)
   "Run each expression in 'forms' as a test case."
   `(test-combine-results
-    ,@(loop for (expr res) in forms
-            collect `(test-report-result (equal (condition-case err
-                                                    ,expr
-                                                  (error (gensym))) ',res)
-                                         ',expr ',res))))
+    ,@(cl-loop for (expr res) in forms
+               collect `(test-report-result (equal (condition-case _
+                                                       ,expr
+                                                     (error (cl-gensym)))
+                                                   ',res)
+                                            ',expr ',res))))
 
 (defmacro test-combine-results (&rest forms)
   "Combine the results (as booleans) of evaluating 'forms' in order."
   (let ((result (make-symbol "result")))
     `(let ((,result t))
-       ,@(loop for f in forms collect `(unless ,f (setf ,result nil)))
+       ,@(cl-loop for f in forms collect `(unless ,f (setf ,result nil)))
        ,result)))
 
 (defun test-report-result (result res req)
@@ -61,10 +85,10 @@
     ("integer" ("dimension" . 1)))))
 
 (deftest parse-declaration ()
-  (flet ((fun (str) (with-temp-buffer
-                      (insert str)
-                      (goto-char (point-min))
-                      (f90-parse-single-type-declaration))))
+  (cl-flet ((fun (str) (with-temp-buffer
+                         (insert str)
+                         (goto-char (point-min))
+                         (f90-parse-single-type-declaration))))
     (test-check
      ((fun "integer :: name") (("name" "integer")))
      ((fun "integer :: name1, name2") (("name1" "integer")
