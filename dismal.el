@@ -7,6 +7,7 @@
 ;; Maintainer: FSF
 ;; Created-On: 31 Oct 1991.
 ;; Version: 1.5
+;; Package-Requires: ((cl-lib "0"))
 
 ;; This is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

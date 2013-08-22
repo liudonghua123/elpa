@@ -1,4 +1,5 @@
 *.elc
+*-pkg.el
 *-autoloads.el
 *~
 ChangeLog

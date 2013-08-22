@@ -209,7 +209,7 @@
    ("QRep         Query-replace for Dismal." dis-query-replace)
    ("DeBlnk       Delete all blank rows in given range."
                   dis-delete-blank-rows)
-   ("1log         Turn loggin on."   log-initialize)
+   ("1log         Turn loggin on."   log-session-mode)
    ("0log         Turn loggin off."  log-quit)
    ("Upd*         Update commands." dismal-update-commands-menu)
 ))

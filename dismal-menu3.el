@@ -187,7 +187,7 @@
 (define-key dismal-map [menu-bar commands 0log]
   '("Logging-Off" . log-quit))
 (define-key dismal-map [menu-bar commands 1log]
-  '("Logging-On" . log-initialize))
+  '("Logging-On" . log-session-mode))
 (define-key dismal-map [menu-bar commands deblnk]
   '("Del Blank Rows" . dis-delete-blank-rows))
 (define-key dismal-map [menu-bar commands qrep]

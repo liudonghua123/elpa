@@ -1,4 +1,4 @@
-;;; log.el --- Command usage log for Michael Hucka
+;;; log.el --- Command usage log for Michael Hucka  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1991, 2013 Free Software Foundation, Inc.
 
@@ -29,17 +29,7 @@
 ;;
 ;;;; USE
 ;;
-;; 1. Compile the C code for the timer process (search for "main") and
-;; set *log-timer-program* to point to the object code.  (At CMU,
-;; the value of *log-timer-program* below will do for sun3_mach and
-;; pmax_mach.)
-;; [e.g., cc timer.c -o timer.sun4]
-;;
-;; 3. Byte-compile ("M-x byte-compile log.el").
-;;
-;; 4. Load ("M-x load-library log").
-;;
-;; 5. Start logging ("M-x log-initialize").
+;; 5. Start logging ("M-x log-session-mode").
 ;;
 ;;    State is written in "Log.<type>.timestamp", where <type> is
 ;;    "keys" (keystrokes), "temp-buffers" (an accumulation of temp
@@ -51,7 +41,7 @@
 ;;
 ;;    State files and backups are compressed (end in ".Z").
 ;;
-;; 6. Stop logging (exit Emacs) or turn off logging with log-quit.
+;; 6. Stop logging (exit Emacs) or turn off logging with log-session-mode.
 ;;
 ;; 7. Uncompress and visit a keystroke log file, then run
 ;; "log-time-episodes" on the buffer, and "log-spread-out" on the
@@ -134,20 +124,10 @@
 ;; Loads either before or after other packages, and loads safely on
 ;; top of itself.
 ;;
-;; Uses kill-emacs-hook and temp-buffer-show-hook, but tries to be
-;; smart about existing hooks (see log-reset-hook).
-;;
-;; The timer process sucks a little, but Emacs doesn't have a fine-
-;; grain timer.  A sun3_mach is too slow for this package to keep up
-;; with this typist (who's of medium skill).  A pmax_mach is ok.
-;; Sometimes events appear to happen at the same time.
+;; Uses temp-buffer-show-hook, but tries to be
+;; smart about existing hooks (??).
 ;;
 ;; Doesn't deal with mouse events.
-;;
-;; The original "read-char" bypasses keymaps.  It's redefined here,
-;; but it having a byte code means that compiled functions won't see
-;; the new definition.  So far reloads only isearch.el.
-;;
 
 ;;; Code:
 
@@ -182,26 +162,26 @@
 
 ;; entry:
 ;; sorta more hidden, system globals
-(defvar log-initialized nil "Has log been initialized?")
-(defvar log-running nil "Is log currently running?")
-(defvar log-auto-save-counter 0)	; set in log-initialize
 
-(defun log-initialize ()
-  "Starts logging state information. To stop, M-x log-quit."
-  (interactive)
-  (if (and log-initialized log-running)
-      (message (concat "Already logging, to "
-		       *log-data-directory*))
-    (add-hook 'post-command-hook #'log-stamp-date)
-    (setq log-running t)))
+(defvar log-auto-save-counter 0)
+
+(define-obsolete-variable-alias 'log-running 'log-session-mode "Dismal-1.6")
+;;;###autoload
+(define-minor-mode log-session-mode
+  "Minor mode to log a session (keystrokes, timestamps etc)."
+  :global t
+  (if log-session-mode
+      (add-hook 'post-command-hook #'log-stamp-date)
+    (remove-hook 'post-command-hook #'log-stamp-date)))
+
+(define-obsolete-function-alias 'log-initialize 'log-session-mode "Dismal-1.6")
 
 ;; 11-17-94 -fer
 (defun log-quit ()
   "Turn off logging."
   (interactive)
-  (remove-hook 'post-command-hook #'log-stamp-date)
-  (setq log-running nil)
-  (message "logging turned off."))
+  (log-session-mode -1))
+(make-obsolete 'log-quit 'log-session-mode "Dismal-1.6")
 
 ;;     (log-modify-keymap (current-global-map) "[G]")
 (defvar log-keymaps-modified nil)	; keymaps are a lattice...
@@ -282,10 +262,9 @@
 		(fboundp thing)))	; non-interactive, eg x-cut-text
 
        (not (and (symbolp thing)
-		 (or ;; called on either up or down:
-		  (eq thing 'x-mouse-ignore)
-		  ;; called on mouse-up and mouse down:
-		  (eq thing 'x-flush-mouse-queue))))))
+                 (memq thing '(;;x-mouse-ignore ;Called on either up or down.
+                               ;;x-flush-mouse-queue ;Called on mouse-up/down.
+                               ))))))
 
 ;; record errors in wrapping keystrokes in a buffer; one
 ;; occasionally finds keys bound to functions that someone forget to
@@ -295,8 +274,9 @@
     (with-current-buffer buf
       (goto-char (point-max))
       (insert (format "%s\n" msg)))
-    (if log-initialized			; won't see this otherwise
-	(message "Warning recorded in buffer *log-warnings*."))))
+    ;; (if log-initialized			; won't see this otherwise
+    ;;     (message "Warning recorded in buffer *log-warnings*."))
+    ))
 
 (defun log-gen-args (command)
   (let* ((sf (symbol-function command))
@@ -315,46 +295,27 @@
 (defun log-set-sparse (the-car command)
   (setcdr the-car command))
 
+(defvar log--wrappers nil)
+
 (defun log-wrap (command prefix)
   "Returns a wrapper for COMMAND, or just COMMAND if it's a keymap or
 already wrapped.  PREFIX is an optional string, usually the command prefix."
   (if (or (keymapp command)
-	  (eq 'log-keystroke		; already wrapped?
-	      (car-safe (car-safe (cdr-safe (cdr-safe (cdr-safe command))))))
+          (memq command log--wrappers)  ; Already wrapped?
 	  (not (log-wrap-this-p command)))
       command
-    `(lambda
-       (&rest args)               ; 1-14-94 - mouse functions are called w/args
-       (interactive)
-       ,(list 'log-keystroke            ; send prefix and command
+    (let ((f
+           (lambda ()
+             (interactive)
+             (log-keystroke             ; send prefix and command
               prefix
-              (if (consp command)	; then command itself is a lambda
-                  (prin1-to-string (car command))
-                (prin1-to-string command)))
-       (setq this-command (quote ,command)) ; don't want the wrapper
-       (log-call ',command args))))
-
-;; i think this indirection is only needed because call-interactively
-;; doesn't seem to know how to deal with macros, and because the user
-;; can bind a symbol's function to either a macro or a function after
-;; the key is wrapped.
-
-(defun log-call (command args)
-  (if (or (consp command)		; lambda (one hopes)
-	  (and (fboundp command)	; function
-	       (not (stringp (symbol-function command)))))
-      (if (not args)
-	  (call-interactively command)	; keyboard command
-	;; 1-14-94 - ELSE mouse command;  "args" are usually
-	;; screen-relative xpos, ypos and any cut text.  log-screen
-	;; info may jibe.
-	(apply command args)
-	(log-command-in-process-buffer
-	 `(lambda () (insert ,(format "%s" args))))
-	(log-command-in-process-buffer
-	 `(lambda () (insert ,(log-screen))))) ;
-    ;; ELSE
-    (execute-kbd-macro command)))	; keyboard macro
+              (prin1-to-string (if (consp command)
+                                   (car command) ;The command itself is a λ.
+                                 command)))
+             (setq this-command command) ; don't want the wrapper
+             (command-execute command))))
+      (push f log--wrappers)
+      f)))
 
 (defun log-keystroke (the-keymap the-command)
   (let ((log-buffer (get-buffer-create log-keys-buffer-name))
@@ -428,16 +389,14 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
 ;; column here, but was getting the command output in all sorts of
 ;; funny places.  now the timer sends a string padded on the right by
 ;; blanks.]
-(defun log-command-in-process-buffer (command &optional prefix)
-  "Funcalls COMMAND in the log buffer, to capture its output.
-Optional PREFIX is inserted first."
+(defun log-command-in-process-buffer (str)
+  "Funcalls COMMAND in the log buffer, to capture its output."
   (let ((log-buf (get-buffer log-keys-buffer-name)))
     (if (bufferp log-buf)
         (with-current-buffer log-buf
 	  (goto-char (point-max))	; effects column, last line
 	  (if (< 52 (current-column)) (insert "; "))  ; add to what's there
-	  (if prefix (insert prefix))	; ever used?
-	  (funcall command)))))
+	  (insert str)))))
 
 ;; command redefinitons.  defvarring them makes the file reloadable,
 ;; and avoids making the new definitions visible as commands.  to
@@ -471,32 +430,6 @@ Optional PREFIX is inserted first."
     (log-do-auto-save)
     (log-save-accumulation-buffers)))
 
-;; 10-4-93 -     (log-reset-hook ' kill-emacs-hook nil)
-(defun log-reset-hook (hook args)
-  (let ((new-hook (car (read-from-string ; take this as defunned
-			(concat "log-" (symbol-name hook)))))
-	(new-hook-fn
-	 (car (read-from-string
-	       (concat "log-" (symbol-name hook) "-fn")))))
-    (if (boundp hook)			; check if defined
-	(cond ((null (eval hook))	; set hook to log hook
-	       (set hook new-hook))
-	      ((consp (eval hook))	; pushnew log hook
-	       (if (not (memq new-hook (eval hook)))
-		   (set hook (cons new-hook (eval hook))))) ;; eval -fer
-	      ((fboundp (eval hook))	; wrap existing hook
-	       (if (or (eq (eval hook) new-hook-fn)
-		       (eq (eval hook) new-hook))
-		   ()
-		 (fset new-hook-fn
-		       ;; put the other hook 2nd, in case it knows
-		       ;; what it's doing:
-		       `(lambda (,args)
-                          (,new-hook ,args)
-                          (,(eval hook) ,args)
-                          ))
-		 (set hook new-hook-fn)))))))
-
 (defvar log-wrapped-filters nil)
 
 ;; sets a timestamped file with prefix FILE-PREFIX to be the file
@@ -511,8 +444,7 @@ Optional PREFIX is inserted first."
       ;; too.  auto-save and hope files don't get too big.
       (setq buffer-file-name filename)
       (auto-save-mode 1))
-    (log-command-in-process-buffer
-     `(lambda () (insert (concat "visiting<>" ,filename))))
+    (log-command-in-process-buffer (concat "visiting<>" filename))
     buf))
 
 ;; data processing utilities:
@@ -943,8 +875,7 @@ spaces, which can't otherwise get into the data.)  Collapses ^A-^Z,
 	      (insert (concat separator "\n"))
 	      (insert-buffer-substring buf))
 	    (set-buffer-modified-p nil) ; blech; 12-22-93 - HERE: why do this?
-	    (log-command-in-process-buffer
-	     `(lambda () (insert ,separator))))))))
+	    (log-command-in-process-buffer separator))))))
 
 ;; 9-28-93 - quietly save accumulation buffers, w/o backups:
 (defun log-save-accumulation-buffers ()
@@ -985,10 +916,11 @@ spaces, which can't otherwise get into the data.)  Collapses ^A-^Z,
 		(+ top-line (window-height) -2))))))
 
 (defun log-current-buffer ()
-  `(lambda () (insert ,(concat "now-in<>"
-                          (buffer-name (current-buffer))
-                          "<>"
-                          (log-screen-info)))))
+  (let ((str (concat "now-in<>"
+                     (buffer-name (current-buffer))
+                     "<>"
+                     (log-screen-info))))
+    (lambda () (insert str))))
 
 (defun log-insert-kill ()
   (let ((start (point))
