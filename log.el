@@ -151,7 +151,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar *log-data-directory*
   (concat (getenv "HOME") "/")
@@ -292,8 +292,7 @@
 ;; define, but that shouldn't kill us:
 (defun log-warn (msg)
   (let ((buf (get-buffer-create "*log-warnings*")))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (goto-char (point-max))
       (insert (format "%s\n" msg)))
     (if log-initialized			; won't see this otherwise
@@ -359,7 +358,6 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
 
 (defun log-keystroke (the-keymap the-command)
   (let ((log-buffer (get-buffer-create log-keys-buffer-name))
-	(orig-buffer (current-buffer))
 	(indent-tabs-mode nil))		; indent with spaces
     (if (eq (setq log-auto-save-counter (1- log-auto-save-counter)) 0)
 	(progn (log-do-auto-save)
@@ -369,17 +367,16 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
         (goto-char (point-max))
         (if (not (bolp)) (insert "\n"))
         (insert (concat the-keymap ;; 18-2-94-FER fix for 19
-                        (cond ((eq last-input-char 32) ; keystroke
+                        (cond ((eq last-input-event 32) ; keystroke
                                "__")
-                              ((numberp last-input-char)
+                              ((numberp last-input-event)
                                (text-char-description
-                                last-input-char))
-                              (t last-input-char))))
+                                last-input-event))
+                              (t last-input-event))))
         (indent-to-column 11 2)         ; whitespace
         (insert the-command)            ; command name
         (indent-to-column 40 1))	; effects column, prior to timestamp
-      (log-timer-filter nil
-                        (let ((time (current-time)))
+      (log-timer-filter (let ((time (current-time)))
                           (format "%05d.%03d"
                                   (mod (+ (* 65536 (car time))
                                           (nth 1 time))
@@ -399,15 +396,14 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
         ;; (indent-to-column 40 1)
         (insert (format "\t%s\n\t" last-command))
         (insert
-         (cond ((eq last-input-char 32)
+         (cond ((eq last-input-event 32)
                 "__")
-               ((numberp last-input-char)
-                (text-char-description last-input-char))
-               (t (format "%s" last-input-char))))
+               ((numberp last-input-event)
+                (text-char-description last-input-event))
+               (t (format "%s" last-input-event))))
         ;;(indent-to-column 11 2)
         )
-      (log-timer-filter nil
-                        (let ((time (current-time)))
+      (log-timer-filter (let ((time (current-time)))
                           (format "%05d.%03d"
                                   (mod (+ (* 65536 (car time))
                                           (nth 1 time))
@@ -417,7 +413,7 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
 ;; 10-1-93 - use a filter rather than an output buffer:
 (defvar log-timestamp nil)
 
-(defun log-timer-filter (process output)
+(defun log-timer-filter (output)
   ;; FIXME: Left over, from when we used an external timer.c program to get
   ;; time stamps.
   (with-current-buffer (get-buffer-create log-keys-buffer-name)
@@ -437,8 +433,7 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
 Optional PREFIX is inserted first."
   (let ((log-buf (get-buffer log-keys-buffer-name)))
     (if (bufferp log-buf)
-        (save-excursion
-          (set-buffer log-buf)
+        (with-current-buffer log-buf
 	  (goto-char (point-max))	; effects column, last line
 	  (if (< 52 (current-column)) (insert "; "))  ; add to what's there
 	  (if prefix (insert prefix))	; ever used?
@@ -459,12 +454,11 @@ Optional PREFIX is inserted first."
     (if (or (not (boundp 'temp-buffer-show-hook))
             (eq temp-buffer-show-hook 'log-temp-buffer-show-hook))
 	(progn
-	  (print-help-return-message)
+	  (help-print-return-message)
 	  (display-buffer bufname)))))
 
 (defun log-temp-buffer-show-hook-basic (buf)
-  (save-excursion
-    (set-buffer buf)
+  (with-current-buffer buf
     (set-buffer-modified-p t))	; temp output doesn't modify a buffer
   (log-temp-buffer buf))
 
@@ -512,8 +506,7 @@ Optional PREFIX is inserted first."
   (let* ((buf (get-buffer-create bufname))
 	 (filename (concat *log-data-directory*
 			   "Log." file-prefix "." (log-get-time-string))))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       ;; don't write-file, because that changes the buffer name
       ;; too.  auto-save and hope files don't get too big.
       (setq buffer-file-name filename)
@@ -524,53 +517,63 @@ Optional PREFIX is inserted first."
 
 ;; data processing utilities:
 
+(defvar log--lex-id)
+(defvar log--lex-pause)
+(defvar log--lex-start)
+(defvar log--lex-end)
+(defvar log--lex-duration)
+(defvar log--lex-keys)
+(defvar log--lex-timestamp)
+(defvar log--lex-line-number)
+(defvar log--lex-keymap)
+
 ;; sets:
-;;   lex-id (string)
-;;   lex-pause
-;;   lex-start (integer, as string)
-;;   lex-end (integer as string or nil)
-;;   lex-duration (integer as string or nil)
-;;   lex-keys (string)
+;;   log--lex-id (string)
+;;   log--lex-pause
+;;   log--lex-start (integer, as string)
+;;   log--lex-end (integer as string or nil)
+;;   log--lex-duration (integer as string or nil)
+;;   log--lex-keys (string)
 (defun log-lex-episode-line ()
   (setq
-   lex-id nil
-   lex-pause nil
-   lex-start nil
-   lex-end nil
-   lex-duration nil
-   lex-keys nil)
+   log--lex-id nil
+   log--lex-pause nil
+   log--lex-start nil
+   log--lex-end nil
+   log--lex-duration nil
+   log--lex-keys nil)
   (save-excursion
     (beginning-of-line)
     (skip-chars-forward " \t")		; skip leading whitespace, if any
     ;; id:
     (if (not (looking-at "\\([0-9]+\.[0-9]+\\)[ \t]"))
 	()
-      (setq lex-id (buffer-substring (match-beginning 1) (match-end 1)))
+      (setq log--lex-id (buffer-substring (match-beginning 1) (match-end 1)))
       (goto-char (match-end 0))
       (skip-chars-forward " \t"))
     ;; pause:
     (if (not (looking-at "[0-9]+\.[0-9]+"))
 	()
-      (setq lex-pause (buffer-substring (match-beginning 0) (match-end 0)))
+      (setq log--lex-pause (match-string 0))
       (goto-char (match-end 0))
       (skip-chars-forward " \t"))
     ;; start:
     (if (not (looking-at "[0-9]+\.[0-9]+"))
 	()
-      (setq lex-start (buffer-substring (match-beginning 0) (match-end 0)))
+      (setq log--lex-start (match-string 0))
       (goto-char (match-end 0))
       (skip-chars-forward " \t"))
     ;; end and duration, maybe; this can't match a key sequence,
     ;; because of the intermediate whitespace:
     (if (not (looking-at "\\([0-9]+\.[0-9]+\\)[ \t]+\\([0-9]+\.[0-9]+\\)"))
 	()
-      (setq lex-end (buffer-substring (match-beginning 1) (match-end 1)))
-      (setq lex-duration (buffer-substring (match-beginning 2) (match-end 2)))
+      (setq log--lex-end (match-string 1))
+      (setq log--lex-duration (match-string 2))
       (goto-char (match-end 0))
       (skip-chars-forward " \t"))
     (if (not (looking-at "\\(.*\\)\n"))
 	()
-      (setq lex-keys (buffer-substring (match-beginning 1) (match-end 1))))))
+      (setq log--lex-keys (buffer-substring (match-beginning 1) (match-end 1))))))
 
 (defun log-floatify (int)
   (format "%s.%s" (/ int 10) (% int 10)))
@@ -582,9 +585,9 @@ Optional PREFIX is inserted first."
 ;log-float-and-round-num."
 ;  (let* ((decimal (string-match "\\." string-float))
 ;         (decimal-places (1- (- (length string-float) decimal)))
-;         (decimal-part (string-to-int (substring string-float (1+ decimal)))))
+;         (decimal-part (string-to-number (substring string-float (1+ decimal)))))
 ;    (+ (* 100
-;          (string-to-int (substring string-float 0 decimal)))
+;          (string-to-number (substring string-float 0 decimal)))
 ;       (cond ((= decimal-places 1)
 ;              (* 10 decimal-part))
 ;             ((= decimal-places 2)
@@ -594,23 +597,23 @@ Optional PREFIX is inserted first."
 ;             (t                         ; vaguely appropriate
 ;              0)))))
 
-(defun log-intify (string-float &optional significance)
+(defun log-intify (string-float)
   "STRING-FLOAT is decimal seconds, with 1 or more places after the
 decimal.   Returns integer tenths of a second.  For use with
-log-float-and-round-num.  See also log-integer-second."
+`log-float-and-round-num'.  See also `log-integer-second'."
   (let* ((decimal (string-match "\\." string-float))
 	 (decimal-places (1- (- (length string-float) decimal)))
-	 (decimal-part (string-to-int (substring string-float (1+ decimal)))))
+	 (decimal-part (string-to-number (substring string-float (1+ decimal)))))
     (+ (* 10				; 12-23-93 - 100 to 10
-	  (string-to-int (substring string-float 0 decimal)))
+	  (string-to-number (substring string-float 0 decimal)))
        (round decimal-part (log-raise 10 (1- decimal-places))))))
 
 (defun log-raise (base exp)
   "Raise BASE to non-negative EXP."
   (let ((r 1))
-    (while (plusp exp)
+    (while (cl-plusp exp)
       (setq r (* r base))
-      (decf exp))
+      (cl-decf exp))
     r))
 
 ;; 12-23-93 - with hundredths, big numbers were overflowing:
@@ -629,55 +632,54 @@ seconds with one decimal place.  For use on log-initify-ed numbers."
   (format "%s.%s" (/ int 10) (% int 10)))
 
 (defun log-spread-out ()
-  "On data generated by log-time-episodes, spreads records out
+  "On data generated by `log-time-episodes', spreads records out
 on a time-line, one second per line.  Output to *log-spread-out*."
   (interactive)
   (let (line
-	lex-id				; fields in line
-	lex-pause
-	lex-start
-	lex-end
-	lex-duration
-	lex-keys
+	log--lex-id				; fields in line
+	log--lex-pause
+	log--lex-start
+	log--lex-end
+	log--lex-duration
+	log--lex-keys
 	start
 	(end nil)
 	(output-buf (get-buffer-create "*log-spread-out*"))
 	)
-    (save-excursion
-      (set-buffer output-buf)
+    (with-current-buffer output-buf
       (erase-buffer))
     (save-excursion
-      (beginning-of-buffer)		; find 1st non-blank line
+      (goto-char (point-min))		; find 1st non-blank line
       (skip-chars-forward " \t\n")
       (log-lex-episode-line)
-      (setq line (log-integer-second lex-start))
+      (setq line (log-integer-second log--lex-start))
       (while (not (eobp))
 	(log-lex-episode-line)
-	(save-excursion
-	  (set-buffer output-buf)
-	  (setq start (log-integer-second lex-start))
+	(with-current-buffer output-buf
+	  (setq start (log-integer-second log--lex-start))
 	  (while (< line start)
 	    (insert (format "%8s\n" line))
-	    (incf line))
+	    (cl-incf line))
 	  (insert (format "%8s\t%8s\t%8s\t%8s"
-			  line lex-id lex-pause lex-start))
-	  (if (not lex-end)
-	      (insert (format "\t%8s\t%8s\t%s\n" "" "" lex-keys))
-	    (setq end (log-integer-second lex-end))
+			  line log--lex-id log--lex-pause log--lex-start))
+	  (if (not log--lex-end)
+	      (insert (format "\t%8s\t%8s\t%s\n" "" "" log--lex-keys))
+	    (setq end (log-integer-second log--lex-end))
 	    (if (>= line end)
-		(insert (format "\t%8s\t%8s\t%s\n" lex-end lex-duration lex-keys))
-	      (insert (format "\t%8s\t%8s\t%s\n" "" "" lex-keys))
-	      (incf line)
+		(insert (format "\t%8s\t%8s\t%s\n"
+                                log--lex-end log--lex-duration log--lex-keys))
+	      (insert (format "\t%8s\t%8s\t%s\n" "" "" log--lex-keys))
+	      (cl-incf line)
 	      (while (< line end)
 		(insert (format "%8s\n" line))
-		(incf line))
+		(cl-incf line))
 	      (insert (format "%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%s\n"
 			      line
 			      "" "" ""
-			      lex-end
-			      lex-duration
+			      log--lex-end
+			      log--lex-duration
 			      ""))))
-	  (incf line))
+	  (cl-incf line))
 	(forward-line 1)))
     (pop-to-buffer output-buf)
     (goto-char (point-min))))
@@ -686,8 +688,9 @@ on a time-line, one second per line.  Output to *log-spread-out*."
   "Returns rounded whole part of STRING-FLOAT.  Based on log-intify."
   (let* ((decimal (string-match "\\." string-float))
 	 (decimal-places (1- (- (length string-float) decimal)))
-	 (decimal-part (string-to-int (substring string-float (1+ decimal)))))
-    (+ (string-to-int (substring string-float 0 decimal))
+	 (decimal-part (string-to-number
+                        (substring string-float (1+ decimal)))))
+    (+ (string-to-number (substring string-float 0 decimal))
        (round decimal-part (log-raise 10 decimal-places)))))
 
 (defvar *log-time-episodes-interval* 100
@@ -695,7 +698,7 @@ on a time-line, one second per line.  Output to *log-spread-out*."
 
 ;; 8-1-93 -
 (defun log-time-episodes ()
-  "Like log-meta-command-episodes, but also breaks a string when
+  "Like `log-meta-command-episodes', but also breaks a string when
 the pause between keystrokes is longer than 1 second.
 Prints episode start/end times and inter-episode intervals and episode
 durations, but leaves out command names and arguments.  First output
@@ -709,27 +712,26 @@ representations.  Output to *log-time-episodes*."
 	(previous-timestamp 0)
 	(episode-beginning 0)
 	episode-len
-	lex-line-number			; globals used by log-lex-line
-	lex-timestamp			; as integer tenths-of-seconds
-	lex-keymap
-	lex-keys
-	(output-buf (get-buffer-create "*log-time-episodes*")))
-    (save-excursion
-      (set-buffer output-buf)
+	log--lex-line-number			; globals used by log-lex-line
+	log--lex-timestamp			; as integer tenths-of-seconds
+	log--lex-keymap
+	log--lex-keys
+	(output-buf (get-buffer-create "*log-time-episodes*"))
+        pause)
+    (with-current-buffer output-buf
       (erase-buffer))
     (save-excursion
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (while (not (eobp))
 	(log-lex-line)			; moves point!
-	(if lex-timestamp		; not an add-one kill/yank
-	    (save-excursion
-	      (set-buffer output-buf)
+	(if log--lex-timestamp		; not an add-one kill/yank
+	    (with-current-buffer output-buf
 	      (setq previous-timestamp current-timestamp)
 	      ;; 11-8-93 - need the whole thing, because intervals
 	      ;; between episodes get long (cf "minusp")
-	      (setq current-timestamp (log-intify lex-timestamp))
+	      (setq current-timestamp (log-intify log--lex-timestamp))
 	      (setq pause (- current-timestamp previous-timestamp))
-	      (if (minusp pause)
+	      (if (cl-minusp pause)
 		  ;; then one of the eight-digit begin-end
 		  ;; brackets have wrapped (cf "minusp"):
 		  (setq pause (+ pause 1000000)))
@@ -737,7 +739,7 @@ representations.  Output to *log-time-episodes*."
 	      (setq current-is-kill (log-line-is-kill))
 	      ;; if not a meta-command, and no big pause, and not
 	      ;; other things, append to episode:
-	      (if (and lex-keymap
+	      (if (and log--lex-keymap
 		       ;; HERE:
 		       ;;(> *log-time-episodes-interval* pause)
 		       (> 10 pause)	; ie, > 1 sec
@@ -747,7 +749,7 @@ representations.  Output to *log-time-episodes*."
 		       (not (and previous-was-kill (not current-is-kill)))
 		       )
 		  (progn
-		    (insert lex-keys)
+		    (insert log--lex-keys)
 		    (setq previous-was-episode t))
 
 		;; ELSE previous episode ends and next one begins.
@@ -760,7 +762,7 @@ representations.  Output to *log-time-episodes*."
 		    (insert (format "%6s\t%6s\t" "" ""))
 		  (setq previous-was-episode nil)
 		  (setq episode-len (- previous-timestamp episode-beginning))
-		  (if (minusp episode-len)
+		  (if (cl-minusp episode-len)
 		      ;; then one of the seven-digit begin-end
 		      ;; brackets have wrapped (cf "minusp"):
 		      (setq episode-len (+ episode-len 1000000)))
@@ -775,51 +777,51 @@ representations.  Output to *log-time-episodes*."
 		;; mapping; preceding pause, episode start time, and first
 		;; keys in episode:
 		(insert (format "%s\t%6s\t%6s\t%s"
-				lex-timestamp
+				log--lex-timestamp
 				(if (not (zerop previous-timestamp))
 				    (log-float-and-round-num pause)
 				  "0.0")
 				(log-float-and-round-num current-timestamp)
-				lex-keys)))))
+				log--lex-keys)))))
 	(forward-line 1)))
     (pop-to-buffer output-buf)
     (skip-chars-backward "^ \t")
     (insert (format "%6s\t%6s\t" "" ""))
-    (end-of-buffer)
+    (goto-char (point-min))
     (insert "\n")
     (goto-char (point-min))))
 
 ;; HERE: fix this to save excursion and move to beginning of line.
 ;; sets:
-;;   lex-line-number (string or nil)
-;;   lex-timestamp (string representing integer milliseconds)
-;;   lex-keymap (string or nil)
-;;   lex-keys (string)
+;;   log--lex-line-number (string or nil)
+;;   log--lex-timestamp (string representing integer milliseconds)
+;;   log--lex-keymap (string or nil)
+;;   log--lex-keys (string)
 ;; assumes point is at bol, and leaves point wherever.
 (defun log-lex-line ()
-  (setq lex-line-number nil
-	lex-timestamp nil
-	lex-keymap nil
-	lex-keys nil)
+  (setq log--lex-line-number nil
+	log--lex-timestamp nil
+	log--lex-keymap nil
+	log--lex-keys nil)
   (skip-chars-forward " \t")		; skip whitespace befor field 1
   (if (not (looking-at "\\([0-9]+\\)[ \t]"))	; line number?
       ()
-    (setq lex-line-number (buffer-substring (match-beginning 1) (match-end 1)))
+    (setq log--lex-line-number (match-string 1))
     (goto-char (match-end 0))
     (skip-chars-forward " \t"))
   (if (not (looking-at "[0-9]+\.[0-9]+")) ; timestamp?
       ()
-    (setq lex-timestamp (buffer-substring (match-beginning 0)
+    (setq log--lex-timestamp (buffer-substring (match-beginning 0)
 					  (match-end 0)))
     (goto-char (match-end 0))
     (skip-chars-forward " \t")
     ;; remaining fields non-nil are contingent on there being a timestamp:
     (if (not (looking-at "\[[A-Z]+\\??\]"))	; keymap?
 	()
-      (setq lex-keymap (buffer-substring (match-beginning 0) (match-end 0)))
+      (setq log--lex-keymap (match-string 0))
       (goto-char (match-end 0)))
     (re-search-forward "\\([^ \t]*\\)")	; match keys (assumes trailing ws)
-    (setq lex-keys (buffer-substring (match-beginning 1) (match-end 1)))
+    (setq log--lex-keys (buffer-substring (match-beginning 1) (match-end 1)))
     ;; don't bother with command name or args for now, but it's
     ;; probably simple enough.
     ))
@@ -827,8 +829,8 @@ representations.  Output to *log-time-episodes*."
 ;; t if the current log line is part of a kill or yank.
 ;; needs the line to be lexed, doesn't care about point.
 (defun log-line-is-kill ()
-  (or (not lex-timestamp)
-      (string-match "\\^\\(K\\|W\\|Y\\)" lex-keys)))
+  (or (not log--lex-timestamp)
+      (string-match "\\^\\(K\\|W\\|Y\\)" log--lex-keys)))
 
 ;; 6-20-93 -
 (defun log-meta-command-episodes ()
@@ -852,7 +854,7 @@ log-time-episodes."
     (let ((catenating nil)
 	  previous-was-kill
 	  (current-is-kill nil))
-      (beginning-of-buffer)
+      (goto-char (point-min))
       ;; delete yank/kill lines after the first (which probably won't
       ;; have NNNN.NNN timestamps):
       (delete-non-matching-lines "^.*[0-9][0-9][0-9][0-9]\.[0-9][0-9][0-9].*")
@@ -892,7 +894,7 @@ spaces, which can't otherwise get into the data.)  Collapses ^A-^Z,
   (interactive)
   (save-excursion
     (let ((count 0))
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (while (not (eobp))
 	(cond ((and (zerop count)
 		    (looking-at "\\(\\^[A-Z?]\\|__\\)\\1\\1")) ; three pair
@@ -901,12 +903,12 @@ spaces, which can't otherwise get into the data.)  Collapses ^A-^Z,
 	       (delete-char 2))		; delete middle, look at last pair
 	      ((and (>= count 3)
 		    (looking-at "\\(\\^[A-Z?]\\|__\\)\\1")) ; another beyond
-	       (incf count)
+	       (cl-incf count)
 	       (delete-char 2))
 	      ((and (>= count 3)
 		    (not (looking-at "\\(\\^[A-Z?]\\|__\\)\\1"))) ; end
 	       (delete-char 2)		; empty the pair queue
-	       (insert (format "%s... " count 1))
+	       (insert (format "%s... " count))
 	       (setq count 0))
 	      (t
 	       (forward-char 1)))))))
@@ -919,8 +921,7 @@ spaces, which can't otherwise get into the data.)  Collapses ^A-^Z,
 ;; as modified.
 (defun log-temp-buffer (buf &optional is-so-modified)
   (if (bufferp buf)
-      (save-excursion
-	(set-buffer buf)
+      (with-current-buffer buf
 	(if (or (not (or (buffer-modified-p) is-so-modified))
 		(buffer-file-name buf)
 		(eq buf (get-buffer log-keys-buffer-name))
@@ -932,16 +933,15 @@ spaces, which can't otherwise get into the data.)  Collapses ^A-^Z,
 	  (let* ((separator
 		  (format "logged<>%s<>%s" (buffer-name buf) log-timestamp))
 		 (log-buf (get-buffer log-temp-buffer-name)))
-	    (save-excursion
-	      ;; if the accumulation buffer's died, set up another:
-	      (if (not log-buf)
-		  (setq log-buf (log-accumulation-file
-				 "temp-buffers" log-temp-buffer-name)))
-	      (set-buffer log-buf)
+            ;; If the accumulation buffer's died, set up another:
+            (if (not log-buf)
+                (setq log-buf (log-accumulation-file
+                               "temp-buffers" log-temp-buffer-name)))
+	    (with-current-buffer log-buf
 	      (goto-char (point-max))
 	      (if (not (bolp)) (insert "\n"))
 	      (insert (concat separator "\n"))
-	      (insert-buffer buf))
+	      (insert-buffer-substring buf))
 	    (set-buffer-modified-p nil) ; blech; 12-22-93 - HERE: why do this?
 	    (log-command-in-process-buffer
 	     `(lambda () (insert ,separator))))))))
@@ -950,8 +950,7 @@ spaces, which can't otherwise get into the data.)  Collapses ^A-^Z,
 (defun log-save-accumulation-buffers ()
   ;; save accumulated temp buffer output:
   (if (bufferp (get-buffer log-temp-buffer-name))
-      (save-excursion
-	(set-buffer (get-buffer log-temp-buffer-name))
+      (with-current-buffer (get-buffer log-temp-buffer-name)
 	(save-buffer 0)))
   ;; save process buffers:
   (log-save-process-buffers))
@@ -963,8 +962,7 @@ spaces, which can't otherwise get into the data.)  Collapses ^A-^Z,
       (setq process (car l))
       (if (and (process-buffer process)	; seems nil can have a file-name
 	       (buffer-file-name (process-buffer process)))
-	  (save-excursion
-	    (set-buffer (process-buffer process))
+	  (with-current-buffer (process-buffer process)
 	    (save-buffer 0)))
       (setq l (cdr l)))))
 
@@ -1011,15 +1009,13 @@ spaces, which can't otherwise get into the data.)  Collapses ^A-^Z,
 			       (log-get-time-string))))
 	    (log-buf (get-buffer log-keys-buffer-name))
 	    (require-final-newline t))	; for catenating log files
-	(save-excursion
-	  (set-buffer save-buf)
-	  (insert-buffer log-buf)
+	(with-current-buffer save-buf
+	  (insert-buffer-substring log-buf)
 	  (save-buffer)
           (if log-compress! ;; -fer
               (call-process "compress" nil 0 nil (buffer-name save-buf))))
 	(kill-buffer save-buf)
-	(save-excursion
-	  (set-buffer log-buf)
+	(with-current-buffer log-buf
 	  (erase-buffer)))))
 
 ;; date/timestamp for the log file:

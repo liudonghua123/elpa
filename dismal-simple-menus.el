@@ -41,7 +41,7 @@
    ("Format/         Set up the format of cells, columns, and the sheet."
                      dismal-format-menu)
    ("Doc.            Read the dismal documentation."
-                     (info (concat dismal-directory "/dismal.info")))
+    (info (expand-file-name "dismal.info" dismal-directory)))
 ;; used to be:  (goto-manual "dismal-mode.doc" 'text-mode)
    ("Options/        Miscellaneous commands." dismal-options-menu)
    ("Model/          Model based manipulations and actions." dismal-model-menu)

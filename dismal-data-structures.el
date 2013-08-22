@@ -22,12 +22,12 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;; vii.	Data structures
 
 ;; Column format macros:
-(defstruct (dismal-col-format
+(cl-defstruct (dismal-col-format
                (:type vector))
   width decimal alignment)
 
@@ -73,11 +73,11 @@
 (defmacro dismal-range-1st-row (range)
   `(cadr (dismal-range-1st-cell ,range)))
 (defmacro dismal-range-1st-col (range)
-  `(caddr (dismal-range-1st-cell ,range)))
+  `(cl-caddr (dismal-range-1st-cell ,range)))
 (defmacro dismal-range-2nd-row (range)
   `(cadr (dismal-range-2nd-cell ,range)))
 (defmacro dismal-range-2nd-col (range)
-  `(caddr (dismal-range-2nd-cell ,range)))
+  `(cl-caddr (dismal-range-2nd-cell ,range)))
 
 (defvar dismal-range 'dismal-range)
 
@@ -86,8 +86,8 @@
        (eq (car arg) 'dismal-range)
        (= (length arg) 3)))
 
-(defstruct (dismal-range-buffer
-            (:type vector))
+(cl-defstruct (dismal-range-buffer
+               (:type vector))
   length width matrix)
 
 ;;;; xi.	Preliminary macro(s)
@@ -99,6 +99,7 @@
               (sit-for 2))))
 
 (defmacro dismal-save-excursion-quietly (&rest body)
+  (declare (debug t))
   `(let ( ;; (dismal-show-ruler nil)
          (old-row dismal-current-row)
          (old-col dismal-current-col)
@@ -115,6 +116,7 @@
      (set-window-hscroll old-window old-hscroll)))
 
 (defmacro dismal-save-excursion (&rest body)
+  (declare (debug t))
   `(let ( ;; (dismal-show-ruler nil) ; autoshowing ruler is too slow
          (old-row dismal-current-row)
          (old-col dismal-current-col)
