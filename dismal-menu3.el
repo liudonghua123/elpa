@@ -35,6 +35,8 @@
 
 ;;; Code:
 
+(require 'dismal)                       ;For dismal-map.
+
 (define-key dismal-map [menu-bar model]
   (cons "dModel" (make-sparse-keymap "Model")))
 

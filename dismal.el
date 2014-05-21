@@ -2186,6 +2186,7 @@ argument, inserts the month first."
 
 ;; moved down here so they would load, 19-Jun-96 -FER
 (when t ;; Don't do those `require' at compile-time.
+  (provide 'dismal)
   (require 'dismal-mouse3)
   (require 'dismal-menu3))
 
