@@ -886,7 +886,7 @@ needs a reference count interface, so insert one."
       ;; Show types of the same type together
       (setq types (sort types (lambda (x y)
                                 (string< (cadar x) (cadar y)))))
-      (loop for (type name) in types
+      (loop for (type _name) in types
             do
             (insert (format "%s :: %s\n"
                             (f90-format-parsed-slot-type type)
