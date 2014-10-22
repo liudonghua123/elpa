@@ -2,7 +2,7 @@
 ;;
 ;; Copyright 2008  Helmut Eller <eller.helmut@gmail.com>.
 ;;
-;; Version: 0.5 (2008-Dec-21)
+;; Version: 0.6 (2009-Nov-04)
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
 ;;
 ;; Parsing Expression Grammars (PEG) are a formalism in the spirit of
 ;; Context Free Grammars (CFG) with some simplifications which makes
-;; the implementation of PEGs as top-down parser particularly simple
-;; and easy to understand [Ford, Baker].
+;; the implementation of PEGs as recursive descent parser particularly
+;; simple and easy to understand [Ford, Baker].
 ;;
 ;; This file implements a macro `peg-parse' which parses the current
 ;; buffer according to a PEG.  E.g. we can match integers with a PEG
@@ -32,12 +32,12 @@
 ;;             (sign     (or "+" "-" ""))
 ;;             (digit    [0-9]))
 ;;
-;; In contrast to regexps, PEGs allow us to define recursive rules.  A
-;; PEG is a list of rules.  A rule is written as (NAME PE ...).
+;; In contrast to regexps, PEGs allow us to define recursive "rules".
+;; A "grammar" is a list of rules.  A rule is written as (NAME PEX...)
 ;; E.g. (sign (or "+" "-" "")) is a rule with the name "sign".  The
-;; syntax for Parsing Expression (PE) is a follows:
+;; syntax for PEX (Parsing Expression) is a follows:
 ;;
-;; Description   	Lisp		Haskell, as in Ford's paper
+;; Description   	Lisp		Traditional, as in Ford's paper
 ;; Sequence 		(and e1 e2)    	e1 e2
 ;; Prioritized Choice   (or e1 e2)	e1 / e2
 ;; Not-predicate 	(not e)		!e
@@ -62,7 +62,7 @@
 ;; Syntax-Class       	(syntax-class NAME)
 ;;
 ;; `peg-parse' also supports parsing actions, i.e. Lisp snippets which
-;; are executed when a PE matches.  This can be used to construct
+;; are executed when a pex matches.  This can be used to construct
 ;; syntax trees or for similar tasks.  Actions are written as
 ;;
 ;;  (action FORM)          ; evaluate FORM
@@ -85,7 +85,7 @@
 ;;
 ;; Regexp equivalents:
 ;;
-;; Here a some examples for regexps and how those could be written as PE.
+;; Here a some examples for regexps and how those could be written as pex.
 ;; [Most are taken from rx.el]
 ;;
 ;; "^[a-z]*"
@@ -128,9 +128,11 @@
 ;; Syntactic Foundation. In POPL'04: Proceedings of the 31st ACM
 ;; SIGPLAN-SIGACT symposium on Principles of Programming Languages,
 ;; pages 111-122, New York, NY, USA, 2004. ACM Press.
+;; http://pdos.csail.mit.edu/~baford/packrat/
 ;;
 ;; [Baker] Baker, Henry G. "Pragmatic Parsing in Common Lisp".  ACM Lisp
 ;; Pointers 4(2), April--June 1991, pp. 3--15.
+;; http://home.pipeline.com/~hbaker1/Prag-Parse.html
 ;;
 
 (unless (>= emacs-major-version 22)
@@ -342,7 +344,7 @@ Note: a PE can't \"call\" rules by name."
 				(let ((e (pop peg-stack)))
 				  (cond ((eq e ',marker) nil)
 					((null peg-stack)
-					 (error "Marker not longer stack"))
+					 (error "No marker on stack"))
 					(t (push e l) t))))
 			    l)))))))
 
@@ -368,7 +370,7 @@ Note: a PE can't \"call\" rules by name."
 	 (stack-action (x --)))))
 
 (peg-add-method normalize quote (form)
-  (error "quote is reverved for future use"))
+  (error "quote is reserved for future use"))
 
 (peg-define-method-table translate)
 
@@ -655,6 +657,9 @@ input.  PATH is the list of rules that we have visited so far."
 (peg-add-method merge-error any (merged)
   (add-to-list 'merged '(any)))
 
+(peg-add-method merge-error not (merged x)
+  (add-to-list 'merged `(not ,x)))
+
 (peg-add-method merge-error action (merged _) merged)
 (peg-add-method merge-error null (merged) merged)
 
@@ -779,10 +784,10 @@ resp. succeded instead of signaling an error."
 ;; characters from 0 to 9.
 ;;
 ;; Notes: 
-;; 1) "" matches the empty sequence, i.e. matches without
-;; consuming input.  
+;; 1) "" matches the empty sequence, i.e. matches without consuming
+;;    input.
 ;; 2) [0-9] is the character range from 0 to 9.  This can also be
-;; written as (range ?0 ?9). [Note that 0-9 is a symbol.]
+;;    written as (range ?0 ?9).  Note that 0-9 is a symbol.
 (defun peg-ex-recognize-int ()
   (peg-parse (number   sign digit (* digit))
 	     (sign     (or "+" "-" ""))
@@ -830,7 +835,7 @@ resp. succeded instead of signaling an error."
    (eol (or "\n" "\r\n" "\r"))))
 
 ;; (peg-ex-arith)   1 + 2 * 3 * (4 + 5)
-;; (peg-ex-arith)   1 + 2 ^ 3 * (4 + 5)
+;; (peg-ex-arith)   1 + 2 ^ 3 * (4 + 5)  ; fails to parse
 
 ;; Parse URI according to RFC 2396.
 (defun peg-ex-uri ()
@@ -942,7 +947,7 @@ resp. succeded instead of signaling an error."
 				"y"
 				(action (foo))))))))
 
-;; Some efficecy problems:
+;; Some efficency problems:
 
 ;; Find the last digit in a string.
 ;; Recursive definition with excessive stack usage.
