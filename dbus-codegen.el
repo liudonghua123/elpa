@@ -5,6 +5,8 @@
 ;; Author: Daiki Ueno <ueno@gnu.org>
 ;; Keywords: comm, dbus, convenience
 ;; Package-Requires: ((cl-lib "0.5"))
+;; Version: 0.1
+;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 
