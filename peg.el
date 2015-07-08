@@ -37,16 +37,16 @@
 ;; E.g. (sign (or "+" "-" "")) is a rule with the name "sign".  The
 ;; syntax for PEX (Parsing Expression) is a follows:
 ;;
-;; Description   	Lisp		Traditional, as in Ford's paper
-;; Sequence 		(and e1 e2)    	e1 e2
+;; Description		Lisp		Traditional, as in Ford's paper
+;; Sequence		(and e1 e2)	e1 e2
 ;; Prioritized Choice   (or e1 e2)	e1 / e2
-;; Not-predicate 	(not e)		!e
+;; Not-predicate	(not e)		!e
 ;; And-predicate	(if e)		&e
 ;; Any character	(any)		.
 ;; Literal string	"abc"		"abc"
 ;; Character C		(char c)	'c'
-;; Zero-or-more 	(* e)		e*
-;; One-or-more 		(+ e)		e+
+;; Zero-or-more		(* e)		e*
+;; One-or-more		(+ e)		e+
 ;; Optional		(opt e)		e?
 ;; Character range	(range a b)	[a-b]
 ;; Character set	[a-b "+*" ?x]	[a-b+*x]  ; note: [] is a elisp vector
@@ -54,12 +54,12 @@
 ;; Beginning-of-Buffer  (bob)
 ;; End-of-Buffer        (eob)
 ;; Beginning-of-Line    (bol)
-;; End-of-Line        	(eol)
+;; End-of-Line		(eol)
 ;; Beginning-of-Word    (bow)
-;; End-of-Word        	(eow)
+;; End-of-Word		(eow)
 ;; Beginning-of-Symbol  (bos)
-;; End-of-Symbol       	(eos)
-;; Syntax-Class       	(syntax-class NAME)
+;; End-of-Symbol	(eos)
+;; Syntax-Class		(syntax-class NAME)
 ;;
 ;; `peg-parse' also supports parsing actions, i.e. Lisp snippets which
 ;; are executed when a pex matches.  This can be used to construct
@@ -67,7 +67,7 @@
 ;;
 ;;  (action FORM)          ; evaluate FORM
 ;;  `(VAR... -- FORM...)   ; stack action
-;; 
+;;
 ;; Actions don't consume input, but are executed at the point of
 ;; match.  A "stack action" takes VARs from the "value stack" and
 ;; pushes the result of evaluating FORMs to that stack.  See
@@ -104,8 +104,8 @@
 ;; (and (* [" \t\n"]) ":" (or (+ (not ":") (any)) (eol)))
 ;;
 ;; "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
-;; (and (bol) 
-;;      "content-transfer-encoding:" 
+;; (and (bol)
+;;      "content-transfer-encoding:"
 ;;      (* (opt "\n") ["\t "])
 ;;      "quoted-printable"
 ;;      (* (opt "\n") ["\t "]))
@@ -134,6 +134,8 @@
 ;; Pointers 4(2), April--June 1991, pp. 3--15.
 ;; http://home.pipeline.com/~hbaker1/Prag-Parse.html
 ;;
+;; Roman Redziejowski does good PEG related research
+;; http://www.romanredz.se/pubs.htm
 
 (unless (>= emacs-major-version 22)
   (error "peg.el requires Emacs version 22 or newer"))
@@ -172,7 +174,7 @@ Note: a PE can't \"call\" rules by name."
 ;;         ...
 ;;         (ruleN (lambda () code-for-ruleN)))
 ;;     (funcall rule1))
-;; 
+;;
 ;; code-for-ruleX returns t if the rule matches and nil otherwise.
 ;;
 (defun peg-translate-rules (rules)
@@ -200,7 +202,7 @@ Note: a PE can't \"call\" rules by name."
 		     (peg-merge-errors (cdr peg-errors))))))))
 
 
-(eval-and-compile 
+(eval-and-compile
   (defun peg-method-table-name (method-name)
     (intern (format "peg-%s-methods" method-name))))
 
@@ -222,7 +224,7 @@ Note: a PE can't \"call\" rules by name."
   "Return a \"normalized\" form of EXP."
   (cond ((and (consp exp)
 	      (let ((fun (gethash (car exp) peg-normalize-methods)))
-		(and fun 
+		(and fun
 		     (apply fun (cdr exp))))))
 	((stringp exp)
 	 (let ((len (length exp)))
@@ -242,19 +244,19 @@ Note: a PE can't \"call\" rules by name."
 			      bob eob bol eol bow eow bos eos syntax-class =))
 
 (dolist (type peg-leaf-types)
-  (puthash type `(lambda (&rest args) (cons ',type args)) 
+  (puthash type `(lambda (&rest args) (cons ',type args))
 	   peg-normalize-methods))
 
 (peg-add-method normalize or (&rest args)
   (cond ((null args) '(fail))
 	((null (cdr args)) (peg-normalize (car args)))
-	(t `(or ,(peg-normalize (car args)) 
+	(t `(or ,(peg-normalize (car args))
 		,(peg-normalize `(or . ,(cdr args)))))))
 
 (peg-add-method normalize and (&rest args)
   (cond ((null args) '(null))
 	((null (cdr args)) (peg-normalize (car args)))
-	(t `(and ,(peg-normalize (car args)) 
+	(t `(and ,(peg-normalize (car args))
 		 ,(peg-normalize `(and . ,(cdr args)))))))
 
 (peg-add-method normalize * (&rest args)
@@ -287,7 +289,7 @@ Note: a PE can't \"call\" rules by name."
 		   ,@(mapcar (lambda (val) `(push ,val peg-stack)) values))))
       `(action ,form))))
 
-(defvar peg-char-classes 
+(defvar peg-char-classes
   '(ascii alnum alpha blank cntrl digit graph lower multibyte nonascii print
 	  punct space unibyte upper word xdigit))
 
@@ -296,7 +298,7 @@ Note: a PE can't \"call\" rules by name."
 	((and (null (cdr specs))
 	      (let ((range (peg-range-designator (car specs))))
 		(and range `(range ,(car range) ,(cdr range))))))
-	(t 
+	(t
 	 (let ((chars '()) (ranges '()) (classes '()))
 	   (while specs
 	     (let* ((spec (pop specs))
@@ -313,7 +315,7 @@ Note: a PE can't \"call\" rules by name."
 	   (setq ranges (reverse ranges))
 	   (setq chars (delete-dups (reverse chars)))
 	   (setq classes (reverse classes))
-	   (cond ((and (null ranges) 
+	   (cond ((and (null ranges)
 		       (null classes)
 		       (cond ((null chars) '(fail))
 			     ((null (cdr chars)) `(char ,(car chars))))))
@@ -329,18 +331,18 @@ Note: a PE can't \"call\" rules by name."
 
 ;; characterp is new in Emacs 23.
 (defun peg-characterp (x)
-  (if (fboundp 'characterp) 
+  (if (fboundp 'characterp)
       (characterp x)
     (integerp x)))
 
 (peg-add-method normalize list (&rest args)
-  (peg-normalize 
+  (peg-normalize
    (let ((marker (make-symbol "magic-marker")))
      `(and (stack-action (-- ',marker))
 	   ,@args
-	   (stack-action (-- 
+	   (stack-action (--
 			  (let ((l '()))
-			    (while 
+			    (while
 				(let ((e (pop peg-stack)))
 				  (cond ((eq e ',marker) nil)
 					((null peg-stack)
@@ -349,13 +351,13 @@ Note: a PE can't \"call\" rules by name."
 			    l)))))))
 
 (peg-add-method normalize substring (&rest args)
-  (peg-normalize 
+  (peg-normalize
    `(and `(-- (point))
 	 ,@args
 	 `(start -- (buffer-substring-no-properties start (point))))))
 
 (peg-add-method normalize region (&rest args)
-  (peg-normalize 
+  (peg-normalize
    `(and `(-- (point))
 	 ,@args
 	 `(-- (point)))))
@@ -389,7 +391,7 @@ Note: a PE can't \"call\" rules by name."
 	 (setcdr peg-errors (cons exp (cdr peg-errors))))
 	((> (point) (car peg-errors))
 	 (setq peg-errors (list (point) exp)))))
-  
+
 (peg-add-method translate and (e1 e2)
   `(and ,(peg-translate-exp e1)
 	,(peg-translate-exp e2)))
@@ -411,7 +413,7 @@ Note: a PE can't \"call\" rules by name."
 	 (,(cdr choicepoint) peg-thunks))))
 
 (defun peg-restore-choicepoint (choicepoint)
-  `(progn 
+  `(progn
      (goto-char ,(car choicepoint))
      (setq peg-thunks ,(cdr choicepoint))))
 
@@ -446,7 +448,7 @@ Note: a PE can't \"call\" rules by name."
 
 (peg-add-method translate = (string)
   `(let ((str ,string))
-     (when (zerop (length str)) 
+     (when (zerop (length str))
        (error "Empty strings not allowed for ="))
      (search-forward str (+ (point) (length str)) t)))
 
@@ -516,7 +518,7 @@ Note: a PE can't \"call\" rules by name."
      t))
 
 (peg-add-method translate call (name)
-  (or (gethash name peg-rules) 
+  (or (gethash name peg-rules)
       (error "Reference to unknown rule: %S" name))
   `(funcall ,name))
 
@@ -552,7 +554,7 @@ Note: a PE can't \"call\" rules by name."
 (defun peg-find-star-nodes (exp)
   (let ((type (car exp)))
     (cond ((memq type peg-leaf-types) '())
-	  (t (let ((kids (apply #'append 
+	  (t (let ((kids (apply #'append
 				(mapcar #'peg-find-star-nodes (cdr exp)))))
 	       (if (eq type '*)
 		   (cons exp kids)
@@ -565,7 +567,7 @@ Note: a PE can't \"call\" rules by name."
 Otherwise traverse EXP recursively and return T if EXP can match
 without consuming input.  Return nil if EXP definetly consumes
 input.  PATH is the list of rules that we have visited so far."
-  (apply (or (gethash (car exp) peg-detect-cycles-methods) 
+  (apply (or (gethash (car exp) peg-detect-cycles-methods)
 	     (error "No detect-cycle method for: %S" exp))
 	 path (cdr exp)))
 
@@ -585,7 +587,7 @@ input.  PATH is the list of rules that we have visited so far."
   (or (peg-detect-cycles e1 path)
       (peg-detect-cycles e2 path)))
 
-(peg-add-method detect-cycles * (path e) 
+(peg-add-method detect-cycles * (path e)
   (when (peg-detect-cycles e path)
     (error "Infinite *-loop: %S matches empty string" e))
   t)
@@ -669,7 +671,7 @@ input.  PATH is the list of rules that we have visited so far."
   "Parse STRING according to RULES.
 If NOERROR is non-nil, push nil resp. t if the parse failed
 resp. succeded instead of signaling an error."
-  `(with-temp-buffer 
+  `(with-temp-buffer
      (insert ,string)
      (goto-char (point-min))
      ,(if noerror
@@ -682,7 +684,7 @@ resp. succeded instead of signaling an error."
 ;; We can't expand the macro at compile time, because it needs helper
 ;; functions which aren't available yet.  Delay the expansion to
 ;; load-time (or later).
-(eval '(progn " 
+(eval '(progn "
 (" ;<-- this stops Emacs from indenting the next form
 
 (defun peg-test ()
@@ -763,10 +765,10 @@ resp. succeded instead of signaling an error."
 				    (x "x" `(-- 'x 'y)))
 				   "xxx")
 		 '(4 (x y x y x y) 1)))
-  (assert (equal (with-temp-buffer 
+  (assert (equal (with-temp-buffer
 		   (save-excursion (insert "abcdef"))
 		   (list
-		    (peg-parse (x "a" 
+		    (peg-parse (x "a"
 				  (replace "bc" "x")
 				  (replace "de" "y")
 				  "f"))
@@ -774,7 +776,7 @@ resp. succeded instead of signaling an error."
 		 '(nil "axyf")))
   )
 
-(when (featurep 'cl) 
+(when (featurep 'cl)
   (peg-test))
 
 ;;; Examples:
@@ -783,7 +785,7 @@ resp. succeded instead of signaling an error."
 ;; optional sign, then follows one or more digits.  Digits are all
 ;; characters from 0 to 9.
 ;;
-;; Notes: 
+;; Notes:
 ;; 1) "" matches the empty sequence, i.e. matches without consuming
 ;;    input.
 ;; 2) [0-9] is the character range from 0 to 9.  This can also be
@@ -809,7 +811,7 @@ resp. succeded instead of signaling an error."
 ;; The action `(sign val -- (* sign val)), multiplies val with the
 ;; sign (1 or -1).
 (defun peg-ex-parse-int ()
-  (peg-parse (number sign digit (* digit 
+  (peg-parse (number sign digit (* digit
 				   `(a b -- (+ (* a 10) b)))
 		     `(sign val -- (* sign val)))
 	     (sign (or (and "+" `(-- 1))
@@ -822,7 +824,7 @@ resp. succeded instead of signaling an error."
 
 ;; Parse arithmetic expressions and compute the result as side effect.
 (defun peg-ex-arith ()
-  (peg-parse 
+  (peg-parse
    (expr _ sum eol)
    (sum product (* (or (and "+" _ product `(a b -- (+ a b)))
 		       (and "-" _ product `(a b -- (- a b))))))
@@ -840,17 +842,17 @@ resp. succeded instead of signaling an error."
 ;; Parse URI according to RFC 2396.
 (defun peg-ex-uri ()
   (peg-parse
-   (URI-reference (or absoluteURI relativeURI) 
+   (URI-reference (or absoluteURI relativeURI)
 		  (or (and "#" (substring fragment))
 		      `(-- nil))
-		  `(scheme user host port path query fragment -- 
+		  `(scheme user host port path query fragment --
 			   (list :scheme scheme :user user
 				 :host host :port port
-				 :path path :query query 
+				 :path path :query query
 				 :fragment fragment)))
    (absoluteURI (substring scheme) ":" (or hier-part opaque-part))
    (hier-part ;(-- user host port path query)
-    (or net-path 
+    (or net-path
 	(and `(-- nil nil nil)
 	     abs-path))
     (or (and "?" (substring query))
@@ -915,7 +917,7 @@ resp. succeded instead of signaling an error."
 ;; Parse a lisp style Sexp.
 ;; [To keep the example short, ' and . are handled as ordinary symbol.]
 (defun peg-ex-lisp ()
-  (peg-parse 
+  (peg-parse
    (sexp _ (or string list number symbol))
    (_ (* (or [" \n\t"] comment)))
    (comment ";" (* (not (or "\n" (eob))) (any)))
@@ -926,9 +928,9 @@ resp. succeded instead of signaling an error."
    (symbol (substring (and symchar (* (not terminating) symchar)))
 	   `(s -- (intern s)))
    (symchar [a-z A-Z 0-9 "-;!#%&'*+,./:;<=>?@[]^_`{|}~"])
-   (list "("          	`(-- (cons nil nil)) `(hd -- hd hd)
-	 (* sexp      	`(tl e -- (setcdr tl (list e)))
-	    ) _ ")" 	`(hd tl -- (cdr hd)))
+   (list "("		`(-- (cons nil nil)) `(hd -- hd hd)
+	 (* sexp	`(tl e -- (setcdr tl (list e)))
+	    ) _ ")"	`(hd tl -- (cdr hd)))
    (digit [0-9])
    (terminating (or (set " \n\t();\"'") (eob)))))
 
@@ -963,7 +965,7 @@ resp. succeded instead of signaling an error."
 ;; Find the last digit without recursion.  Doesn't run out of stack,
 ;; but probably still too inefficient for large inputs.
 (defun peg-ex-last-digit2 (string)
-  (peg-parse-string ((s `(-- nil) 
+  (peg-parse-string ((s `(-- nil)
 			(+ (* (not digit) (any))
 			   (substring digit)
 			   `(d1 d2 -- d2)))
