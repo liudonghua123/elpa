@@ -1,4 +1,0 @@
-*.elc
-.cask/
-/benchmark/logs/
-/test/coverage/
