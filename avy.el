@@ -225,10 +225,10 @@ pressed during the dispatch, ACTION is set to replace the default
   :type 'boolean)
 
 (defcustom avy-word-punc-regexp "[!-/:-@[-`{-~]"
-  "Regexp of punctuation chars that count as word starts for `avy-goto-word-1.
+  "Regexp of punctuation chars that count as word starts for `avy-goto-word-1'.
 When nil, punctuation chars will not be matched.
 
-\"[!-/:-@[-`{-~]\" will match all printable punctuation chars."
+\"[!-/:-@[-\\=`{-~]\" will match all printable punctuation chars."
   :type 'regexp)
 
 (defcustom avy-goto-word-0-regexp "\\b\\sw"
@@ -902,14 +902,14 @@ multiple OVERLAY-FN invocations."
         (null (assoc invisible buffer-invisibility-spec)))))
 
 (defun avy--next-visible-point ()
-  "Return the next closest point without 'invisible property."
+  "Return the next closest point without `invisible' property."
   (let ((s (point)))
     (while (and (not (= (point-max) (setq s (next-char-property-change s))))
                 (not (avy--visible-p s))))
     s))
 
 (defun avy--next-invisible-point ()
-  "Return the next closest point with 'invisible property."
+  "Return the next closest point with `invisible' property."
   (let ((s (point)))
     (while (and (not (= (point-max) (setq s (next-char-property-change s))))
                 (avy--visible-p s)))
