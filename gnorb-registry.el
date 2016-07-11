@@ -137,7 +137,7 @@ even for headings that appear to no longer exist."
 (defun gnorb-delete-association (msg-id org-id)
   "Disassociate a message and a headline.
 
-This removes an Org heading's ORG-ID from the 'gnorb-ids key of
+This removes an Org heading's ORG-ID from the `gnorb-ids' key of
 the MSG-ID."
   (let ((org-ids (gnus-registry-get-id-key msg-id 'gnorb-ids)))
     (when (member org-id org-ids)
@@ -192,7 +192,7 @@ archived headings as well."
 	     deleted-count)))
 
 (defun gnorb-registry-org-id-search (id)
-  "Find all messages that have the org ID in their 'gnorb-ids
+  "Find all messages that have the org ID in their `gnorb-ids'
 key."
   (registry-search gnus-registry-db :member `((gnorb-ids ,id))))
 
@@ -201,7 +201,7 @@ key."
   (registry-search gnus-registry-db :member `((org-tags ,tag))))
 
 (defun gnorb-registry-tracked-messages ()
-  "Return all message-ids that have non-empty 'gnorb-ids keys."
+  "Return all message-ids that have non-empty `gnorb-ids' keys."
   (registry-search gnus-registry-db :regex `((gnorb-ids ".+"))))
 
 (defun gnorb-registry-tagged-messages ()

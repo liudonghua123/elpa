@@ -37,6 +37,5 @@
 (with-eval-after-load 'org
   (require 'gnorb-org))
 
-
 (provide 'gnorb)
 ;;; gnorb.el ends here
