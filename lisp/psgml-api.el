@@ -86,9 +86,12 @@ Also calling DATA-FUN, if non-nil, with data in content."
              (sgml-parse-data main-buffer-max data-fun pi-fun entity-fun)
              (setq c (sgml-tree-next c)))))))))
 
-(defun sgml-parse-data (sgml-goal sgml-data-function sgml-pi-function
-				  sgml-entity-function)
-  (let ((sgml-throw-on-element-change 'el-done))
+(defun sgml-parse-data (goal data-function pi-function entity-function)
+  (let ((sgml-goal goal)
+        (sgml-data-function data-function)
+        (sgml-pi-function pi-function)
+        (sgml-entity-function entity-function)
+        (sgml-throw-on-element-change 'el-done))
     (catch sgml-throw-on-element-change
       (sgml-parse-continue sgml-goal nil t))))
 

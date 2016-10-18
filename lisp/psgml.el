@@ -8,6 +8,7 @@
 ;; 	James Clark <jjc@clark.com>
 ;; Maintainer: Lennart Staflin <lenst@lysator.liu.se>
 ;; Keywords: languages
+;; Version: 0
 
 ;; 
 ;; This program is free software; you can redistribute it and/or
@@ -74,7 +75,6 @@
 (define-abbrev-table 'sgml-mode-abbrev-table ())
 
 (eval-and-compile
-  (defconst sgml-running-lucid (string-match "Lucid" emacs-version))
   (defconst sgml-have-re-char-clases (string-match "[[:alpha:]]" "x")
     "Non-nil if this Emacs supports regexp character classes.
 E.g. `[-.[:alnum:]]'."))
@@ -94,7 +94,7 @@ Otherwise put explicit properties.")
       (not (natnump emacs-minor-version))
       (and (eq emacs-major-version 19)
            (< emacs-minor-version 23)))
-  "*If non-nil, work around a bug in subst-char-in-region.
+  "*If non-nil, work around a bug in `subst-char-in-region'.
 The bug sets the buffer modified.  If this is set, folding commands
 will be slower.")
 
@@ -121,22 +121,22 @@ This may be slow.")
 ;;; User settable options:
 
 
-(defun sgml-parse-colon-path (cd-path)
-  "Explode a colon-separated list of paths into a string list."
-  (if (null cd-path)
+(defun sgml-parse-colon-path (path)
+  "Explode a colon-separated list of directories PATH into a string list."
+  (if (null path)
       nil
     (let ((cd-sep ":")
           cd-list (cd-start 0) cd-colon)
       (if (boundp 'path-separator)
           (setq cd-sep path-separator))
-      (setq cd-path (concat cd-path cd-sep))
-      (while (setq cd-colon (string-match cd-sep cd-path cd-start))
+      (setq path (concat path cd-sep))
+      (while (setq cd-colon (string-match cd-sep path cd-start))
         (setq cd-list
               (nconc cd-list
                      (list (if (= cd-start cd-colon)
                                nil
                              (substitute-in-file-name
-                              (substring cd-path cd-start cd-colon))))))
+                              (substring path cd-start cd-colon))))))
         (setq cd-start (+ cd-colon 1)))
       cd-list)))
 
@@ -271,7 +271,7 @@ See `compilation-error-regexp-alist'.")
   "Keymap for SGML mode")
 
 (defvar sgml-show-context-function
-  'sgml-show-context-standard
+  #'sgml-show-context-standard
   "*Function to called to show context of and element.
 Should return a string suitable form printing in the echo area.")
 
@@ -429,7 +429,7 @@ as that may change."
 	 (symbol-value hook)
 	 (let ((value (symbol-value hook)))
 	   (if (and (listp value) (not (eq (car value) 'lambda)))
-	       (mapcar '(lambda (foo) (apply foo args))
+	       (mapcar (lambda (foo) (apply foo args))
 		       value)
 	     (apply value args))))))
 
@@ -464,7 +464,7 @@ as that may change."
 (defun sgml-mouse-region ()
   (let (start end)
     (cond
-     (sgml-running-lucid
+     ((featurep 'xemacs)
       (cond
        ((null (mark-marker)) nil)
        (t (setq start (region-beginning)
@@ -938,12 +938,7 @@ All bindings:
     (make-local-variable 'text-property-default-nonsticky)
     ;; see `sgml-set-face-for':
     (add-to-list 'text-property-default-nonsticky '(face . t)))
-  (make-local-hook 'post-command-hook)
   (add-hook 'post-command-hook 'sgml-command-post 'append 'local)
-  (unless sgml-running-lucid
-    ;; XEmacs 20.4 doesn't handle local activate-menubar-hook
-    ;; it tries to call the function `t' when using the menubar
-    (make-local-hook 'activate-menubar-hook))
   (add-hook 'activate-menubar-hook 'sgml-update-all-options-menus
 	    nil 'local)
   (add-hook 'which-func-functions 'sgml-current-element-name nil t)
@@ -1164,7 +1159,7 @@ start tag, and the second / is the corresponding null end tag."
 	    thereis
 	    (sgml-subst-expand template validate-subst))))
    (t
-    (apply 'format sgml-validate-command
+    (apply #'format sgml-validate-command
 	   (if sgml-validate-files
 	       (funcall sgml-validate-files)
 	     (list (or sgml-declaration "")

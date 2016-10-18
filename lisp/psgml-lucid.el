@@ -36,6 +36,7 @@
 
 (eval-and-compile
   (autoload 'sgml-do-set-option "psgml-edit"))
+(eval-when-compile (require 'cl))
 
 (defvar sgml-max-menu-size (/ (* (frame-height) 2) 3)
   "*Max number of entries in Tags and Entities menus before they are split

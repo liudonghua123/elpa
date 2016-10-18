@@ -257,12 +257,15 @@ a list using attlist TO."
 
 ;;;; SGML mode: folding
 
+;; FIXME: Replace use of `selective-display' with overlays!
+
 (defun sgml-fold-region (beg end &optional unhide)
   "Hide (or if prefixarg unhide) region.
 If called from a program first two arguments are start and end of
 region. And optional third argument true unhides."
   (interactive "r\nP")
   (setq selective-display t)
+  ;; FIXME: Use `with-silent-modifications'.
   (let ((mp (buffer-modified-p))
 	(inhibit-read-only t)
         (before-change-functions nil)
@@ -580,7 +583,7 @@ Deprecated: ELEMENT"
                       (sgml-element-context-string el)))))
 
 
-(defun sgml-show-context-backslash (el &optional markup-type)
+(defun sgml-show-context-backslash (el &optional _markup-type)
   (let ((gis nil))
     (while (not (sgml-off-top-p el))
       (push (sgml-element-gi el) gis)
@@ -808,7 +811,7 @@ AVL should be a assoc list mapping symbols to strings."
 	       (setq quote "'")))
 	(concat quote value quote)))
 
-(defun sgml-completion-table (&optional avoid-tags-in-cdata)
+(defun sgml-completion-table ()
   (sgml-parse-to-here)
   (when sgml-markup-type
     (error "No tags allowed"))
@@ -869,7 +872,7 @@ AVL should be a assoc list mapping symbols to strings."
     ;; Concoct an attribute specification list using the names of the
     ;; existing attributes and those ot be changed.
     (when (and (not attlist) sgml-dtd-less)
-      (dolist (elt (mapcar 'car asl))
+      (dolist (elt (mapcar #'car asl))
 	(unless (assoc elt attlist)	; avoid duplicates
 	  (push (sgml-make-attdecl elt 'CDATA 'REQUIRED) attlist)))
       (setq attlist (nreverse attlist)))
@@ -906,7 +909,7 @@ CURVALUE is nil or a string that will be used as default value."
 	  (cond ((or tokens notations)
 		 (let ((completion-ignore-case sgml-namecase-general))
 		   (completing-read prompt
-				    (mapcar 'list (or tokens notations))
+				    (mapcar #'list (or tokens notations))
 				    nil t)))
 		(ids
 		 (let ((completion-ignore-case sgml-namecase-general)
@@ -1449,11 +1452,10 @@ Editing is done in a separate window."
   (let ((bname "*Edit attributes*")
 	(buf nil)
 	(inhibit-read-only t))
-    (save-excursion
-      (when (setq buf (get-buffer bname))
-	(kill-buffer buf))
-      (setq buf (get-buffer-create bname))
-      (set-buffer buf)
+    (when (setq buf (get-buffer bname))
+      (kill-buffer buf))
+    (setq buf (get-buffer-create bname))
+    (with-current-buffer buf
       (erase-buffer)
       (sgml-edit-attrib-mode)
       (make-local-variable 'sgml-attlist)
@@ -1902,8 +1904,7 @@ characters in the current coding system."
    (invert
     (or (looking-at "&#\\([0-9]+\\)[;\n]?")
 	(error "No character reference after point"))
-    (let ((c (string-to-int (buffer-substring (match-beginning 1)
-					      (match-end 1)))))
+    (let ((c (string-to-number (match-string 1))))
       (delete-region (match-beginning 0)
 		     (match-end 0))
       (if (fboundp 'decode-char)	; Emacs 21, Mule-UCS
@@ -1965,7 +1966,7 @@ characters in the current coding system."
 
 ;; Function contributed by Matthias Clasen <clasen@netzservice.de>
 (defun sgml-edit-external-entity ()
-  "Open	a new window and display the external entity at the point."
+  "Open a new window and display the external entity at the point."
   (interactive)
   (sgml-need-dtd)
   (save-excursion                     
@@ -1982,7 +1983,6 @@ characters in the current coding system."
 					 (sgml-dtd-entities
 					  (sgml-pstate-dtd
 					   sgml-buffer-parse-state))))
-	     (buffer nil)
 	     (ppos nil))
        (unless entity
 	 (error "Undefined entity %s" ename))
@@ -1996,8 +1996,7 @@ characters in the current coding system."
 		(progn
 		  (message (format "Using '%s' to handle notation '%s'."
 				   handler notation))
-		  (save-excursion
-		    (set-buffer (get-buffer-create "*SGML background*"))
+		  (with-current-buffer (get-buffer-create "*SGML background*")
 		    (erase-buffer)
 		    (let* ((file (sgml-external-file 
 				  (sgml-entity-text entity)
@@ -2008,7 +2007,8 @@ characters in the current coding system."
 				     nil handler file)))
                       (if (fboundp 'set-process-query-on-exit-flag)
                           (set-process-query-on-exit-flag process nil)
-                        (process-kill-without-query process)))))
+                        (with-no-warnings
+                          (process-kill-without-query process))))))
 	      (error "Don't know how to handle notation '%s'." notation)))
 	   (text (progn
        
@@ -2209,8 +2209,7 @@ will reset the variable.")
   (force-mode-line-update))
 
 (defun sgml-append-to-help-buffer (string)
-  (save-excursion
-    (set-buffer "*Help*")
+  (with-current-buffer "*Help*"
     (let ((inhibit-read-only t))
       (goto-char (point-max))
       (insert "\n" string))))
@@ -2327,7 +2326,7 @@ otherwise it will be added at the first legal position."
 	     (princ (if (sgml-eltype-mixed et)
                         "mixed\n"
                       "element\n"))
-             (sgml-print-position-in-model el et (point) sgml-current-state)
+             (sgml-print-position-in-model el (point) sgml-current-state)
              (princ "\n\n")
 	     (sgml-princ-names
 	      (mapcar #'symbol-name (sgml-eltype-refrenced-elements et))
@@ -2357,45 +2356,42 @@ otherwise it will be added at the first legal position."
 		     (when (memq et (sgml-eltype-refrenced-elements cand))
 		       (push cand occurs-in))))
 	 (sgml-pstate-dtd sgml-buffer-parse-state))
-        (sgml-princ-names (mapcar 'sgml-eltype-name
+        (sgml-princ-names (mapcar #'sgml-eltype-name
                                   (sort occurs-in (function string-lessp))))))))
 
 (defun sgml-print-attlist (et)
-  (let ((ob (current-buffer)))
-    (set-buffer standard-output)
-    (unwind-protect
-        (loop
-         for attdecl in (sgml-eltype-attlist et) do
-         (princ " ")
-         (princ (sgml-attdecl-name attdecl))
-         (let ((dval (sgml-attdecl-declared-value attdecl))
-               (defl (sgml-attdecl-default-value attdecl)))
-           (when (listp dval)
-             (setq dval (concat (if (eq (first dval)
-                                        'NOTATION)
-                                    "#NOTATION (" "(")
-                                (mapconcat (function identity)
-                                           (second dval)
-                                           "|")
-                                ")")))
-           (indent-to 15 1)
-           (princ dval)
-           (cond ((sgml-default-value-type-p 'FIXED defl)
-                  (setq defl (format "#FIXED '%s'"
-                                     (sgml-default-value-attval defl))))
-                 ((symbolp defl)
-                  (setq defl (upcase (format "#%s" defl))))
-                 (t
-                  (setq defl (format "'%s'"
-                                     (sgml-default-value-attval defl)))))
+  (with-current-buffer standard-output
+    (loop
+     for attdecl in (sgml-eltype-attlist et) do
+     (princ " ")
+     (princ (sgml-attdecl-name attdecl))
+     (let ((dval (sgml-attdecl-declared-value attdecl))
+           (defl (sgml-attdecl-default-value attdecl)))
+       (when (listp dval)
+         (setq dval (concat (if (eq (first dval)
+                                    'NOTATION)
+                                "#NOTATION (" "(")
+                            (mapconcat (function identity)
+                                       (second dval)
+                                       "|")
+                            ")")))
+       (indent-to 15 1)
+       (princ dval)
+       (cond ((sgml-default-value-type-p 'FIXED defl)
+              (setq defl (format "#FIXED '%s'"
+                                 (sgml-default-value-attval defl))))
+             ((symbolp defl)
+              (setq defl (upcase (format "#%s" defl))))
+             (t
+              (setq defl (format "'%s'"
+                                 (sgml-default-value-attval defl)))))
 
-           (indent-to 48 1)
-           (princ defl)
-           (terpri)))
-      (set-buffer ob))))
+       (indent-to 48 1)
+       (princ defl)
+       (terpri)))))
 
 
-(defun sgml-print-position-in-model (element element-type buffer-pos parse-state)
+(defun sgml-print-position-in-model (element buffer-pos parse-state)
   (let ((u (sgml-element-content element))
         (names nil))
     (while (and u (>= buffer-pos (sgml-element-end u)))
@@ -2412,7 +2408,7 @@ otherwise it will be added at the first legal position."
                 collect (sgml-eltype-name (car required))
                 do (setq state (sgml-get-move state (car required)))))
          (last-alt
-          (mapcar 'sgml-eltype-name
+          (mapcar #'sgml-eltype-name
                   (append (sgml-optional-tokens state)
                           (sgml-required-tokens state)))))
     (cond
@@ -2445,8 +2441,7 @@ otherwise it will be added at the first legal position."
     (occur-mode)
     (erase-buffer)
     (let ((structure
-           (save-excursion
-             (set-buffer source)
+           (with-current-buffer source
              (sgml-structure-elements (sgml-top-element)))))
       (sgml-show-structure-insert structure))
     (goto-char (point-min))

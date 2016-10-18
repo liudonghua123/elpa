@@ -48,8 +48,7 @@
 
 (defconst psgml-elisp-source
   (append psgml-common-files
-	  (cond ((or (string-match "Lucid" emacs-version)
-		     (string-match "XEmacs" emacs-version))
+	  (cond ((featurep 'xemacs)
 		 psgml-xemacs-files)
 		(t
 		 psgml-emacs-files))))
@@ -74,14 +73,13 @@
 	    (error "No psgml source in current directory"))))))
 
 
-(defun psgml-compile-files ()
+(defun psgml-compile-files (&optional interactive-p)
   "Compile the PSGML source files that needs compilation."
-  (interactive)
-  (psgml-find-source-dir (interactive-p))
+  (interactive (list t))
+  (psgml-find-source-dir interactive-p)
   (let ((default-directory psgml-source-dir)
 	(load-path (cons psgml-source-dir load-path)))
-    (mapcar (function psgml-byte-compile-file)
-	    psgml-elisp-source)
+    (mapc #'psgml-byte-compile-file psgml-elisp-source)
     (message "Done compiling")))
 
 
@@ -91,10 +89,8 @@
 	(byte-compile-file file))))
 
 (defun psgml-install-elc ()
-  "Print list of elc files to install"
-  (let ((destdir (car command-line-args-left)))
-    (princ (mapconcat (function byte-compile-dest-file)
-		      psgml-elisp-source " "))))
+  "Print list of elc files to install."
+  (princ (mapconcat #'byte-compile-dest-file psgml-elisp-source " ")))
 
 
 ;;; psgml-maint.el ends here

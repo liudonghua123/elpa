@@ -39,10 +39,9 @@
 (eval-when-compile
   (unless (member "JSP-STAGO" sgml-delimiters)
     (setq sgml-delimiters
-          (list*
-           "JSP-STAGO" "<%"
-           "JSP-TAGC"  "%>"
-           sgml-delimiters))))
+          `("JSP-STAGO" "<%"
+            "JSP-TAGC"  "%>"
+            . ,sgml-delimiters))))
 
 (defun psgml-parse-jps-tag ()
   (when (sgml-parse-delim "JSP-STAGO")

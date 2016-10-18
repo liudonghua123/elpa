@@ -29,6 +29,7 @@
 ;;;; Code:
 
 (require 'psgml)
+(require 'psgml-parse)
 (require 'easymenu)
 (eval-when-compile (require 'cl))
 
@@ -140,8 +141,7 @@ Overlays are significantly less efficient in large buffers.")
 	 (when (not modified)
 	   (sgml-restore-buffer-modified-p nil))))))
 
-(eval-when-compile
-  (defvar sgml-parse-in-loop))
+(defvar sgml-parse-in-loop)
 
 (defun sgml-set-face-for (start end type)
   (let ((face (cdr (assq type sgml-markup-faces))))
@@ -188,7 +188,7 @@ Overlays are significantly less efficient in large buffers.")
 	       (overlay-put old-overlay 'sgml-type type)
 	       (overlay-put old-overlay 'face face))))))))
 
-(defun sgml-set-face-after-change (start end &optional pre-len)
+(defun sgml-set-face-after-change (start end &optional _pre-len)
   ;; If inserting in front of an markup overlay, move that overlay.
   ;; this avoids the overlay beeing deleted and recreated by
   ;; sgml-set-face-for.

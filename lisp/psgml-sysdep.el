@@ -3,7 +3,7 @@
 
 (require 'psgml)
 (cond
- (sgml-running-lucid
+ ((featurep 'xemacs)
   (require 'psgml-lucid))
  (t
   (require 'psgml-other)))

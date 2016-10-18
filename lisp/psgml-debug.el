@@ -42,19 +42,12 @@
     (sgml-dump-rec (sgml-pstate-top-tree sgml-buffer-parse-state))))
 
 (defun sgml-auto-dump ()
-  (let ((standard-output (get-buffer-create "*Dump*"))
-	(cb (current-buffer)))
+  (when sgml-buffer-parse-state
+    (let ((standard-output (get-buffer-create "*Dump*")))
+      (with-current-buffer standard-output
+        (erase-buffer))
 
-    (when sgml-buffer-parse-state
-      (unwind-protect
-	  (progn (set-buffer standard-output)
-		 (erase-buffer))
-	(set-buffer cb))
-
-      (sgml-dump-rec (sgml-pstate-top-tree sgml-buffer-parse-state))
-
-      ))
-  )
+      (sgml-dump-rec (sgml-pstate-top-tree sgml-buffer-parse-state)))))
 
 (defun sgml-start-auto-dump ()
   (interactive)
@@ -118,7 +111,7 @@
 )
 
 (eval-when (load)
-  (unless sgml-running-lucid
+  (unless (featurep 'xemacs)
     (def-edebug-spec sgml-with-parser-syntax (&rest form))
     (def-edebug-spec sgml-with-parser-syntax-ro (&rest form))
     (def-edebug-spec sgml-skip-upto (sexp))
@@ -272,8 +265,7 @@
 	   (princ errcode)
 	   (terpri)))
 	(if (get-buffer sgml-log-buffer-name)
-	    (princ (save-excursion
-		     (set-buffer sgml-log-buffer-name)
+	    (princ (with-current-buffer sgml-log-buffer-name
 		     (buffer-string))))
 	(terpri)
 	(terpri)

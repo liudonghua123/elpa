@@ -92,8 +92,7 @@
 (defvar fs-title)
 
 (defun fs-add-output (str &optional just)
-  (save-excursion
-    (set-buffer fs-buffer)
+  (with-current-buffer fs-buffer
     (goto-char (point-max))
     (let ((start (point)))
       (insert str)
@@ -213,54 +212,54 @@ The value can be the style-sheet list, or it can be a file name
 	       (cdr (or (assoc (sgml-element-gi e) fs-style)
 			(assq t fs-style)))))
 
-(defun fs-do-style (fs-current-element style)
-  (let ((hang-from (eval (plist-get style 'hang-from))))
-    (when hang-from
-      (setq fs-hang-from
-	    (format "%s%s "
-		    (make-string
-		     (or (fs-char 'hang-left) (fs-char 'left))
-		     ? )
-                    hang-from))))
-  (let ((fs-char (nconc
-		  (loop for st on style by 'cddr
-			unless (memq (car st) fs-special-styles)
-			collect (cons (car st)
-				      (eval (cadr st))))
-		  fs-char)))
-    (when (plist-get style 'block)
-      (fs-para)
-      (fs-addvspace (or (plist-get style 'top)
-			(fs-char 'default-top))))
-    (let ((before (plist-get style 'before)))
-      (when before
-	(fs-do-style e before)))
-    (let ((fs-style
-           (append (plist-get style 'sub-style)
-                   fs-style)))
-      (cond ((plist-get style 'text)
-             (let ((text (eval (plist-get style 'text))))
-               (when (stringp text)
-                 (fs-paraform-data text))))
-            (t
-             (sgml-map-content e
-                               (function fs-engine)
-                               (function fs-paraform-data)
-                               nil
-                               (function fs-paraform-entity)))))
-    (let ((title (plist-get style 'title)))
-      (when title
-        (setq title (eval title))
-        (save-excursion
-          (set-buffer fs-buffer)
-          (setq fs-title title))))
-    (let ((after (plist-get style 'after)))
-      (when after
-	(fs-do-style e after)))
-    (when (plist-get style 'block)
-      (fs-para)
-      (fs-addvspace (or (plist-get style 'bottom)
-			(fs-char 'default-bottom))))))
+(defun fs-do-style (e style)
+  (let ((fs-current-element e))
+    (let ((hang-from (eval (plist-get style 'hang-from))))
+      (when hang-from
+        (setq fs-hang-from
+              (format "%s%s "
+                      (make-string
+                       (or (fs-char 'hang-left) (fs-char 'left))
+                       ? )
+                      hang-from))))
+    (let ((fs-char (nconc
+                    (loop for st on style by 'cddr
+                          unless (memq (car st) fs-special-styles)
+                          collect (cons (car st)
+                                        (eval (cadr st))))
+                    fs-char)))
+      (when (plist-get style 'block)
+        (fs-para)
+        (fs-addvspace (or (plist-get style 'top)
+                          (fs-char 'default-top))))
+      (let ((before (plist-get style 'before)))
+        (when before
+          (fs-do-style e before)))
+      (let ((fs-style
+             (append (plist-get style 'sub-style)
+                     fs-style)))
+        (cond ((plist-get style 'text)
+               (let ((text (eval (plist-get style 'text))))
+                 (when (stringp text)
+                   (fs-paraform-data text))))
+              (t
+               (sgml-map-content e
+                                 (function fs-engine)
+                                 (function fs-paraform-data)
+                                 nil
+                                 (function fs-paraform-entity)))))
+      (let ((title (plist-get style 'title)))
+        (when title
+          (setq title (eval title))
+          (with-current-buffer fs-buffer
+            (setq fs-title title))))
+      (let ((after (plist-get style 'after)))
+        (when after
+          (fs-do-style e after)))
+      (when (plist-get style 'block)
+        (fs-para)
+        (fs-addvspace (or (plist-get style 'bottom)
+                          (fs-char 'default-bottom)))))))
 
 
 (defun fs-clear ()
@@ -272,9 +271,8 @@ The value can be the style-sheet list, or it can be a file name
 
 
 (defun fs-setup-buffer ()
-  (save-excursion
     (let ((orig-filename (buffer-file-name (current-buffer))))
-      (set-buffer fs-buffer)
+      (with-current-buffer fs-buffer
       (erase-buffer)
       (setq ps-left-header
             '(fs-title fs-filename))
@@ -290,8 +288,7 @@ The value can be the style-sheet list, or it can be a file name
     (fs-setup-buffer)
     (funcall thunk)
     (fs-para)
-    (save-excursion
-      (set-buffer fs-buffer)
+    (with-current-buffer fs-buffer
       (goto-char (point-min)))
     fs-buffer))
 

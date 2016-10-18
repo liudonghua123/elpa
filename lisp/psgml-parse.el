@@ -354,21 +354,16 @@ Applicable to XML.")
        (sgml-restore-buffer-modified-p buffer-modified)
        (sgml-debug "Restoring buffer mod: %s" buffer-modified))))
 
-(eval-when-compile (defvar mc-flag))
+(defvar mc-flag)
 
 (defun sgml-set-buffer-multibyte (flag)
   (cond ((featurep 'xemacs)
          flag)
-        ((and (boundp 'emacs-major-version) (>= emacs-major-version 20))
+        (t
          (set-buffer-multibyte
           (if (eq flag 'default)
-              default-enable-multibyte-characters
-            flag)))
-	;; I doubt the current code works in old Mule anyway.  -- fx
-	((boundp 'MULE)
-         (set 'mc-flag flag))
-        (t
-         flag)))
+              (default-value 'enable-multibyte-characters)
+            flag)))))
 ;; Probably better.  -- fx
 ;; (eval-and-compile
 ;;   (if (fboundp 'set-buffer-multibyte)
@@ -1173,7 +1168,7 @@ or 2: two octets (n,m) interpreted as  (n-t-1)*256+m+t."
 			   (file-name-nondirectory tem)))))
   (setq sgml-loaded-dtd nil)		; Allow reloading of DTD
   ;; Search for 'file' on the sgml-system-path [ndw]
-  (let ((real-file (car (apply 'nconc
+  (let ((real-file (car (apply #'nconc
 			       (mapcar (lambda (dir)
 					 (let ((f (expand-file-name file dir)))
 					   (if (file-exists-p f)
@@ -1184,9 +1179,7 @@ or 2: two octets (n,m) interpreted as  (n-t-1)*256+m+t."
     (let ((cb (current-buffer))
 	  (tem nil)
 	  (dtd nil)
-	  (l (buffer-list))
-	  (find-file-type		; Allways binary
-	   (function (lambda (fname) 1))))
+	  (l (buffer-list)))
       ;; Search loaded buffer for a already loaded DTD
       (while (and l (null tem))
 	(set-buffer (car l))
@@ -1227,9 +1220,7 @@ settings in ENTS."
   (sgml-debug "Trying to load compiled DTD from %s..." cfile)
   (sgml-set-buffer-multibyte nil)
   (or (and (file-readable-p cfile)
-	   (let ((find-file-type	; Always binary
-		  (function (lambda (fname) 1)))
-		 (coding-system-for-read 'binary))
+	   (let ((coding-system-for-read 'binary))
 	     ;; fifth arg to insert-file-contents is not available in early
 	     ;; v19.
 	     (insert-file-contents cfile nil nil nil))
@@ -1354,7 +1345,7 @@ ends at point."
 ;;;; Parsing delimiters
 
 (eval-and-compile
-  (defconst sgml-delimiters
+  (defvar sgml-delimiters
     '("AND"   "&"
       "COM"   "--"
       "CRO"   "&#"
@@ -2473,7 +2464,7 @@ text.  Otherwise buffer position will be after entity reference."
 	       (ents  (cdr ce)))
 	   (sgml-debug "Found %s" cfile)
 	   (if (sgml-use-special-case)
-	       (sgml-try-merge-special-case pubid file cfile ents)
+	       (sgml-try-merge-special-case file cfile ents)
 	     (and (sgml-bdtd-load cfile file ents)
 		  (sgml-bdtd-merge)))))))
 
@@ -2482,7 +2473,7 @@ text.  Otherwise buffer position will be after entity reference."
        (sgml-eltype-table-empty (sgml-dtd-eltypes sgml-dtd-info))
        (eq 'dtd (sgml-entity-type (sgml-eref-entity sgml-current-eref)))))
 
-(defun sgml-try-merge-special-case (pubid file cfile ents)
+(defun sgml-try-merge-special-case (file cfile ents)
   (let (cdtd)
     (sgml-debug "Merging special case")
     ;; Look for a compiled dtd in some other buffer
@@ -2837,7 +2828,7 @@ overrides the entity type in entity look up."
 
 ;;;; Display and Mode-line
 
-(eval-when-compile (defvar which-func-mode))
+(defvar which-func-mode)
 
 (defun sgml-update-display ()
   (when (not (eq this-command 'keyboard-quit))
@@ -2927,8 +2918,6 @@ overrides the entity type in entity look up."
 
 (defun sgml-set-initial-state (dtd)
   "Set initial state of parsing."
-  (make-local-hook 'before-change-functions)
-  (make-local-hook 'after-change-functions)
   (add-hook 'before-change-functions 'sgml-note-change-at nil 'local)
   (add-hook 'after-change-functions 'sgml-set-face-after-change nil 'local)
   (let ((top-type			; Fake element type for the top
@@ -3117,7 +3106,7 @@ entity hierarchy as possible."
 (defun sgml-fake-close-element (tree)
   (sgml-tree-parent tree))
 
-(defun sgml-note-change-at (at &optional end)
+(defun sgml-note-change-at (at &optional _end)
   ;; Inform the cache that there have been some changes after AT
   (when sgml-buffer-parse-state
     (sgml-debug "sgml-note-change-at %s" at)
@@ -3282,7 +3271,7 @@ Where the latter represents end-tags."
 					       (point-max))))))
 
 (defun sgml-log-message (format &rest things)
-  (let ((mess (apply 'format format things))
+  (let ((mess (apply #'format format things))
 	(buf (get-buffer-create sgml-log-buffer-name))
 	(cb (current-buffer)))
     (set-buffer buf)
@@ -3343,10 +3332,10 @@ To avoid clearing message with out showing previous warning.")
 
 (defun sgml-log-warning (format &rest things)
   (when sgml-throw-on-warning
-    (apply 'message format things)
+    (apply #'message format things)
     (throw sgml-throw-on-warning t))
   (when (or sgml-show-warnings sgml-parsing-dtd)
-    (apply 'sgml-message format things)
+    (apply #'sgml-message format things)
     (setq sgml-warning-message-flag t)))
 
 
@@ -3354,7 +3343,7 @@ To avoid clearing message with out showing previous warning.")
   (when sgml-throw-on-error
     (throw sgml-throw-on-error nil))
   (setq sgml-warning-message-flag nil)
-  (error "%s%s" (apply 'format format things )
+  (error "%s%s" (apply #'format format things )
          (sgml-entity-stack)))
 
 
@@ -3379,11 +3368,11 @@ To avoid clearing message with out showing previous warning.")
 
 
 (defun sgml-parse-warning (format &rest things)
-  (message "%s%s" (apply 'format format things) (sgml-entity-stack))
+  (message "%s%s" (apply #'format format things) (sgml-entity-stack))
   (setq sgml-warning-message-flag t))
 
 (defun sgml-parse-error (format &rest things)
-  (apply 'sgml-error
+  (apply #'sgml-error
 	 (concat format "; at: %s")
 	 (append things (list (buffer-substring-no-properties
 			       (point)
@@ -3393,7 +3382,7 @@ To avoid clearing message with out showing previous warning.")
   (unless (and (or (equal format "")
                  (string-match "\\.\\.done$" format))
              sgml-warning-message-flag)
-    (apply 'message format things)
+    (apply #'message format things)
     (setq sgml-warning-message-flag nil)))
 
 
@@ -3404,7 +3393,7 @@ To avoid clearing message with out showing previous warning.")
 
 (defun sgml-lazy-message (&rest args)
   (unless (= sgml-lazy-time (second (current-time)))
-    (apply 'message args)
+    (apply #'message args)
     (setq sgml-lazy-time (second (current-time)))))
 
 
@@ -4016,50 +4005,53 @@ Either from parent document or by parsing the document prolog."
   (sgml-message "Parsing prolog...done"))
 
 
-(defun sgml-parse-until-end-of (sgml-close-element-trap &optional
-							cont extra-cond quiet)
-  "Parse until the SGML-CLOSE-ELEMENT-TRAP has ended.
+(defun sgml-parse-until-end-of (close-element-trap &optional
+                                                   cont extra-cond quiet)
+  "Parse until the CLOSE-ELEMENT-TRAP has ended.
 Or if it is t, any additional element has ended,
 or if nil, until end of buffer."
-  (sgml-debug "-> sgml-parse-until-end-of")
-  (cond
-   (cont (sgml-parse-continue (point-max)))
-   (t    (sgml-parse-to (point-max) extra-cond quiet)))
-  (when (eobp)				; End of buffer, can imply
+  (let ((sgml-close-element-trap close-element-trap))
+    (sgml-debug "-> sgml-parse-until-end-of")
+    (cond
+     (cont (sgml-parse-continue (point-max)))
+     (t    (sgml-parse-to (point-max) extra-cond quiet)))
+    (when (eobp)                        ; End of buffer, can imply
 					; end of any open element.
-    (while (prog1 (not
-		   (or (eq sgml-close-element-trap t)
-		       (eq sgml-close-element-trap sgml-current-tree)
-		       (eq sgml-current-tree sgml-top-tree)))
-	     (sgml-implied-end-tag "buffer end" (point) (point)))))
-  (sgml-debug "<- sgml-parse-until-end-of"))
+      (while (prog1 (not
+                     (or (eq sgml-close-element-trap t)
+                         (eq sgml-close-element-trap sgml-current-tree)
+                         (eq sgml-current-tree sgml-top-tree)))
+               (sgml-implied-end-tag "buffer end" (point) (point)))))
+    (sgml-debug "<- sgml-parse-until-end-of")))
 
-(defun sgml-parse-to (sgml-goal &optional extra-cond quiet)
-  "Parse until (at least) SGML-GOAL.
+(defun sgml-parse-to (goal &optional extra-cond quiet)
+  "Parse until (at least) GOAL.
 Optional argument EXTRA-COND should be a function.  This function is
 called in the parser loop, and the loop is exited if the function returns t.
 If third argument QUIET is non-nil, no \"Parsing...\" message will be displayed."
-  (sgml-need-dtd)
-  (sgml-with-parser-syntax-ro
-   (sgml-goto-start-point (min sgml-goal (point-max)))
-   (setq quiet (or quiet (< (- sgml-goal (sgml-mainbuf-point)) 500)))
-  (unless quiet
-    (sgml-message "Parsing..."))
-   (sgml-parser-loop extra-cond)
-  (unless quiet
-    (sgml-message ""))))
+  (let ((sgml-goal goal))
+    (sgml-need-dtd)
+    (sgml-with-parser-syntax-ro
+     (sgml-goto-start-point (min sgml-goal (point-max)))
+     (setq quiet (or quiet (< (- sgml-goal (sgml-mainbuf-point)) 500)))
+     (unless quiet
+       (sgml-message "Parsing..."))
+     (sgml-parser-loop extra-cond)
+     (unless quiet
+       (sgml-message "")))))
 
-(defun sgml-parse-continue (sgml-goal &optional extra-cond quiet)
-  "Parse until (at least) SGML-GOAL."
-  (assert sgml-current-tree)
-  (unless quiet
-    (sgml-message "Parsing..."))
-  (sgml-debug "Parse continue")
-  (sgml-with-parser-syntax-ro
-   (set-buffer sgml-last-buffer)
-   (sgml-parser-loop extra-cond))
-  (unless quiet
-    (sgml-message "")))
+(defun sgml-parse-continue (goal &optional extra-cond quiet)
+  "Parse until (at least) GOAL."
+  (let ((sgml-goal goal))
+    (assert sgml-current-tree)
+    (unless quiet
+      (sgml-message "Parsing..."))
+    (sgml-debug "Parse continue")
+    (sgml-with-parser-syntax-ro
+     (set-buffer sgml-last-buffer)
+     (sgml-parser-loop extra-cond))
+    (unless quiet
+      (sgml-message ""))))
 
 (defun sgml-reparse-buffer (shortref-fun)
   "Reparse the buffer and let SHORTREF-FUN take care of short references.

@@ -119,7 +119,7 @@
 	   (loop for m in (append (sgml-state-opts (car agenda))
 				  (sgml-state-reqs (car agenda)))
 		 do
-		 (add-to-list 'res (sgml-move-token m))
+		 (pushnew (sgml-move-token m) res :test #'equal)
 		 (sgml-add-last-unique (sgml-move-dest m) states)))
        
 	  (t				; &-node
@@ -241,7 +241,7 @@
 
 ;;;; Display table
 
-(defun sgml-display-table (table title col-title1 col-title2
+(defun sgml-display-table (table _title col-title1 col-title2
                            &optional width nosort dual-table
                            col1-describe)
   (or width
@@ -495,11 +495,11 @@
 	(fmt "%20s %s\n")
 	(hdr ""))
 
-    (sgml-map-eltypes (function (lambda (e) (incf elements)))
+    (sgml-map-eltypes (function (lambda (_e) (incf elements)))
 		      sgml-dtd-info)
-    (sgml-map-entities (function (lambda (e) (incf entities)))
+    (sgml-map-entities (function (lambda (_e) (incf entities)))
 		       (sgml-dtd-entities sgml-dtd-info))
-    (sgml-map-entities (function (lambda (e) (incf parameters)))
+    (sgml-map-entities (function (lambda (_e) (incf parameters)))
 		       (sgml-dtd-parameters sgml-dtd-info))
 
     (with-output-to-temp-buffer (help-buffer)

@@ -217,7 +217,7 @@ Syntax: var dfa-expr &body forms"
 (defun sgml-make-pcdata ()
   (sgml-make-* (sgml-make-primitive-content-token sgml-pcdata-token)))
 
-(defun sgml-reduce-, (l)
+(defun sgml-reduce-\, (l)
   (while (cdr l)
     (setcar (cdr l)
 	    (sgml-make-conc (car l) (cadr l)))
@@ -336,7 +336,7 @@ Syntax: var dfa-expr &body forms"
 (defsubst sgml-parse-connector ()
   (sgml-skip-ps)
   (cond ((sgml-parse-delim "SEQ")
-	 (function sgml-reduce-,))
+	 (function sgml-reduce-\,))
 	((sgml-parse-delim "OR")
 	 (function sgml-reduce-|))
 	((sgml-parse-delim "AND")
@@ -1007,7 +1007,6 @@ Construct the binary coded DTD (bdtd) in the current buffer."
    "(sgml-saved-dtd-version 7)\n")
   (let ((print-escape-multibyte t))
     (sgml-code-dtd dtd))
-  (set 'file-type 1)
   (let ((coding-system-for-write 'no-conversion))
     (write-region (point-min) (point-max) file)))
 
