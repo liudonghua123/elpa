@@ -1,25 +1,23 @@
-;;; psgml-fs.el --- Format a SGML-file according to a style file
-;; Copyright (C) 1995, 2000 Lennart Staflin
+;;; psgml-fs.el --- Format a SGML-file according to a style file  -*- lexical-binding:t -*-
+
+;; Copyright (C) 1995, 2000, 2016  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
-;; Version: $Id: psgml-fs.el,v 1.13 2002/07/14 10:03:26 lenst Exp $
 ;; Keywords:
 
-;;; This program is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; This program is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; A copy of the GNU General Public License can be obtained from this
-;;; program's author (send electronic mail to lenst@lysator.liu.se) or from
-;;; the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
-;;; 02139, USA.
-;;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 ;;; Commentary:
 
 ;; The function `style-format' formats the SGML-file in the current buffer
@@ -42,8 +40,8 @@
 
 ;;; Code:
 (require 'psgml-api)
-(eval-when-compile (require 'cl)
-		   (require 'ps-print))
+(eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'ps-print))
 
 ;;;; Formatting parameters
 
@@ -69,12 +67,11 @@
 ;;;; Formatting engine
 
 (defun fs-char (p)
+  (declare (gv-setter fs-set-char))
   (cdr (assq p fs-char)))
 
 (defun fs-set-char (p val)
   (setcdr (assq p fs-char) val))
-
-(defsetf fs-char fs-set-char)
 
 (defvar fs-para-acc ""
   "Accumulate text of paragraph")
@@ -110,7 +107,7 @@
   (when (if (fs-char 'ignore-empty-para)
 	    (string-match "[^\t\n ]" fs-para-acc)
 	  fs-left-indent)
-    (assert fs-left-indent)
+    (cl-assert fs-left-indent)
     (fs-output-para fs-para-acc fs-first-indent fs-left-indent
 		    fs-hang-from
 		    (fs-char 'literal))
@@ -174,7 +171,7 @@
 	(text nil))
     (when entity-map
       (setq text
-	    (loop for (name val) on entity-map by 'cddr
+	    (cl-loop for (name val) on entity-map by 'cddr
 		  thereis (if (equal name (sgml-entity-name entity))
 			      val))))
     (unless text
@@ -223,7 +220,7 @@ The value can be the style-sheet list, or it can be a file name
                        ? )
                       hang-from))))
     (let ((fs-char (nconc
-                    (loop for st on style by 'cddr
+                    (cl-loop for st on style by 'cddr
                           unless (memq (car st) fs-special-styles)
                           collect (cons (car st)
                                         (eval (cadr st))))
@@ -276,10 +273,8 @@ The value can be the style-sheet list, or it can be a file name
       (erase-buffer)
       (setq ps-left-header
             '(fs-title fs-filename))
-      (make-local-variable 'fs-filename)
-      (setq fs-filename (file-name-nondirectory orig-filename))
-      (make-local-variable 'fs-title)
-      (setq fs-title ""))))
+      (set (make-local-variable 'fs-filename) (file-name-nondirectory orig-filename))
+      (set (make-local-variable 'fs-title) ""))))
 
 (defun fs-wrapper (buffer-name thunk)
   (fs-clear)
@@ -308,10 +303,10 @@ The value can be the style-sheet list, or it can be a file name
   "Find current or related element."
   (let ((element fs-current-element))
     (while moves
-      (case (pop moves)
-        (parent (setq element (sgml-element-parent element)))
-        (next   (setq element (sgml-element-next element)))
-        (child  (setq element (sgml-element-content element)))))
+      (pcase (pop moves)
+        (`parent (setq element (sgml-element-parent element)))
+        (`next   (setq element (sgml-element-next element)))
+        (`child  (setq element (sgml-element-content element)))))
     element))
 
 (defun fs-element-content (&optional e)
@@ -334,30 +329,30 @@ The value can be the style-sheet list, or it can be a file name
          (child  (sgml-element-content parent))
          (number 0))
     (while (and child (not (eq child element)))
-      (incf number)
+      (cl-incf number)
       (setq child (sgml-element-next child)))
     number))
 
 
 (defun fs-element-with-id (id)
-  (block func
+  (cl-block func
     (let ((element (sgml-top-element)))
       (while (not (sgml-off-top-p element))
         (let ((attlist (sgml-element-attlist element)))
-          (loop for attdecl in attlist
+          (cl-loop for attdecl in attlist
                 if (eq 'ID (sgml-attdecl-declared-value attdecl))
                 do (if (compare-strings id nil nil
 					(sgml-element-attval
 					 element (sgml-attdecl-name attdecl))
 					nil nil)
-                       (return-from func element))))
+                       (cl-return-from func element))))
         ;; Next element
         (if (sgml-element-content element)
             (setq element (sgml-element-content element))
           (while (null (sgml-element-next element))
             (setq element (sgml-element-parent element))
             (if (sgml-off-top-p element)
-                (return-from func nil)))
+                (cl-return-from func nil)))
           (setq element (sgml-element-next element)))))
     nil))
 
@@ -376,5 +371,5 @@ The value can be the style-sheet list, or it can be a file name
     (sgml-pop-entity)
     (nreverse result)))
 
-
-;;; fs.el ends here
+(provide 'psgml-fs)
+;;; psgml-fs.el ends here

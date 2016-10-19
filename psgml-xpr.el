@@ -1,15 +1,14 @@
-;;; psgml-xpr.el --- Experimental additions for PSGML
+;;; psgml-xpr.el --- Experimental additions for PSGML  -*- lexical-binding:t -*-
 ;; $Id: psgml-xpr.el,v 2.3 2005/02/27 17:15:19 lenst Exp $
 
-;; Copyright (C) 2003 Lennart Staflin
+;; Copyright (C) 2003, 2016 Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
-;; Maintainer: Lennart Staflin <lenst@lysator.liu.se>
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -18,8 +17,7 @@
 ;; GNU General Public License for more details.
 ;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -27,9 +25,8 @@
 ;; 
 
 
-;;;; Code:
+;;; Code:
 
-(provide 'psgml-xpr)
 
 
 ;;;; Simplistic JSP Support
@@ -99,4 +96,5 @@
           (insert "</tr>")))))))
 
 
+(provide 'psgml-xpr)
 ;;; psgml-xpr.el ends here

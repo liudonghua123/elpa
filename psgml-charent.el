@@ -1,15 +1,13 @@
-;;;; psgml-charent.el
-;;; Last edited: 1999-12-18 18:54:53 lenst
-;;; $Id: psgml-charent.el,v 1.7 2002/04/25 20:50:27 lenst Exp $
+;;; psgml-charent.el --- ???  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994 Lennart Staflin
+;; Copyright (C) 1994, 2016  Free Software Foundation, Inc.
 
 ;; Author: Steinar Bang, Falch Hurtigtrykk as., Oslo, 940711
 ;;	Lennart Staflin <lenst@lysator.liu.se>
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -18,11 +16,10 @@
 ;; GNU General Public License for more details.
 ;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-;;;; Commentary:
+;;; Commentary:
 
 ;;  Functions to convert character entities into displayable characters
 ;;  and displayable characters back into character entities.
@@ -30,12 +27,9 @@
 ;; This should either use iso-cvt or do better with a multilingual set of entities 
 
 
-;;;; Code:
+;;; Code:
 
-(provide 'psgml-charent)
 (require 'psgml-parse)
-(eval-when-compile (require 'cl))
-
 
 ;;;; Variable declarations
 
@@ -114,11 +108,11 @@ Alist with entity name as key and display character as content."
   (interactive)
   (let ((case-fold-search nil))
     (save-excursion
-      (loop for pair in (sgml-charent-to-dispchar-alist)
-	    do (goto-char (point-min))
-	    (while (search-forward (cdr pair) nil t)
-	      (replace-match (concat "&" (car pair) ";") t t))))))
+      (dolist (pair (sgml-charent-to-dispchar-alist))
+        (goto-char (point-min))
+        (while (search-forward (cdr pair) nil t)
+          (replace-match (concat "&" (car pair) ";") t t))))))
 
 
-
+(provide 'psgml-charent)
 ;;; psgml-charent.el ends here

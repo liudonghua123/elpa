@@ -1,53 +1,3 @@
-2016-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* psgml.el: Add dummy `Version:'.
-	(sgml-running-lucid): Remove.  Use (featurep 'xemacs) instead.
-	(sgml-parse-colon-path): Don't use dyn-bound vars as args.
-	(sgml-mode): Don't call obsolete make-local-hook.
-
-	* psgml-xpr.el (sgml-delimiters): Avoid `list*'.
-
-	* psgml-parse.el (sgml-set-buffer-multibyte): Remove obsolete code.
-	(sgml-load-dtd, sgml-bdtd-load): Don't bother binding find-file-type.
-	(sgml-delimiters): Use `defvar' since it's sometimes modified.
-	(sgml-try-merge-special-case): Remove unused arg `pubid'.
-	(sgml-set-initial-state): Don't call obsolete make-local-hook.
-	(sgml-parse-until-end-of, sgml-parse-to, sgml-parse-continue):
-	Don't use dyn-bound vars as args.
-
-	* psgml-other.el: Require` psgml-parse'.
-
-	* psgml-maint.el (psgml-elisp-source): Use (featurep 'xemacs).
-	(psgml-compile-files): Avoid `interactive-p'.
-	(psgml-install-elc): Remove unused var `destdir'.
-
-	* psgml-lucid.el: Explicitly require `cl'.
-
-	* psgml-info.el (sgml-eltype-refrenced-elements): Avoid add-to-list.
-
-	* psgml-fs.el (fs-add-output, fs-setup-buffer, fs-wrapper):
-	Use with-current-buffer.
-	(fs-do-style): Don't use dyn-bound vars as args.  Use with-current-buffer.
-
-	* psgml-edit.el (sgml-completion-table): Remove unused arg
-	`avoid-tags-in-cdata'.
-	(sgml-attribute-buffer): Use with-current-buffer.
-	(sgml-make-character-reference): Use match-string and string-to-number.
-	(sgml-edit-external-entity): Remove unused var `buffer'.
-	Use with-current-buffer.  Silence spurious warning.
-	(sgml-append-to-help-bufferm, sgml-print-attlist, sgml-show-structure):
-	Use with-current-buffer.
-	(sgml-print-position-in-model): Remove unused arg `element-type'.
-
-	* psgml-dtd.el (sgml-reduce-\,): Escape the comma in the name.
-	(sgml-write-dtd): Don't set obsolete `file-type'.
-
-	* psgml-debug.el (sgml-auto-dump, test-sgml): Use with-current-buffer.
-
-	* .gitignore: Add auto-generated ELPA files.
-
-	* psgml-api.el (sgml-parse-data): Don't use dyn-bound vars as args.
-
 2008-12-16  Lennart Staflin  <lenst@lysator.liu.se>
 
 	* psgml-dtd.el (sgml-parse-character-reference): string-to-int ->
@@ -655,7 +605,7 @@ Tue Jan  4 19:51:03 2000  Lennart Staflin  <lenst@lysator.liu.se>
 Tue Dec 21 20:50:31 1999  Lennart Staflin  <lenst@lysator.liu.se>
 
 	* psgml-other.el (sgml-set-face-for): set rear-nonsticky for face
-	when sgml-use-text-properties is true. (Suggested by Dirk Frömbgen)
+	when sgml-use-text-properties is true. (Suggested by Dirk FrÃ¶mbgen)
 
 Sat Dec 18 18:55:02 1999  Lennart Staflin  <lenst@lysator.liu.se>
 

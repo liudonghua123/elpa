@@ -1,7 +1,7 @@
-;;;; psgml-parse.el --- Parser for SGML-editing mode with parsing support
+;;; psgml-parse.el --- Parser for SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 ;; $Id: psgml-parse.el,v 2.105 2008/06/21 16:13:51 lenst Exp $
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Lennart Staflin
+;; Copyright (C) 1994-1998, 2016  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; Acknowledgment:
@@ -10,7 +10,7 @@
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -19,20 +19,19 @@
 ;; GNU General Public License for more details.
 ;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-;;;; Commentary:
+;;; Commentary:
 
 ;; Part of major mode for editing the SGML document-markup language.
 
 
-;;;; Code:
+;;; Code:
 
 (require 'psgml)
-(require 'psgml-sysdep)
-(require 'psgml-ids)			; just for sgml-add-id
+(require (if (featurep 'xemacs) 'psgml-lucid 'psgml-other))
+(autoload 'sgml-add-id "psgml-ids")
 
 
 ;;; Interface to psgml-dtd
@@ -41,7 +40,7 @@
   (autoload 'sgml-write-dtd	     "psgml-dtd")
   (autoload 'sgml-check-dtd-subset   "psgml-dtd") )
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 
 
 ;;;; Advise to do-auto-fill
@@ -264,6 +263,7 @@ If this is nil, then current entity is main buffer.")
   "The global value of this variable is the first scratch buffer for entities.
 The entity buffers can have a buffer local value for this variable
 to point to the next scratch buffer.")
+(put 'sgml-scratch-buffer 'permanent-local t)
 
 (defvar sgml-last-entity-buffer nil)
 
@@ -295,64 +295,51 @@ Applicable to XML.")
 
 ;;;; Build parser syntax table
 
-(setq sgml-parser-syntax (make-syntax-table))
+(defconst sgml-parser-syntax
+  (let ((st (make-syntax-table)))
+    (dotimes (i 256)                    ;FIXME: Why 256 here and 128 for xml?
+      (modify-syntax-entry i " " st))
 
-(let ((i 0))
-  (while (< i 256)
-    (modify-syntax-entry i " " sgml-parser-syntax)
-    (setq i (1+ i))))
-
-;;http://list-archive.xemacs.org/xemacs-beta/200011/msg00117.html
-(mapconcat (function (lambda (c)
-	     (modify-syntax-entry c "w" sgml-parser-syntax)))
-	   ":ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrtsuvwxyz" "")
-(mapconcat (function (lambda (c)
-		       (modify-syntax-entry c "_" sgml-parser-syntax)))
-	   "-.0123456789" "")
-
-
-;;(progn (set-syntax-table sgml-parser-syntax) (describe-syntax))
+    ;;http://list-archive.xemacs.org/xemacs-beta/200011/msg00117.html
+    (mapc (lambda (c) (modify-syntax-entry c "w" st))
+          ":ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrtsuvwxyz")
+    (mapc (lambda (c) (modify-syntax-entry c "_" st))
+          "-.0123456789")
+    st))
 
 (defconst xml-parser-syntax
   (let ((tab (make-syntax-table)))
-    (let ((i 0))
-      (while (< i 128)
-	(modify-syntax-entry i " " tab)
-	(setq i (1+ i))))
-    (mapconcat (function (lambda (c)
-			   (modify-syntax-entry c "w" tab)))
-	       "_:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrtsuvwxyz" "")
-    (mapconcat (function (lambda (c)
-			   (modify-syntax-entry c "_" tab)))
-	       ;; Fixme: what's the non-ASCII character doing here?  -- fx
-	       "-.0123456789·" "")
+    (dotimes (i 128)                    ;FIXME: Why 128 here and 256 for sgml?
+      (modify-syntax-entry i " " tab))
+    (mapc (lambda (c) (modify-syntax-entry c "w" tab))
+          "_:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrtsuvwxyz")
+    (mapc (lambda (c) (modify-syntax-entry c "_" tab))
+          ;; Fixme: what's the non-ASCII character doing here?  -- fx
+          "-.0123456789Â·")
     tab))
 
-;;(progn (set-syntax-table xml-parser-syntax) (describe-syntax))
-
 (defmacro sgml-with-parser-syntax (&rest body)
-  `(let ((normal-syntax-table (syntax-table))
-         (cb (current-buffer)))
-     (set-syntax-table (if sgml-xml-p xml-parser-syntax sgml-parser-syntax))
-     (unwind-protect
-         (progn ,@body)
-       (setq sgml-last-buffer (current-buffer))
-       (set-buffer cb)
-       (set-syntax-table normal-syntax-table))))
+  (declare (debug t))
+  `(let ((cb (current-buffer)))
+     (with-syntax-table (if sgml-xml-p xml-parser-syntax sgml-parser-syntax)
+       (unwind-protect
+           (progn ,@body)
+         (setq sgml-last-buffer (current-buffer))
+         (set-buffer cb)))))
 
 (defmacro sgml-with-parser-syntax-ro (&rest body)
+  (declare (debug t))
   ;; Should only be used for parsing ....
-  `(let ((normal-syntax-table (syntax-table))
-         (cb (current-buffer))
+  ;; FIXME: Use `with-silent-modifications'?
+  `(let ((cb (current-buffer))
          (buffer-modified (buffer-modified-p)))
-     (set-syntax-table (if sgml-xml-p xml-parser-syntax sgml-parser-syntax))
-     (unwind-protect
-         (progn ,@body)
-       (setq sgml-last-buffer (current-buffer))
-       (set-buffer cb)
-       (set-syntax-table normal-syntax-table)
-       (sgml-restore-buffer-modified-p buffer-modified)
-       (sgml-debug "Restoring buffer mod: %s" buffer-modified))))
+     (with-syntax-table (if sgml-xml-p xml-parser-syntax sgml-parser-syntax)
+       (unwind-protect
+           (progn ,@body)
+         (setq sgml-last-buffer (current-buffer))
+         (set-buffer cb)
+         (unless buffer-modified (restore-buffer-modified-p buffer-modified))
+         (sgml-debug "Restoring buffer mod: %s" buffer-modified)))))
 
 (defvar mc-flag)
 
@@ -522,7 +509,7 @@ Applicable to XML.")
 
 (defun sgml-final-and (state)
   (and (sgml-final (sgml-and-state-substate state))
-       (loop for s in (sgml-and-state-dfas state)
+       (cl-loop for s in (sgml-and-state-dfas state)
 	     always (sgml-state-final-p s))
        (sgml-state-final-p (sgml-and-state-next state))))
 
@@ -580,7 +567,7 @@ If this is not possible, but all DFAS are final, move by TOKEN in NEXT."
   (if (sgml-normal-state-p state)
       (sgml-tokens-of-moves (sgml-state-reqs state))
     (or (sgml-required-tokens (sgml-and-state-substate state))
-        (loop for s in (sgml-and-state-dfas state)
+        (cl-loop for s in (sgml-and-state-dfas state)
               nconc (sgml-tokens-of-moves (sgml-state-reqs s)))
         (sgml-tokens-of-moves (sgml-state-reqs (sgml-and-state-next state))))))
 
@@ -590,9 +577,9 @@ If this is not possible, but all DFAS are final, move by TOKEN in NEXT."
     (nconc
      (sgml-optional-tokens (sgml-and-state-substate state))
      (if (sgml-final (sgml-and-state-substate state))
-	 (loop for s in (sgml-and-state-dfas state)
+	 (cl-loop for s in (sgml-and-state-dfas state)
 	       nconc (sgml-tokens-of-moves (sgml-state-opts s))))
-     (if (loop for s in (sgml-and-state-dfas state)
+     (if (cl-loop for s in (sgml-and-state-dfas state)
                always (sgml-state-final-p s))
 	 (sgml-tokens-of-moves
 	  (sgml-state-opts (sgml-and-state-next state)))))))
@@ -852,7 +839,7 @@ If ATTSPEC is nil, nil is returned."
 ;; dependencies = file*
 ;; merged = Compiled-DTD?  where  Compiled-DTD = (file, DTD)
 
-(defstruct (sgml-dtd
+(cl-defstruct (sgml-dtd
 	    (:type vector)
 	    (:constructor sgml-make-dtd  (doctype)))
   doctype				; STRING, name of doctype
@@ -902,7 +889,7 @@ If ATTSPEC is nil, nil is returned."
 (defmacro sgml-prop-fields (&rest names)
   (cons
    'progn
-   (loop for n in names collect
+   (cl-loop for n in names collect
 	 `(defmacro ,(intern (format "sgml-eltype-%s" n)) (et)
 	     (list 'get et '',n)))))
 
@@ -922,28 +909,22 @@ If ATTSPEC is nil, nil is returned."
   `(symbol-value ,et))
 
 (defun sgml-eltype-model (et)
+  (declare (gv-setter fset))
   (if (fboundp et)
       (symbol-function et)
     sgml-any))
 
-(defsetf sgml-eltype-model fset)
-
-
 (defun sgml-eltype-stag-optional (et)
+  (declare (gv-setter (lambda (f) (list 'sgml-set-eltype-flag et 1 f))))
   (= 1 (logand (sgml-eltype-flags et) 1)))
 
 (defun sgml-eltype-etag-optional (et)
+  (declare (gv-setter (lambda (f) (list 'sgml-set-eltype-flag et 2 f))))
   (/= 0 (logand 2 (sgml-eltype-flags et))))
 
 (defsubst sgml-eltype-mixed (et)
+  (declare (gv-setter (lambda (f) (list 'sgml-set-eltype-flag et 4 f))))
   (< 3 (sgml-eltype-flags et)))
-
-(defsetf sgml-eltype-stag-optional (et) (f)
-  (list 'sgml-set-eltype-flag et 1 f))
-(defsetf sgml-eltype-etag-optional (et) (f)
-  (list 'sgml-set-eltype-flag et 2 f))
-(defsetf sgml-eltype-mixed (et) (f)
-  (list 'sgml-set-eltype-flag et 4 f))
 
 (defun sgml-set-eltype-flag (et mask f)
   (setf (sgml-eltype-flags et)
@@ -956,10 +937,12 @@ If ATTSPEC is nil, nil is returned."
 (defun sgml-maybe-put (sym prop val)
   (when val (put sym prop val)))
 
-(defsetf sgml-eltype-includes (et) (l)
+;; FIXME: These are somewhat redundant, since setf will automatically
+;; use `put' for those by default anyway.
+(gv-define-setter sgml-eltype-includes (l et)
   (list 'sgml-maybe-put et ''includes l))
 
-(defsetf sgml-eltype-excludes (et) (l)
+(gv-define-setter sgml-eltype-excludes (l et)
   (list 'sgml-maybe-put et ''excludes l))
 
 (defmacro sgml-eltype-appdata (et prop)
@@ -969,7 +952,7 @@ includes, excludes, conref-regexp, mixed, stag-optional, etag-optional."
   `(get ,et ,prop))
 
 (defun sgml-eltype-all-miscdata (et)
-  (loop for p on (symbol-plist et) by (function cddr)
+  (cl-loop for p on (symbol-plist et) by (function cddr)
 	unless (memq (car p) '(model flags includes excludes))
 	nconc (list (car p) (cadr p))))
 
@@ -990,7 +973,7 @@ includes, excludes, conref-regexp, mixed, stag-optional, etag-optional."
   (make-vector 73 0))
 
 (defun sgml-eltype-table-empty (eltype-table)
-  (loop for x across eltype-table always (eq x 0)))
+  (cl-loop for x across eltype-table always (eq x 0)))
 
 (defun sgml-merge-eltypes (eltypes1 eltypes2)
   "Return the merge of two element type tables ELTYPES1 and ELTYPES2.
@@ -1018,7 +1001,7 @@ This may change ELTYPES1, ELTYPES2 is unchanged.  Returns the new table."
 
 (defun sgml-eltype-completion-table (eltypes)
   "Make a completion table from a list, ELTYPES, of element types."
-  (loop for et in eltypes as name = (sgml-eltype-name et)
+  (cl-loop for et in eltypes as name = (sgml-eltype-name et)
 	if (boundp et)
 	collect (cons name name)))
 
@@ -1097,20 +1080,20 @@ or 2: two octets (n,m) interpreted as  (n-t-1)*256+m+t."
   (aref sgml-read-nodes (sgml-read-octet)))
 
 (defun sgml-read-model-seq ()
-  (loop repeat (sgml-read-number) collect (sgml-read-model)))
+  (cl-loop repeat (sgml-read-number) collect (sgml-read-model)))
 
 (defun sgml-read-token-seq ()
-  (loop repeat (sgml-read-number) collect (sgml-read-token)))
+  (cl-loop repeat (sgml-read-number) collect (sgml-read-token)))
 
 (defun sgml-read-moves ()
-  (loop repeat (sgml-read-number)
+  (cl-loop repeat (sgml-read-number)
 	collect (sgml-make-move (sgml-read-token) (sgml-read-node-ref))))
 
 (defun sgml-read-model ()
   (let* ((n (sgml-read-number))
 	 (sgml-read-nodes (make-vector n nil)))
-    (loop for i below n do (aset sgml-read-nodes i (sgml-make-state)))
-    (loop for e across sgml-read-nodes do
+    (cl-loop for i below n do (aset sgml-read-nodes i (sgml-make-state)))
+    (cl-loop for e across sgml-read-nodes do
 	  (cond ((eq 255 (sgml-read-peek))	; a and-node
 		 (sgml-read-octet)		; skip
 		 (setf (sgml-and-node-next e) (sgml-read-node-ref))
@@ -1202,14 +1185,14 @@ or 2: two octets (n,m) interpreted as  (n-t-1)*256+m+t."
       (setq sgml-loaded-dtd real-file))))
 
 ;;;; Binary coded DTD module
-;;; Works on the binary coded compiled DTD (bdtd)
+;; Works on the binary coded compiled DTD (bdtd)
 
-;;; bdtd-load: cfile dtdfile ents -> bdtd
-;;; bdtd-merge: bdtd dtd -> dtd?
-;;; bdtd-read-dtd: bdtd -> dtd
+;; bdtd-load: cfile dtdfile ents -> bdtd
+;; bdtd-merge: bdtd dtd -> dtd?
+;; bdtd-read-dtd: bdtd -> dtd
 
-;;; Implement by letting bdtd be implicitly the current buffer and
-;;; dtd implicit in sgml-dtd-info.
+;; Implement by letting bdtd be implicitly the current buffer and
+;; dtd implicit in sgml-dtd-info.
 
 (defun sgml-bdtd-load (cfile dtdfile ents)
   "Load the compiled dtd from CFILE into the current buffer.
@@ -1237,7 +1220,7 @@ settings in ENTS."
 If DEPENDENCIES contains the symbol t, FILE is not considered newer."
   (if (memq t dependencies)
       nil
-    (loop for f in dependencies
+    (cl-loop for f in dependencies
 	  always (file-newer-than-file-p file f))))
 
 (defun sgml-compile-dtd (dtd-file to-file ents)
@@ -1251,7 +1234,7 @@ buffer is assumed to be empty to start with."
 	 (sgml-parsing-dtd t))
     (push dtd-file
 	  (sgml-dtd-dependencies sgml-dtd-info))
-    (loop for (name . val) in ents
+    (cl-loop for (name . val) in ents
 	  do (sgml-entity-declare name parameters 'text val))
     (sgml-push-to-entity dtd-file)
     (sgml-check-dtd-subset)
@@ -1263,7 +1246,7 @@ buffer is assumed to be empty to start with."
 
 (defun sgml-check-entities (params1 params2)
   "Check that PARAMS1 is compatible with PARAMS2."
-  (block check-entities
+  (cl-block check-entities
     (sgml-map-entities
      (function (lambda (entity)
 		 (let ((other
@@ -1277,7 +1260,7 @@ buffer is assumed to be empty to start with."
 		      (sgml-entity-name entity)
 		      (sgml-entity-text other)
 		      (sgml-entity-text entity))
-		     (return-from check-entities nil)))))
+		     (cl-return-from check-entities nil)))))
      params1)
     t))
 
@@ -1311,11 +1294,11 @@ was successful or nil if failed."
 	   (setq temp (sgml-read-number)) ; # eltypes
 	   (setq sgml-read-token-vector (make-vector (1+ temp) nil))
 	   (aset sgml-read-token-vector 0 sgml-pcdata-token)
-	   (loop for i from 1 to temp do
+	   (cl-loop for i from 1 to temp do
 		 (aset sgml-read-token-vector i
 		       (sgml-lookup-eltype (sgml-read-sexp))))
 	   ;; Element type descriptions
-	   (loop for i from 1 to (sgml-read-number) do
+	   (cl-loop for i from 1 to (sgml-read-number) do
 		 (sgml-read-element (aref sgml-read-token-vector i)))
 	   (sgml-merge-entity-tables (sgml-dtd-entities sgml-dtd-info)
 				     (sgml-read-sexp))
@@ -1417,11 +1400,12 @@ CONTEXT.  Applicable values for CONTEXT is
 `digit' -- any Digit,
 string -- delimiter with that name,
 list -- any of the contextual constraints in the list."
+  (declare (debug (sexp &optional sexp sexp sexp)))
 
   (or offset (setq offset 0))
   (setq delim (upcase (format "%s" delim)))
   (let ((ds (sgml-get-delim-string delim)))
-    (assert ds)
+    (cl-assert ds)
     (cond ((eq context 'gi)
 	   (setq context '(nmstart stagc)))
 	  ((eq context 'com)
@@ -1432,11 +1416,11 @@ list -- any of the contextual constraints in the list."
 	   (setq context (list context))))
     `(if (and                        ; This and checks that characters
 					; of the delimiter
-          ,@(loop for i from 0 below (length ds) collect
+          ,@(cl-loop for i from 0 below (length ds) collect
                   `(eq ,(aref ds i)
                        (sgml-following-char ,(+ i offset))))
           (or
-           ,@(loop
+           ,@(cl-loop
               for c in context collect  ; context check
               (cond
                ((eq c 'nmstart)         ; name start character
@@ -1470,9 +1454,11 @@ list -- any of the contextual constraints in the list."
 		    delim (sgml-get-delim-string delim)))
 
 (defmacro sgml-parse-delim (delim &optional context)
+  (declare (debug (sexp &optional sexp)))
   `(sgml-is-delim ,delim ,context move))
 
 (defmacro sgml-check-delim (delim &optional context)
+  (declare (debug (sexp sexp)))
   `(sgml-is-delim ,delim ,context check))
 
 (defmacro sgml-skip-upto (delim)
@@ -1481,14 +1467,15 @@ If DELIM is a string/symbol this is should be a delimiter role.
 Characters are skipped until the delimiter is recognized.
 If DELIM is a list of delimiters, skip until a character that is first
 in any of them."
+  (declare (debug (sexp)))
   (cond
    ((consp delim)
     (list 'skip-chars-forward
 	  (concat "^"
-		  (loop for d in delim
+		  (cl-loop for d in delim
 			concat (let ((ds (member (upcase (format "%s" d))
 						 sgml-delimiters)))
-				 (assert ds)
+				 (cl-assert ds)
 				 (let ((s (substring (cadr ds) 0 1)))
 				   (if (member s '("-" "\\"))
 				       (concat "\\" s)
@@ -1507,12 +1494,12 @@ in any of them."
 
 
 ;;;; General lexical functions
-;;; Naming conventions
-;;; sgml-parse-xx  try to parse xx, return nil if can't else return
-;;;		   some propriate non-nil value.
-;;;                Except: for name/nametoken parsing, return 0 if can't.
-;;; sgml-check-xx  require xx, report error if can't parse.  Return
-;;;                aproporiate value.
+;; Naming conventions
+;; sgml-parse-xx  try to parse xx, return nil if can't else return
+;;		   some propriate non-nil value.
+;;                Except: for name/nametoken parsing, return 0 if can't.
+;; sgml-check-xx  require xx, report error if can't parse.  Return
+;;                aproporiate value.
 
 (defmacro sgml-parse-char (char)
   `(cond ((eq ,char (following-char))
@@ -1584,7 +1571,7 @@ in any of them."
     string))
 
 (defun sgml-parse-set-appflag (flagsym)
-  (loop for name = (sgml-parse-name)
+  (cl-loop for name = (sgml-parse-name)
         while name
         for et = (sgml-lookup-eltype name)
         do (setf (sgml-eltype-appdata et flagsym) t)
@@ -1660,22 +1647,35 @@ in any of them."
 ;;[lenst/1998-03-09 19:52:08]  Perhaps not the right place
 (defun sgml-general-insert-case (text)
   (if sgml-namecase-general
-      (case sgml-general-insert-case
-        (upper (upcase text))
-        (lower (downcase text))
-        (t text))
+      (pcase sgml-general-insert-case
+        (`upper (upcase text))
+        (`lower (downcase text))
+        (_ text))
     text))
 
 (defun sgml-entity-insert-case  (text)
   (if sgml-namecase-entity
-      (case sgml-entity-insert-case
-        (upper (upcase text))
-        (lower (downcase text))
-        (t text))
+      (pcase sgml-entity-insert-case
+        (`upper (upcase text))
+        (`lower (downcase text))
+        (_ text))
     text))
 
 
 (defun sgml-parse-name (&optional entity-name)
+  (declare
+   (compiler-macro
+    (lambda (form)
+      (cond
+       ((memq entity-name '(nil t))
+        `(if (sgml-startnm-char-next)
+             (,(if entity-name 'sgml-entity-case 'sgml-general-case)
+              (buffer-substring-no-properties (point)
+                                              (progn (skip-syntax-forward "w_")
+                                                     (point))))))
+       (t
+        form)))))
+
   (if (sgml-startnm-char-next)
       (let ((name (buffer-substring-no-properties
 		   (point)
@@ -1685,16 +1685,6 @@ in any of them."
 	    (sgml-entity-case name)
 	  (sgml-general-case name)))))
 
-(define-compiler-macro sgml-parse-name (&whole form &optional entity-name)
-  (cond
-   ((memq entity-name '(nil t))
-    `(if (sgml-startnm-char-next)
-	   (,(if entity-name 'sgml-entity-case 'sgml-general-case)
-	    (buffer-substring-no-properties (point)
-					    (progn (skip-syntax-forward "w_")
-						   (point))))))
-   (t
-    form)))
 
 
 (defsubst sgml-check-name (&optional entity-name)
@@ -1927,7 +1917,7 @@ is not already in upper case."
 
 ;;;; Entity Manager
 
-(defstruct (sgml-entity
+(cl-defstruct (sgml-entity
 	    (:type list)
 	    (:constructor sgml-make-entity (name type text &optional notation)))
   name					; Name of entity (string)
@@ -1942,12 +1932,11 @@ is not already in upper case."
   (not (eq (sgml-entity-type entity) 'text)))
 
 (defun sgml-entity-marked-undefined-p (entity)
+  (declare (gv-setter (lambda (val)
+                        ;; `(setf (nthcdr 4 ,entity) ,val)
+                        `(progn (setcdr (nthcdr 3 ,entity) ,val)
+                                ,entity))))
   (nthcdr 4 entity))
-
-(defsetf sgml-entity-marked-undefined-p (entity) (val)
-  ;; `(setf (nthcdr 4 ,entity) ,val)
-  `(progn (setcdr (nthcdr 3 ,entity) ,val)
-	  ,entity))
 
 
 
@@ -1986,7 +1975,7 @@ If NAME is nil, this defines the default entity."
 (defun sgml-map-entities (fn entity-table &optional collect)
   (if collect
       (mapcar fn (cdr entity-table))
-    (loop for e in (cdr entity-table) do (funcall fn e))))
+    (cl-loop for e in (cdr entity-table) do (funcall fn e))))
 
 (defun sgml-merge-entity-tables (tab1 tab2)
   "Merge entity table TAB2 into TAB1.  TAB1 is modified."
@@ -2021,7 +2010,7 @@ representation of the catalog."
    (file-readable-p file)
    (let ((c (assoc file (symbol-value cache-var)))
 	 (modtime (elt (file-attributes (file-truename file)) 5)))
-     (if (and c (equal (second c) modtime))
+     (if (and c (equal (cadr c) modtime))
 	 (cddr c)
        (when c (set cache-var (delq c (symbol-value cache-var))))
        (let (new)
@@ -2073,20 +2062,20 @@ catalogs to use."
 					     (sgml-main-directory))
 			   (if (null cat) "empty/non existent" "exists"))
         (when sysid                     ; SYSTEM has first call
-          (loop for (key cname cfile) in cat while (not file) do
+          (cl-loop for (key cname cfile) in cat while (not file) do
 		(when (and (eq 'system key) (string= sysid cname))
 		  (sgml-trace-lookup "  >> %s [by system]" cfile)
                   (setq file cfile))))
 	(when pubid
 	  ;; Giv PUBLIC entries priority over ENTITY and DOCTYPE
-	  (loop for (key cname cfile) in cat while (not file) do
+	  (cl-loop for (key cname cfile) in cat while (not file) do
 		(when (and (or override (not sysid))
                            (eq 'public key) (string= pubid cname))
 		  (when (file-readable-p cfile) (setq file cfile))
 		  (sgml-trace-lookup "  >> %s [by pubid]%s"
 				     cfile (if file "" " !unreadable")))
                 (when (eq key 'override) (setq override cname))))
-        (loop for (key cname cfile) in cat while (not file) do
+        (cl-loop for (key cname cfile) in cat while (not file) do
               (when (eq 'catalog key) (push cfile additional))
               (when (and (or override (not sysid))
                          (eq type key)
@@ -2115,7 +2104,7 @@ catalogs to use."
 						  ((eq type 'param) "parm")
 						  (t "sgml"))))))
     (sgml-debug "Ext. file subst. = %S" subst)
-    (loop for cand in sgml-public-map
+    (cl-loop for cand in sgml-public-map
 	  thereis
 	  (and (setq cand (sgml-subst-expand cand subst))
 	       (file-readable-p
@@ -2154,7 +2143,7 @@ Returns nil if entity is not found."
   (let* ((pubid (sgml-extid-pubid extid))
 	 (sysid (sgml-extid-sysid extid)))
     (or (if sysid
-	    (loop for fn in sgml-sysid-resolve-functions
+	    (cl-loop for fn in sgml-sysid-resolve-functions
 		  thereis (funcall fn sysid)))
 	(let ((file (sgml-external-file extid type name)))
 	  (and file (insert-file-contents file)))
@@ -2178,7 +2167,7 @@ Returns nil if entity is not found."
   "Parse all entries in a catalogue."
   (let ((sgml-xml-p nil))
     (sgml-trace-lookup "  (Parsing catalog)")
-    (loop
+    (cl-loop
      while (sgml-skip-cs)
      for type = (downcase (sgml-check-cat-literal))
      for class = (cdr (assoc type '(("public" . public) ("dtddecl" . public)
@@ -2272,11 +2261,11 @@ Skips any leading spaces/comments."
   (cdr-safe (assq (downcase c) parts)))
 
 (defun sgml-subst-expand (s parts)
-  (loop for i from 0 to (1- (length s))
+  (cl-loop for i from 0 to (1- (length s))
 	as c = (aref s i)
 	concat (if (eq c ?%)
-		   (or (sgml-subst-expand-char (aref s (incf i)) parts)
-		       (return nil))
+		   (or (sgml-subst-expand-char (aref s (cl-incf i)) parts)
+		       (cl-return nil))
 		 (char-to-string (aref s i)))))
 
 (defun sgml-matched-string (string n &optional regexp noerror)
@@ -2303,15 +2292,13 @@ Skips any leading spaces/comments."
       (sgml-external-file nil 'sgmldecl)))
 
 (defun sgml-in-file-eval (file expr)
-  (let ((cb (current-buffer)))
-    (set-buffer (find-file-noselect file))
-    (prog1 (eval expr)
-      (set-buffer cb))))
+  (with-current-buffer (find-file-noselect file)
+    (eval expr)))
 
 
 ;;;; Entity references and positions
 
-(defstruct (sgml-eref
+(cl-defstruct (sgml-eref
 	    (:constructor sgml-make-eref (entity start end))
 	    (:type list))
   entity
@@ -2430,16 +2417,16 @@ text.  Otherwise buffer position will be after entity reference."
 (defun sgml-ecat-lookup (files pubid file)
   "Return (file . ents) or nil."
   (let ((params (sgml-dtd-parameters sgml-dtd-info)))
-    (loop
+    (cl-loop
      for f in files
      do (sgml-debug "Search ECAT %s" f)
      thereis
-     (loop
+     (cl-loop
       for (type name cfile . ents) in (sgml-load-ecat f)
       thereis
       (if (and (cond ((eq type 'public) (equal name pubid))
 		     ((eq type 'file)   (equal name file)))
-	       (loop for (name . val) in ents
+	       (cl-loop for (name . val) in ents
 		     for entity = (sgml-lookup-entity name params)
 		     always (and entity
 				 (equal val (sgml-entity-text entity)))))
@@ -2478,7 +2465,7 @@ text.  Otherwise buffer position will be after entity reference."
     (sgml-debug "Merging special case")
     ;; Look for a compiled dtd in some other buffer
     (let ((cb (current-buffer)))
-      (loop for b in (buffer-list)
+      (cl-loop for b in (buffer-list)
 	    until
 	    (progn (set-buffer b)
 		   (and sgml-buffer-parse-state
@@ -2522,7 +2509,7 @@ overrides the entity type in entity look up."
     ;; don't consider a RS shortref here again
     (setq sgml-rs-ignore-pos ref-start))
   (unless (and sgml-scratch-buffer
-	       (buffer-name sgml-scratch-buffer)
+	       (buffer-live-p sgml-scratch-buffer)
 	       ;; An existing buffer may have been left unibyte by
 	       ;; processing a cdtd.
                ;; FIXME: looks strange, we haven't changed bufferw yet
@@ -2540,19 +2527,16 @@ overrides the entity type in entity look up."
 			      (sgml-epos (point)))))
     (set-buffer sgml-scratch-buffer)
     (when (eq sgml-scratch-buffer (default-value 'sgml-scratch-buffer))
-      (make-local-variable 'sgml-scratch-buffer)
-      (setq sgml-scratch-buffer nil))
+      (set (make-local-variable 'sgml-scratch-buffer) nil))
     (setq sgml-last-entity-buffer (current-buffer))
     (erase-buffer)
     (sgml-set-buffer-multibyte 'default)
     (setq default-directory dd)
     (set-visited-file-name nil t)
     (set (make-local-variable 'sgml-current-file) nil)
-    (make-local-variable 'sgml-current-eref)
-    (setq sgml-current-eref eref)
+    (set (make-local-variable 'sgml-current-eref) eref)
     (set-syntax-table syntax-table)
-    (make-local-variable 'sgml-previous-buffer)
-    (setq sgml-previous-buffer cb)
+    (set (make-local-variable 'sgml-previous-buffer) cb)
     (setq sgml-xml-p xml-p)
     (setq sgml-rs-ignore-pos		; don't interpret beginning of buffer
 					; as #RS if internal entity.
@@ -2600,7 +2584,7 @@ overrides the entity type in entity look up."
 	    (let* ((pubid (sgml-extid-pubid extid))
 		   (sysid (sgml-extid-sysid extid)))
 	      (or (if sysid		; try the sysid hooks
-		      (loop for fn in sgml-sysid-resolve-functions
+		      (cl-loop for fn in sgml-sysid-resolve-functions
 			    thereis (funcall fn sysid)))
 		  (progn
 		    ;; Mark entity as not found
@@ -2634,7 +2618,7 @@ overrides the entity type in entity look up."
 
 (defun sgml-goto-epos (epos)
   "Goto a position in an entity given by EPOS."
-  (assert epos)
+  (cl-assert epos)
   (cond ((sgml-bpos-p epos)
 	 (goto-char epos))
 	(t
@@ -2651,15 +2635,15 @@ overrides the entity type in entity look up."
 (defun sgml-cleanup-entities ()
   (let ((cb (current-buffer))
 	(n 0))
-    (while (and sgml-scratch-buffer (buffer-name sgml-scratch-buffer))
+    (while (and sgml-scratch-buffer (buffer-live-p sgml-scratch-buffer))
       (set-buffer sgml-scratch-buffer)
-      (assert (not (eq sgml-scratch-buffer
+      (cl-assert (not (eq sgml-scratch-buffer
 		       (default-value 'sgml-scratch-buffer))))
-      (incf n))
+      (cl-incf n))
     (while (> n 10)
       (set-buffer (prog1 sgml-previous-buffer
 		    (kill-buffer (current-buffer))))
-      (decf n))
+      (cl-decf n))
     (set-buffer cb)))
 
 (defun sgml-any-open-param/file ()
@@ -2670,7 +2654,7 @@ overrides the entity type in entity look up."
 
 ;;;; Parse tree
 
-(defstruct (sgml-tree
+(cl-defstruct (sgml-tree
 	    (:type vector)
 	    (:constructor sgml-make-tree
 			  (eltype stag-epos stag-len  parent level
@@ -2726,17 +2710,11 @@ overrides the entity type in entity look up."
 ;;;; (text) Element view of parse tree
 
 (defmacro sgml-alias-fields (orig dest &rest fields)
-  (let ((macs nil))
-    (while fields
-      (push
-       `(defmacro ,(intern (format "%s-%s" dest (car fields))) (element)
-          ,(format "Return %s field of ELEMENT." (car fields))
-          (list
-           ',(intern (format "%s-%s" orig (car fields)))
-           element))
-       macs)
-      (setq fields (cdr fields)))
-    (cons 'progn macs)))
+  `(progn
+     . ,(mapcar (lambda (field)
+                  `(defalias ',(intern (format "%s-%s" dest field))
+                     ',(intern (format "%s-%s" orig field))))
+                fields)))
 
 (sgml-alias-fields sgml-tree sgml-element
   eltype				; element object
@@ -2846,7 +2824,7 @@ overrides the entity type in entity look up."
 	       (or (and (boundp 'which-function-mode)
                         which-function-mode )
 		   sgml-set-face)
-	       (not (null sgml-buffer-parse-state))
+	       sgml-buffer-parse-state
 	       (sit-for 0))
       (let ((deactivate-mark nil))
 	(sgml-need-dtd)
@@ -2902,7 +2880,7 @@ overrides the entity type in entity look up."
 
 ;;;; Parser state
 
-(defstruct (sgml-pstate
+(cl-defstruct (sgml-pstate
 	    (:constructor sgml-make-pstate (dtd top-tree)))
   dtd
   top-tree)
@@ -2918,8 +2896,8 @@ overrides the entity type in entity look up."
 
 (defun sgml-set-initial-state (dtd)
   "Set initial state of parsing."
-  (add-hook 'before-change-functions 'sgml-note-change-at nil 'local)
-  (add-hook 'after-change-functions 'sgml-set-face-after-change nil 'local)
+  (add-hook 'before-change-functions #'sgml-note-change-at nil 'local)
+  (add-hook 'after-change-functions #'sgml-set-face-after-change nil 'local)
   (let ((top-type			; Fake element type for the top
 					; node of the parse tree
 	 (sgml-make-eltype "#DOC")	; was "Document (no element)"
@@ -2964,7 +2942,7 @@ WHERE is `after'."
 		 sgml-markup-start (- (point)
 				      (sgml-tree-etag-len sgml-current-tree)))
 	   (setq sgml-current-tree (sgml-tree-parent sgml-current-tree))))
-    (assert sgml-current-state)))
+    (cl-assert sgml-current-state)))
 
 (defsubst sgml-final-p (state)
   ;; Test if a state/model can be ended
@@ -3063,7 +3041,7 @@ entity hierarchy as possible."
 	  sgml-current-shortmap newmap
 	  sgml-current-tree nt
 	  sgml-previous-tree nil)
-    (assert sgml-current-state)
+    (cl-assert sgml-current-state)
     (setq sgml-markup-tree sgml-current-tree)
     (run-hook-with-args 'sgml-open-element-hook sgml-current-tree asl)
     (when (sgml-element-empty sgml-current-tree)
@@ -3101,7 +3079,7 @@ entity hierarchy as possible."
 	       sgml-current-state (sgml-tree-pstate sgml-current-tree)
 	       sgml-current-shortmap (sgml-tree-pshortmap sgml-current-tree)
 	       sgml-current-tree (sgml-tree-parent sgml-current-tree))
-	 (assert sgml-current-state))))
+	 (cl-assert sgml-current-state))))
 
 (defun sgml-fake-close-element (tree)
   (sgml-tree-parent tree))
@@ -3114,7 +3092,7 @@ entity hierarchy as possible."
       (when u
 	;;(message "%d" at)
         (when (and sgml-xml-p (> at (point-min)))
-          (when (eq ?/ (char-after (1- at)))
+          (when (eq ?/ (char-before at))
             (setq at (1- at))))
 	(while
 	    (cond
@@ -3205,9 +3183,9 @@ Where the latter represents end-tags."
 	      (nconc req
 		     (delq sgml-pcdata-token (sgml-optional-tokens state))))))
     ;; Modify for exceptions
-    (loop for et in (sgml-tree-includes tree) ;*** Tokens or eltypes?
+    (cl-loop for et in (sgml-tree-includes tree) ;*** Tokens or eltypes?
 	  unless (memq et elems) do (push et elems))
-    (loop for et in (sgml-tree-excludes tree)
+    (cl-loop for et in (sgml-tree-excludes tree)
 	  do (setq elems (delq et elems)))
     ;; Check for omitable start-tags
     (when (and sgml-omittag-transparent
@@ -3234,7 +3212,7 @@ Where the latter represents end-tags."
 		  (sgml-element-etag-optional tree))
 	(setq state (sgml-tree-pstate tree)
 	      tree (sgml-tree-parent tree))
-	(loop for e in (sgml-eltypes-in-state tree state) do
+	(cl-loop for e in (sgml-eltypes-in-state tree state) do
 	      (when (not (memq e elems))
 		(setq elems (nconc elems (list e)))))))
     ;; FIXME: Filter out elements that are undefined?
@@ -3267,8 +3245,7 @@ Where the latter represents end-tags."
   (let ((buf (get-buffer sgml-log-buffer-name)))
     (when buf
       (display-buffer buf)
-      (setq sgml-log-last-size (save-excursion (set-buffer buf)
-					       (point-max))))))
+      (setq sgml-log-last-size (with-current-buffer buf (point-max))))))
 
 (defun sgml-log-message (format &rest things)
   (let ((mess (apply #'format format things))
@@ -3285,8 +3262,7 @@ Where the latter represents end-tags."
   (let ((buf (get-buffer sgml-log-buffer-name)))
     (when buf
       (setq sgml-log-last-size
-	    (save-excursion (set-buffer buf)
-			    (point-max))))))
+	    (with-current-buffer buf (point-max))))))
 
 (defun sgml-clear-log ()
   (let ((b (get-buffer sgml-log-buffer-name)))
@@ -3309,7 +3285,7 @@ clear and remove it if it is showing."
 
 (defun sgml-log-entity-stack ()
   (save-excursion
-    (loop
+    (cl-loop
      do (sgml-log-message
          "%s line %s col %s %s"
          (or sgml-current-file (buffer-file-name) "-")
@@ -3392,9 +3368,9 @@ To avoid clearing message with out showing previous warning.")
 (defvar sgml-lazy-time 0)
 
 (defun sgml-lazy-message (&rest args)
-  (unless (= sgml-lazy-time (second (current-time)))
+  (unless (= sgml-lazy-time (cadr (current-time)))
     (apply #'message args)
-    (setq sgml-lazy-time (second (current-time)))))
+    (setq sgml-lazy-time (cadr (current-time)))))
 
 
 ;;;; Shortref maps
@@ -3448,7 +3424,7 @@ Where PAIRS is a list of (delim . ename)."
 	 (make-vector (1+ (length sgml-shortref-list))
 		      nil))
 	index)
-    (loop for p in pairs
+    (cl-loop for p in pairs
 	  for delim = (car p)
 	  for name = (cdr p)
 	  do
@@ -3462,9 +3438,8 @@ Where PAIRS is a list of (delim . ename)."
     ;; can be used to skip over pcdata
     (aset map
 	  (eval-when-compile (length sgml-shortref-list))
-	  (if (some (function
-		     (lambda (r) (aref map (sgml-shortref-index r))))
-		    '("\001B\n" "B\n" " " "BB"))
+	  (if (cl-some (lambda (r) (aref map (sgml-shortref-index r)))
+                       '("\001B\n" "B\n" " " "BB"))
 	      "^<]/& \n\t\"#%'()*+,\\-:;=@[]\\^_{|}~"
 	    "^<]/&\n\t\"#%'()*+,\\-:;=@[]\\^_{|}~"))
     map))
@@ -3476,7 +3451,7 @@ Where PAIRS is a list of (delim . ename)."
 
 
 (defconst sgml-shortref-oneassq
-  (loop for d in sgml-shortref-list
+  (cl-loop for d in sgml-shortref-list
 	for c = (aref d 0)
 	when (and (= 1 (length d))
 		  (/= 1 c) (/= 10 c))
@@ -3489,7 +3464,7 @@ Where PAIRS is a list of (delim . ename)."
   "Identify shortref delimiter at point and return entity name.
 Also move point.  Return nil, either if no shortref or undefined."
 
-  (macrolet
+  (cl-macrolet
       ((delim (x) `(aref map ,(sgml-shortref-index x))))
     (let ((i (if nobol 1 0)))
       (while (numberp i)
@@ -3867,9 +3842,9 @@ VALUE is a string.  Returns nil or an attdecl."
   (sgml-cleanup-entities)
   (when (null sgml-buffer-parse-state)	; first parse in this buffer
     ;;(sgml-set-initial-state)		; fall back DTD
-    (add-hook 'pre-command-hook 'sgml-reset-log)
-    (make-local-variable 'sgml-auto-fill-inhibit-function)
-    (setq sgml-auto-fill-inhibit-function (function sgml-in-prolog-p))
+    (add-hook 'pre-command-hook #'sgml-reset-log) ;FIXME: Why global?
+    (set (make-local-variable 'sgml-auto-fill-inhibit-function)
+         (function sgml-in-prolog-p))
     (if sgml-default-dtd-file
 	(sgml-load-dtd sgml-default-dtd-file)
       (sgml-load-doctype)))
@@ -3927,7 +3902,7 @@ Either from parent document or by parsing the document prolog."
 
     (when (consp (cdr modifier))	; There are "seen" elements
       (sgml-open-element et nil (point-min) (point-min))
-      (loop for seenel in (cadr modifier)
+      (cl-loop for seenel in (cadr modifier)
 	    do (let ((new-state (sgml-get-move sgml-current-state
 				    (sgml-lookup-eltype
                                      (sgml-general-case seenel)))))
@@ -4043,12 +4018,12 @@ If third argument QUIET is non-nil, no \"Parsing...\" message will be displayed.
 (defun sgml-parse-continue (goal &optional extra-cond quiet)
   "Parse until (at least) GOAL."
   (let ((sgml-goal goal))
-    (assert sgml-current-tree)
+    (cl-assert sgml-current-tree)
     (unless quiet
       (sgml-message "Parsing..."))
     (sgml-debug "Parse continue")
     (sgml-with-parser-syntax-ro
-     (set-buffer sgml-last-buffer)
+     (set-buffer sgml-last-buffer) ;FIXME:Doitbefore sgml-with-parser-syntax-ro!
      (sgml-parser-loop extra-cond))
     (unless quiet
       (sgml-message ""))))
@@ -4067,7 +4042,7 @@ pointing to start of short ref and point pointing to the end."
 	    sgml-current-state)))
 
 (defun sgml-execute-implied (imps type)
-  (loop for token in imps do
+  (cl-loop for token in imps do
 	(if (eq t token)
 	    (sgml-implied-end-tag type sgml-markup-start sgml-markup-start)
 	  (sgml-move-current-state token)
@@ -4118,61 +4093,56 @@ pointing to start of short ref and point pointing to the end."
   (sgml-set-markup-type nil))
 
 (defvar sgml-parser-loop-hook nil)
-(defvar sgml-parse-in-loop nil
-  "Non-nil means the body of `sgml-parser-loop' is executing.
-Thus lower-level functions don't need to use `sgml-with-modification-state'.")
+
 (defun sgml-parser-loop (extra-cond)
   (let (tem
-	(sgml-signal-data-function (function sgml-pcdata-move))
-	;; Speed up significantly by effectively hoisting
-	;; `sgml-with-modification-state' out of the loop.
-	(sgml-parse-in-loop t))
-    (sgml-with-modification-state
-    (while (and (eq sgml-current-tree sgml-top-tree)
-		(or (< (point) sgml-goal) sgml-current-eref)
-		(progn (setq sgml-markup-start (point)
-			     sgml-markup-type nil)
-		       (or (sgml-parse-s)
-			   (sgml-parse-markup-declaration 'prolog)
-			   (sgml-parse-processing-instruction)))))
-    (while (and (or (< (point) sgml-goal) sgml-current-eref)
-		(not (if extra-cond (funcall extra-cond))))
-      (assert sgml-current-tree)
-      (setq sgml-markup-start (point)
-	    sgml-markup-type nil)
-      (cond
-       ((eobp) (sgml-pop-entity))
-       ((and (or (eq sgml-current-state sgml-cdata)
-		 (eq sgml-current-state sgml-rcdata)))
-	(if (or (sgml-parse-delim "ETAGO" gi)
-		(sgml-is-enabled-net))
-	    (sgml-do-end-tag)
-	  (sgml-do-data sgml-current-state)))
-       ((and sgml-current-shortmap
-	     (or (setq tem (sgml-deref-shortmap sgml-current-shortmap
-						(eq (point)
-						    sgml-rs-ignore-pos)))
-		 ;; Restore position, to consider the delim for S+ or data
-		 (progn (goto-char sgml-markup-start)
-			nil)))
-	(setq sgml-rs-ignore-pos sgml-markup-start) ; don't reconsider RS
-	(funcall sgml-shortref-handler tem))
-       ((and (not (sgml-current-mixed-p))
-	     (sgml-parse-s sgml-current-shortmap)))
-       ((or (sgml-parse-delim "ETAGO" gi)
-	    (sgml-is-enabled-net))
-	(sgml-do-end-tag))
-       ((sgml-parse-delim "STAGO" gi)
-	(sgml-do-start-tag))
-       ((sgml-parse-general-entity-ref))
-       ((sgml-parse-markup-declaration nil))
-       ((sgml-parse-delim "MS-END")	; end of marked section
-	(sgml-set-markup-type 'ms-end))
-       ((sgml-parse-processing-instruction))
-       ((and sgml-parser-loop-hook
-             (run-hook-with-args-until-success 'sgml-parser-loop-hook)))
-       (t
-	(sgml-do-pcdata)))))))
+	(sgml-signal-data-function (function sgml-pcdata-move)))
+    (with-silent-modifications
+      (while (and (eq sgml-current-tree sgml-top-tree)
+                  (or (< (point) sgml-goal) sgml-current-eref)
+                  (progn (setq sgml-markup-start (point)
+                               sgml-markup-type nil)
+                         (or (sgml-parse-s)
+                             (sgml-parse-markup-declaration 'prolog)
+                             (sgml-parse-processing-instruction)))))
+      (while (and (or (< (point) sgml-goal) sgml-current-eref)
+                  (not (if extra-cond (funcall extra-cond))))
+        (cl-assert sgml-current-tree)
+        (setq sgml-markup-start (point)
+              sgml-markup-type nil)
+        (cond
+         ((eobp) (sgml-pop-entity))
+         ((and (or (eq sgml-current-state sgml-cdata)
+                   (eq sgml-current-state sgml-rcdata)))
+          (if (or (sgml-parse-delim "ETAGO" gi)
+                  (sgml-is-enabled-net))
+              (sgml-do-end-tag)
+            (sgml-do-data sgml-current-state)))
+         ((and sgml-current-shortmap
+               (or (setq tem (sgml-deref-shortmap sgml-current-shortmap
+                                                  (eq (point)
+                                                      sgml-rs-ignore-pos)))
+                   ;; Restore position, to consider the delim for S+ or data
+                   (progn (goto-char sgml-markup-start)
+                          nil)))
+          (setq sgml-rs-ignore-pos sgml-markup-start) ; don't reconsider RS
+          (funcall sgml-shortref-handler tem))
+         ((and (not (sgml-current-mixed-p))
+               (sgml-parse-s sgml-current-shortmap)))
+         ((or (sgml-parse-delim "ETAGO" gi)
+              (sgml-is-enabled-net))
+          (sgml-do-end-tag))
+         ((sgml-parse-delim "STAGO" gi)
+          (sgml-do-start-tag))
+         ((sgml-parse-general-entity-ref))
+         ((sgml-parse-markup-declaration nil))
+         ((sgml-parse-delim "MS-END")	; end of marked section
+          (sgml-set-markup-type 'ms-end))
+         ((sgml-parse-processing-instruction))
+         ((and sgml-parser-loop-hook
+               (run-hook-with-args-until-success 'sgml-parser-loop-hook)))
+         (t
+          (sgml-do-pcdata)))))))
 
 (defun sgml-handle-shortref (name)
   (sgml-set-markup-type 'shortref)
@@ -4230,7 +4200,7 @@ Thus lower-level functions don't need to use `sgml-with-modification-state'.")
     (sgml-tree-eltype sgml-previous-tree))
    ;; No sibling, last closed must be found in enclosing element
    (t
-    (loop named outer
+    (cl-loop named outer
 	  for current = sgml-current-tree then (sgml-tree-parent current)
 	  for parent  = (sgml-tree-parent current)
 	  do;; Search for a parent with a child before current
@@ -4238,9 +4208,9 @@ Thus lower-level functions don't need to use `sgml-with-modification-state'.")
 		(sgml-error "No previously closed element"))
 	  (unless (eq current (sgml-tree-content parent))
 	    ;; Search content of u for element before current
-	    (loop for c = (sgml-tree-content parent) then (sgml-tree-next c)
+	    (cl-loop for c = (sgml-tree-content parent) then (sgml-tree-next c)
 		  do (when (eq current (sgml-tree-next c))
-		       (return-from outer (sgml-tree-eltype c)))))))))
+		       (cl-return-from outer (sgml-tree-eltype c)))))))))
 
 
 (defun sgml-do-end-tag ()
@@ -4263,7 +4233,7 @@ Thus lower-level functions don't need to use `sgml-with-modification-state'.")
       (setq gi (sgml-eltype-name et))
       (setq found			; check if there is an open element
 					; with the right eltype
-	    (loop for u = sgml-current-tree then (sgml-tree-parent u)
+	    (cl-loop for u = sgml-current-tree then (sgml-tree-parent u)
 		  while u
 		  thereis (eq et (sgml-tree-eltype u))))
       (unless found
@@ -4476,7 +4446,7 @@ Returns parse tree; error if no element after POS."
   (unless (sgml-tree-etag-epos element)
     (sgml-debug "Failed to define end of element %s"
                 (sgml-element-gi element)))
-  (assert (sgml-tree-etag-epos element))
+  (cl-assert (sgml-tree-etag-epos element))
   (sgml-epos-promote (sgml-tree-etag-epos element)))
 
 (defun sgml-element-end (element)

@@ -1,13 +1,12 @@
-;;; psgml-ids.el --- Management of ID/IDREFS for PSGML
-;; $Id: psgml-ids.el,v 2.1 2005/02/09 15:29:09 lenst Exp $
+;;; psgml-ids.el --- Management of ID/IDREFS for PSGML  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999 Jean-Daniel Fekete
+;; Copyright (C) 1999, 2016  Free Software Foundation, Inc.
 
 ;; Author: Jean-Daniel Fekete <Jean-Daniel.Fekete@emn.fr>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -16,15 +15,13 @@
 ;; GNU General Public License for more details.
 ;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; Provides some extra functions to manage IDs and IDREFs in attibutes
 
 
-(provide 'psgml-ids)
 (require 'psgml)
 (require 'psgml-api)
 
@@ -93,3 +90,6 @@ specified"
   (let ((el (or element (sgml-top-element))))
     (sgml-map-element-modify (function sgml-ids-add-from) el)))
 
+
+(provide 'psgml-ids)
+;;; psgml-ids.el ends here

@@ -1,13 +1,12 @@
-;;; psgml-api.el --- Extra API functions for PSGML
-;; $Id: psgml-api.el,v 1.8 2002/04/25 20:50:27 lenst Exp $
+;;; psgml-api.el --- Extra API functions for PSGML  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994 Lennart Staflin
+;; Copyright (C) 1994, 2016  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -16,8 +15,7 @@
 ;; GNU General Public License for more details.
 ;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -27,10 +25,9 @@
 
 ;;; Code:
 
-(provide 'psgml-api)
 (require 'psgml)
 (require 'psgml-parse)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;; Mapping: map and modify
 
@@ -52,13 +49,13 @@ leaves the element with no start-tag some elements may be ignored."
       (cond
        ;; Map content if any
        ((setq next (sgml-element-content element))
-	(incf level))
+	(cl-incf level))
        ;; If in a sub-tree, move to next element
        (t
 	(while (and (> level 0)
 		    (null (setq next (sgml-element-next element))))
 	  (setq element (sgml-element-parent element))
-	  (decf level))))
+	  (cl-decf level))))
       (setq element next))))
 
 ;;;; Map content
@@ -105,6 +102,5 @@ of the new entity with point at the first character.
     Use `sgml-pop-entity' to exit from this buffer."
   (sgml-push-to-entity (sgml-make-entity "#STRING" 'text string)))
 
-
-
+(provide 'psgml-api)
 ;;; psgml-api.el ends here

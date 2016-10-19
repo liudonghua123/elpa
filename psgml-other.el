@@ -1,14 +1,12 @@
-;;;; psgml-other.el --- Part of SGML-editing mode with parsing support
-;; $Id: psgml-other.el,v 2.26 2005/05/19 19:42:48 lenst Exp $
+;;; psgml-other.el --- Part of SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994 Lennart Staflin
+;; Copyright (C) 1994, 2016 Free Software Foundation, Inc
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
-;; 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -17,21 +15,19 @@
 ;; GNU General Public License for more details.
 ;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-;;;; Commentary:
+;;; Commentary:
 
-;;; Part of psgml.el. Code not compatible with XEmacs.
+;; Part of psgml.el. Code not compatible with XEmacs.
 
 
-;;;; Code:
+;;; Code:
 
 (require 'psgml)
-(require 'psgml-parse)
 (require 'easymenu)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar sgml-max-menu-size (/ (* (frame-height) 2) 3)
   "*Max number of entries in Tags and Entities menus before they are split
@@ -41,10 +37,6 @@ into several panes.")
 ;;;; Key Commands
 
 ;; Doesn't this work in Lucid? ***
-(define-key sgml-mode-map [?\M-\C-\ ] 'sgml-mark-element)
-
-;;(define-key sgml-mode-map [S-mouse-3] 'sgml-tags-menu)
-(define-key sgml-mode-map [S-mouse-3] 'sgml-right-menu)
 
 
 ;;;; Pop Up Menus
@@ -64,12 +56,12 @@ STRING."
 
 
 (defun sgml-split-long-menus (menus)
-  (loop
+  (cl-loop
    for (title . entries) in menus
    nconc
    (cond
     ((> (length entries) sgml-max-menu-size)
-     (loop for i from 1 while entries
+     (cl-loop for i from 1 while entries
            collect
            (let ((submenu (copy-sequence entries)))
              (setcdr (nthcdr (1- (min (length entries) sgml-max-menu-size))
@@ -119,29 +111,8 @@ if the item is selected."
   "Non-nil means use text properties for highlighting, not overlays.
 Overlays are significantly less efficient in large buffers.")
 
-(eval-and-compile
-  (if (boundp 'inhibit-modification-hooks) ; Emacs 21
-      (defmacro sgml-with-modification-state (&rest body)
-	`(let ((modified (buffer-modified-p))
-	       (inhibit-read-only t)
-	       (inhibit-modification-hooks t)
-	       (buffer-undo-list t)
-	       (deactivate-mark nil))
-	   ,@body
-	   (when (not modified)
-	     (sgml-restore-buffer-modified-p nil))))
-    (defmacro sgml-with-modification-state (&rest body)
-      `(let ((modified (buffer-modified-p))
-	     (inhibit-read-only t)
-	     (after-change-functions nil)
-	     (before-change-functions nil)
-	     (buffer-undo-list t)
-	     (deactivate-mark nil))
-	 ,@body
-	 (when (not modified)
-	   (sgml-restore-buffer-modified-p nil))))))
-
-(defvar sgml-parse-in-loop)
+(defvar sgml-current-tree)
+(declare-function sgml-element-appdata "psgml-parse" (element prop))
 
 (defun sgml-set-face-for (start end type)
   (let ((face (cdr (assq type sgml-markup-faces))))
@@ -149,13 +120,15 @@ Overlays are significantly less efficient in large buffers.")
         (setq face (sgml-element-appdata sgml-current-tree 'face)))
     (cond
      (sgml-use-text-properties
-      ;; `sgml-with-modification-state' is rather expensive.  If we're
-      ;; in the parsing loop, hoist the job out of the loop.
-      (if (not sgml-parse-in-loop)
-	  (sgml-with-modification-state
-	   (put-text-property start end 'face face)
-	   (when (and sgml-default-nonsticky (< start end))
-	     (put-text-property (1- end) end 'rear-nonsticky '(face))))
+      ;; `with-silent-modifications' is rather expensive.
+      ;; Skip it if we're already within it.
+      ;; FIXME: A better fix would be to make sure all callers use
+      ;; with-silent-modifications.
+      (if (not inhibit-modification-hooks)
+	  (with-silent-modifications
+            (put-text-property start end 'face face)
+            (when (and sgml-default-nonsticky (< start end))
+              (put-text-property (1- end) end 'rear-nonsticky '(face))))
 	(put-text-property start end 'face face)
         (when (and sgml-default-nonsticky (< start end))
           (put-text-property (1- end) end 'rear-nonsticky '(face)))))
@@ -192,8 +165,9 @@ Overlays are significantly less efficient in large buffers.")
   ;; If inserting in front of an markup overlay, move that overlay.
   ;; this avoids the overlay beeing deleted and recreated by
   ;; sgml-set-face-for.
+  ;; FIXME: Use overlay's start insertion type instead!
   (when (and sgml-set-face (not sgml-use-text-properties))
-    (loop for o in (overlays-at start)
+    (cl-loop for o in (overlays-at start)
 	  do (cond
 	      ((not (overlay-get o 'sgml-type)))
 	      ((= start (overlay-start o))
@@ -210,12 +184,6 @@ Overlays are significantly less efficient in large buffers.")
   (dolist (o (overlays-in (point-min) (point-max)))
     (if (overlay-get o 'sgml-type)
 	(delete-overlay o))))
-
-
-;;;; Emacs before 19.29
-
-(unless (fboundp 'buffer-substring-no-properties)
-  (defalias 'buffer-substring-no-properties 'buffer-substring))
 
 
 ;;;; Provide

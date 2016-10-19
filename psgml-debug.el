@@ -1,18 +1,32 @@
+;;; psgml-debug.el --- ???  -*- lexical-binding:t -*-
+
+;; Copyright (C) 2016  Free Software Foundation, Inc.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License
+;; as published by the Free Software Foundation; either version 3
+;; of the License, or (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 ;;;;\filename psgml-debug.el
-;;;\Last edited: 2001-03-10 00:32:00 lenst
-;;;\RCS $Id: psgml-debug.el,v 2.31 2005/03/02 19:43:45 lenst Exp $
 ;;;\author {Lennart Staflin}
 ;;;\maketitle
 
 ;;\begin{codeseg}
-(provide 'psgml-debug)
 (require 'psgml)
 (require 'psgml-parse)
 (require 'psgml-edit)
 (require 'psgml-dtd)
+(eval-when-compile (require 'cl-lib))
 (autoload 'sgml-translate-model "psgml-dtd" "" nil)
 (eval-when-compile
-  (require 'cl)
   (require 'elp)
   (require 'edebug))
 
@@ -51,9 +65,7 @@
 
 (defun sgml-start-auto-dump ()
   (interactive)
-  (add-hook 'post-command-hook
-	    (function sgml-auto-dump)
-	    'append))
+  (add-hook 'post-command-hook #'sgml-auto-dump 'append))
 
 (defun sgml-comepos (epos)
   (if (sgml-strict-epos-p epos)
@@ -110,14 +122,6 @@
       edebug-print-circle nil
 )
 
-(eval-when (load)
-  (unless (featurep 'xemacs)
-    (def-edebug-spec sgml-with-parser-syntax (&rest form))
-    (def-edebug-spec sgml-with-parser-syntax-ro (&rest form))
-    (def-edebug-spec sgml-skip-upto (sexp))
-    (def-edebug-spec sgml-check-delim (sexp &optional sexp))
-    (def-edebug-spec sgml-parse-delim (sexp &optional sexp))
-    (def-edebug-spec sgml-is-delim (sexp &optional sexp sexp sexp))))
 
 ;;;; dump
 
@@ -128,7 +132,7 @@
   (with-output-to-temp-buffer "*DTD dump*"
     (princ (format "Dependencies: %S\n"
 		   (sgml-dtd-dependencies dtd)))
-    (loop for et being the symbols of (sgml-dtd-eltypes dtd)
+    (cl-loop for et being the symbols of (sgml-dtd-eltypes dtd)
 	  do (sgml-dp-element et))))
 
 (defun sgml-dump-element (el-name)
@@ -167,7 +171,7 @@
 (defun sgml-dp-model (model &optional indent)
   (or indent (setq indent 0))
   (let ((sgml-code-xlate (sgml-translate-model model)))
-    (loop
+    (cl-loop
      for i from 0
      for x in sgml-code-xlate do
      (cond ((sgml-normal-state-p (car x))
@@ -179,11 +183,11 @@
 	    (princ (format "%s%d: and-node next=%d\n"
 			   (make-string indent ? ) i
 			   (sgml-code-xlate (sgml-and-node-next (car x)))))
-	    (loop for m in (sgml-and-node-dfas (car x))
+	    (cl-loop for m in (sgml-and-node-dfas (car x))
 		  do (sgml-dp-model m (+ indent 2))))))))
 
 (defun sgml-untangel-moves (moves)
-  (loop for m in moves
+  (cl-loop for m in moves
 	collect (list (sgml-move-token m)
 		      (sgml-code-xlate (sgml-move-dest m)))))
 
@@ -206,7 +210,7 @@
     (princ (format "%s--next\n" (make-string indent ? )))
     (sgml-dp-state (sgml-and-state-next state)     (+ 2 indent))
     (princ (format "%s--dfas\n" (make-string indent ? )))
-    (loop for m in (sgml-and-state-dfas state)
+    (cl-loop for m in (sgml-and-state-dfas state)
 	  do (sgml-dp-model m (+ indent 2))
 	  (princ (format "%s--\n" (make-string indent ? )))))))
 
@@ -216,7 +220,7 @@
 (defun sgml-build-autoloads ()
   (interactive)
   (with-output-to-temp-buffer "*autoload*"
-    (loop
+    (cl-loop
      for file in '("psgml-parse" "psgml-edit" "psgml-dtd"
 		   "psgml-info" "psgml-charent")
      do
@@ -276,6 +280,8 @@
 
 ;;;; Profiling
 
+(require 'elp)
+
 (defun profile-sgml (&optional file)
   (interactive)
   (or file (setq file (expand-file-name "~/work/sigmalink/BBB/config/configspec.xml")))
@@ -283,7 +289,7 @@
   (sgml-need-dtd)
   (sgml-instrument-parser)
   (elp-reset-all)
-  (dotimes (i 5)
+  (dotimes (_ 5)
     (garbage-collect)
     (sgml-reparse-buffer (function sgml-handle-shortref)))
   (elp-results))
@@ -377,3 +383,6 @@
   (elp-instrument-list))
 
 ;\end{codeseg}
+
+(provide 'psgml-debug)
+;;; psgml-debug.el ends here

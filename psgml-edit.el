@@ -1,14 +1,12 @@
-;;; psgml-edit.el --- Editing commands for SGML-mode with parsing support
-;;
-;; $Id: psgml-edit.el,v 2.76 2005/05/19 19:35:00 lenst Exp $
+;;; psgml-edit.el --- Editing commands for SGML-mode with parsing support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1995, 1996 Lennart Staflin
+;; Copyright (C) 1994-1996, 2016  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -17,8 +15,7 @@
 ;; GNU General Public License for more details.
 ;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ;;;; Commentary:
@@ -28,11 +25,10 @@
 
 ;;;; Code:
 
-(provide 'psgml-edit)
 (require 'psgml)
 (require 'psgml-parse)
 (require 'psgml-ids)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; (eval-when-compile
 ;;   (setq byte-compile-warnings '(free-vars unresolved callargs redefine)))
@@ -203,7 +199,7 @@ a list using attlist TO."
   (let ((new-values nil)
 	(sgml-show-warnings t)
 	tem)
-    (loop for attspec in values 
+    (cl-loop for attspec in values 
 	  as from-decl = (sgml-lookup-attdecl (sgml-attspec-name attspec) from)
 	  as to-decl   = (sgml-lookup-attdecl (sgml-attspec-name attspec) to)
 	  do
@@ -265,18 +261,11 @@ If called from a program first two arguments are start and end of
 region. And optional third argument true unhides."
   (interactive "r\nP")
   (setq selective-display t)
-  ;; FIXME: Use `with-silent-modifications'.
-  (let ((mp (buffer-modified-p))
-	(inhibit-read-only t)
-        (before-change-functions nil)
-	(after-change-functions nil))
-    (unwind-protect
-        (subst-char-in-region beg end
-                              (if unhide ?\r ?\n)
-                              (if unhide ?\n ?\r)
-                              'noundo)
-      (when sgml-buggy-subst-char-in-region
-        (set-buffer-modified-p mp)))))
+  (with-silent-modifications
+    (subst-char-in-region beg end
+                          (if unhide ?\r ?\n)
+                          (if unhide ?\n ?\r)
+                          'noundo)))
 
 (defun sgml-fold-element ()
   "Fold the lines comprising the current element, leaving the first line visible.
@@ -499,7 +488,7 @@ Deprecated: ELEMENT"
       
       (cond ((sgml-final-p sgml-current-state)
 	     (princ "Valid end-tags : ")
-	     (loop for e in (sgml-current-list-of-endable-eltypes)
+	     (cl-loop for e in (sgml-current-list-of-endable-eltypes)
 		   do (princ (sgml-end-tag-of e)) (princ " "))
 	     (terpri))
 	    (t
@@ -557,7 +546,7 @@ Deprecated: ELEMENT"
     (princ prompt)
     (let ((col (length prompt))
 	  (w   (1- (frame-width))))
-      (loop for e in list
+      (cl-loop for e in list
 	    as str = (sgml-start-tag-of e)
 	    do
 	    (setq col (+ col (length str) 2))
@@ -609,7 +598,7 @@ Deprecated: ELEMENT"
 	 (el nil))
     (goto-char pos)
     (setq el (sgml-find-element-of pos))
-    (assert (not (null el)))
+    (cl-assert (not (null el)))
     (message "%s %s"
 	     (cond ((eq el sgml-top-tree)
 		    "outside document element")
@@ -661,7 +650,7 @@ tag inserted."
     (let ((completion-ignore-case sgml-namecase-general))
       (completing-read "Tag: " (sgml-completion-table) nil t "<" ))))
   (sgml-find-context-of (point))
-  (assert (null sgml-markup-type))
+  (cl-assert (null sgml-markup-type))
   ;; Fix white-space before tag
   (unless (sgml-element-data-p (sgml-parse-to-here))
     (skip-chars-backward " \t")
@@ -735,7 +724,7 @@ after the first tag inserted."
       newpos)))
 
 (defun sgml-default-asl (element)
-  (loop for attdecl in (sgml-element-attlist element)
+  (cl-loop for attdecl in (sgml-element-attlist element)
 	when (sgml-default-value-type-p (sgml-attdecl-default-value attdecl)
 					'REQUIRED)
 	collect
@@ -762,7 +751,7 @@ after the first tag inserted."
   "Insert the attributes with values AVL and declarations ATTLIST.
 AVL should be a assoc list mapping symbols to strings."
   (let (name val dcl def)
-    (loop for attspec in attlist do
+    (cl-loop for attspec in attlist do
 	  (setq name (sgml-attspec-name attspec)
 		val (cdr-safe (sgml-lookup-attspec name avl))
 		dcl (sgml-attdecl-declared-value attspec)
@@ -876,7 +865,7 @@ AVL should be a assoc list mapping symbols to strings."
 	(unless (assoc elt attlist)	; avoid duplicates
 	  (push (sgml-make-attdecl elt 'CDATA 'REQUIRED) attlist)))
       (setq attlist (nreverse attlist)))
-    (assert (sgml-bpos-p (sgml-element-stag-epos element)))
+    (cl-assert (sgml-bpos-p (sgml-element-stag-epos element)))
     (goto-char (sgml-element-start element))
     (delete-char (sgml-element-stag-len element))
     (sgml-insert-start-tag name asl attlist
@@ -888,7 +877,7 @@ AVL should be a assoc list mapping symbols to strings."
   "Return the attribute value read from user.
 ATTDECL is the attribute declaration for the attribute to read.
 CURVALUE is nil or a string that will be used as default value."
-  (assert attdecl)
+  (cl-assert attdecl)
   (let* ((name (sgml-attdecl-name attdecl))
 	 (dv (sgml-attdecl-declared-value attdecl))
 	 (tokens (sgml-declared-value-token-group dv))
@@ -940,7 +929,7 @@ CURVALUE is nil or a string that will be used as default value."
 	   (member string (sgml-id-alist))))))
 
 (defun sgml-non-fixed-attributes (attlist)
-  (loop for attdecl in attlist
+  (cl-loop for attdecl in attlist
 	unless (sgml-default-value-type-p 'FIXED 
 					  (sgml-attdecl-default-value attdecl))
 	collect attdecl))
@@ -968,8 +957,8 @@ CURVALUE is nil or a string that will be used as default value."
 	    (sgml-element-name el)
 	    (sgml-element-attval el name)))))
   ;; Body
-  (assert (stringp name))
-  (assert (or (null value) (stringp value)))
+  (cl-assert (stringp name))
+  (cl-assert (or (null value) (stringp value)))
   (let* ((el (sgml-find-attribute-element))
 	 (asl (cons (sgml-make-attspec name value)
 		    (sgml-element-attribute-specification-list el)))
@@ -988,7 +977,7 @@ of then current element."
 	  0))
   (let ((u (sgml-find-context-of (point)))
 	(start (point-marker)))
-    (loop repeat sgml-split-level do
+    (cl-loop repeat sgml-split-level do
 	  (goto-char (sgml-element-start u))
 	  (setq u (sgml-element-parent u)))
     ;; Verify that a new element can be started
@@ -1019,7 +1008,7 @@ of then current element."
   (interactive
    (list (completing-read "Insert DTD: " sgml-custom-dtd nil t)))
   (let ((entry (assoc doctype sgml-custom-dtd)))
-    (sgml-doctype-insert (second entry) (cddr entry))))
+    (sgml-doctype-insert (cadr entry) (cddr entry))))
 
 (defun sgml-custom-markup (markup)
   "Insert markup from the sgml-custom-markup alist."
@@ -1199,7 +1188,7 @@ buffers local variables list."
 	    (setq attlist (list (sgml-make-attdecl name 'CDATA nil))))))
     (or attlist
 	(error "No non-fixed attributes for element"))
-    (loop for attdecl in attlist
+    (cl-loop for attdecl in attlist
 	  for name = (sgml-attdecl-name attdecl)
 	  for defval = (sgml-attdecl-default-value attdecl)
 	  for tokens = (or (sgml-declared-value-token-group
@@ -1211,7 +1200,7 @@ buffers local variables list."
 	   (sgml-attdecl-name attdecl)
 	   (nconc
 	    (if tokens
-		(loop for val in tokens collect
+		(cl-loop for val in tokens collect
 		      (list val
 			    (list 'sgml-insert-attribute name val)))
 	      (list
@@ -1271,20 +1260,20 @@ after the first tag inserted."
                              (sgml-current-list-of-valid-eltypes))))
            (change-menu
             (cons "Change To"
-                  (loop for gi in alt-gi
-                        collect `(,gi (sgml-change-element-name ,gi))))))
+                  (cl-loop for gi in alt-gi
+                           collect `(,gi (sgml-change-element-name ,gi))))))
       (sgml-popup-multi-menu
        event "Start Tag"
-       (list* `("Action"
-                ("Edit attributes" (sgml-edit-attributes))
-                ("Normalize" (sgml-normalize-element))
-                ("Fill" (sgml-fill-element
-                         (sgml-find-context-of (point))))
-                ("Splice" (sgml-untag-element))
-                ("Fold"   (sgml-fold-element)))
-              change-menu
-              `("--" "--")
-              attrib-menu)))))
+       `(("Action"
+          ("Edit attributes" (sgml-edit-attributes))
+          ("Normalize" (sgml-normalize-element))
+          ("Fill" (sgml-fill-element
+                   (sgml-find-context-of (point))))
+          ("Splice" (sgml-untag-element))
+          ("Fold"   (sgml-fold-element)))
+         ,change-menu
+         ("--" "--")
+         . ,attrib-menu)))))
 
 
 
@@ -1416,14 +1405,10 @@ Editing is done in a separate window."
 	   (xml-p sgml-xml-p))
       (switch-to-buffer-other-window
        (sgml-attribute-buffer element asl))
-      (make-local-variable 'sgml-start-attributes)
-      (setq sgml-start-attributes start)
-      (make-local-variable 'sgml-always-quote-attributes)
-      (setq sgml-always-quote-attributes quote)
-      (make-local-variable 'sgml-main-buffer)
-      (setq sgml-main-buffer cb)
-      (make-local-variable 'sgml-xml-p)
-      (setq sgml-xml-p xml-p))))
+      (set (make-local-variable 'sgml-start-attributes) start)
+      (set (make-local-variable 'sgml-always-quote-attributes) quote)
+      (set (make-local-variable 'sgml-main-buffer) cb)
+      (set (make-local-variable 'sgml-xml-p) xml-p))))
 
 
 (defun sgml-effective-attlist (eltype)
@@ -1458,9 +1443,8 @@ Editing is done in a separate window."
     (with-current-buffer buf
       (erase-buffer)
       (sgml-edit-attrib-mode)
-      (make-local-variable 'sgml-attlist)
-      (setq sgml-attlist (sgml-effective-attlist
-                          (sgml-element-eltype element)))
+      (set (make-local-variable 'sgml-attlist)
+            (sgml-effective-attlist (sgml-element-eltype element)))
       (sgml-insert '(read-only t)
                    (substitute-command-keys
                     "<%s  -- Edit values and finish with \
@@ -1545,40 +1529,35 @@ Editing is done in a separate window."
   (insert ")"))
 
 
-(defvar sgml-edit-attrib-mode-map (make-sparse-keymap))
+(defvar sgml-edit-attrib-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'sgml-edit-attrib-finish)
+    (define-key map "\C-c\C-d" 'sgml-edit-attrib-default)
+    (define-key map "\C-c\C-k" 'sgml-edit-attrib-abort)
+    (define-key map "\C-a"  'sgml-edit-attrib-field-start)
+    (define-key map "\C-e"  'sgml-edit-attrib-field-end)
+    (define-key map "\t"  'sgml-edit-attrib-next)
+    map))
 
 ;; used as only for #DEFAULT in attribute editing. Binds all normally inserting
 ;; keys to a command that will clear the #DEFAULT before doing self-insert.
 (defvar sgml-attr-default-keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map sgml-edit-attrib-mode-map)
-    (substitute-key-definition 'self-insert-command
-                               'sgml-attr-clean-and-insert
-                               map
-                               global-map)
-    (put 'sgml-default 'local-map map)))
+    (define-key map [remap self-insert-command] 'sgml-attr-clean-and-insert)
+    map))
 
-(define-key sgml-edit-attrib-mode-map "\C-c\C-c" 'sgml-edit-attrib-finish)
-(define-key sgml-edit-attrib-mode-map "\C-c\C-d" 'sgml-edit-attrib-default)
-(define-key sgml-edit-attrib-mode-map "\C-c\C-k" 'sgml-edit-attrib-abort)
+(put 'sgml-default 'local-map sgml-attr-default-keymap)
 
-(define-key sgml-edit-attrib-mode-map "\C-a"  'sgml-edit-attrib-field-start)
-(define-key sgml-edit-attrib-mode-map "\C-e"  'sgml-edit-attrib-field-end)
-(define-key sgml-edit-attrib-mode-map "\t"  'sgml-edit-attrib-next)
-
-(defun sgml-edit-attrib-mode ()
+(define-derived-mode sgml-edit-attrib-mode text-mode "SGML edit attributes"
   "Major mode to edit attribute specification list.
 \\<sgml-edit-attrib-mode-map> 
 Use \\[sgml-edit-attrib-next] to move between input fields. 
 Use \\[sgml-edit-attrib-default] to make an attribute have its default value.
 To abort edit kill buffer (\\[kill-buffer]) and remove window \(\\[delete-window]). 
-To finish edit use \\[sgml-edit-attrib-finish]. 
+To finish edit use \\[sgml-edit-attrib-finish].
 
-\\{sgml-edit-attrib-mode-map}"
-  (setq mode-name "SGML edit attributes"
-	major-mode 'sgml-edit-attrib-mode)
-  (use-local-map sgml-edit-attrib-mode-map)
-  (run-hooks 'text-mode-hook 'sgml-edit-attrib-mode-hook))
+\\{sgml-edit-attrib-mode-map}")
 
 (defun sgml-edit-attrib-abort ()
   "Abort the attribute editor, removing the window."
@@ -1695,7 +1674,7 @@ To finish edit use \\[sgml-edit-attrib-finish].
     (while (eq 'sgml-form (get-text-property (point) 'category))
       (setq start (next-single-property-change (point) 'category))
       (unless start (error "No attribute value here"))
-      (assert (number-or-marker-p start))
+      (cl-assert (number-or-marker-p start))
       (goto-char start))))
 
 (defun sgml-edit-attrib-field-end ()
@@ -1706,7 +1685,7 @@ To finish edit use \\[sgml-edit-attrib-finish].
 		      (get-text-property (1+ (point)) 'read-only))
 		 (point)
 	       (next-single-property-change (point) 'read-only))))
-    (assert (number-or-marker-p end))
+    (cl-assert (number-or-marker-p end))
     (goto-char end)))
 
 (defun sgml-edit-attrib-next ()
@@ -1728,36 +1707,31 @@ To finish edit use \\[sgml-edit-attrib-finish].
     "\\(</?>\\|</?[_A-Za-z][-_:A-Za-z0-9.]*\\(\\([^'\"></]\\|'[^']*'\\|\"[^\"]*\"\\)*\\)/?>?\\)"))
 
 (defun sgml-operate-on-tags (action &optional attr-p)
-  (let ((buffer-modified-p (buffer-modified-p))
-	(inhibit-read-only t)
-	(buffer-read-only nil)
-	(before-change-functions nil)
-	(markup-index			; match-data index in tag regexp
+  (let ((markup-index			; match-data index in tag regexp
 	 (if attr-p 2 1))
 	(tagcount			; number tags to give them uniq
 					; invisible properties
 	 1))
-    (unwind-protect
-	(save-excursion
-	  (goto-char (point-min))
-	  (while (re-search-forward sgml-tag-regexp nil t)
-	    (cond
-	     ((eq action 'hide)
-	      (let ((tag (downcase
-			  (buffer-substring-no-properties
-			   (1+ (match-beginning 0))
-			   (match-beginning 2)))))
-		(if (or attr-p (not (member tag sgml-exposed-tags)))
-		    (add-text-properties
-		     (match-beginning markup-index) (match-end markup-index)
-		     (list 'invisible tagcount
-			   'rear-nonsticky '(invisible face))))))
-	     ((eq action 'show)		; ignore markup-index
-	      (remove-text-properties (match-beginning 0) (match-end 0)
-				      '(invisible nil)))
-	     (t (error "Invalid action: %s" action)))
-	    (incf tagcount)))
-      (sgml-restore-buffer-modified-p buffer-modified-p))))
+    (with-silent-modifications
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward sgml-tag-regexp nil t)
+          (cond
+           ((eq action 'hide)
+            (let ((tag (downcase
+                        (buffer-substring-no-properties
+                         (1+ (match-beginning 0))
+                         (match-beginning 2)))))
+              (if (or attr-p (not (member tag sgml-exposed-tags)))
+                  (add-text-properties
+                   (match-beginning markup-index) (match-end markup-index)
+                   (list 'invisible tagcount
+                         'rear-nonsticky '(invisible face))))))
+           ((eq action 'show)		; ignore markup-index
+            (remove-text-properties (match-beginning 0) (match-end 0)
+                                    '(invisible nil)))
+           (t (error "Invalid action: %s" action)))
+          (cl-incf tagcount))))))
 
 (defun sgml-hide-tags ()
   "Hide all tags in buffer."
@@ -1876,7 +1850,7 @@ elements with omitted end-tags."
 	  (attlist (sgml-element-attlist element))
 	  (asl (sgml-element-attribute-specification-list element)))
       (save-excursion
-	(assert (or (zerop (sgml-element-stag-len element))
+	(cl-assert (or (zerop (sgml-element-stag-len element))
 		    (= (point) (sgml-element-start element))))
 	(delete-char (sgml-element-stag-len element))
 	(sgml-insert-start-tag name asl attlist nil)))))
@@ -1990,8 +1964,8 @@ characters in the current coding system."
        (let* ((type (sgml-entity-type entity))
 	      (notation (sgml-entity-notation entity))
 	      (handler (cdr (assoc notation sgml-notation-handlers))))
-	 (case type
-	   (ndata 
+	 (pcase type
+	   (`ndata 
 	    (if handler 
 		(progn
 		  (message (format "Using '%s' to handle notation '%s'."
@@ -2010,7 +1984,7 @@ characters in the current coding system."
                         (with-no-warnings
                           (process-kill-without-query process))))))
 	      (error "Don't know how to handle notation '%s'." notation)))
-	   (text (progn
+	   (`text
        
 	    ;; here I try to construct a useful value for
 	    ;; `sgml-parent-element'.
@@ -2039,8 +2013,8 @@ characters in the current coding system."
 	    (sgml-mode)
 	    (setq sgml-parent-document (cons parent ppos))
 	    ;; update the live element indicator of the new window
-	    (sgml-parse-to-here)))
-	   (t (error "Can't edit entities of type '%s'." type))))))))
+	    (sgml-parse-to-here))
+	   (_ (error "Can't edit entities of type '%s'." type))))))))
 
 ;;;; SGML mode: TAB completion
 
@@ -2134,11 +2108,11 @@ If it is something else complete with ispell-complete-word."
 (defun sgml-options-menu (event vars)
   (let ((var
 	 (let ((maxlen 
-		(loop for var in vars
+		(cl-loop for var in vars
 		      maximize (length (sgml-variable-description var)))))
 	   (sgml-popup-menu
 	    event "Options"
-	    (loop for var in vars
+	    (cl-loop for var in vars
 		  for desc = (sgml-variable-description var)
 		  collect
 		  (cons
@@ -2194,7 +2168,7 @@ will reset the variable.")
       (let ((val
 	     (sgml-popup-menu event
 			      (sgml-variable-description var)
-			      (loop for c in type collect
+			      (cl-loop for c in type collect
 				    (cons
 				     (if (consp c) (car c) (format "%s" c))
 				     (if (consp c) (cdr c) c))))))
@@ -2233,7 +2207,7 @@ will reset the variable.")
   (let ((c (sgml-element-content el))
         (s (sgml-element-model el))
         (found nil))
-    (loop do
+    (cl-loop do
 	  ;; Fixme: this test avoids an error when DTD-less, but it's
 	  ;; probably an inappropriate kludge.  -- fx
           (when (not (eq s 'ANY))
@@ -2361,18 +2335,18 @@ otherwise it will be added at the first legal position."
 
 (defun sgml-print-attlist (et)
   (with-current-buffer standard-output
-    (loop
+    (cl-loop
      for attdecl in (sgml-eltype-attlist et) do
      (princ " ")
      (princ (sgml-attdecl-name attdecl))
      (let ((dval (sgml-attdecl-declared-value attdecl))
            (defl (sgml-attdecl-default-value attdecl)))
        (when (listp dval)
-         (setq dval (concat (if (eq (first dval)
+         (setq dval (concat (if (eq (car dval)
                                     'NOTATION)
                                 "#NOTATION (" "(")
                             (mapconcat (function identity)
-                                       (second dval)
+                                       (cadr dval)
                                        "|")
                             ")")))
        (indent-to 15 1)
@@ -2403,7 +2377,7 @@ otherwise it will be added at the first legal position."
   (princ " ->")
   (let* ((state parse-state)
          (required-seq                  ; the seq of req el following point
-          (loop for required = (sgml-required-tokens state)
+          (cl-loop for required = (sgml-required-tokens state)
                 while (and required (null (cdr required)))
                 collect (sgml-eltype-name (car required))
                 do (setq state (sgml-get-move state (car required)))))
@@ -2449,7 +2423,7 @@ otherwise it will be added at the first legal position."
 
 
 (defun sgml-show-structure-insert (structure)
-  (loop for (gi level marker title) in structure do
+  (cl-loop for (gi level marker title) in structure do
        (let ((start (point)))
          (insert (make-string (* 2 level) ? ))
          (sgml-insert `(face match mouse-face highlight) gi)
@@ -2495,9 +2469,9 @@ otherwise it will be added at the first legal position."
                                            end-epos)))))))
       (cons (list (sgml-general-insert-case gi)
                   level marker title)
-            (loop for child = child1 then (sgml-element-next child)
+            (cl-loop for child = child1 then (sgml-element-next child)
                while child
                nconc (sgml-structure-elements child))))))
 
-
+(provide 'psgml-edit)
 ;;; psgml-edit.el ends here

@@ -1569,7 +1569,7 @@ Default: @code{t}.
 
 Set the variable @code{sgml-display-char-list-filename} to a file that
 contains mappings between all characters present in the presentation
-character set, and their "standard replacement text" names, e.g. "å"
+character set, and their "standard replacement text" names, e.g. "Ã¥"
 -> "[aring ]", e.t.c.
 
 The default value for this variable is `iso88591.map'. 

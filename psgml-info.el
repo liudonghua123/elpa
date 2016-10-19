@@ -1,14 +1,12 @@
-;;;; psgml-info.el
-;;; Last edited: 2000-11-09 19:23:50 lenst
-;;; $Id: psgml-info.el,v 2.18 2005/05/19 19:06:47 lenst Exp $
+;;; psgml-info.el --- ???  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1995 Lennart Staflin
+;; Copyright (C) 1994, 1995, 2016  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -17,11 +15,11 @@
 ;; GNU General Public License for more details.
 ;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 
-;;;; Commentary:
+;;; Commentary:
 
 ;; This file is an addon to the PSGML package.  
 
@@ -44,15 +42,14 @@
 ;;    Will list all element types and the element types that can occur
 ;;    in its content.
 
-;;;; Code:
+;;; Code:
 
-(provide 'psgml-info)
 (require 'psgml)
 (require 'psgml-parse)
 
 (defconst sgml-attr-col 18)
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;; Utility functions
 
@@ -116,15 +113,15 @@
        (while agenda
 	 (cond
 	  ((sgml-normal-state-p (car agenda))
-	   (loop for m in (append (sgml-state-opts (car agenda))
+	   (cl-loop for m in (append (sgml-state-opts (car agenda))
 				  (sgml-state-reqs (car agenda)))
 		 do
-		 (pushnew (sgml-move-token m) res :test #'equal)
+		 (cl-pushnew (sgml-move-token m) res :test #'equal)
 		 (sgml-add-last-unique (sgml-move-dest m) states)))
        
 	  (t				; &-node
 	   (sgml-add-last-unique (sgml-and-node-next (car agenda)) states)
-	   (loop for dfa in (sgml-and-node-dfas (car agenda)) do
+	   (cl-loop for dfa in (sgml-and-node-dfas (car agenda)) do
 		 (sgml-add-last-unique dfa states))))
 	 (setq agenda (cdr agenda)))
        (setq res
@@ -166,7 +163,7 @@
     (sgml-map-element-types
      (function
       (lambda (eltype)
-	(loop for a in (sgml-eltype-attlist eltype) do
+	(cl-loop for a in (sgml-eltype-attlist eltype) do
 	      (setq attributes
 		    (sgml-add-to-table (sgml-attdecl-name a)
 				       (sgml-eltype-name eltype)
@@ -227,7 +224,7 @@
     (sgml-map-element-types
      (function
       (lambda (eltype)
-	(loop for ref in (sgml-eltype-refrenced-elements eltype)
+	(cl-loop for ref in (sgml-eltype-refrenced-elements eltype)
 	      do (setq cross (sgml-add-to-table ref
 						(sgml-eltype-name eltype)
 						cross))))))
@@ -351,17 +348,17 @@
 
 (defun sgml-princ-names (names &optional first sep)
   (setq sep (or sep " "))
-  (loop with col = 0
+  (cl-loop with col = 0
 	for name in names
         for this-sep = (if first (prog1 first (setq first nil)) sep)
 	do
         (princ this-sep)
-	(incf col (length this-sep))
+	(cl-incf col (length this-sep))
 	(when (and (> col 0) (> (+ col (length name)) fill-column))
 	  (princ "\n ")
 	  (setq col 1))
         (princ name)
-	(incf col (length name))))
+	(cl-incf col (length name))))
 
 (define-button-type 'sgml-eltype
   'action (lambda (button)
@@ -373,13 +370,13 @@
   (let ((orig-buffer (current-buffer)))
     (with-current-buffer standard-output
       (setq sep (or sep " "))
-      (loop with col = 0
+      (cl-loop with col = 0
             for et in eltypes
             for name = (sgml-eltype-name et)
             for this-sep = (if first (prog1 first (setq first nil)) sep)
             do
             (insert this-sep)
-            (incf col (length this-sep))
+            (cl-incf col (length this-sep))
             (when (and (> col 0) (> (+ col (length name)) fill-column))
               (insert "\n ")
               (setq col 1))
@@ -388,7 +385,7 @@
                 (insert-text-button name :type 'sgml-eltype
                                     'name name 'buffer orig-buffer
                                     'follow-link t))
-            (incf col (length name))))))
+            (cl-incf col (length name))))))
 
 
 (defun sgml-describe-element-type (et-name)
@@ -424,16 +421,16 @@
 		     (if (sgml-eltype-etag-optional et)
 			 "optional" "required")))
       (princ "\nATTRIBUTES:\n")
-      (loop for attdecl in (sgml-eltype-attlist et) do
+      (cl-loop for attdecl in (sgml-eltype-attlist et) do
 	    (let ((name (sgml-attdecl-name attdecl))
 		  (dval (sgml-attdecl-declared-value attdecl))
 		  (defl (sgml-attdecl-default-value attdecl)))
 	      (when (listp dval)
-		(setq dval (concat (if (eq (first dval)
+		(setq dval (concat (if (eq (car dval)
 					   'NOTATION)
 				       "#NOTATION (" "(")
 				   (mapconcat (function identity)
-					      (second dval)
+					      (cadr dval)
 					      "|")
 				   ")")))
 	      (cond ((sgml-default-value-type-p 'FIXED defl)
@@ -495,11 +492,11 @@
 	(fmt "%20s %s\n")
 	(hdr ""))
 
-    (sgml-map-eltypes (function (lambda (_e) (incf elements)))
+    (sgml-map-eltypes (function (lambda (_e) (cl-incf elements)))
 		      sgml-dtd-info)
-    (sgml-map-entities (function (lambda (_e) (incf entities)))
+    (sgml-map-entities (function (lambda (_e) (cl-incf entities)))
 		       (sgml-dtd-entities sgml-dtd-info))
-    (sgml-map-entities (function (lambda (_e) (incf parameters)))
+    (sgml-map-entities (function (lambda (_e) (cl-incf parameters)))
 		       (sgml-dtd-parameters sgml-dtd-info))
 
     (with-output-to-temp-buffer (help-buffer)
@@ -535,4 +532,5 @@
 (defalias 'sgml-general-dtd-info 'sgml-describe-dtd)
 
 
+(provide 'psgml-info)
 ;;; psgml-info.el ends here
