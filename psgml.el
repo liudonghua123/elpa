@@ -4,7 +4,7 @@
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; 	James Clark <jjc@clark.com>
-;; Maintainer: Lennart Staflin <lenst@lysator.liu.se>
+;; Maintainer: Lennart Staflin <lstaflin@gmail.com>
 ;; Keywords: languages
 ;; Version: 1.3.4
 
