@@ -648,7 +648,7 @@ Should return a string suitable form printing in the echo area.")
    ["Untag Element"		sgml-untag-element t]
    ["Trim and leave element"	sgml-trim-and-leave-element t]
    ;; FIXME: These 2 commands used to be in psgml-charent, but I wasn't able to
-   ;; get their author's copyright (Steinar Bang and Falch Hurtigtrykk).
+   ;; get their author's paperwork (Steinar Bang and Falch Hurtigtrykk).
    ;; We should rewrite them, but I can't understand DTD enough to know how
    ;; it's really supposed to work.  --Stef
    ;;["Decode Character Entities"  sgml-charent-to-display-char t]

@@ -1,8 +1,23 @@
-;;; testsuit.el -- Test Suit for PSGML
+;;; testsuit.el --- Test Suite for PSGML
 
-;; $Id: testsuit.el,v 1.15 2005/03/08 18:39:30 lenst Exp $
+;; Copyright (C)  2017 Free Software Foundation, Inc.
 
-(require 'cl)
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License
+;; as published by the Free Software Foundation; either version 3
+;; of the License, or (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Code:
+
+(require 'cl-lib)
 (require 'psgml)
 (require 'psgml-parse)
 
@@ -31,8 +46,8 @@
 (defun testsuit-pi-handler (string)
   (when (string-match "ASSERT\\>" string )
     (let ((form (car (read-from-string (substring string (match-end 0))))))
-      (assert (eval form) nil
-              "Assertion fail: %S" form))))
+      (cl-assert (eval form) nil
+                 "Assertion fail: %S" form))))
 
   
 (defun testsuit-run-test-case (case-description)
@@ -48,7 +63,7 @@
     (setq sgml-warning-message-flag nil)
     (condition-case errcode
         (progn
-          (if (string-match "\\.el$" (buffer-file-name))
+          (if (string-match "\\.el\\'" buffer-file-name)
               (progn (eval-buffer))
             (message "current buffer: %s" (current-buffer))
             (sgml-load-doctype)
@@ -56,29 +71,30 @@
             (sgml-parse-until-end-of nil)))
       (error
        (if expected
-           (case (caar expected)
-             (error (debug)))
+           (pcase (caar expected)
+             (`error (debug)))
          (error "Unexpected %s" errcode))))
 
-    (while (and expected)
-      (case (caar expected)
-        (warning
+    (dolist (test expected)
+      (pcase (car test)
+        (`warning
          (setq warning-expected t)
-         (let ((warning-pattern (cadar expected)))
+         (let ((warning-pattern (cadr test)))
            (with-current-buffer  "*Messages*"
              (goto-char (point-min))
              (or (re-search-forward warning-pattern nil t)
                  (error "No %s warning" warning-pattern)))))
-        (assert
-         (or (eval (cadar expected))
-             (error "Fail: %s" (cadar expected)))))
-      (setq expected (cdr expected)))
+        (`assert
+         (or (eval (cadr test))
+             (error "Fail: %s" (cadr test))))))
     (when (and sgml-warning-message-flag (not warning-expected))
       (error "Unexpected warnings")) ))
 
 
 (defun testsuit-run ()
   (interactive)
-  (loop for tc in psgml-test-cases
-        do (testsuit-run-test-case tc))
+  (cl-loop for tc in psgml-test-cases
+           do (testsuit-run-test-case tc))
   (message "Done"))
+
+;;; testsuit.el ends here
