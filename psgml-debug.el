@@ -1,6 +1,6 @@
 ;;; psgml-debug.el --- ???  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016  Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017  Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -222,7 +222,7 @@
   (with-output-to-temp-buffer "*autoload*"
     (cl-loop
      for file in '("psgml-parse" "psgml-edit" "psgml-dtd"
-		   "psgml-info" "psgml-charent")
+		   "psgml-info")
      do
      (set-buffer (find-file-noselect (concat file ".el")))
      (goto-char (point-min))

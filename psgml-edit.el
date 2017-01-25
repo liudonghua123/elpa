@@ -911,7 +911,7 @@ CURVALUE is nil or a string that will be used as default value."
 		      (format " Default: %s" curvalue)
 		    "")))
 	 value)
-    (setq value 
+    (setq value
 	  (cond ((or tokens notations)
 		 (let ((completion-ignore-case sgml-namecase-general))
 		   (completing-read prompt

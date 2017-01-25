@@ -1,6 +1,6 @@
 ;;; psgml.el --- SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2002, 2016 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2002, 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; 	James Clark <jjc@clark.com>
@@ -647,8 +647,12 @@ Should return a string suitable form printing in the echo area.")
    ["Kill Element"		sgml-kill-element t]
    ["Untag Element"		sgml-untag-element t]
    ["Trim and leave element"	sgml-trim-and-leave-element t]
-   ["Decode Character Entities"  sgml-charent-to-display-char t]
-   ["Encode Characters"		sgml-display-char-to-charent t]
+   ;; FIXME: These 2 commands used to be in psgml-charent, but I wasn't able to
+   ;; get their author's copyright (Steinar Bang and Falch Hurtigtrykk).
+   ;; We should rewrite them, but I can't understand DTD enough to know how
+   ;; it's really supposed to work.  --Stef
+   ;;["Decode Character Entities"  sgml-charent-to-display-char t]
+   ;;["Encode Characters"		sgml-display-char-to-charent t]
    "--"
    ("File Options"   "---")
    ("User Options"   "---")
@@ -1277,8 +1281,6 @@ otherwise it will be added at the first legal position." t)
 (autoload 'sgml-describe-entity "psgml-info" "Describe the properties of an entity as declared in the current DTD." t)
 (autoload 'sgml-describe-element-type "psgml-info" "Describe the properties of an element type as declared in the current DTD." t)
 (autoload 'sgml-describe-dtd "psgml-info" "Display information about the current DTD." t)
-(autoload 'sgml-charent-to-display-char "psgml-charent" "Replace character entities with their display character equivalents" t)
-(autoload 'sgml-display-char-to-charent "psgml-charent" "Replace displayable characters with their character entity equivalents" t)
 
 
 ;;;; Last provisions
