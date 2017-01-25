@@ -1,7 +1,7 @@
 ;;; psgml-parse.el --- Parser for SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 ;; $Id: psgml-parse.el,v 2.105 2008/06/21 16:13:51 lenst Exp $
 
-;; Copyright (C) 1994-1998, 2016  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2016-2017  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; Acknowledgment:
@@ -31,8 +31,6 @@
 
 (require 'psgml)
 (require (if (featurep 'xemacs) 'psgml-lucid 'psgml-other))
-(autoload 'sgml-add-id "psgml-ids")
-
 
 ;;; Interface to psgml-dtd
 (eval-and-compile
@@ -3734,6 +3732,9 @@ dtd or `ignore' if the declaration is to be ignored."
 
 ;;;; Parsing attribute values
 
+(defvar psgml-ids-seen (make-hash-table :test #'equal)
+  "Set of `id' attributes that we have encountered.")
+
 (defun sgml-parse-attribute-specification-list (&optional eltype)
   "Parse an attribute specification list.
 Optional argument ELTYPE, is used to resolve omitted name=.
@@ -3774,7 +3775,7 @@ Returns a list of attspec (attribute specification)."
        (attdecl
 	;; JDF's addition 12/2001
 	(if (eq (sgml-attdecl-declared-value attdecl) 'ID)
-	    (sgml-add-id val))
+	    (puthash val t psgml-ids-seen))
 	(push (sgml-make-attspec (sgml-attdecl-name attdecl) val)
 	      asl)
 	(when (sgml-default-value-type-p 'CONREF

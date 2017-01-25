@@ -1,6 +1,6 @@
 ;;; psgml-maint.el --- Help functions to maintain PSGML source  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2017  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; Version: $Id: psgml-maint.el,v 1.8 2005/02/09 15:28:58 lenst Exp $
@@ -37,8 +37,7 @@
 
 (defconst psgml-common-files
   '("psgml.el" "psgml-parse.el" "psgml-edit.el" "psgml-dtd.el"
-    "psgml-info.el" "psgml-charent.el" "psgml-api.el"
-    "psgml-ids.el"))
+    "psgml-info.el" "psgml-charent.el" "psgml-api.el"))
 
 (defconst psgml-emacs-files '("psgml-other.el"))
 (defconst psgml-xemacs-files '("psgml-lucid.el"))

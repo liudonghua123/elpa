@@ -1,6 +1,6 @@
 ;;; psgml-edit.el --- Editing commands for SGML-mode with parsing support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1996, 2016  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2016-2017  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
@@ -27,7 +27,6 @@
 
 (require 'psgml)
 (require 'psgml-parse)
-(require 'psgml-ids)
 (eval-when-compile (require 'cl-lib))
 
 ;; (eval-when-compile
@@ -873,6 +872,23 @@ AVL should be a assoc list mapping symbols to strings."
                                (sgml-element-empty element)
                              (eq t (sgml-element-net-enabled element))))))
 
+(defun psgml-edit--read-ids (prompt curvalue)
+  ;; Ids are separated by spaces.
+  (defvar crm-separator) (defvar crm-local-completion-map)
+  (let ((completion-ignore-case sgml-namecase-general)
+        (crm-separator " ")
+        (crm-local-completion-map
+         (let ((map (make-sparse-keymap)))
+           (set-keymap-parent map crm-local-completion-map)
+           (define-key map " " nil)
+           map)))
+    (mapconcat
+     #'identity
+     (completing-read-multiple prompt psgml-ids-seen nil nil
+                               (and curvalue
+                                    (cons curvalue (length curvalue))))
+     " ")))
+
 (defun sgml-read-attribute-value (attdecl element curvalue)
   "Return the attribute value read from user.
 ATTDECL is the attribute declaration for the attribute to read.
@@ -883,7 +899,8 @@ CURVALUE is nil or a string that will be used as default value."
 	 (tokens (sgml-declared-value-token-group dv))
 	 (notations (sgml-declared-value-notation dv))
 	 ; JDF's addition
-	 (ids (and (memq dv '(IDREF IDREFS)) (sgml-id-list)))
+	 (ids (and (memq dv '(IDREF IDREFS))
+                   (< 0 (hash-table-count psgml-ids-seen))))
 	 (type (cond (tokens "token")
 		     (notations "NOTATION")
 		     (t (symbol-name dv))))
@@ -901,32 +918,11 @@ CURVALUE is nil or a string that will be used as default value."
 				    (mapcar #'list (or tokens notations))
 				    nil t)))
 		(ids
-		 (let ((completion-ignore-case sgml-namecase-general)
-		       (minibuffer-local-completion-map sgml-edit-idrefs-map))
-		   (completing-read prompt
-				    'sgml-idrefs-completer
-				    nil nil
-				    (and curvalue
-					 (cons curvalue (length curvalue))))))
+                 (psgml-edit--read-ids prompt curvalue))
 		(t
 		 (read-string prompt))))
     (if (and curvalue (equal value ""))
 	curvalue value)))
-
-(defun sgml-idrefs-completer (fullstring pred action)
-  (let* ((start (string-match "\\(\\(:?-\\|\\w\\)*\\)$" fullstring))
-	 (string (match-string 0 fullstring))
-	 (prefix (substring fullstring 0 start)))
-    ;(message "prefix: %s string: %s" prefix string)
-    (cond ((null action)
-	   (let ((completion (try-completion string (sgml-id-alist) pred)))
-	     (if (eq completion t)
-		 t
-	       (concat prefix completion))))
-	  ((eq action t)
-	   (all-completions string (sgml-id-alist) pred))
-	  ((eq action 'lambda)
-	   (member string (sgml-id-alist))))))
 
 (defun sgml-non-fixed-attributes (attlist)
   (cl-loop for attdecl in attlist

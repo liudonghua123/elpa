@@ -4,7 +4,6 @@ TODO                 -*- outline -*-
 ** Use a keymap filter for sgml-update-options-menu?
 ** Get rid of (redundant) invisible handling in sgml-update-display.
 ** Make psgml-mode derive from sgml-mode.el?
-** Upgrade to GPLv3+
 ** Figure out what sgml-attr-clean-and-insert does.
 ** Fix interaction with font-lock.
 ** Generate internal autoloads (at end of psgml.el) automatically.
