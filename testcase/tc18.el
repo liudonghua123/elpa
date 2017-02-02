@@ -1,4 +1,4 @@
-;;; tc18.el --- 
+;;; tc18.el ---   -*- lexical-binding:t -*-
 
 ;; Copyright (C)  2017 Free Software Foundation, Inc.
 
@@ -15,11 +15,14 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(require 'psgml-parse)
+(require 'cl-lib)
+
 (with-temp-buffer
   (insert-file-contents "tc18.html")
   (goto-char (point-min))
   (search-forward "em class")
   (sgml-change-element-name "B")
   (beginning-of-line 1)
-  (assert (looking-at ".* class="))
+  (cl-assert (looking-at ".* class="))
   )

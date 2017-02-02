@@ -1,4 +1,4 @@
-;;; testsuit.el --- Test Suite for PSGML
+;;; testsuit.el --- Test Suite for PSGML  -*- lexical-binding:t -*-
 
 ;; Copyright (C)  2017 Free Software Foundation, Inc.
 
@@ -51,8 +51,8 @@
 
   
 (defun testsuit-run-test-case (case-description)
-  (let* ((file (first case-description))
-         (expected (rest case-description))
+  (let* ((file (car case-description))
+         (expected (cdr case-description))
          (sgml-show-warnings t)
          (warning-expected nil)
          (sgml-pi-function 'testsuit-pi-handler))

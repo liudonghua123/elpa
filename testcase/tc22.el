@@ -1,4 +1,4 @@
-;;; tc22.el --- 
+;;; tc22.el ---   -*- lexical-binding:t -*-
 
 ;; Copyright (C)  2017 Free Software Foundation, Inc.
 
@@ -15,6 +15,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+(require 'psgml-parse)
+(require 'cl-lib)
 
 (let ((sgml-ecat-files '("tc22.ecat"))
       (dd default-directory))

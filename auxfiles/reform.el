@@ -1,4 +1,4 @@
-;;; reform.el --- ??
+;;; reform.el --- ??  -*- lexical-binding:t -*-
 
 ;; Copyright (C)  2017 Free Software Foundation, Inc.
 

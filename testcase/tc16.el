@@ -1,4 +1,4 @@
-;;; tc16.el --- 
+;;; tc16.el ---   -*- lexical-binding:t -*-
 
 ;; Copyright (C)  2017 Free Software Foundation, Inc.
 
@@ -15,6 +15,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(require 'psgml-parse)
+(require 'cl-lib)
+
 (let ()
   (switch-to-buffer (generate-new-buffer "tc16 temp"))
   (insert-file-contents "tc16.html")
@@ -23,5 +26,5 @@
   (goto-char (point-min))
   (while (re-search-forward "<\\(dt\\|li\\)>" nil t)
     (let ((gi (match-string 1)))
-      (assert (looking-at (format ".*</%s>" gi))))))
+      (cl-assert (looking-at (format ".*</%s>" gi))))))
 

@@ -1,4 +1,4 @@
-;;; tc13.el --- 
+;;; tc13.el ---   -*- lexical-binding:t -*-
 
 ;; Copyright (C)  2017 Free Software Foundation, Inc.
 
@@ -15,6 +15,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(require 'psgml-parse)
+(require 'cl-lib)
+
 (defun psgml-tc13 ()
   (set-buffer (get-buffer-create "*Tc13*"))
   (erase-buffer)
@@ -27,6 +30,6 @@
                (sgml-tree-etag-len el))))
   (insert ">")
   (let ((el (sgml-parse-to-here)))
-    (assert (sgml-off-top-p el))))
+    (cl-assert (sgml-off-top-p el))))
 
 (psgml-tc13)

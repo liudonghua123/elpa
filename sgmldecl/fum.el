@@ -1,10 +1,10 @@
-;;; fum.el --- 
+;;; fum.el ---  -*- lexical-binding:t -*-
 
 ;; Copyright (C)  1995, 2017 Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; Version: $Id: fum.el,v 1.1 2000/04/12 16:44:26 lenst Exp $
-;; Keywords: 
+;; Keywords:
 ;; Last edited: Sat Aug 31 23:35:29 1996 by lenst@triton.lstaflin.pp.se (Lennart Staflin)
 
 ;; This program is free software; you can redistribute it and/or
@@ -27,9 +27,11 @@
 
 ;;; Commentary:
 
-;; 
+;;
 
 ;;; Code:
+
+(require 'psgml-parse)
 
 ;;;; Translation macros
 
@@ -50,7 +52,7 @@
   (let ((end (point)))
     (backward-page 1)
     (kill-region (point) (1- end))
-    (insert-buffer "*Formatted*")))
+    (insert-buffer-substring "*Formatted*")))
 
 (defun spt-nt-name (id)
   (intern (format "sgml-parse-nt-%s" id)))
@@ -61,7 +63,7 @@
   (setq *current-id* id)
   `(defun ,(spt-nt-name id) (check)
      (message "Enter %s" ,id)
-     (let ((res 
+     (let ((res
 	    ,(spt-synexp 'check synexp)))
        (message "Exit %s: %s" ,id res)
        res)))
@@ -69,29 +71,17 @@
 (defun spt-synexp (check synexp)
   "Translate the syntax expression SYNEX to lisp with check option CHECK.
 The check option can be `t', `nil', or a variable name."
-  (cond ((stringp synexp)		; Token
-	 (spt-token check synexp))
-	((consp synexp)
-	 (case (car synexp)
-	   ((delim)
-	    (spt-delim check (cadr synexp)))
-	   ((nt)
-	    (spt-nt check (cadr synexp)))
-	   ((seq)
-	    (spt-seq check (cdr synexp)))
-	   ((alt)
-	    (spt-alt check (cdr synexp)))
-	   ((must once)
-	    (spt-synexp check (cadr synexp)))
-	   ((many)
-	    (spt-many check (cadr synexp)))
-	   ((opt)
-	    (spt-opt check (cadr synexp)))
-	   ((var)
-	    (spt-var check (cadr synexp) (caddr synexp)))
-	   (else
-	    (error "Illegal syntax expression: %s" synexp))))))
-
+  (pcase synexp
+    ((pred stringp) (spt-token check synexp))		; Token
+    (`(delim ,d) (spt-delim check d))
+    (`(nt ,id) (spt-nt check id))
+    (`(seq . ,es) (spt-seq check es))
+    (`(alt . ,es) (spt-alt check es))
+    (`(,(or `must `once) ,e) (spt-synexp check e))
+    (`(many ,e) (spt-many check e))
+    (`(opt ,e) (spt-opt check e))
+    (`(var ,v ,e) (spt-var check v e))
+    (_ (error "Illegal syntax expression: %S" synexp))))
 
 (defun spt-var (check var synexp)
   (if (null var)
@@ -150,7 +140,7 @@ The check option can be `t', `nil', or a variable name."
 	    (while ,(spt-synexp nil synexp)))
        res))))
 
-(defun spt-opt (check synexp)
+(defun spt-opt (_check synexp)
   `(or ,(spt-synexp nil synexp)
        t))
 
@@ -223,6 +213,7 @@ The check option can be `t', `nil', or a variable name."
 
 ;;;; SGML Declaration Grammar
 
+(eval-when-compile (unless (fboundp 'spt-nt-name) (require 'fum)))
 
 (defnt "171+"
   ;; SGML declaration
@@ -791,4 +782,5 @@ The check option can be `t', `nil', or a variable name."
     ))))
   )
 
+(provide 'fum)
 ;;; fum.el ends here

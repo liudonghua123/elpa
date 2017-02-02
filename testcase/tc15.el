@@ -1,4 +1,4 @@
-;;; tc15.el --- 
+;;; tc15.el ---   -*- lexical-binding:t -*-
 
 ;; Copyright (C)  2017 Free Software Foundation, Inc.
 
@@ -15,6 +15,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(require 'psgml-parse)
+(require 'cl-lib)
+
 (defun psgml-tc15 ()
   ;; Check that completing honors insert-case
   (set-buffer (get-buffer-create "*Tc15*"))
@@ -25,6 +28,6 @@
   (sgml-complete)
   (beginning-of-line)
   (let ((case-fold-search nil))
-    (assert (looking-at "<foo"))))
+    (cl-assert (looking-at "<foo"))))
 
 (psgml-tc15)
