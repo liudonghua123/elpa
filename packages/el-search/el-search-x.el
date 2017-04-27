@@ -39,6 +39,15 @@
 (require 'thunk)
 (require 'el-search)
 
+(el-search-defpattern quoted (&optional pattern)
+  "Matches 'X, #'X and `X when X is matched by PATTERN."
+  (cl-callf or pattern '_)
+  `(or `',,pattern `#',,pattern `(,,''\` ,,pattern)))
+
+(el-search-defpattern maybe-quoted (&optional pattern)
+  "Matches X, 'X, #'X and `X when X is matched by PATTERN."
+  (cl-callf or pattern '_)
+  `(or ,pattern (quoted ,pattern)))
 
 (el-search-defpattern string-lines (pattern)
   "Matches any string whose line count is matched by PATTERN.
@@ -409,6 +418,12 @@ expression matching the `change' pattern will be matched."
   "Matches any toplevel expression."
   '(outermost _))
 
+(el-search-defpattern innermost (pattern &optional not-pattern)
+  "Matches PATTERN but not lists containing a matching element.
+
+With NOT-PATTERN given, match anything matched by the PATTERN
+except for lists containing an element matched by NOT-PATTERN."
+  `(and ,pattern (not (append _ `(,,(or not-pattern pattern)) _))))
 
 ;;; Sloppy pattern types for quick navigation
 
@@ -445,6 +460,65 @@ matches any of these expressions:
   (el-search-defpattern--check-args
    "keys" (list key-sequence) (lambda (x) (or (stringp x) (vectorp x))) "argument not a string or vector")
   `(pred (el-search--match-key-sequence ,key-sequence)))
+
+(el-search-defpattern define-key (&optional map keys def)
+  `(l ^ (symbol "key\\'")
+      ,(if (memq map '(_ nil)) '_? map)
+      ,(or keys '_)
+      ,@(when def `(,def))))
+
+(el-search-defpattern def--1 (type &optional name &rest lpats)
+  (when (and name (not (eq name '_)))
+    (let ((pattern (el-search--transform-nontrivial-lpat name)))
+      (setq name `(or ,pattern `',,pattern))))
+  (setq lpats (if (or name lpats) (cons name lpats) nil))
+  (if type
+      `(l ^ ,type ,@lpats)
+    `(or (l ^ (symbol "def") ,@lpats)
+         ;; cl-defstruct
+         (l ^ (symbol "defstruct") (l ^ ,(car lpats)) ,@(cdr lpats)))))
+
+(el-search-defpattern def (&optional name &rest lpats)
+  "Match definitions.
+NAME, when given, is an lpat that must match the defined name.
+The remaining LPATS are like in the \"l\" pattern."
+  `(def--1 nil ,name . ,lpats))
+
+(el-search-defpattern defun (&optional name &rest lpats)
+  "Like \"def\" but matches only defuns."
+  `(def--1 (or 'defun 'cl-defun 'defsubst) ,name . ,lpats))
+
+(el-search-defpattern defmacro (&optional name &rest lpats)
+  "Like \"def\" but matches only defuns."
+  `(def--1 (or 'defmacro 'cl-defmacro) ,name . ,lpats))
+
+(el-search-defpattern defvar (&optional name &rest lpats)
+  "Like \"def\" but matches only defvars."
+  `(def--1 (or 'defvar 'defcustom 'defvar-local) ,name . ,lpats))
+
+(el-search-defpattern defface (&optional name &rest lpats)
+  "Like \"def\" but matches only `defface' expressions."
+  `(def--1 'defface ,name . ,lpats))
+
+(el-search-defpattern defmethod (&optional name &rest lpats)
+  `(def--1 (or 'defmethod 'cl-defmethod) ,name . ,lpats))
+
+(el-search-defpattern command (&optional name &rest lpats)
+  "Like \"def\" but matches only defuns with an `interactive' spec."
+  (cl-callf or name '_)
+  `(and (def ,name ,@lpats)
+        (or `(defun ,_ . ,(pred (cl-some (lambda (elt) (eq (car-safe elt) 'interactive)))))
+            `(,(symbol "def" "mode$") . ,_))))
+
+(el-search-defpattern undocumented (&optional name)
+  "Heuristically search for definitions missing documentation.
+With pattern NAME given, match it against the symbol defined."
+  (let ((expr (make-symbol "this-expression"))
+        (elt  (make-symbol "elt")))
+    `(and (def ,(or name '_))
+          (pred (lambda (,expr)
+                  ;; Don't accept something like "Todo" or "$$$FIXME" or "..."
+                  (not (cl-some (lambda (,elt) (and (stringp ,elt) (< 15 (length ,elt)))) ,expr)))))))
 
 
 
