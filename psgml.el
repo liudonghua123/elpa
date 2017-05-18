@@ -1045,8 +1045,8 @@ Any terminating > or / is not matched.")
 					     (progn (end-of-line)
 						    (point)))))))))))
 
-;;; I doubt that null end tags are used much for large elements,
-;;; so use a small distance here.
+;; I doubt that null end tags are used much for large elements,
+;; so use a small distance here.
 (defvar sgml-slash-distance 1000
   "*If non-nil, is the maximum distance to search for matching /.")
 
@@ -1093,9 +1093,6 @@ start tag, and the second / is the corresponding null end tag."
 					       (point))
 					     (1+ blinkpos))))))))))
 
-(eval-and-compile
-  (autoload 'compile-internal "compile" ""))
-
 (defun sgml-default-validate-command ()
   (cond
    ((consp sgml-validate-command)
@@ -1131,9 +1128,10 @@ and move to the line in the SGML document that caused it."
 			       nil nil 'sgml-validate-command-history)))
   (if sgml-offer-save
       (save-some-buffers nil nil))
-  (compile-internal command "No more errors" "SGML validation"
-		    nil
-		    sgml-validate-error-regexps))
+  ;; (compile-internal command "No more errors" "SGML validation"
+  ;;       	    nil
+  ;;       	    sgml-validate-error-regexps)
+  (compilation-start command nil nil sgml-validate-error-regexps))
 
 
 ;;;; Autoloads and hooks
