@@ -69,45 +69,37 @@
 (defcustom vdiff-lock-scrolling t
   "Whether to lock scrolling by default when starting
 `vdiff-mode'."
-  :group 'vdiff
   :type 'boolean)
 
 (defcustom vdiff-diff-program "diff"
   "diff program to use."
-  :group 'vdiff
   :type 'string)
 
 (defcustom vdiff-diff3-program "diff3"
   "diff3 program to use."
-  :group 'vdiff
   :type 'string)
 
 (defcustom vdiff-diff-extra-args ""
   "Extra arguments to pass to diff. If this is set wrong, you may
 break vdiff. It is empty by default."
-  :group 'vdiff
   :type 'string)
 
 (defcustom vdiff-fold-padding 6
   "Unchanged lines to leave unfolded around a fold"
-  :group 'vdiff
   :type 'integer)
 
 (defcustom vdiff-min-fold-size 4
   "Minimum number of lines to fold"
-  :group 'vdiff
   :type 'integer)
 
 (defcustom vdiff-may-close-fold-on-point t
   "If non-nil, allow closing new folds around point after updates."
-  :group 'vdiff
   :type 'boolean)
 
 (defcustom vdiff-fold-string-function 'vdiff-fold-string-default
   "Function that returns the string printed for a closed
 fold. The arguments passed are the number of lines folded, the
 text on the first line, and the width of the buffer."
-  :group 'vdiff
   :type 'function)
 
 (defcustom vdiff-default-refinement-syntax-code "w"
@@ -119,12 +111,10 @@ text on the first line, and the width of the buffer."
 
 For more information see
 https://www.gnu.org/software/emacs/manual/html_node/elisp/Syntax-Class-Table.html"
-  :group 'vdiff
   :type 'string)
 
 (defcustom vdiff-auto-refine nil
   "If non-nil, automatically refine all hunks."
-  :group 'vdiff
   :type 'boolean)
 
 (defcustom vdiff-subtraction-style 'full
@@ -133,7 +123,6 @@ default is full which means add the same number of (fake) lines
 as those that were removed. The choice single means add only one
 fake line. The choice fringe means don't add lines but do
 indicate the subtraction location in the fringe."
-  :group 'vdiff
   :type '(radio (const :tag "Add same number of fake lines" full)
                 (const :tag "Add single line" single)
                 (const :tag "Add no lines but use fringe" fringe)))
@@ -141,7 +130,6 @@ indicate the subtraction location in the fringe."
 (defcustom vdiff-subtraction-fill-char ?-
   "Character to use for filling subtraction lines. See also
 `vdiff-subtraction-style'."
-  :group 'vdiff
   :type 'integer)
 
 (defcustom vdiff-use-ancestor-as-merge-buffer nil
@@ -150,53 +138,43 @@ is included, `vdiff-merge-conflict' will use the ancestor file as
 the merge buffer (or target buffer) that will be saved when the
 merge is finished. The default is to show the original file with
 conflicts as the merge buffer."
-  :group 'vdiff
   :type 'boolean)
 
 (defface vdiff-addition-face
   '((t :inherit diff-added))
-  "Face for additions"
-  :group 'vdiff)
+  "Face for additions")
 
 (defface vdiff-change-face
   '((t :inherit diff-changed))
-  "Face for changes"
-  :group 'vdiff)
+  "Face for changes")
 
 (defface vdiff-closed-fold-face
   '((t :inherit region))
-  "Face for closed folds"
-  :group 'vdiff)
+  "Face for closed folds")
 
 (defface vdiff-open-fold-face
   '((t))
-  "Face for open folds"
-  :group 'vdiff)
+  "Face for open folds")
 
 (defface vdiff-subtraction-face
   '((t :inherit diff-removed))
-  "Face for subtractions"
-  :group 'vdiff)
+  "Face for subtractions")
 
 (defface vdiff-subtraction-fringe-face
   '((t :inherit vdiff-subtraction-face))
-  "Face for subtraction fringe indicators"
-  :group 'vdiff)
+  "Face for subtraction fringe indicators")
 
 (defface vdiff-refine-changed
   '((t :inherit diff-refine-changed))
-  "Face for word changes within a change hunk"
-  :group 'vdiff)
+  "Face for word changes within a change hunk")
 
 (defface vdiff-refine-added
   '((t :inherit diff-refine-added))
-  "Face for word changes within an addition hunk"
-  :group 'vdiff)
+  "Face for word changes within an addition hunk")
 
 (defface vdiff-target-face
   '((t :inverse-video t :inherit warning))
-  "Face for selecting hunk targets."
-  :group 'vdiff)
+  "Face for selecting hunk targets.")
 
 (defvar vdiff--force-sync-commands '(next-line
                                      previous-line
@@ -301,7 +279,7 @@ because those are handled differently.")
    (vdiff-session-buffers vdiff--session)))
 
 (defun vdiff--unselected-windows ()
-  (mapcar #'get-buffer-window
+  (mapcar (lambda (buf) (get-buffer-window buf 0))
           (vdiff--unselected-buffers)))
 
 (defun vdiff--all-windows ()
@@ -858,8 +836,10 @@ of a \"word\"."
 
 (defun vdiff--make-subtraction-string (n-lines)
   "Make string to fill in space for lines missing in a buffer."
-  (let* ((width (- (window-text-width (get-buffer-window (current-buffer))) 2))
-         (win-height (window-height (get-buffer-window (current-buffer))))
+  (let* ((width (- (window-text-width
+                    (get-buffer-window (current-buffer) 0)) 2))
+         (win-height (window-height
+                      (get-buffer-window (current-buffer) 0)))
          (max-lines (floor (* 0.7 win-height)))
          (truncate (> n-lines max-lines))
          (trunc-n-lines
@@ -949,7 +929,7 @@ of a \"word\"."
                                  (- end-line beg-line)
                                  first-line-text
                                  (window-width
-                                  (get-buffer-window buffer)))
+                                  (get-buffer-window buffer 0)))
                         'face 'vdiff-closed-fold-face)))
       (overlay-put ovr 'face 'vdiff-open-fold-face)
       (overlay-put ovr 'vdiff-fold-text text)
@@ -1423,6 +1403,7 @@ buffer)."
              (2-scroll (nth 3 2-scroll-data))
              ;; 1 is short for this; 2 is the first other and 3 is the second
              (vdiff--in-scroll-hook t))
+        (message "%s" 2-scroll-data)
         (when (and 2-pos 2-start-pos)
           (set-window-point 2-win 2-pos)
           ;; For some reason without this unless the vscroll gets eff'd
@@ -1622,9 +1603,9 @@ with non-nil USE-FOLDS."
 ;; * Entry points
 
 ;;;###autoload
-(defun vdiff-files (file-a file-b &optional horizontal on-quit)
+(defun vdiff-files (file-a file-b &optional rotate on-quit)
   "Start a vdiff session. If called interactively, you will be
-asked to select two files. HORIZONTAL adjusts the buffer's
+asked to select two files. ROTATE adjusts the buffer's
 initial layout. A prefix argument can be used to set this
 variable interactively. ON-QUIT is a function to run on exiting
 the vdiff session. It is called with the two vdiff buffers as
@@ -1641,14 +1622,32 @@ arguments."
       current-prefix-arg)))
   (vdiff-buffers (find-file-noselect file-a)
                  (find-file-noselect file-b)
-                 horizontal on-quit))
+                 rotate on-quit))
+
+(defcustom vdiff-2way-layout-function 'vdiff-2way-layout-function-default
+  "Function to layout windows in 3way diffs.
+
+Should take the arguments (BUFFER-A BUFFER-B &optional ROTATE),
+where rotate switches from vertical to rotate (or vice
+versa)."
+  :group 'vdiff
+  :type 'function)
+
+(defun vdiff-2way-layout-function-default (buffer-a buffer-b &optional rotate)
+  (delete-other-windows)
+  (switch-to-buffer buffer-a)
+  (set-window-buffer
+   (if rotate
+       (split-window-vertically)
+     (split-window-horizontally))
+   buffer-b))
 
 ;;;###autoload
 (defun vdiff-buffers
     (buffer-a buffer-b
-     &optional horizontal on-quit restore-windows-on-quit kill-buffers-on-quit)
+     &optional rotate on-quit restore-windows-on-quit kill-buffers-on-quit)
   "Start a vdiff session. If called interactively, you will be
-asked to select two buffers. HORIZONTAL adjusts the buffer's
+asked to select two buffers. ROTATE adjusts the buffer's
 initial layout. A prefix argument can be used to set this
 variable interactively. ON-QUIT is a function to run on exiting
 the vdiff session. It is called with the two vdiff buffers as
@@ -1673,13 +1672,15 @@ function for ON-QUIT to do something useful with the result."
                                (current-window-configuration)))
         (buffer-a (get-buffer buffer-a))
         (buffer-b (get-buffer buffer-b)))
-    (delete-other-windows)
-    (switch-to-buffer buffer-a)
-    (set-window-buffer
-       (if horizontal
+    (if (functionp vdiff-2way-layout-function)
+        (funcall vdiff-2way-layout-function buffer-a buffer-b rotate)
+      (delete-other-windows)
+      (switch-to-buffer buffer-a)
+      (set-window-buffer
+       (if rotate
            (split-window-vertically)
          (split-window-horizontally))
-       buffer-b)
+       buffer-b))
     (setq vdiff--temp-session
           (vdiff--init-session
            buffer-a buffer-b nil
@@ -1693,7 +1694,9 @@ function for ON-QUIT to do something useful with the result."
     (vdiff-refresh #'vdiff--scroll-function)))
 
 (defcustom vdiff-3way-layout-function 'vdiff-3way-layout-function-default
-  "Function to layout windows in 3way diffs"
+  "Function to layout windows in 3way diffs.
+
+Should take the arguments (BUFFER-A BUFFER-B BUFFER-C)."
   :group 'vdiff
   :type 'function)
 
