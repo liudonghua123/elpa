@@ -1,7 +1,6 @@
 ;;; auto-overlays.el --- Automatic regexp-delimited overlays    -*- lexical-binding: t; -*-
 
-
-;; Copyright (C) 2005-2015  Free Software Foundation, Inc
+;; Copyright (C) 2005-2017  Free Software Foundation, Inc
 
 ;; Version: 0.10.9
 ;; Author: Toby Cubitt <toby-predictive@dr-qubit.org>
@@ -983,7 +982,7 @@ uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
   "Unload auto-overlay definition DEFINITION-ID in set SET-ID
 from the current buffer. Returns the deleted definition."
 
-  (save-excursion
+  (save-current-buffer
     ;; call suicide function for corresponding overlays in all buffers in
     ;; which the set is enabled
     (dolist (buff (auto-o-get-buffer-list set-id))
@@ -1026,7 +1025,7 @@ from the current buffer. Returns the deleted definition."
 definition DEFINITION-ID in set SET-ID of the current buffer.
 Returns the deleted regexp."
 
-  (save-excursion
+  (save-current-buffer
     ;; call suicide function for corresponding overlays in all buffers in
     ;; which the set is enabled
     (dolist (buff (auto-o-get-buffer-list set-id))
@@ -1101,7 +1100,7 @@ argument NO-REGEXP-CHECK is non-nil, the file of saved overlays
 will be used, but no check will be made to ensure regexp
 definitions are the same as when the overlays were saved."
 
-  (save-excursion
+  (save-current-buffer
     (when buffer (set-buffer buffer))
     ;; run initialisation hooks
     (run-hooks 'auto-overlay-load-hook)
@@ -1147,7 +1146,7 @@ If LEAVE-OVERLAYS is non-nil, don't bother deleting the overlays
 from the buffer \(this is generally a bad idea, unless the buffer
 is about to be killed in which case it speeds things up a bit\)."
 
-  (save-excursion
+  (save-current-buffer
     (when buffer (set-buffer buffer))
     ;; disable overlay set
     (auto-o-disable-set set-id)
@@ -1198,7 +1197,7 @@ filename, an error occurs.
 The overlays can be loaded again later using
 `auto-overlay-load-overlays'."
 
-  (save-excursion
+  (save-current-buffer
     (when buffer (set-buffer buffer))
 
     ;; construct filename
@@ -1274,7 +1273,7 @@ definitions will be skipped; the saved overlays will be loaded
 even if different regexp definitions were active when the
 overlays were saved."
 
-  (save-excursion
+  (save-current-buffer
     (when buffer (set-buffer buffer))
 
     ;; construct filename
