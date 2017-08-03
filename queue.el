@@ -5,7 +5,7 @@
 ;; Author: Inge Wallin <inge@lysator.liu.se>
 ;;         Toby Cubitt <toby-predictive@dr-qubit.org>
 ;; Maintainer: Toby Cubitt <toby-predictive@dr-qubit.org>
-;; Version: 0.1.1
+;; Version: 0.2
 ;; Keywords: extensions, data structures, queue
 ;; URL: http://www.dr-qubit.org/emacs.php
 ;; Repository: http://www.dr-qubit.org/git/predictive.git
