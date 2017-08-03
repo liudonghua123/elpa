@@ -1,6 +1,6 @@
 ;;; queue.el --- Queue data structure  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991-1995, 2008-2009, 2012  Free Software Foundation, Inc
+;; Copyright (C) 1991-1995, 2008-2009, 2012, 2017  Free Software Foundation, Inc
 
 ;; Author: Inge Wallin <inge@lysator.liu.se>
 ;;         Toby Cubitt <toby-predictive@dr-qubit.org>
@@ -45,6 +45,11 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+
+(defmacro queue--when-generators (then)
+  "Evaluate THEN if `generator' library is available."
+  (declare (debug t))
+  (if (require 'generator nil 'noerror) then))
 
 
 (defstruct (queue
@@ -142,6 +147,16 @@ order. The elements themselves are *not* copied."
   "Remove all elements from QUEUE."
   (setf (queue-head queue) nil
 	(queue-tail queue) nil))
+
+
+(queue--when-generators
+ (iter-defun queue-iter (queue)
+   "Return a queue iterator object.
+
+Calling `iter-next' on this object will retrieve the next element
+from the queue. The queue itself is not modified."
+   (let ((list (queue-head queue)))
+     (while list (iter-yield (pop list))))))
 
 
 (provide 'queue)
