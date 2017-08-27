@@ -51,6 +51,7 @@ clean:
 	-rm -f *.elc
 
 install:
+	mkdir -p $(SITELISP)
 	install -m 644 $(ALLELC) $(SITELISP)
 	install -m 644 $(ALLSRC) $(SITELISP)
 
