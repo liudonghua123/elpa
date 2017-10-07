@@ -1,4 +1,4 @@
-;;; enwc.el --- The Emacs Network Client
+;;; enwc.el --- The Emacs Network Client -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
 
@@ -61,6 +61,7 @@
 
 (require 'map)
 (require 'seq)
+(require 'subr-x)
 
 (defgroup enwc nil
   "*The Emacs Network Client"
@@ -493,7 +494,7 @@ A wired scan displays the available wired profiles."
   (enwc-display-networks enwc--last-scan-results)
   (enwc-update-mode-line))
 
-(defun enwc-process-scan (&rest args)
+(defun enwc-process-scan (&rest _args)
   "The scanning callback.
 After a scan has been performed, this processes and displays the scan results.
 
@@ -518,7 +519,7 @@ ARGS is only for compatibility with the calling function."
                         (new-max (if (mapp networks)
                                      (seq-max
                                       (map-apply
-                                       (lambda (id nw)
+                                       (lambda (_id nw)
                                          (length (funcall conv (alist-get detail nw))))
                                        networks))
                                    0))
@@ -560,6 +561,8 @@ This is an entry to the display functions, and checks whether or not ENWC is
   (enwc-ensure-buffer)
   ;; Update the display widths.
   (enwc-refresh-widths)
+  ;; Update the scan results
+  (setq enwc--last-scan-results networks)
   (with-current-buffer (get-buffer "*ENWC*")
     (setq tabulated-list-format
           (vconcat
@@ -588,7 +591,7 @@ Otherwise, it actually returns it."
     (setq enwc-scan-interactive nil)
     (enwc-scan-internal))
   (let ((nets (or networks enwc--last-scan-results))
-        need-break cur-net)
+        cur-net)
     (while (and nets (not cur-net))
       (setq cur-net (pop nets))
       (unless (string-equal (alist-get 'essid (cdr-safe cur-net))

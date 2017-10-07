@@ -1,4 +1,4 @@
-;;; enwc-nm.el - The NetworkManager backend to ENWC
+;;; enwc-nm.el - The NetworkManager backend to ENWC -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
 
@@ -390,7 +390,7 @@ If STATE is 40, then NetworkManager is connecting to a new AP."
   "The NetworkManager check connecting function."
   enwc-nm-connecting-p)
 
-(defun enwc-nm-dev-prop-changed (new-state old-state reason)
+(defun enwc-nm-dev-prop-changed (new-state _old-state _reason)
   (setq enwc-nm-wired-p (eq new-state 100)))
 
 (defun enwc-nm-is-wired ()
@@ -405,7 +405,7 @@ If STATE is 40, then NetworkManager is connecting to a new AP."
   (random t)
   (apply 'format
          "%04x%04x-%04x-%04x-%04x-%04x%04x%04x"
-         (mapcar (lambda (x)
+         (mapcar (lambda (_x)
                    (random 65535))
                  (number-sequence 0 7))))
 

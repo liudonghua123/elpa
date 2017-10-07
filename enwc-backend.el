@@ -1,4 +1,4 @@
-;;; enwc-backend.el --- Back-end functions for ENWC.
+;;; enwc-backend.el --- Back-end functions for ENWC. -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
 
