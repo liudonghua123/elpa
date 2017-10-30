@@ -19,21 +19,20 @@
 ;; along with BBDB.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;; This file contains the BBDB interface to Wl.
-;;; See the BBDB info manual for documentation.
+;; This file contains the BBDB interface to Wl.
+;; See the BBDB info manual for documentation.
 
 ;;; Code:
 
 (require 'bbdb)
 (require 'bbdb-mua)
 
-(eval-when-compile
-  (defvar wl-summary-mode-map)
-  (defvar wl-draft-mode-map)
-  (defvar wl-summary-buffer-elmo-folder)
-  (autoload 'wl-summary-message-number "wl-summary")
-  (autoload 'elmo-message-entity "elmo-msgdb")
-  (autoload 'elmo-message-entity-field "elmo-msgdb"))
+(defvar wl-summary-mode-map)
+(defvar wl-draft-mode-map)
+(defvar wl-summary-buffer-elmo-folder)
+(declare-function wl-summary-message-number "wl-summary")
+(declare-function elmo-message-entity "elmo-msgdb")
+(declare-function elmo-message-entity-field "elmo-msgdb")
 
 (defun bbdb/wl-header (header)
   (elmo-message-entity-field

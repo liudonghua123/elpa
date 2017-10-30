@@ -1,9 +1,8 @@
 *.elc
 *.info
-/lisp/bbdb-loaddefs.el
-/lisp/bbdb-site.el
-/lisp/bbdb-pkg.el
-/lisp/TAGS
+/bbdb-autoloads.el
+/bbdb-pkg.el
+/TAGS
 /doc/bbdb.pdf
 /doc/bbdb.t2p/
 /doc/texinfo.tex

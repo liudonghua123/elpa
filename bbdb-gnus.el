@@ -19,8 +19,8 @@
 ;; along with BBDB.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;; This file contains the BBDB interface to Gnus.
-;;; See the BBDB info manual for documentation.
+;; This file contains the BBDB interface to Gnus.
+;; See the BBDB info manual for documentation.
 
 ;;; Code:
 
@@ -29,8 +29,7 @@
 (require 'bbdb-mua)
 (require 'gnus)
 
-(eval-and-compile
-  (autoload 'message-make-domain "message"))
+(declare-function message-make-domain "message")
 
 ;; Scoring
 
@@ -111,46 +110,46 @@ addresses better than the traditionally static global scorefile."
   bbdb/gnus-score-alist)
 
 ;;; from Brian Edmonds' gnus-bbdb.el
-;;;
-;;; Splitting / filing with gnus-folder
-;;;
-;;; To use this feature, you need to put this file somewhere in your
-;;; load-path and add the following lines of code to your .gnus file:
-;;;
-;;; (setq nnmail-split-methods 'bbdb/gnus-split-method)
-;;;
-;;; You should also examine the variables defvar'd below and customize
-;;; them to your taste.  They're listed roughly in descending likelihood
-;;; of your wanting to change them.  Once that is done, you need to add
-;;; filing information to your BBDB.  There are two fields of interest:
-;;;
-;;; 1. gnus-private.  This field contains the name of the group in which
-;;;    mail to you from any of the addresses associated with this record
-;;;    will be filed.  Also, any self-copies of mail you send any of the
-;;;    same addresses will be filed here.
-;;; 2. gnus-public.  This field is used to keep mail from mailing lists
-;;;    out of the private mailboxes.  It should be added to a record for
-;;;    the list submission address, and is formatted as follows:
-;;;      "group regexp"
-;;;    where group is where mail from the list should be filed, and
-;;;    regexp is a regular expression which is checked against the
-;;;    envelope sender (from the From_ header) to verify that this is
-;;;    the copy which came from the list.  For example, the entry for
-;;;    the ding mailing list might be:
-;;;      "mail.emacs.ding ding-request@ifi.uio.no"
-;;;    Yes, the second part *is* a regexp, so those dots may match
-;;;    something other than dots.  Sue me.
-;;;
-;;; Note that you can also specify a gnus-private field for mailing list
-;;; addresses, in which case self-copies of mail you send to the list
-;;; will be filed there.  Also, the field names can be changed below if
-;;; the defaults are not hip enough for you.  Lastly, if you specify a
-;;; gnus-private field for your *own* BBDB record, then all self-copies
-;;; of mail you send will be filed to that group.
-;;;
-;;; This documentation should probably be expanded and moved to a
-;;; separate file, but it's late, and *I* know what I'm trying to
-;;; say. :)
+;;
+;; Splitting / filing with gnus-folder
+;;
+;; To use this feature, you need to put this file somewhere in your
+;; load-path and add the following lines of code to your .gnus file:
+;;
+;; (setq nnmail-split-methods 'bbdb/gnus-split-method)
+;;
+;; You should also examine the variables defvar'd below and customize
+;; them to your taste.  They're listed roughly in descending likelihood
+;; of your wanting to change them.  Once that is done, you need to add
+;; filing information to your BBDB.  There are two fields of interest:
+;;
+;; 1. gnus-private.  This field contains the name of the group in which
+;;    mail to you from any of the addresses associated with this record
+;;    will be filed.  Also, any self-copies of mail you send any of the
+;;    same addresses will be filed here.
+;; 2. gnus-public.  This field is used to keep mail from mailing lists
+;;    out of the private mailboxes.  It should be added to a record for
+;;    the list submission address, and is formatted as follows:
+;;      "group regexp"
+;;    where group is where mail from the list should be filed, and
+;;    regexp is a regular expression which is checked against the
+;;    envelope sender (from the From_ header) to verify that this is
+;;    the copy which came from the list.  For example, the entry for
+;;    the ding mailing list might be:
+;;      "mail.emacs.ding ding-request@ifi.uio.no"
+;;    Yes, the second part *is* a regexp, so those dots may match
+;;    something other than dots.  Sue me.
+;;
+;; Note that you can also specify a gnus-private field for mailing list
+;; addresses, in which case self-copies of mail you send to the list
+;; will be filed there.  Also, the field names can be changed below if
+;; the defaults are not hip enough for you.  Lastly, if you specify a
+;; gnus-private field for your *own* BBDB record, then all self-copies
+;; of mail you send will be filed to that group.
+;;
+;; This documentation should probably be expanded and moved to a
+;; separate file, but it's late, and *I* know what I'm trying to
+;; say. :)
 
 (defcustom bbdb/gnus-split-default-group "mail.misc"
   "If the BBDB does not indicate any group to spool a message to, it will

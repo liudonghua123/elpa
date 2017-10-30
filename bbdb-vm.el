@@ -19,23 +19,45 @@
 ;; along with BBDB.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;; This file contains the BBDB interface to VM.
-;;; See the BBDB info manual for documentation.
+;; This file contains the BBDB interface to VM.
+;; See the BBDB info manual for documentation.
 
 ;;; Code:
 
 (require 'bbdb)
 (require 'bbdb-com)
 (require 'bbdb-mua)
-(require 'vm-autoloads)
-(require 'vm)
-(require 'vm-motion)
-(require 'vm-summary)
-(require 'vm-mime)
-(require 'vm-vars)
-(require 'vm-macro)
-(require 'vm-message)
-(require 'vm-misc)
+(when t                          ;Only load at run-time, not during compilation
+  (require 'vm-autoloads)
+  (require 'vm)
+  (require 'vm-motion)
+  (require 'vm-summary)
+  (require 'vm-mime)
+  (require 'vm-vars)
+  (require 'vm-macro)
+  (require 'vm-message)
+  (require 'vm-misc))
+
+;; Since VM is not loaded during compilation (e.g. because it may not be
+;; available during compilation), we need the declarations below to
+;; silence the byte-compiler warnings.
+(defvar vm-message-pointer)
+(defvar vm-summary-uninteresting-senders)
+(defvar vm-summary-uninteresting-senders-arrow)
+(defvar vm-auto-folder-alist)
+(defvar vm-folder-directory)
+(defvar vm-primary-inbox)
+(defvar vm-virtual-folder-alist)
+(defvar vm-mode-map)
+(declare-function vm-get-header-contents "??")
+(declare-function vm-su-from "??")
+(declare-function vm-su-to "??")
+(declare-function vm-decode-mime-encoded-words-in-string "??")
+(declare-function vm-su-to-names "??")
+(declare-function vm-su-full-name "??")
+(declare-function vm-add-message-labels "??")
+(declare-function vm-su-interesting-full-name "??")
+(declare-function vm-select-folder-buffer "??")
 
 (defun bbdb/vm-header (header)
   (save-current-buffer

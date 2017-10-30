@@ -19,49 +19,48 @@
 ;; along with BBDB.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;; This file provides various additional functionality for BBDB
-;;; See the BBDB info manual for documentation.
+;; This file provides various additional functionality for BBDB
+;; See the BBDB info manual for documentation.
 
-;;; This file lets you do stuff like
-;;;
-;;; o  automatically add some string to some field(s) based on the
-;;;    contents of header fields of the current message
-;;; o  only automatically create records when certain header fields
-;;;    are matched
-;;; o  do not automatically create records when certain header fields
-;;;    are matched
-;;;
-;;; Read the docstrings; read the texinfo file.
+;; This file lets you do stuff like
+;;
+;; o  automatically add some string to some field(s) based on the
+;;    contents of header fields of the current message
+;; o  only automatically create records when certain header fields
+;;    are matched
+;; o  do not automatically create records when certain header fields
+;;    are matched
+;;
+;; Read the docstrings; read the texinfo file.
 
 ;;; Code:
 
 (require 'bbdb)
 (require 'bbdb-com)
 
-(eval-and-compile
-  (autoload 'gnus-fetch-original-field "gnus-utils")
-  (autoload 'gnus-summary-select-article "gnus-sum")
-  (defvar gnus-article-buffer)
+(declare-function gnus-fetch-original-field "gnus-utils")
+(declare-function gnus-summary-select-article "gnus-sum")
+(defvar gnus-article-buffer)
 
-  (autoload 'bbdb/vm-header "bbdb-vm")
-  (autoload 'vm-follow-summary-cursor "vm-motion")
-  (autoload 'vm-select-folder-buffer "vm-macro")
-  (autoload 'vm-check-for-killed-summary "vm-misc")
-  (autoload 'vm-error-if-folder-empty "vm-misc")
+(declare-function bbdb/vm-header "bbdb-vm")
+(declare-function vm-follow-summary-cursor "vm-motion")
+(declare-function vm-select-folder-buffer "vm-macro")
+(declare-function vm-check-for-killed-summary "vm-misc")
+(declare-function vm-error-if-folder-empty "vm-misc")
 
-  (autoload 'bbdb/rmail-header "bbdb-rmail")
-  (defvar rmail-buffer)
+(declare-function bbdb/rmail-header "bbdb-rmail")
+(defvar rmail-buffer)
 
-  (autoload 'bbdb/mh-header "bbdb-mhe")
-  (autoload 'mh-show "mh-show")
-  (defvar mh-show-buffer)
+(declare-function bbdb/mh-header "bbdb-mhe")
+(declare-function mh-show "mh-show")
+(defvar mh-show-buffer)
 
-  (defvar mu4e~view-buffer-name)
+(defvar mu4e~view-buffer-name)
 
-  (autoload 'bbdb/wl-header "bbdb-wl")
+(declare-function bbdb/wl-header "bbdb-wl")
 
-  (autoload 'message-field-value "message")
-  (autoload 'mail-decode-encoded-word-string "mail-parse"))
+(declare-function message-field-value "message")
+(declare-function mail-decode-encoded-word-string "mail-parse")
 
 (defconst bbdb-mua-mode-alist
   '((vm vm-mode vm-virtual-mode vm-summary-mode vm-presentation-mode)

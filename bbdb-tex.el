@@ -297,6 +297,19 @@ The elements EDIT of `bbdb-address-format-list' are ignored."
   :group 'bbdb-utilities-tex
   :type 'file)
 
+(defcustom bbdb-tex-path
+  (let ((d (if load-file-name
+               (expand-file-name "tex/" (file-name-directory load-file-name))
+             (let ((f (locate-file "tex/bbdb.sty" load-path)))
+               (if f (file-name-directory f))))))
+    (if d (list d)))
+  "List of directories with the BBDB TeX files.
+If this is t assume that these files reside in directories
+that are part of the regular TeX search path"
+  :group 'bbdb-utilities-tex
+  :type '(choice (const :tag "Files in TeX path" t)
+                 (repeat (directory :tag "Directory"))))
+
 ;;; Internal variables
 
 (defvar bbdb-tex-rule-last bbdb-tex-rule-default
