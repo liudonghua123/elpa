@@ -1,7 +1,6 @@
 ;;; bbdb-wl.el --- BBDB interface to Wanderlust -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 David Maus <dmaus@dmaus.name>
-;; Copyright (C) 2015-2017 Roland Winkler <winkler@gnu.org>
+;; Copyright (C) 2015-2017  Free Software Foundation, Inc.
 
 ;; This file is part of the Insidious Big Brother Database (aka BBDB),
 

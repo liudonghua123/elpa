@@ -1,9 +1,6 @@
-;;; bbdb-mhe.el --- BBDB interface to mh-e -*- lexical-binding: t -*-
+;;; bbdb-mhe.el --- BBDB interface to mh-e  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991 Todd Kaufmann <toad@cs.cmu.edu>
-;; Modified: 28-Jul-94 by Fritz Knabe <knabe@ecrc.de>
-;;                        Jack Repenning <jackr@dblues.wpd.sgi.com>
-;; Copyright (C) 2010-2017 Roland Winkler <winkler@gnu.org>
+;; Copyright (C) 2010-2017  Free Software Foundation, Inc.
 
 ;; This file is part of the Insidious Big Brother Database (aka BBDB),
 
