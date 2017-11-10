@@ -3,7 +3,7 @@
 ;; Copyright (C) 1991, 1992, 1993, 1994 Jamie Zawinski <jwz@netscape.com>.
 ;; Copyright (C) 2010-2017 Roland Winkler <winkler@gnu.org>
 
-;; Version: 3.0
+;; Version: 0
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is part of the Insidious Big Brother Database (aka BBDB),
