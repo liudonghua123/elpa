@@ -1620,27 +1620,50 @@ in any of them."
                (sgml-log-warning "Unknown processing instruction for PSGML: %s"
                                  command)))))))
 
+(defun sgml-parse-name-or-literal ()
+  "Parse an SGML token or literal and return it as a string."
+  (sgml-parse-s)
+  (if (looking-at "['\"]")
+      (sgml-parse-literal)
+    (sgml-parse-name)))
+
+(defun sgml-pi-asl-parser (&optional value-fn)
+  "Parse the processing instruction like an attribute specification list.
+
+Returns a list of VALUE and (NAME . VALUE) pairs in the order
+they were written in; atom strings when there is no value
+indicator and conses when there is.
+
+  The NAME and VALUE can be an SGML literal.  This is an
+  extension to SGML syntax that requires NAME and a VALUE without
+  a 'name=' to be a name token.
+
+The optional argument VALUE-FN (default
+`sgml-parse-name-or-literal') is called with zero arguments to
+parse the value part of a name=value pair."
+  (let ((acc '())
+        name
+        (implied (cons nil nil)))
+    (sgml-parse-s)
+    (while (setq name (sgml-parse-name-or-literal))
+      (sgml-parse-s)
+      (let ((val (if (sgml-parse-delim "VI")
+                     (funcall (or value-fn 'sgml-parse-name-or-literal))
+                   implied)))
+        (push (if (eq val implied) name (cons name val)) acc))
+      (sgml-parse-s))
+    (nreverse acc)))
 
 (defun sgml--pi-element-handler ()
-  (sgml-parse-s)
-  (let ((eltype (sgml-lookup-eltype (sgml-parse-name)))
-        name value)
-    (sgml-parse-s)
-    (while (setq name (sgml-parse-name))
-      ;; FIXME: check name not reserved
-      (sgml-parse-s)
-      (cond ((sgml-parse-delim "VI")
-             (sgml-parse-s)
-             (setq value
-                   (if (looking-at "['\"]")
-                       (sgml-parse-literal)
-                     (read (current-buffer)))))
-            (t
-             (setq value t)))
-      (message "%s = %S" name value)
-      (setf (sgml-eltype-appdata eltype (intern (downcase name))) value)
-      (sgml-parse-s))))
-
+  (cl-destructuring-bind (elname &rest options)
+      (sgml-pi-asl-parser (lambda () (read (current-buffer))))
+    (let ((eltype (sgml-lookup-eltype elname)))
+      (dolist (option options)
+        ;; FIXME: check name not reserved
+        (let ((name (if (consp option) (car option) option))
+              (value (if (consp option) (cdr option) t)))
+          (message "%s = %S" name value)
+          (setf (sgml-eltype-appdata eltype (intern (downcase name))) value))))))
 
 ;;[lenst/1998-03-09 19:52:08]  Perhaps not the right place
 (defun sgml-general-insert-case (text)
