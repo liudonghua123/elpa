@@ -463,6 +463,13 @@ With optional ARG, override them iff ARG is positive."
 ;; the Hyperbole package is activated in an Emacs session.
 ;;;###autoload (load "kotl/kotl-autoloads" nil 'nowarn)
 
+;; This is needed so that the autoloads from "kotl/kotl-autoloads" refer to
+;; files found in `load-path'.  Otherwise `M-x kotl-mode' fails right after
+;; starting Emacs.
+;;;###autoload (add-to-list 'load-path (expand-file-name "kotl/"
+;;;###autoload              (file-name-directory load-file-name)))
+
+
 ;; Before the 6.0.1 release, Hyperbole used to patch the package-generate-autoloads 
 ;; function to ensure that kotl/ subdirectories were autoloaded.  This
 ;; is no longer used but is left here temporarily for reference.

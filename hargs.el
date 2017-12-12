@@ -4,7 +4,7 @@
 ;;
 ;; Orig-Date:    31-Oct-91 at 23:17:35
 ;;
-;; Copyright (C) 1991-2016  Free Software Foundation, Inc.
+;; Copyright (C) 1991-2017  Free Software Foundation, Inc.
 ;; See the "HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -443,7 +443,7 @@ Insert in minibuffer if active or in other window if minibuffer is inactive."
 	      entry)))))
 
 (defun hargs:iform-read (iform &optional modifying)
-  "Reads action arguments according to IFORM, a list with car = 'interactive.
+  "Read action arguments according to IFORM, a list with car = 'interactive.
 Optional MODIFYING non-nil indicates current button is being modified, so
 button's current values should be presented as defaults.  Otherwise, uses
 hargs:defaults as list of defaults, if any.

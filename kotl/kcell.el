@@ -1,10 +1,10 @@
-;;; kcell.el --- Internal representation of koutline kcells used by kviews
+;;; kcell.el --- Internal representation of koutline kcells used by kviews  -*- lexical-binding:t -*-
 ;;
 ;; Author:       Bob Weiner
 ;;
 ;; Orig-Date:    5/1/1993
 ;;
-;; Copyright (C) 1993-2016  Free Software Foundation, Inc.
+;; Copyright (C) 1993-2017  Free Software Foundation, Inc.
 ;; See the "../HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -20,7 +20,7 @@
 ;;; Other required Elisp libraries
 ;;; ************************************************************************
 
-(eval-and-compile (mapc #'require '(hinit htz klabel knode kview)))
+(eval-and-compile (mapc #'require '(hinit htz klabel knode)))
 
 ;;; ************************************************************************
 ;;; Public variables
@@ -153,16 +153,21 @@ now."
 ;;; kcell-data - Persistent representation of kotl cells (written to files).
 ;;;
 
+;; FIXME: circular dependency: We'd like to `require' kview for
+;; kview:id-increment, but kview `require's us for various other functions.
+(declare-function kview:id-increment "kview" (kview))
+
 (defun kcell-data:create (cell)
   "Given a kotl CELL, return a kcell-data structure to write to a file.
 If CELL, its idstamp, or its property list are nil, this repairs the cell by
 assuming it is the cell at point and filling in the missing information."
-   (let ((idstamp (kcell:idstamp cell))
-	 (plist (nthcdr 2 (kcell:plist cell))))
-     (if (and cell idstamp plist)
-	 (vector idstamp plist)
-       (kcell-data:create
-	(kcell:create nil (or idstamp (kview:id-increment kview)) plist)))))
+  (let ((idstamp (kcell:idstamp cell))
+	(plist (nthcdr 2 (kcell:plist cell))))
+    (if (and cell idstamp plist)
+	(vector idstamp plist)
+      (with-no-warnings (defvar kview)) ;Presumably the "current kview"?!
+      (kcell-data:create
+       (kcell:create nil (or idstamp (kview:id-increment kview)) plist)))))
 
 (defun kcell-data:idstamp (kcell-data)
   (aref kcell-data 0))
@@ -174,6 +179,7 @@ assuming it is the cell at point and filling in the missing information."
   (aref kcell-data 1))
 
 (defun kcell-data:to-kcell-v2 (kcell-data)
+  (with-no-warnings (defvar kview))   ;Presumably the "current kview"?!
   (if (vectorp kcell-data)
       (kcell:create
        ;; Cell contents are no longer put into cells themselves by default
@@ -187,6 +193,7 @@ assuming it is the cell at point and filling in the missing information."
     (kcell:create nil (kview:id-increment kview))))
 
 (defun kcell-data:to-kcell-v3 (kcell-data)
+  (with-no-warnings (defvar kview))   ;Presumably the "current kview"?!
   (if (vectorp kcell-data)
       (kcell:create
        ;; Cell contents are no longer put into cells themselves by default

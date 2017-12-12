@@ -1,4 +1,4 @@
-;;; kexport.el --- Convert koutlines to other textual formats, including HTML
+;;; kexport.el --- Convert koutlines to other textual formats, including HTML  -*- lexical-binding:t -*-
 ;;
 ;; Author:       Bob Weiner
 ;;
@@ -20,6 +20,7 @@
 (require 'hpath)
 (require 'hibtypes)
 (require 'klink)
+(declare-function kotl-mode:beginning-of-buffer "kotl-mode")
 
 ;;; ************************************************************************
 ;;; Public variables
@@ -121,6 +122,17 @@ STILL TODO:
   Make delimited pathnames into file links (but not if within klinks).
   Copy attributes stored in cell 0 and attributes from each cell."
   (interactive "fKoutline buffer/file to export: \nFHTML buffer/file to save to: \nP")
+  ;; 
+  (defvar html-mode-hook)
+  (defvar hm--html-mode-hook)
+  (defvar psgml-mode-hook)
+  ;; FIXME: These are presumably used to prevent syntax highlighting, but in
+  ;; Emacs they don't exist, so I'm not sure if it means that we have a bug (we
+  ;; need to prevent font-lock for Emacs as well), or rather that Emacs's
+  ;; version of font-lock doesn't get in the way.
+  (defvar font-lock-auto-fontify)
+  (defvar font-lock-mode-disable-list)
+  (defvar font-lock-mode-enable-list)
   (let* ((export-buf-name
 	  (cond ((or (bufferp export-from)
 		     (get-buffer export-from))
@@ -134,6 +146,9 @@ STILL TODO:
 	 (font-lock-auto-fontify) ;; Prevent syntax highlighting
 	 (font-lock-mode-disable-list '(html-mode))
 	 (font-lock-mode-enable-list)
+         ;; Avoid running user hooks in the destination file.
+         ;; FIXME: There should be a better way to do that than to enumerate
+         ;; the possible modes's hooks.
 	 (html-mode-hook)
 	 (hm--html-mode-hook)
 	 (psgml-mode-hook)
@@ -188,7 +203,7 @@ STILL TODO:
 	     "&gt;"))
 	   i level label contents)
       (kview:map-tree
-       (lambda (kview)
+       (lambda (_kview)
 	 (setq level (kcell-view:level)
 	       i level)
 	 (while (> i 1)

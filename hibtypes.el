@@ -604,11 +604,6 @@ Requires the Emacs builtin Tramp library for ftp file retrievals."
 ;;; Follows links to Hyperbole Koutliner cells.
 ;;; ========================================================================
 
-;; FIXME: Not sure if it's important to avoid loading `klink' during
-;; bytecompilation, but that was the behavior when the condition was more
-;; complex, so I kept the `if' even though it's now trivial.
-(if t (require 'klink))
-
 ;;; ========================================================================
 ;;; Jumps to source line associated with grep or compilation error messages.
 ;;; With credit to Michael Lipp and Mike Williams for the idea.

@@ -1,10 +1,10 @@
-;;; kfill.el --- Fill and justify koutline cells
+;;; kfill.el --- Fill and justify koutline cells  -*- lexical-binding:t -*-
 ;;
 ;; Author:       Bob Weiner
 ;;
 ;; Orig-Date:    23-Jan-94
 ;;
-;; Copyright (C) 1994-2016  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2017  Free Software Foundation, Inc.
 ;; See the "../HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -14,20 +14,9 @@
 
 ;;; Code:
 
-;; Quiet byte compiler warnings for this free variable.
-(eval-when-compile
-  (unless (require 'filladapt nil t)
-    (defvar filladapt-function-table nil)))
-
 ;;; ************************************************************************
 ;;; Public variables
 ;;; ************************************************************************
-
-(defvar kfill:function-table
-  (if (featurep 'filladapt)
-      filladapt-function-table
-    (list (cons 'fill-paragraph (symbol-function 'fill-paragraph))))
-  "Table containing the old function definitions that kfill overrides.")
 
 (defvar kfill:prefix-table
   '(
@@ -91,12 +80,18 @@ Setting this variable automatically makes it local to the current buffer.")
 ;;; Public functions 
 ;;; ************************************************************************
 
+;; FIXME: circular dependency: kview `require's kfill because of
+;; kfill:forward-line, and kfill would like to `require' kview because of
+;; kcell-view:indent.
+(declare-function kcell-view:indent "kview" (&optional pos lsl))
+
 (defun kfill:forward-line (&optional n)
   "Move N lines forward (backward if N is negative) to the start of line.
 If there isn’t room, go as far as possible (no error).  Return the
 number of lines that could not be moved, otherwise 0."
   (or (integerp n) (setq n 1))
-  (let ((opoint (point)))
+  (let (;; (opoint (point))
+        )
     (forward-visible-line n)
     (if (< n 0)
 	nil
@@ -116,13 +111,12 @@ number of lines that could not be moved, otherwise 0."
 	  (do-auto-fill))
       (do-auto-fill))))
 
-;;; Redefine this built-in function.
-
-(defun fill-paragraph (arg &optional skip-prefix-remove)
-  "Fill paragraph at or after point.  Prefix ARG means justify as well."
-  (interactive "*P")
-  (if (not (eq major-mode 'kotl-mode))
-      (kfill:funcall 'fill-paragraph arg)
+;; Redefine this built-in function.
+(advice-add 'fill-paragraph :around #'kill:fill-paragraph)
+(defun kill:fill-paragraph (orig-fun arg &optional skip-prefix-remove)
+  "`kotl-mode' specific paragraph filling code."
+  (if (not (derived-mode-p 'kotl-mode))
+      (funcall orig-fun arg skip-prefix-remove)
     ;; This may be called from `fill-region-as-paragraph' in "filladapt.el"
     ;; which narrows the region to the current paragraph.  A side-effect is
     ;; that the cell identifier and indent information needed by this function
@@ -130,8 +124,7 @@ number of lines that could not be moved, otherwise 0."
     ;; buffer here.  Don't rewiden past the paragraph of interest or any
     ;; following blank line may be removed by the filling routines.
     (save-restriction
-      (if (eq major-mode 'kotl-mode)
-	  (narrow-to-region 1 (point-max)))
+      (narrow-to-region 1 (point-max))
       ;; Emacs expects a specific symbol here.
       (if (and arg (not (symbolp arg))) (setq arg 'full))
       (or skip-prefix-remove (kfill:remove-paragraph-prefix))
@@ -145,37 +138,28 @@ number of lines that could not be moved, otherwise 0."
 		  (paragraph-separate paragraph-separate)
 		  fill-prefix)
 	      (if (kfill:adapt t)
-		  (throw 'done (kfill:funcall 'fill-paragraph arg)))))
+		  (throw 'done (funcall orig-fun arg skip-prefix-remove)))))
 	;; Kfill:adapt failed or fill-prefix is set, so do a basic
 	;; paragraph fill as adapted from par-align.el.
 	(kfill:fallback-fill-paragraph arg skip-prefix-remove)))))
 
-;;;
-;;; Redefine this built-in function so that it sets `prior-fill-prefix' also.
-;;;
-(defun set-fill-prefix (&optional turn-off)
-  "Set `fill-prefix' to the current line up to point or remove it if optional TURN-OFF flag is non-nil.
-Also sets `prior-fill-prefix' to the previous value of `fill-prefix'.
-Filling removes any prior fill prefix, adjusts line lengths and then adds the
-fill prefix at the beginning of each line."
-  (interactive)
-  (setq prior-fill-prefix fill-prefix
-	fill-prefix (if turn-off
-			nil
-		      (buffer-substring
-		       (save-excursion (beginning-of-line) (point))
-		       (point))))
-  (if (equal prior-fill-prefix "")
-      (setq prior-fill-prefix nil))
-  (if (equal fill-prefix "")
-      (setq fill-prefix nil))
-  (cond (fill-prefix
-	 (message "fill-prefix: \"%s\"; prior-fill-prefix: \"%s\""
-		  fill-prefix (or prior-fill-prefix "")))
-	(prior-fill-prefix
-	 (message "fill-prefix cancelled; prior-fill-prefix: \"%s\""
-		  prior-fill-prefix))
-	(t (message "fill-prefix and prior-fill-prefix cancelled"))))
+;; Redefine this built-in function so that it sets `prior-fill-prefix' also.
+(advice-add 'set-fill-prefix :around #'kfill:set-fill-prefix)
+(defun kfill:set-fill-prefix (orig-fun &rest args)
+  "Set `prior-fill-prefix' to the previous value of `fill-prefix'."
+  (if (not (derived-mode-p 'kotl-mode))
+      (apply orig-fun args)
+    (setq prior-fill-prefix fill-prefix)
+    (if (equal prior-fill-prefix "")
+        (setq prior-fill-prefix nil))
+    (apply orig-fun args)
+    (cond (fill-prefix
+	   (message "fill-prefix: \"%s\"; prior-fill-prefix: \"%s\""
+		    fill-prefix (or prior-fill-prefix "")))
+	  (prior-fill-prefix
+	   (message "fill-prefix cancelled; prior-fill-prefix: \"%s\""
+		    prior-fill-prefix))
+	  (t (message "fill-prefix and prior-fill-prefix cancelled")))))
 
 ;;; ************************************************************************
 ;;; Private functions
@@ -230,9 +214,6 @@ fill prefix at the beginning of each line."
 		 (goto-char region-start)
 		 (funcall function justify-flag)))
 	  (fill-region-as-paragraph from (point) justify-flag)))))
-
-(defun kfill:funcall (function &rest args)
-  (apply (cdr (assq function kfill:function-table)) args))
 
 (defun kfill:hanging-list (paragraph)
   (let (prefix match beg end)

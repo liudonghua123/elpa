@@ -1,4 +1,4 @@
-;;; kmenu.el --- Pulldown and popup menus for kotl-mode, the Koutliner mode
+;;; kmenu.el --- Pulldown and popup menus for kotl-mode, the Koutliner mode  -*- lexical-binding:t -*-
 ;;
 ;; Author:       Bob Weiner
 ;;
@@ -188,10 +188,14 @@
 ;;; Public functions
 ;;; ************************************************************************
 
-;;; This definition is used only by XEmacs and Emacs.
+;; This definition is used only by XEmacs and Emacs.
 (defun kotl-menubar-menu ()
   "Add a Koutline menu to the menubar for each koutline buffer."
+  (defvar kotl-mode-map)                ;Called from kotl-mode-hook.
+  ;; FIXME: All the menu&key settings here should only be performed once,
+  ;; rather than re-execute them for every kotl buffer!
   (cond ((fboundp 'popup-mode-menu)
+         (defvar mode-popup-menu)
 	 (setq mode-popup-menu id-popup-kotl-menu))
 	((featurep 'xemacs)
 	 (define-key kotl-mode-map 'button3 'kotl-popup-menu))
@@ -217,6 +221,7 @@
 (cond ((featurep 'infodock)
        ;; InfoDock under a window system
        (require 'id-menubars)
+       (declare-function id-menubar-set "infodock")
        (id-menubar-set 'kotl-mode 'id-menubar-kotl))
       (t
        ;; Emacs or XEmacs under a window system

@@ -1,4 +1,4 @@
-;;; kimport.el --- Convert and insert other outline file formats into koutlines
+;;; kimport.el --- Convert and insert other outline file formats into koutlines  -*- lexical-binding:t -*-
 ;;
 ;; Author:       Bob Weiner
 ;;
@@ -371,7 +371,7 @@ The variable, `paragraph-start,' is used to determine paragraphs."
 	  ;; Total number of paragraphs.
 	  (setq total (kimport:count-paragraphs)
 		count (kimport:text-paragraphs import-from output-to klabel
-					       output-level count total))))
+					       output-level total))))
       (pop-to-buffer output-to)
       (kfile:narrow-to-kcells)
       (if no-renumber nil (klabel-type:update-labels klabel))
@@ -656,7 +656,7 @@ in IMPORT-FROM, used to show a running tally of the imported entries."
   count)
 
 (defun kimport:text-paragraphs (import-from output-to klabel
-			        output-level count total)
+			        output-level total)
   "Insert text paragraphs from IMPORT-FROM into existing OUTPUT-TO.
 First cell is inserted with KLABEL at OUTPUT-LEVEL, as the sibling of the
 previous cell, with the COUNT of inserted paragraphs starting at 0.  TOTAL is

@@ -16,16 +16,32 @@
 ;;; Other required Lisp Libraries
 ;;; ************************************************************************
 
-(eval-and-compile (mapc #'require '(klabel kfill hypb)))
-;; Quiet byte compiler warnings for this free variable.
-(eval-when-compile
-  (defvar label-sep-len nil))
+(eval-and-compile (mapc #'require '(klabel kfill hypb kproperty kcell)))
+
+;; Quiet byte compiler warnings for functions from kotl-mode (which
+;; we can't require because it requires us).
+(declare-function kotl-mode:to-start-of-line "kotl-mode")
+(declare-function kotl-mode:to-end-of-line "kotl-mode")
+(declare-function kotl-mode:tree-end "kotl-mode")
+(declare-function kotl-mode:goto-cell "kotl-mode")
+(declare-function kotl-mode:to-visible-position "kotl-mode")
+(declare-function kotl-mode:to-valid-position "kotl-mode")
+(declare-function kotl-mode:fill-cell "kotl-mode")
+(declare-function kotl-mode:hide-subtree "kotl-mode")
+;; Same for kfile.
+(declare-function kfile:narrow-to-kcells "kfile")
+;; Same for kvspec.
+(declare-function kvspec:show-lines-this-cell "kvspec")
+(declare-function kvspec:update "kvspec")
 
 ;;; ************************************************************************
 ;;; Public variables
 ;;; ************************************************************************
 
-(set-default 'kview nil)
+
+;; FIXME: Rename it to kview-current or something, so as to distinguish it from
+;; the uses of this identifier for function args and other lexically-bound vars.
+(defvar kview nil)
 
 (defcustom kview:default-blank-lines t
   "*Default setting of whether to show blank lines between koutline cells.
@@ -177,8 +193,7 @@ a cell's label and the start of its contents.
 Any cell that is invisible is also collapsed as indicated by a call to
 `kcell-view:collapsed-p'."
   (let ((start (1- (kcell-view:start pos label-sep-len))) ;; Allow for empty cell
-	(end (kcell-view:end-contents pos))
-	(invisible))
+	(end (kcell-view:end-contents pos)))
     (if (delq nil (mapcar (lambda (o)
 			      (and (eq (overlay-get o 'invisible) 'outline)
 				   (>= start (overlay-start o))
@@ -659,7 +674,8 @@ the lines displayed, since it has hidden branches."
   ;; subcells, indicating its branches are hidden.
   (kview:map-region
    (lambda ()
-     (cond ((kcell-view:next-invisible-p (point) label-sep-len)
+     (defvar label-sep-len)             ;Bound by kview:map-region.
+     (cond ((kcell-view:next-invisible-p label-sep-len)
 	    ;; Skip to end of this subtree
 	    (prog1 (- (kcell-view:lines-visible))
 	      (goto-char (kotl-mode:tree-end t))))
@@ -668,8 +684,8 @@ the lines displayed, since it has hidden branches."
 	   (t 0)))
    kview t start end))
 
-(defun kcell-view:next-invisible-p (&optional pos label-sep-len)
-  "Return t if there is a next cell after optional POS or point and it is invisible."
+(defun kcell-view:next-invisible-p (&optional label-sep-len)
+  "Return t if there is a next cell after point and it is invisible."
   (save-excursion (and (kcell-view:next nil label-sep-len)
 		       (kcell-view:invisible-p (point) label-sep-len))))
 
@@ -701,7 +717,7 @@ the lines displayed, since it has hidden branches."
 		 label-end kcell)
 	     (setq label-end
 		   (map-extents
-		    (lambda (extent unused)
+		    (lambda (extent _)
 		      (setq kcell (extent-property extent 'kcell))
 		      (and kcell (= (kcell:idstamp kcell) cell-id)
 			   (extent-end-position extent)))
@@ -727,9 +743,9 @@ the lines displayed, since it has hidden branches."
     (if (kotl-mode:goto-cell permanent-id)
 	(kcell-view:label))))
 
-(defun kview:insert-contents (kcell contents no-fill fill-prefix)
+(defun kview:insert-contents (kcell contents no-fill cell-fill-prefix)
   "Insert KCELL's CONTENTS into view at point and fill resulting paragraphs, unless NO-FILL is non-nil.
-FILL-PREFIX is the indentation string for the current cell.
+CELL-FILL-PREFIX is the indentation string for the current cell.
 If CONTENTS is nil, get contents from KCELL.  Return contents inserted (this
 value may differ from the value passed in.)"
   (let ((start (point))
@@ -751,7 +767,7 @@ value may differ from the value passed in.)"
 	    (narrow-to-region start end)
 	    (goto-char (point-min))
 	    (while (re-search-forward "[\n\r]" nil t)
-	      (insert fill-prefix))
+	      (insert cell-fill-prefix))
 	    (goto-char (point-max)))
 	;;
 	;; Filling cell will insert proper indent on all lines.
@@ -760,15 +776,15 @@ value may differ from the value passed in.)"
 	  (goto-char start)
 	  (beginning-of-line)
 	  (narrow-to-region (point) end)
-	  ;; Add fill-prefix to all but paragraph separator lines, so
+	  ;; Add cell-fill-prefix to all but paragraph separator lines, so
 	  ;; filling is done properly.
 	  (while (re-search-forward "[\n\r][^\n\r]" nil t)
-	    (forward-char -1) (insert fill-prefix))
+	    (forward-char -1) (insert cell-fill-prefix))
 	  (kview:fill-region start end kcell)
 	  (goto-char (point-min))
-	  ;; Now add fill-prefix to paragraph separator lines.
+	  ;; Now add cell-fill-prefix to paragraph separator lines.
 	  (while (re-search-forward "[\n\r][\n\r]" nil t)
-	    (forward-char -1) (insert fill-prefix))
+	    (forward-char -1) (insert cell-fill-prefix))
 	  ;;
 	  (goto-char (point-max))))))
   contents)
@@ -823,7 +839,7 @@ See documentation for kview:default-level-indent."
       (kview:get-attr kview 'level-indent)))
 
 (defun kview:map-branch (func kview &optional first-p visible-p)
-  "Applies FUNC to the sibling trees from point forward within KVIEW and returns results as a list.
+  "Apply FUNC to the sibling trees from point forward within KVIEW and return results as a list.
 With optional FIRST-P non-nil, begins with first sibling in current branch.
 With optional VISIBLE-P, considers only those sibling cells that are visible
 in the view.
@@ -831,26 +847,28 @@ in the view.
 FUNC should take one argument, the kview local variable of the current
 buffer or some other kview, and should operate upon the cell at point.
 
-`Cell-indent' contains the indentation value of the first cell mapped when
-FUNC is called so that it may test against this value.  `Label-sep-len'
+`cell-indent' contains the indentation value of the first cell mapped when
+FUNC is called so that it may test against this value.  `label-sep-len'
 contains the label separator length.
 
 See also `kview:map-region', `kview:map-siblings' and `kview:map-tree'."
-    (with-current-buffer (kview:buffer kview)
-      (save-excursion
-	(let ((results)
-	      (label-sep-len (kview:label-separator-length kview))
-	      cell-indent)
-	  (if first-p
-	      ;; Move back to first predecessor at same level.
-	      (while (kcell-view:backward t label-sep-len)))
-	  (setq cell-indent (kcell-view:indent nil label-sep-len))
-	  ;; Terminate when no further cells or when reach a cell at an equal
-	  ;; or higher level in the kotl than the first cell that we processed.
-	  (while (and (setq results (cons (funcall func kview) results))
-		      (kcell-view:next visible-p label-sep-len)
-		      (> (kcell-view:indent nil label-sep-len) cell-indent)))
-	  (nreverse results)))))
+  (defvar label-sep-len)                ;FIXME: Use appropriate package prefix!
+  (defvar cell-indent)                  ;FIXME: Not used!
+  (with-current-buffer (kview:buffer kview)
+    (save-excursion
+      (let ((results)
+	    (label-sep-len (kview:label-separator-length kview))
+	    cell-indent)
+	(if first-p
+	    ;; Move back to first predecessor at same level.
+	    (while (kcell-view:backward t label-sep-len)))
+	(setq cell-indent (kcell-view:indent nil label-sep-len))
+	;; Terminate when no further cells or when reach a cell at an equal
+	;; or higher level in the kotl than the first cell that we processed.
+	(while (and (setq results (cons (funcall func kview) results))
+		    (kcell-view:next visible-p label-sep-len)
+		    (> (kcell-view:indent nil label-sep-len) cell-indent)))
+	(nreverse results)))))
 
 (defun kview:map-region (func kview &optional visible-p start end)
   "Applies FUNC to each cell in the region within KVIEW and returns results as a list.
@@ -860,9 +878,10 @@ than the bounds of the active region.
 
 FUNC should take no arguments and should operate upon the cell at point.
 
-`Label-sep-len’ contains the label separator length.
+`label-sep-len’ contains the label separator length.
 
 See also `kview:map-tree', `kview:map-branch’, and ‘kview:map-siblings’."
+  (defvar label-sep-len)                ;FIXME: Use appropriate package prefix!
   (with-current-buffer (kview:buffer kview)
     (save-excursion
       (let* ((results)
@@ -893,7 +912,7 @@ See also `kview:map-tree', `kview:map-branch’, and ‘kview:map-siblings’."
 	      (t (error "(kview:map-region): No region or invalid start and end positions")))))))
 
 (defun kview:map-siblings (func kview &optional first-p visible-p)
-  "Applies FUNC to the sibling cells from point forward within KVIEW and returns results as a list.
+  "Apply FUNC to the sibling cells from point forward within KVIEW and returns results as a list.
 With optional FIRST-P non-nil, begins with first sibling in current branch.
 With optional VISIBLE-P, considers only those sibling cells that are visible
 in the view.
@@ -901,30 +920,32 @@ in the view.
 FUNC should take one argument, the kview local variable of the current
 buffer or some other kview, and should operate upon the cell at point.
 
-`Cell-indent' contains the indentation value of the first cell mapped when
-FUNC is called so that it may test against this value.  `Label-sep-len'
+`cell-indent' contains the indentation value of the first cell mapped when
+FUNC is called so that it may test against this value.  `label-sep-len'
 contains the label separator length.
 
 See also `kview:map-branch' and `kview:map-tree'."
-    (with-current-buffer (kview:buffer kview)
-      (save-excursion
-	(let ((results)
-	      (label-sep-len (kview:label-separator-length kview))
-	      cell-indent)
-	  ;; Next line ensures point is in the root of the current tree if
-	  ;; the tree is at all hidden.
-	  (if visible-p (kotl-mode:to-start-of-line))
-	  (if first-p
-	      ;; Move back to first predecessor at same level.
-	      (while (kcell-view:backward t label-sep-len)))
-	  (setq cell-indent (kcell-view:indent nil label-sep-len))
-	  ;; Terminate when no further cells at same level.
-	  (while (progn (setq results (cons (funcall func kview) results))
-			(kcell-view:forward visible-p label-sep-len)))
-	  (nreverse results)))))
+  (defvar label-sep-len)                ;FIXME: Use appropriate package prefix!
+  (defvar cell-indent)                  ;FIXME: Not used!
+  (with-current-buffer (kview:buffer kview)
+    (save-excursion
+      (let ((results)
+	    (label-sep-len (kview:label-separator-length kview))
+	    cell-indent)
+	;; Next line ensures point is in the root of the current tree if
+	;; the tree is at all hidden.
+	(if visible-p (kotl-mode:to-start-of-line))
+	(if first-p
+	    ;; Move back to first predecessor at same level.
+	    (while (kcell-view:backward t label-sep-len)))
+	(setq cell-indent (kcell-view:indent nil label-sep-len))
+	;; Terminate when no further cells at same level.
+	(while (progn (setq results (cons (funcall func kview) results))
+		      (kcell-view:forward visible-p label-sep-len)))
+	(nreverse results)))))
 
 (defun kview:map-expanded-tree (func kview &optional top-p)
-  "Temporarily expands the tree at point, applies FUNC to the tree in the KVIEW and returns results as a list.
+  "Temporarily expand the tree at point, applies FUNC to the tree in the KVIEW and returns results as a list.
 This is for a FUNC that requires all cells in the tree be fully visible and
 expanded before operating upon it.  If this is not the case, use
 `kview:map-tree' instead.  FUNC may not change the number of or the order of
@@ -935,48 +956,50 @@ With optional TOP-P non-nil, maps over all of kview's cells.
 FUNC should take one argument, the kview with the tree to map, and should
 operate upon the cell at point.
 
-`Cell-indent' contains the indentation value of the first cell mapped when
-FUNC is called so that it may test against this value.  `Label-sep-len'
+`cell-indent' contains the indentation value of the first cell mapped when
+FUNC is called so that it may test against this value.  `label-sep-len'
 contains the label separator length.
 
 See also `kview:map-region', `kview:map-branch' and `kview:map-siblings'."
-    (with-current-buffer (kview:buffer kview)
-      (save-excursion
-	;; Next line ensures point is in the root of the current tree if
-	;; the tree is at all hidden.
-	(unless top-p (kotl-mode:to-start-of-line))
-	(let* ((results)
-	       (label-sep-len (kview:label-separator-length kview))
-	       (start (set-marker (make-marker) (if top-p (point-min) (point))))
-	       (end (set-marker (make-marker) (if top-p (point-max) (save-excursion (kotl-mode:tree-end)))))
-	       (collapsed-cells (kview:get-cells-status kview start end))
-	       cell-indent)
-	  ;;
-	  ;; Expand all cells in tree.
-	  (outline-flag-region start end nil)
-	  ;;
-	  (if top-p
-	      (progn (goto-char (point-min))
-		     (kview:end-of-actual-line)
-		     ;; Terminate when no further cells to process.
-		     (while (progn (setq results (cons (funcall func kview) results))
-				   (kcell-view:next nil label-sep-len))))
-	    (setq cell-indent (kcell-view:indent nil label-sep-len))
-	    ;; Terminate when no further cells or when reach a cell at an equal
-	    ;; or higher level in the kotl than the first cell that we processed.
-	    (while (and (setq results (cons (funcall func kview) results))
-			(kcell-view:next nil label-sep-len)
-			(> (kcell-view:indent nil label-sep-len)
-			   cell-indent))))
-	  ;;
-	  ;; Restore status of temporarily expanded cells.
-	  (if (remq 0 collapsed-cells)
-	      (kview:set-cells-status kview start end collapsed-cells))
-	  ;;
-	  ;; Remove markers.
-	  (set-marker start nil)
-	  (set-marker end nil)
-	  (nreverse results)))))
+  (defvar label-sep-len)                ;FIXME: Use appropriate package prefix!
+  (defvar cell-indent)                  ;FIXME: Not used!
+  (with-current-buffer (kview:buffer kview)
+    (save-excursion
+      ;; Next line ensures point is in the root of the current tree if
+      ;; the tree is at all hidden.
+      (unless top-p (kotl-mode:to-start-of-line))
+      (let* ((results)
+	     (label-sep-len (kview:label-separator-length kview))
+	     (start (set-marker (make-marker) (if top-p (point-min) (point))))
+	     (end (set-marker (make-marker) (if top-p (point-max) (save-excursion (kotl-mode:tree-end)))))
+	     (collapsed-cells (kview:get-cells-status kview start end))
+	     cell-indent)
+	;;
+	;; Expand all cells in tree.
+	(outline-flag-region start end nil)
+	;;
+	(if top-p
+	    (progn (goto-char (point-min))
+		   (kview:end-of-actual-line)
+		   ;; Terminate when no further cells to process.
+		   (while (progn (setq results (cons (funcall func kview) results))
+				 (kcell-view:next nil label-sep-len))))
+	  (setq cell-indent (kcell-view:indent nil label-sep-len))
+	  ;; Terminate when no further cells or when reach a cell at an equal
+	  ;; or higher level in the kotl than the first cell that we processed.
+	  (while (and (setq results (cons (funcall func kview) results))
+		      (kcell-view:next nil label-sep-len)
+		      (> (kcell-view:indent nil label-sep-len)
+			 cell-indent))))
+	;;
+	;; Restore status of temporarily expanded cells.
+	(if (remq 0 collapsed-cells)
+	    (kview:set-cells-status kview start end collapsed-cells))
+	;;
+	;; Remove markers.
+	(set-marker start nil)
+	(set-marker end nil)
+	(nreverse results)))))
 
 (defun kview:map-tree (func kview &optional top-p visible-p)
   "Applies FUNC to the tree starting at point within KVIEW and returns results as a list.
@@ -987,33 +1010,35 @@ view.
 FUNC should take one argument, the kview with the tree to map, and
 should operate upon the cell at point.
 
-`Cell-indent' contains the indentation value of the first cell mapped when
-FUNC is called so that it may test against this value.  `Label-sep-len'
+`cell-indent' contains the indentation value of the first cell mapped when
+FUNC is called so that it may test against this value.  `label-sep-len'
 contains the label separator length.
 
 See also `kview:map-region', `kview:map-branch' and `kview:map-siblings'."
-    (with-current-buffer (kview:buffer kview)
-      (save-excursion
-	(let ((results)
-	      (label-sep-len (kview:label-separator-length kview))
-	      cell-indent)
-	  (if top-p
-	      (progn (goto-char (point-min))
-		     (kview:end-of-actual-line)
-		     ;; Terminate when no further cells to process.
-		     (while (progn (setq results (cons (funcall func kview) results))
-				   (kcell-view:next visible-p label-sep-len))))
-	    ;; Next line ensures point is in the root of the current tree if
-	    ;; the tree is at all hidden.
-	    (kotl-mode:to-start-of-line)
-	    (setq cell-indent (kcell-view:indent nil label-sep-len))
-	    ;; Terminate when no further cells or when reach a cell at an equal
-	    ;; or higher level in the kotl than the first cell that we processed.
-	    (while (and (setq results (cons (funcall func kview) results))
-			(kcell-view:next visible-p label-sep-len)
-			(> (kcell-view:indent nil label-sep-len)
-			   cell-indent))))
-	  (nreverse results)))))
+  (defvar label-sep-len)                ;FIXME: Use appropriate package prefix!
+  (defvar cell-indent)                  ;FIXME: Not used!
+  (with-current-buffer (kview:buffer kview)
+    (save-excursion
+      (let ((results)
+	    (label-sep-len (kview:label-separator-length kview))
+	    cell-indent)
+	(if top-p
+	    (progn (goto-char (point-min))
+		   (kview:end-of-actual-line)
+		   ;; Terminate when no further cells to process.
+		   (while (progn (setq results (cons (funcall func kview) results))
+				 (kcell-view:next visible-p label-sep-len))))
+	  ;; Next line ensures point is in the root of the current tree if
+	  ;; the tree is at all hidden.
+	  (kotl-mode:to-start-of-line)
+	  (setq cell-indent (kcell-view:indent nil label-sep-len))
+	  ;; Terminate when no further cells or when reach a cell at an equal
+	  ;; or higher level in the kotl than the first cell that we processed.
+	  (while (and (setq results (cons (funcall func kview) results))
+		      (kcell-view:next visible-p label-sep-len)
+		      (> (kcell-view:indent nil label-sep-len)
+			 cell-indent))))
+	(nreverse results)))))
 
 (defun kview:move (from-start from-end to-start from-indent to-indent
 	           &optional copy-p fill-p)
@@ -1064,7 +1089,7 @@ FILL-P is non-nil.  Leave point at TO-START."
 					 1)
 				      ?\ )))
 	      (kview:map-tree
-	       (lambda (view)
+	       (lambda (_view)
 		 (save-excursion
 		   (beginning-of-line)
 		   (if (looking-at expr)
@@ -1073,7 +1098,7 @@ FILL-P is non-nil.  Leave point at TO-START."
 	  ;;
 	  (if fill-p
 	      ;; Refill cells lacking no-fill attribute.
-	      (kview:map-tree (lambda (view) (kotl-mode:fill-cell nil t))
+	      (kview:map-tree (lambda (_view) (kotl-mode:fill-cell nil t))
 			      kview t))))
     ;;
     (goto-char new-start)
@@ -1126,6 +1151,7 @@ displayed, since it has hidden branches."
 	      ;; Hide the subtree of this cell and display only
 	      ;; (- status) lines.
 	      (kvspec:show-lines-this-cell (- status))
+              (defvar label-sep-len)    ;Bound by kview:map-region.
 	      (if (save-excursion (kcell-view:parent nil label-sep-len))
 		  (kotl-mode:hide-subtree)
 		(error "(kview:set-cells-status): Invisible cell `%s' is missing its parent cell"

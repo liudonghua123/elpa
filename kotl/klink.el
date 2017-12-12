@@ -1,10 +1,10 @@
-;;; klink.el --- Implicit reference to a kcell action type, for use in koutlines
+;;; klink.el --- Implicit reference to a kcell action type, for use in koutlines  -*- lexical-binding:t -*-
 ;;
 ;; Author:       Bob Weiner
 ;;
 ;; Orig-Date:    15-Nov-93 at 12:15:16
 ;;
-;; Copyright (C) 1993-2016  Free Software Foundation, Inc.
+;; Copyright (C) 1993-2017  Free Software Foundation, Inc.
 ;; See the "../HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -61,7 +61,10 @@
 ;;; ************************************************************************
 
 (require 'subr-x) ;; For string-trim
-(eval-when-compile (require 'hbut)) ;; For defib.
+(require 'hbut) ;; For defib.
+(require 'kview)
+(require 'hpath)
+(require 'hact)
 
 ;;; ************************************************************************
 ;;; Public functions
@@ -75,11 +78,13 @@ See documentation for `kcell:ref-to-id' for valid cell-ref formats."
   (interactive
    ;; Don't change the name or delete default-dir used here.  It is referenced
    ;; in "hargs.el" for argument getting.
-   (let ((default-dir default-directory))
-     (barf-if-buffer-read-only)
-     (save-excursion
-       (hargs:iform-read
-	(list 'interactive "*+LInsert link to <[file,] cell-id [|vspecs]>: ")))))
+   (progn
+     (defvar default-dir) ;; FIXME: Use appropriate package prefix
+     (let ((default-dir default-directory))
+       (barf-if-buffer-read-only)
+       (save-excursion
+         (hargs:iform-read
+	  (list 'interactive "*+LInsert link to <[file,] cell-id [|vspecs]>: "))))))
   (barf-if-buffer-read-only)
   ;; Reference generally is a string.  It may be a list as a string, e.g.
   ;; "(\"file\" \"cell\")", in which case, we remove the unneeded internal
@@ -87,6 +92,7 @@ See documentation for `kcell:ref-to-id' for valid cell-ref formats."
   (and (stringp reference) (> (length reference) 0)
        (eq (aref reference 0) ?\()
        (setq reference (hypb:replace-match-string "\\\"" reference "" t)))
+  (defvar default-dir) ;; FIXME: Use appropriate package prefix
   (let ((default-dir default-directory)
 	file-ref cell-ref)
     (setq reference (klink:parse reference)
@@ -135,6 +141,7 @@ link-end-position, (including delimiters)."
 	       (beginning-of-line)
 	       (setq bol (point))
 	       (require 'hmouse-tag)
+               (defvar smart-c-include-regexp)
 	       (not (looking-at smart-c-include-regexp)))
 	   t)
 	 (save-excursion
@@ -164,6 +171,16 @@ link-end-position, (including delimiters)."
 	klink)))
 
 ;;; ************************************************************************
+;;; Private variables.
+;;; ************************************************************************
+
+(defvar klink:cell-ref-regexp
+  ;; FIXME: Use [:alnum:]?
+  "[|:0-9a-zA-Z][|:.*~=0-9a-zA-Z \t\n\r]*"
+  "Regexp matching a cell reference including relative and view specs.
+Contains no groupings.")
+
+;;; ************************************************************************
 ;;; Hyperbole type definitions
 ;;; ************************************************************************
 
@@ -191,9 +208,11 @@ See documentation for `kcell:ref-to-id' for valid cell-ref formats."
 			    link))
   (cond
    ((or (string-match (format "\\`<?\\s-*@\\s-*\\(%s\\)\\s-*>?\\'"
-			      klink:cell-ref-regexp) link)
+			      klink:cell-ref-regexp)
+                      link)
 	(string-match (format "\\`<?\\s-*\\([|:]%s\\)\\s-*>?\\'"
-			      klink:cell-ref-regexp) link))
+			      klink:cell-ref-regexp)
+                      link))
     ;; < @ cell-ref > or < |viewspec > or < :augment-viewspec >
     (hact 'link-to-kcell
 	  nil
@@ -281,15 +300,6 @@ Assume point is in klink referent buffer, where the klink points."
 	     (new-label (kcell-view:label)))
 	  (if (and new-label (not (equal label new-label)))
 	      (klink:replace-label klink link-buf start new-label)))))
-
-;;; ************************************************************************
-;;; Private variables.
-;;; ************************************************************************
-
-(defvar klink:cell-ref-regexp
-  "[|:0-9a-zA-Z][|:.*~=0-9a-zA-Z \t\n\r]*"
-  "Regexp matching a cell reference including relative and view specs.
-Contains no groupings.")
 
 (provide 'klink)
 

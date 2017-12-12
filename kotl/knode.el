@@ -1,10 +1,10 @@
-;;; knode.el --- Generic nodes for use as elements in data structures
+;;; knode.el --- Generic nodes for use as elements in data structures  -*- lexical-binding:t -*-
 ;;
 ;; Author:       Bob Weiner
 ;;
 ;; Orig-Date:    5/1/93
 ;;
-;; Copyright (C) 1993-2016  Free Software Foundation, Inc.
+;; Copyright (C) 1993-2017  Free Software Foundation, Inc.
 ;; See the "../HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.

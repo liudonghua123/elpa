@@ -1,4 +1,4 @@
-;;; kvspec.el --- Koutline view specification
+;;; kvspec.el --- Koutline view specification  -*- lexical-binding:t -*-
 ;;
 ;; Author:       Bob Weiner
 ;;
@@ -11,7 +11,7 @@
 
 ;;; Commentary:
 ;;
-;;; Koutliner view specs (each viewspec is invoked with its first letter)
+;; Koutliner view specs (each viewspec is invoked with its first letter)
 ;; + means support code has been written already.
 ;;
 ;; +      all:     Show all lines of cells and all cells in the outline.
@@ -53,11 +53,10 @@
 ;;; ************************************************************************
 
 (require 'kview)
+(require 'outline)                      ;For outline-flag-region.
+(require 'kproperty)
 
 ;; Quiet byte compiler warnings for these free variables.
-(eval-when-compile
-  (defvar label-sep-len nil)
-  (defvar modeline-format nil))
 
 ;;; ************************************************************************
 ;;; Public variables
@@ -89,6 +88,9 @@ VIEW-SPEC is a string or t, which means recompute the current view spec.  See
     (make-local-variable 'kvspec:current)
     (make-local-variable 'kvspec:string)))
 
+(declare-function kotl-mode:hide-subtree "kotl-mode"
+                  (&optional cell-ref show-flag))
+
 (defun kvspec:levels-to-show (levels-to-keep)
   "Hide all cells in outline at levels deeper than LEVELS-TO-KEEP (a number).
 Shows any hidden cells within LEVELS-TO-KEEP.  1 is the first level.  0 means
@@ -99,9 +101,9 @@ display all levels of cells."
 				  nil nil t)))
   (setq levels-to-keep (prefix-numeric-value levels-to-keep))
   (if (< levels-to-keep 0)
-      (error "(kvspec:levels-to-show): Must display at least one level."))
+      (error "(kvspec:levels-to-show): Must display at least one level"))
   (kview:map-tree
-   (lambda (kview) 
+   (lambda (_kview) 
      (if (/= (kcell-view:level) levels-to-keep)
 	 (kotl-mode:show-tree)
        (kotl-mode:hide-subtree)
@@ -120,9 +122,10 @@ display all levels of cells."
   (kview:set-attr kview 'lines-to-show num)
   (if (not (zerop num))
       ;; Now show NUM lines in cells.
-      (kview:map-tree (lambda (kview)
+      (kview:map-tree (lambda (_kview)
 			(kcell-view:expand (point))
-			(kvspec:show-lines-this-cell num)) kview t t)))
+			(kvspec:show-lines-this-cell num))
+                      kview t t)))
 
 (defun kvspec:toggle-blank-lines ()
   "Toggle blank lines between cells on or off."
@@ -157,6 +160,30 @@ view specs."
 	 (setq kvspec:current (kvspec:compute))))
   ;; Update display using current specs.
   (kvspec:update-modeline))
+
+;;; ************************************************************************
+;;; Private variables
+;;; ************************************************************************
+
+(defconst kvspec:label-type-alist
+  '((?0 . id)
+    (?1 . alpha)
+    (?. . legal)
+    ;; (?2 . partial-alpha)
+    ;; (?* . star)
+    ;; (?~ . no)
+    )
+  "Alist of (view-spec-character . label-type) pairs.")
+
+(defvar kvspec:string ""
+  "String displayed in koutline modelines to reflect the current view spec.
+It is local to each koutline.  Set this to nil to disable modeline display of
+the view spec settings.")
+
+(defvar kvspec:string-format " <|%s>"
+  "Format of the kview spec modeline display.
+It must contain a `%s' which is replaced with the current set of view spec
+characters at run-time.")
 
 ;;; ************************************************************************
 ;;; Private functions
@@ -270,8 +297,9 @@ view specs."
   "Assume the current cell is fully expanded and collapse to show NUM lines within it.
 If NUM is greater than the number of lines available, the cell remains fully expanded."
   ;; Use free variable label-sep-len bound in kview:map-* for speed.
-  (let ((start (goto-char (kcell-view:start (point) label-sep-len)))
-	(end (kcell-view:end-contents)))
+  (defvar label-sep-len)
+  (goto-char (kcell-view:start (point) label-sep-len))
+  (let ((end (kcell-view:end-contents)))
     ;; Hide all but num lines of the cell.
     (and (> num 0) (search-forward "\n" end t num)
 	 (outline-flag-region (1- (point)) end t))))
@@ -344,30 +372,6 @@ If NUM is greater than the number of lines available, the cell remains fully exp
 
       )
     (set-buffer-modified-p modified-p)))
-
-;;; ************************************************************************
-;;; Private variables
-;;; ************************************************************************
-
-(defconst kvspec:label-type-alist
-  '((?0 . id)
-    (?1 . alpha)
-    (?. . legal)
-    ;; (?2 . partial-alpha)
-    ;; (?* . star)
-    ;; (?~ . no)
-    )
-  "Alist of (view-spec-character . label-type) pairs.")
-
-(defvar kvspec:string ""
-  "String displayed in koutline modelines to reflect the current view spec.
-It is local to each koutline.  Set this to nil to disable modeline display of
-the view spec settings.")
-
-(defvar kvspec:string-format " <|%s>"
-  "Format of the kview spec modeline display.
-It must contain a `%s' which is replaced with the current set of view spec
-characters at run-time.")
 
 (provide 'kvspec)
 

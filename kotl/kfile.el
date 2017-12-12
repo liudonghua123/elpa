@@ -1,10 +1,10 @@
-;;; kfile.el --- Save and restore koutlines from files
+;;; kfile.el --- Save and restore koutlines from files  -*- lexical-binding:t -*-
 ;;
 ;; Author:       Bob Weiner
 ;;
 ;; Orig-Date:    10/31/93
 ;;
-;; Copyright (C) 1993-2016  Free Software Foundation, Inc.
+;; Copyright (C) 1993-2017  Free Software Foundation, Inc.
 ;; See the "../HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -16,7 +16,7 @@
 ;;; Other required Elisp libraries
 ;;; ************************************************************************
 
-(eval-and-compile (mapc #'require '(kproperty kmenu kview)))
+(eval-and-compile (mapc #'require '(kproperty kmenu kview kcell kvspec)))
 
 ;;; ************************************************************************
 ;;; Public variables
@@ -114,8 +114,10 @@ Return file's kview."
     (if (not empty-p)
 	;; This is a foreign file whose elements must be converted into
 	;; koutline cells.
-	(progn (setq import-from (kimport:copy-and-set-buffer buffer))
-	       (set-buffer buffer)
+	(progn (require 'kimport)
+               (declare-function kimport:copy-and-set-buffer "kimport" (source))
+               (setq import-from (save-current-buffer
+                                   (kimport:copy-and-set-buffer buffer)))
 	       (erase-buffer))) ;; We copied the contents to `import-from'.
 
     (setq view (kview:create (buffer-name buffer))
@@ -206,7 +208,7 @@ Return the new view."
     (goto-char (point-min))
     ;;
     ;; Add attributes to cells.
-    (kfile:insert-attributes-v2 view kcell-list)
+    (kfile:insert-attributes-v2 kcell-list)
     ;;
     ;; Mark view unmodified and move to first cell.
     (set-buffer-modified-p nil)
@@ -242,7 +244,7 @@ If V3-FLAG is true, read as a version-3 buffer."
     (goto-char (point-min))
     ;;
     ;; Add attributes to cells.
-    (kfile:insert-attributes-v3 view cell-data)
+    (kfile:insert-attributes-v3 cell-data)
     ;;
     ;; Mark view unmodified and move to first cell.
     (set-buffer-modified-p nil)
@@ -278,7 +280,7 @@ VISIBLE-ONLY-P is non-nil.  Signal an error if kotl is not attached to a file."
       ;; Prepare cell data for saving.
       (kfile:narrow-to-kcells)
       (kview:map-tree
-        (lambda (view)
+        (lambda (_view)
 	  (setq cell (kcell-view:cell))
 	  (aset kcell-data
 		kcell-num
@@ -366,11 +368,11 @@ included in the list."
      (lambda (item)
        (setq func (cdr (assoc item
 			      (list
-			       (cons "\("
+			       (cons "("
 				     (lambda ()
 				       (setq stack (cons sibling-p stack)
 					     sibling-p nil)))
-			       (cons "\)" 
+			       (cons ")" 
 				     (lambda ()
 				       (setq sibling-p (car stack)
 					     stack (cdr stack))))))))
@@ -384,7 +386,7 @@ included in the list."
      kotl-structure)
     (nreverse cell-list)))
 
-(defun kfile:insert-attributes-v2 (kview kcell-list)
+(defun kfile:insert-attributes-v2 (kcell-list)
   "Set cell attributes within kview for each element in KCELL-LIST.
 Assumes all cell contents are already in kview and that no cells are
 hidden."
@@ -402,12 +404,12 @@ hidden."
 		(setq kcell-list (cdr kcell-list))))
 	  (search-forward "\n\n" nil t)))))
 
-(defun kfile:insert-attributes-v3 (kview kcell-vector)
+(defun kfile:insert-attributes-v3 (kcell-vector)
   "Set cell attributes within kview for each element in KCELL-VECTOR.
 Assumes all cell contents are already in kview and that no cells are
 hidden."
   (let ((kcell-num 1)
-	(buffer-read-only))
+	(inhibit-read-only t))
     (while
 	(progn
 	  (skip-chars-forward "\n")
