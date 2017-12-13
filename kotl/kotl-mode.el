@@ -267,11 +267,11 @@ It provides the following keys:
             #'kotl-mode:update-buffer nil t)
   (mapc #'make-local-variable
 	'(indent-line-function indent-region-function
-	  outline-isearch-open-invisible-function
-	  line-move-ignore-invisible minor-mode-alist
-	  selective-display-ellipses
-	  paragraph-separate paragraph-start))
-  ;; Remove indication that buffer is narrowed.
+			     outline-isearch-open-invisible-function
+			     line-move-ignore-invisible minor-mode-alist
+			     selective-display-ellipses
+			     paragraph-separate paragraph-start))
+	  ;; Remove indication that buffer is narrowed.
   (setq mode-line-format (copy-sequence mode-line-format)
         ;; FIXME: mode-line-format is a sequence, not a set!
 	mode-line-format (set:remove "%n" mode-line-format))
@@ -289,10 +289,11 @@ It provides the following keys:
 	paragraph-separate "^[ \t]*$\\|^\^L"
 	paragraph-start "^[ \t]*$\\|^\^L"
 	selective-display-ellipses t
-	track-eol t
-        ;; This major-mode setting must come after the local variable settings
-        ;; but before the koutline is formatted.
-        major-mode 'kotl-mode
+	track-eol t)
+  ;;
+  ;; This major-mode setting must come after the local variable settings but
+  ;; before the koutline is formatted.
+  (setq major-mode 'kotl-mode
 	mode-name "Kotl"
 	;; Used when indenting cells.
         indent-tabs-mode nil)

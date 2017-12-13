@@ -216,8 +216,9 @@ obtained search string."
       ((and (featurep 'xemacs) (not noninteractive))
        (require 'hui-xe-but)
        ;;
+       ;; Highlight explicit buttons when files are read in.
        (add-hook 'find-file-hook #'hproperty:but-create t)
-       (defalias 'hui:but-flash #'hproperty:but-flash)
+       (defalias 'hui:but-flash 'hproperty:but-flash)
        ;;
        ;; Substitute for the nil argument below a valid X color name with
        ;; which to highlight buttons if the default highlighting does not
@@ -244,16 +245,6 @@ obtained search string."
 ;;; section in "hib-doc-id.el" for complete installation and use information.
 ;;;
 (add-hook 'hibtypes-end-load-hook (lambda () (require 'hib-doc-id)))
-
-;;; ************************************************************************
-;;; HYPERBOLE LOCAL VARIABLE SUPPORT
-;;; ************************************************************************
-
-;;; Uncomment this if you really need to be able to use Hyperbole variables
-;;; (and others with colons in their names) within file local variable lists.
-;;; See the source file for more details.
-;;;
-;;  (require 'hlvar)
 
 ;;; ************************************************************************
 ;;; SITE-SPECIFIC ADDITIONS - Add your Hyperbole configuration additions here.

@@ -41,8 +41,7 @@ It must end with a directory separator character.")
 ;;; Koutliner mode and file suffix importation settings
 ;;; ************************************************************************
 
-;; If the Koutliner is supported by this emacs version, perform
-;; initializations.
+;; Perform Koutliner initializations.
 
 (add-to-list 'load-path (expand-file-name "kotl/" hyperb:dir))
 ;; Invoke kotl-mode for files ending in ".kotl".  Also

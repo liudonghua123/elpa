@@ -417,7 +417,7 @@ REBUILD-FLAG is non-nil, in which case the menu is rebuilt."
 		   )
 		 '("Koutliner"
 		   ["Manual" (id-info "(hyperbole)Koutliner") t]
-		   ["Example"   kotl-mode:example                 t]
+		   ["Example"   kotl-mode:example t]
 		   "----"
 		   ["Create-File"    kfile:find t]
 		   ["View-File"      kfile:view t]
