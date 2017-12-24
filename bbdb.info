@@ -1,8 +1,8 @@
-This is bbdb.info, produced by makeinfo version 6.5 from bbdb.texi.
+This is bbdb.info, produced by makeinfo version 6.1 from bbdb.texi.
 
 This file documents the Insidious Big Brother Database (BBDB)
 
-   Copyright (C) 2011-2017 Roland Winkler <winkler@gnu.org>
+   Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
@@ -23,7 +23,7 @@ BBDB User Manual
 
 This file documents the Insidious Big Brother Database (BBDB)
 
-   Copyright (C) 2011-2017 Roland Winkler <winkler@gnu.org>
+   Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
@@ -1274,10 +1274,10 @@ Index
 
 
 Tag Table:
-Node: Top728
-Node: First Chapter1831
-Node: Copying2061
-Node: GNU Free Documentation License39627
-Node: Index64773
+Node: Top726
+Node: First Chapter1827
+Node: Copying2057
+Node: GNU Free Documentation License39623
+Node: Index64769
 
 End Tag Table

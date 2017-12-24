@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010-2017  Free Software Foundation, Inc.
 
-;; Version: 0
+;; Version: 3.2
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is part of the Insidious Big Brother Database (aka BBDB),
