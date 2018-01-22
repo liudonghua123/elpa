@@ -433,9 +433,6 @@
 ;;   (ambiguous reader syntaxes; lost comments, comments that can't
 ;;   non-ambiguously be assigned to rewritten code)
 ;;
-;; - There could be something much better than pp to format the
-;;   replacement, or pp should be improved.
-;;
 ;;
 ;; NEWS:
 ;;
@@ -769,11 +766,21 @@ nil."
           (read stream)))
     #'read))
 
+(defvar el-search-pretty-pp)
+(declare-function el-search-pp-buffer 'el-search-pp)
+
 (defun el-search--pp-to-string (expr)
   (let ((print-length nil)
         (print-level nil)
         (print-circle nil))
-    (string-trim-right (pp-to-string expr))))
+    (let ((result (pp-to-string expr)))
+      (when el-search-pretty-pp
+        (setq result
+              (with-temp-buffer
+                (insert result)
+                (el-search-pp-buffer)
+                (buffer-string))))
+      (string-trim-right result))))
 
 (defun el-search--setup-minibuffer ()
   (let ((inhibit-read-only t))
