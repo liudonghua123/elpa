@@ -137,9 +137,14 @@
 ;;     `window-end', or select the first match before `window-start',
 ;;     respectively.
 ;;
-;;   C-H, M-s e h (el-search-this-sexp)
-;;     Grab the symbol or sexp under point and initiate an el-search
+;;   C-T, M-s e t (el-search-this-sexp)
+;;     Grab the symbol or sexp at point and initiate an el-search
 ;;     for other occurrences.
+;;
+;;   C-H, M-s e h (el-search-highlight-pattern)
+;;     Permanently highlight the current search pattern.  This uses
+;;     `el-search-hi-lock-mode' from "el-search-hi-lock.el".  Use M-x
+;;     `el-search-hi-lock-remove-pattern' to undo this.
 ;;
 ;;   M-x el-search-to-register
 ;;     Save the current search to an Emacs register.  Use C-x r j
@@ -1703,7 +1708,7 @@ in, in order, when called with no arguments."
     (keybind emacs-lisp-mode-map           ?s #'el-search-pattern)
     (keybind emacs-lisp-mode-map           ?r #'el-search-pattern-backward)
     (keybind emacs-lisp-mode-map           ?% #'el-search-query-replace)
-    (keybind emacs-lisp-mode-map           ?h #'el-search-this-sexp) ;h like in "highlight" or "here"
+    (keybind emacs-lisp-mode-map           ?t #'el-search-this-sexp)
     (keybind global-map                    ?j #'el-search-jump-to-search-head)
     (keybind global-map                    ?a #'el-search-from-beginning)
     (keybind global-map                    ?< #'el-search-from-beginning)
@@ -1712,6 +1717,7 @@ in, in order, when called with no arguments."
     (keybind global-map                    ?n #'el-search-continue-in-next-buffer)
 
     (keybind global-map                    ?o #'el-search-occur)
+    (keybind emacs-lisp-mode-map           ?h #'el-search-highlight-pattern)
 
     (keybind el-search-read-expression-map ?s #'exit-minibuffer)
     (keybind el-search-read-expression-map ?r #'exit-minibuffer)
@@ -1761,7 +1767,8 @@ any case."
                              el-search-last-buffer-match
                              el-search-skip-directory
                              el-search-continue-in-next-buffer
-                             el-search-occur))
+                             el-search-occur
+                             el-search-highlight-pattern))
          (define-key transient-map (vector key) command))))
 
     ;; v and V are analogue to Ediff - FIXME: this doesn't fit into the
@@ -2936,6 +2943,17 @@ Use the normal search commands to seize the search."
       (goto-char here)
       (el-search--message-no-log "[No more matches before here]")
       (sit-for 1))))
+
+(declare-function el-search-hi-lock-read-face-name 'el-search-hi-lock)
+
+(defun el-search-highlight-pattern ()
+  (interactive)
+  (require 'el-search-hi-lock)
+  (unless (el-search--pending-search-p)
+    (user-error "Please activate an el-search first"))
+  (el-search-hi-lock-add-pattern (el-search--current-pattern)
+                                 (el-search-hi-lock-read-face-name))
+  (message "Use M-x el-search-hi-lock-remove-pattern to unhighlight"))
 
 
 ;;;; El-Occur
