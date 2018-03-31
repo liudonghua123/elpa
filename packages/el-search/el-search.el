@@ -2089,40 +2089,81 @@ is matched by the `el-search-regexp-like-p' REGEXP."
                                                           ',regexp)
                           ,this)))))
 
-(defun el-search--filename-matcher (&rest regexps)
+(defun el-search--filename-matcher (fun &rest regexps)
   ;; Return a file name matcher for the REGEXPS.  This is a predicate
   ;; accepting two arguments that returns non-nil when the first
   ;; argument is a file name (i.e. a string) that is matched by all
   ;; `el-search-regexp-like-p' REGEXPS, or a buffer whose associated file
   ;; name matches accordingly.  It ignores the second argument.
-  (let ((get-file-name (lambda (file-name-or-buffer)
-                         (if (bufferp file-name-or-buffer)
-                             (buffer-file-name file-name-or-buffer)
-                           file-name-or-buffer))))
-    (if (not regexps)
-        (lambda (file-name-or-buffer _) (funcall get-file-name file-name-or-buffer))
-      (let* ((regexp-matchers (mapcar #'el-search--string-matcher regexps))
-             (test-file-name-or-buffer
-              (el-search-with-short-term-memory
-               (lambda (file-name-or-buffer)
-                 (when-let ((file-name (funcall get-file-name file-name-or-buffer)))
-                   (cl-every (lambda (matcher) (funcall matcher file-name)) regexp-matchers))))))
-        (lambda (file-name-or-buffer _) (funcall test-file-name-or-buffer file-name-or-buffer))))))
+  (let (real-fun)
+    (pcase regexps
+      (`(:key ,specified-fun . ,more-regexps)
+       (setq real-fun     (lambda (arg) (funcall specified-fun (funcall fun arg)))
+             regexps      more-regexps))
+      (_ (setq real-fun fun)))
+    (let ((get-file-name (lambda (file-name-or-buffer)
+                           (funcall real-fun
+                                    (if (bufferp file-name-or-buffer)
+                                        (buffer-file-name file-name-or-buffer)
+                                      file-name-or-buffer)))))
+      (if (not regexps)
+          (lambda (file-name-or-buffer _) (funcall get-file-name file-name-or-buffer))
+        (let* ((regexp-matchers (mapcar #'el-search--string-matcher regexps))
+               (test-file-name-or-buffer
+                (el-search-with-short-term-memory
+                 (lambda (file-name-or-buffer)
+                   (when-let ((file-name (funcall get-file-name file-name-or-buffer)))
+                     (cl-every (lambda (matcher) (funcall matcher file-name)) regexp-matchers))))))
+          (lambda (file-name-or-buffer _) (funcall test-file-name-or-buffer file-name-or-buffer)))))))
 
 (el-search-defpattern filename (&rest regexps)
   "Matches anything when the searched buffer has an associated file.
 
 With any `el-search-regexp-like-p' REGEXPS given, the file's
-absolute name must be matched by all of them."
-  ;;FIXME: should we also allow to match the f-n-nondirectory and
-  ;;f-n-sans-extension?  Maybe it could become a new pattern type named `feature'?
-  (declare (heuristic-matcher #'el-search--filename-matcher)
+absolute name must be matched by all of them.
+
+The list of REGEXPS can optionally be prefixed with two elements :key
+KEYFUN.  Then the filename will be passed to KEYFUN before matching.
+
+Example: This will match any pattern in any file whose name without
+extension matches \"el\":
+
+  (filename :key file-name-sans-extension \"el\").
+
+See also the pattern types \"file\" and \"dir\" that use a key
+function implicitly (but support to specify a :key nonetheless)."
+  (declare (heuristic-matcher (apply-partially #'el-search--filename-matcher #'identity))
            (inverse-heuristic-matcher t))
-  (el-search-defpattern--check-args "filename" regexps #'el-search-regexp-like-p)
-  (let ((file-name-matcher (apply #'el-search--filename-matcher regexps)))
+  (el-search-defpattern--check-args "filename"
+                                    (if (eq (car-safe regexps) :key) (cddr regexps) regexps)
+                                    #'el-search-regexp-like-p)
+  (let ((file-name-matcher (apply #'el-search--filename-matcher #'identity regexps)))
     ;; We can't expand to just t because this would not work with `not'.
     ;; `el-search--filename-matcher' caches the result, so this is still a
     ;; pseudo constant
+    `(guard (funcall ',file-name-matcher (current-buffer) nil))))
+
+(defun el-search--file-directory (name)
+  (directory-file-name (file-name-directory name)))
+
+(el-search-defpattern file (&rest regexps)
+  "Like \"filename\" but matches REGEXPS against file names without directory."
+  (declare (heuristic-matcher (apply-partially #'el-search--filename-matcher #'file-name-nondirectory))
+           (inverse-heuristic-matcher t))
+  (el-search-defpattern--check-args "file"
+                                    (if (eq (car-safe regexps) :key) (cddr regexps) regexps)
+                                    #'el-search-regexp-like-p)
+  (let ((file-name-matcher (apply #'el-search--filename-matcher #'file-name-nondirectory regexps)))
+    `(guard (funcall ',file-name-matcher (current-buffer) nil))))
+
+(el-search-defpattern dir (&rest regexps)
+  "Like \"filename\" but matches REGEXPS against directory names."
+  (declare (heuristic-matcher (apply-partially #'el-search--filename-matcher #'el-search--file-directory))
+           (inverse-heuristic-matcher t))
+  (el-search-defpattern--check-args "dir"
+                                    (if (eq (car-safe regexps) :key) (cddr regexps) regexps)
+                                    #'el-search-regexp-like-p)
+  (let ((file-name-matcher (apply #'el-search--filename-matcher #'el-search--file-directory regexps)))
     `(guard (funcall ',file-name-matcher (current-buffer) nil))))
 
 
