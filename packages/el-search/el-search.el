@@ -3513,6 +3513,56 @@ related user options."
    (lambda (search) (setf (alist-get 'description (el-search-object-properties search))
                      "el-search-ibuffer-marked-files"))))
 
+(declare-function vc-read-revision 'vc)
+(declare-function vc-find-revision 'vc)
+(defun el-search-repository (repo revision pattern &optional file-regexp)
+  ;; FIXME: this is a stub.  Occur to-match-jumping doesn't work.
+  ;; Currently only works with git.  Slow.
+  (interactive (let* ((repo (let ((this-vc-root-dir (vc-root-dir)))
+                              (expand-file-name
+                               (read-directory-name "Repository root: "
+                                                    this-vc-root-dir this-vc-root-dir 'mustmatch))))
+                      (result (list repo
+                                    (read-string "Revision (leave empty for \"worktree\"): ")
+                                    (read-string "File regexp: ")
+                                    (el-search-read-pattern-for-interactive "Search pattern: "))))
+                 (cl-rotatef (nth 2 result) (nth 3 result))
+                 result))
+  (let ((just-worktree (or (not revision) (string= revision ""))))
+    (el-search-setup-search
+     pattern
+     (lambda ()
+       (let* ((default-directory repo)
+              (files (seq-filter
+                      #'el-search--elisp-file-p
+                      (seq-filter
+                       (if file-regexp
+                           (lambda (fn) (string-match-p file-regexp fn))
+                         #'el-search-true)
+                       (mapcar #'expand-file-name
+                               (split-string
+                                (shell-command-to-string
+                                 (if just-worktree
+                                     "git ls-files -z --recurse-submodules"
+                                   (format "git ls-tree --name-only -z -r %s --"
+                                           (shell-quote-argument revision))))
+                                "\0" t))))))
+         (seq-map (lambda (filename)
+                    (let ((default-directory repo))
+                      (if just-worktree
+                          filename
+                        (with-current-buffer
+                            (let ((inhibit-message t))
+                              (vc-find-revision filename revision))
+                          (setq-local el-search--temp-buffer-flag t)
+                          (add-hook 'kill-buffer-hook
+                                    (lambda ()
+                                      (when (file-exists-p buffer-file-name)
+                                        (delete-file buffer-file-name)))
+                                    'append 'local)
+                          (current-buffer)))))
+                  (stream files)))))))
+
 ;;;; Register usage
 
 (defun el-search-to-register (register &optional el-search-object)
