@@ -39,7 +39,7 @@
 
 ;; `prose-mode-merge-sentences': Merge the two sentences around point.
 
-;; `prose-mode-split-sentences': Split the current sentence at point.
+;; `prose-mode-split-sentence': Split the current sentence at point.
 
 ;;; Code:
 
@@ -75,41 +75,47 @@ km)))
    'kill-region
    :after
    #'prose-mode-space-area)
-  (advice-add
-   'kill-region
-   :after
+  (add-function :filter-return
+   filter-buffer-substring-function
    #'prose-mode-add-yank-handler))
 
-(defun prose-mode-add-yank-handler (&rest _args)
-  ;; There doesn't seem to be a good way to get the actual killed
-  ;; string from `kill-region', so hack it with `kill-ring'.
+(defun prose-mode-add-yank-handler (str)
   (when prose-mode
+    ;; FIXME: This is an ugly way of handling it.
+    (setq str (concat " " str " "))
     (add-text-properties
-     0 (length (car kill-ring))
-     '(yank-handler (prose-mode-yank-handler)) (car kill-ring))))
+     0 (length str)
+     '(yank-handler (prose-mode-yank-handler)) str))
+  str)
 
 (defun prose-mode-yank-handler (str)
   "Fix spaces around yanked string STR."
   (if prose-mode
       (let ((start (point)))
-	;; Probably need to be smarter about bob/bol/eol/eob.
 	(insert (concat " " str " "))
 	(prose-mode-space-area start (point)))
     (insert str)))
 
-(defun prose-mode-space-area (&optional start end)
+(defun prose-mode-space-area (&optional start end &rest _args)
   "Canonically space an area encompassing START and END."
   (when prose-mode ; Because it's also an advice.
-    (save-excursion
-      ;; We've advised this.
-      (canonically-space-region (progn
-				  (when start
-				    (goto-char start))
-				  (backward-word 1) (point))
-				(progn
-				  (when end
-				    (goto-char end))
-				  (forward-word 2) (point))))))
+    (let (left right)
+      (when (and start end)
+	(setq left (min start end)
+	      right (max start end)))
+     (save-excursion
+       ;; We've advised this.
+       (canonically-space-region
+	(progn
+	  (when left
+	    (goto-char left))
+	  (skip-syntax-backward "w ." (line-beginning-position))
+	  (point))
+	(progn
+	  (when right
+	    (goto-char right))
+	  (skip-syntax-forward "w ." (line-end-position))
+	  (point)))))))
 
 (defun prose-mode-space-canonically (bounds)
   "Canonically space the region, delimited by BOUNDS.
@@ -122,8 +128,8 @@ around a run of three dashes (probably representing an em-dash)."
   ;; of BOUNDS as a list.
   (let ((punct-re "[[:space:]]+\\([,.!?;]\\)")
 	(dash-re "[[:space:]]?\\(---\\)[[:space:]]?")
-	(start-marker (set-marker (make-marker) (car bounds)))
-	(end-marker (set-marker (make-marker) (nth 1 bounds))))
+	(start-marker (copy-marker (car bounds)))
+	(end-marker (copy-marker (nth 1 bounds))))
     (when prose-mode
       (save-excursion
 	(goto-char start-marker)
@@ -152,15 +158,14 @@ arg."
     (save-excursion
       (backward-word (if (looking-at-p "\\<") 1 2))
       (push-mark)
-      (setq handle-caps
-	    ;; This word is capitalized because it's at the beginning
-	    ;; of a sentence.  Or it's a proper name.  Or...
-	    (and (looking-at-p "[A-Z]")
-		 (= (point)
-		    (save-excursion
-		      (forward-sentence)
-		      (backward-sentence)))))
-      (when handle-caps
+      (when (setq handle-caps
+		  ;; This word is capitalized because it's at the beginning
+		  ;; of a sentence.  Or it's a proper name.  Or...
+		  (and (looking-at-p "[A-Z]")
+		       (= (point)
+			  (save-excursion
+			    (forward-sentence)
+			    (backward-sentence)))))
 	(save-excursion (downcase-word 1))))
     (save-excursion
       (when handle-caps
