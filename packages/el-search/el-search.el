@@ -80,7 +80,8 @@
 ;;     minibuffer).  All commands that are not search or scrolling
 ;;     commands terminate the search, while the state of the search is
 ;;     always automatically saved.  Like in isearch you can also just
-;;     hit RET to exit.
+;;     hit RET to exit, or hit C-g to abort and jump back to where you
+;;     started.
 ;;
 ;;   C-R, M-s e r (el-search-pattern-backward)
 ;;     Search backward.
@@ -414,10 +415,6 @@
 ;;
 ;; TODO:
 ;;
-;; - There should be a way to go back to the starting position, like
-;;   in Isearch, which does this with (push-mark isearch-opoint t) in
-;;   `isearch-done'.
-;;
 ;; - Add a help command that can be called while searching.
 ;;
 ;; - Make searching work in comments, too? (->
@@ -676,6 +673,9 @@ useful for debugging.")
 
 (defvar el-search--current-search nil
   "The currently active search, an `el-search-object', or nil.")
+
+(defvar el-search--search-origin nil
+  "Doc...")
 
 (defvar-local el-search--temp-buffer-flag nil
   "Non-nil tags file visiting buffers as temporarily opened for searching.")
@@ -1779,10 +1779,24 @@ any case."
   (interactive)
   nil)
 
+(defun el-search--set-search-origin-maybe ()
+  (unless (el-search--pending-search-p)
+    (setq el-search--search-origin (copy-marker (point)))))
+
+(defun el-search-keyboard-quit (&optional dont-quit)
+  (interactive)
+  (setq el-search--success nil)
+  (el-search-hl-post-command-fun) ;clear highlighting
+  (switch-to-buffer (marker-buffer el-search--search-origin))
+  (goto-char el-search--search-origin)
+  (unless dont-quit
+    (signal 'quit nil)))
+
 (defvar el-search-basic-transient-map
   (let ((transient-map (make-sparse-keymap)))
-    (define-key transient-map [return]    #'el-search-pause-search)
-    (define-key transient-map (kbd "RET") #'el-search-pause-search)
+    (define-key transient-map [return]       #'el-search-pause-search)
+    (define-key transient-map (kbd "RET")    #'el-search-pause-search)
+    (define-key transient-map [(control ?g)] #'el-search-keyboard-quit)
     transient-map))
 
 (defvar el-search-prefix-key-transient-map
@@ -1847,6 +1861,7 @@ any case."
   (setq el-search-use-transient-map t))
 
 (defun el-search-setup-search-1 (pattern get-buffer-stream  &optional from-here setup-function)
+  (el-search--set-search-origin-maybe)
   (setq el-search--success nil)
   (setq el-search--current-search
         (el-search-make-search pattern get-buffer-stream))
@@ -2380,7 +2395,8 @@ created.")
                  (concat "[Not at a match]   "
                          (if (= matches-<=-here total-matches)
                              (format "(%s/%s <-)" matches-<=-here total-matches)
-                           (format "(-> %s/%s)" (1+ matches-<=-here) total-matches))))))))))))
+                           (format "(-> %s/%s)" (1+ matches-<=-here) total-matches))))))))))
+    (when quit-flag (el-search-keyboard-quit 'dont-quit))))
 
 (defun el-search-hl-other-matches (matcher)
   "Highlight all visible matches.
@@ -2463,6 +2479,7 @@ In a non-interactive call, ARG should be an integer, having the
 same meaning as a numeric prefix arg, or an el-search-object to
 make current."
   (interactive "P")
+  (el-search--set-search-origin-maybe)
   (when (integerp arg)
     (el-search-barf-if-not-search-buffer
      (current-buffer)
@@ -2569,6 +2586,8 @@ instead of the position where the search would normally be
 continued."
   (interactive "P")
   (setq this-command 'el-search-pattern)
+  (unless (eq last-command this-command)
+    (el-search--set-search-origin-maybe))
   (el-search-compile-pattern-in-search el-search--current-search)
   (el-search-protect-search-head
    (unwind-protect
@@ -2739,6 +2758,7 @@ executed, and nil else."
 With prefix ARG, restart the current search when positive; go to the
 last match in the current buffer when negative."
   (interactive "P")
+  (el-search--set-search-origin-maybe)
   (cond
    ((< (prefix-numeric-value arg) 0)
     (el-search-last-buffer-match))
@@ -2756,7 +2776,7 @@ last match in the current buffer when negative."
 (defun el-search-last-buffer-match ()
   "Go to the last of this buffer's matches."
   (interactive)
-  (setq this-command 'el-search-pattern)
+  (el-search--set-search-origin-maybe)
   (el-search-barf-if-not-search-buffer)
   (el-search--unless-no-buffer-match
     (goto-char (point-max))
