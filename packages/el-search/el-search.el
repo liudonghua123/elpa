@@ -43,6 +43,11 @@
 ;; later.  Finally, it allows you to define your own kinds of search
 ;; patterns and your own multi-search commands.
 ;;
+;; The following text is an exhaustive introduction to this package.
+;; After having learned the basics, hitting C-? or ?
+;; (el-search-toggle-quick-help) should suffice to refresh your
+;; memory.
+;;
 ;;
 ;; Key bindings
 ;; ============
@@ -82,6 +87,11 @@
 ;;     always automatically saved.  Like in isearch you can also just
 ;;     hit RET to exit, or hit C-g to abort and jump back to where you
 ;;     started.
+;;
+;;   C-?, M-s e ? (el-search-toggle-quick-help)
+;;
+;;     While an el-search is active, popup (or close) quick help
+;;     window.
 ;;
 ;;   C-R, M-s e r (el-search-pattern-backward)
 ;;     Search backward.
@@ -415,8 +425,6 @@
 ;;
 ;; TODO:
 ;;
-;; - Add a help command that can be called while searching.
-;;
 ;; - Make searching work in comments, too? (->
 ;;   `parse-sexp-ignore-comments').  Related: should the pattern
 ;;   `symbol' also match strings that contain matches for a symbol so
@@ -579,6 +587,7 @@ from the prompt."
   ;; explicitly install the transient map themselves.
   '(el-search-pattern
     el-search-pattern-backward
+    el-search-toggle-quick-help
     el-search-from-beginning
     el-search-last-buffer-match
     el-search-continue-in-next-buffer
@@ -1180,6 +1189,15 @@ be specified as fourth argument, and COUNT becomes the fifth argument."
               (funcall fail)
             match-beg)))))))
 
+(defvar el-search-quick-help-buffer-name "*El-search help*" )
+(defvar el-search-quick-help "...More doc to come here...")
+
+(defun el-search-close-quick-help-maybe ()
+  (when-let ((help-buffer (get-buffer el-search-quick-help-buffer-name))
+             (help-wins (get-buffer-window-list help-buffer)))
+    (mapc #'delete-window help-wins)
+    t))
+
 (defun el-search-forward (pattern &optional bound noerror count)
   "Search for el-search PATTERN in current buffer from point.
 Set point to the beginning of the occurrence found and return point.
@@ -1733,6 +1751,7 @@ in, in order, when called with no arguments."
 
 ;;;###autoload
 (defun el-search-loop-over-bindings (function)
+  (defvar el-search-basic-transient-map) ;defined later
   (cl-flet ((keybind (apply-partially #'funcall function)))
 
     (keybind emacs-lisp-mode-map           ?s #'el-search-pattern)
@@ -1797,6 +1816,9 @@ any case."
     (define-key transient-map [return]       #'el-search-pause-search)
     (define-key transient-map (kbd "RET")    #'el-search-pause-search)
     (define-key transient-map [(control ?g)] #'el-search-keyboard-quit)
+    (define-key transient-map `[,help-char]  #'el-search-toggle-quick-help)
+    (define-key transient-map [help]         #'el-search-toggle-quick-help)
+    (define-key transient-map [f1]           #'el-search-toggle-quick-help)
     transient-map))
 
 (defvar el-search-prefix-key-transient-map
@@ -1822,6 +1844,23 @@ any case."
 
     (set-keymap-parent transient-map el-search-basic-transient-map)
     transient-map))
+
+(defun el-search-toggle-quick-help ()
+  "Doc..."
+  (interactive)
+  (setq this-command 'el-search-pattern)
+  (unless (el-search-close-quick-help-maybe)
+    (with-current-buffer (get-buffer-create el-search-quick-help-buffer-name)
+      (erase-buffer)
+      (insert el-search-quick-help)
+      (when el-search-use-prefix-key-transient-map
+        (insert (substitute-command-keys
+                 "
+
+The following bindings are available only when a search is active:
+\\{el-search-prefix-key-transient-map}")))
+      (goto-char (point-min))
+      (display-buffer (current-buffer)))))
 
 (defun el-search-keep-session-command-p (command)
   "Non-nil when COMMAND should not deactivate the current search."
@@ -2439,7 +2478,8 @@ local binding of `window-scroll-functions'."
          (el-search-hl-remove)
          (remove-hook 'post-command-hook 'el-search-hl-post-command-fun t)
          (setq el-search--temp-buffer-flag nil)
-         (el-search-kill-left-over-search-buffers)))))
+         (el-search-kill-left-over-search-buffers)
+         (el-search-close-quick-help-maybe)))))
 
 (defun el-search--pending-search-p ()
   (memq #'el-search-hl-post-command-fun post-command-hook))
