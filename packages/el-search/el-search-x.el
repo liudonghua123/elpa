@@ -88,6 +88,14 @@ nil."
                 list2 (cons (car last-list1) list2)))))
     match))
 
+(defun el-search-append--error-for-symbols (patterns &optional allowed-symbols)
+  (when-let ((symbol (cl-some (lambda (p) (and (symbolp p)
+                                               (not (keywordp p))
+                                               (not (memq p (append (list nil t '_) allowed-symbols)))
+                                               p))
+                              patterns)))
+    (user-error "Forbidden symbol binding: `%S'" symbol)))
+
 (el-search-defpattern append (&rest patterns)
   "Matches any list factorable into lists matched by PATTERNS in order.
 
@@ -97,16 +105,18 @@ equal to the concatenation of L1..Ln.  Ln is allowed to be no
 list.
 
 When different ways of matching are possible, it is unspecified
-which one is chosen.
+which one is chosen.  There is no backtracking, and trying to
+create symbol bindings in an `append' pattern form is forbidden.
 
 Example: the pattern
 
-   (append '(1 2 3) x (app car-safe 7))
+   (append '(1 2 3) _ (app car-safe 7))
 
-matches the list (1 2 3 4 5 6 7 8 9), binding `x' to (4 5 6)."
+matches the list (1 2 3 4 5 6 7 8 9)."
   (cond
    ((null patterns)       '(pred null))
    ((equal patterns '(_)) '(pred listp))
+   ((el-search-append--error-for-symbols patterns))
    (t
     (pcase-let ((`(,pattern . ,more-patterns) patterns))
       (cond
@@ -163,11 +173,9 @@ __      Matches any number (including zero) of list elements.
 $       Matches zero elements, but only at the end of a list.
         Only allowed as the last of the LPATS.
 PAT     Anything else is interpreted as a standard pattern and
-        matches one list element matched by it.  Note: If
-        matching PAT binds any symbols, occurrences in any
-        following patterns are not turned into equivalence tests;
-        the scope of symbol bindings is limited to the PAT
-        itself.
+        matches one list element matched by it.  Note: Since this
+        pattern type doesn't implement backtracking, binding
+        symbols in a PAT is discouraged.
 
 Example: To match defuns that contain \"hl\" in the defined name
 and have at least one mandatory, but also optional arguments, you
@@ -187,6 +195,7 @@ could use this pattern:
              (_ (funcall (el-search-heuristic-matcher (el-search--transform-nontrivial-lpat lpat))
                          file-name-or-buffer atoms-thunk))))
          lpats)))))
+  (unless el-search-lazy-l (el-search-append--error-for-symbols lpats (list '__ '_ '_? '^ '$)))
   (let ((match-start nil) (match-end nil))
     (when (eq (car-safe lpats) '^)
       (setq match-start t)
