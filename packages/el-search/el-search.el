@@ -1095,7 +1095,7 @@ N times."
      (defvar warning-suppress-log-types)
      (let ((byte-compile-debug t) ;make undefined pattern types raise an error
            (warning-suppress-log-types '((bytecomp)))
-           (pattern-is-catchall (eq pattern '_)))
+           (pattern-is-catchall (and (symbolp pattern) (not (keywordp pattern)))))
        (byte-compile
         `(lambda (,(if pattern-is-catchall '_ expression))
            ,(if pattern-is-catchall
