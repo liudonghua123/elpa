@@ -2762,41 +2762,47 @@ make current."
             (el-search-continue-search))
         (setq this-command 'el-search-pattern)
         (pop-to-buffer current-search-buffer el-search-display-buffer-popup-action)
-        (let ((last-match (el-search-object-last-match search)))
-          (cond
-           ((< (prefix-numeric-value arg) 0)
-            (progn (setq arg (prefix-numeric-value arg))
-                   (goto-char (window-end))))
-           ((not (numberp arg))
-            (goto-char (if (not (and last-match
-                                     ;; this should only happen for bad search patterns
-                                     (eq (marker-buffer last-match) (current-buffer))))
-                           (el-search-head-position current-head)
-                         last-match)))
-           ((zerop arg) (setq arg 1))
-           (t (goto-char (window-start))))
-          (let ((match-pos
-                 (save-excursion
-                   (el-search--search-pattern-1
-                    (el-search--current-matcher)
-                    (not (numberp arg)) nil ;FIXME: Handle no match case explicitly
-                    (el-search--current-heuristic-matcher)
-                    (if (numberp arg) arg 1)))))
-            (unless (or (numberp arg) (eq (point) match-pos))
-              (message "No match at search head any more - going to the next match")
-              (redisplay)
-              ;; Don't just `sit-for' here: `pop-to-buffer' may have generated frame
-              ;; focus events
-              (sleep-for 1.5))
-            (if (not match-pos)
-                (el-search-continue-search)
-              (goto-char match-pos)
-              (setf (el-search-head-position current-head)
-                    (copy-marker (point)))
-              (setf (el-search-object-last-match el-search--current-search)
-                    (copy-marker (point)))
-              (el-search-hl-sexp)
-              (el-search-hl-other-matches (el-search--current-matcher))))))
+        (el-search-protect-search-head
+         (let ((last-match (el-search-object-last-match search)))
+           (cond
+            ((< (prefix-numeric-value arg) 0)
+             (progn (setq arg (prefix-numeric-value arg))
+                    (goto-char (window-end))))
+            ((not (numberp arg))
+             (goto-char (if (not (and last-match
+                                      ;; this should only happen for bad search patterns
+                                      (eq (marker-buffer last-match) (current-buffer))))
+                            (el-search-head-position current-head)
+                          last-match)))
+            ((zerop arg) (setq arg 1))
+            (t (goto-char (window-start))))
+           (let ((match-pos
+                  (save-excursion
+                    (el-search--search-pattern-1
+                     (el-search--current-matcher)
+                     t nil
+                     (el-search--current-heuristic-matcher)
+                     (if (numberp arg) arg 1)))))
+             (when (and (numberp arg) (not match-pos))
+               (setq el-search--success nil)
+               (el-search-hl-post-command-fun 'stop)
+               (goto-char el-search--search-origin)
+               (user-error "No match there"))
+             (unless (or (numberp arg) (eq (point) match-pos))
+               (message "No match at search head any more - going to the next match")
+               (redisplay)
+               ;; Don't just `sit-for' here: `pop-to-buffer' may have generated frame
+               ;; focus events
+               (sleep-for 1.5))
+             (if (not match-pos)
+                 (el-search-continue-search)
+               (goto-char match-pos)
+               (setf (el-search-head-position current-head)
+                     (copy-marker (point)))
+               (setf (el-search-object-last-match el-search--current-search)
+                     (copy-marker (point)))
+               (el-search-hl-sexp)
+               (el-search-hl-other-matches (el-search--current-matcher)))))))
     (el-search--message-no-log "[Search completed - restarting]")
     (sit-for 1.5)
     (el-search-reset-search el-search--current-search)
