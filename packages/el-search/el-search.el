@@ -2037,14 +2037,16 @@ The following bindings are available only when a search is active:
   (setq el-search-use-transient-map t))
 
 (defun el-search-setup-search-1 (pattern get-buffer-stream  &optional from-here setup-function)
-  (el-search--set-search-origin-maybe)
-  (setq el-search--success nil)
+  (unless el-search-occur-flag
+    (el-search--set-search-origin-maybe)
+    (setq el-search--success nil))
   (setq el-search--current-search
         (el-search-make-search pattern get-buffer-stream))
   (when setup-function (funcall setup-function el-search--current-search))
   (ring-insert el-search-history el-search--current-search)
   (when from-here (setq el-search--temp-buffer-flag nil))
-  (el-search-prefix-key-maybe-set-transient-map))
+  (unless el-search-occur-flag
+    (el-search-prefix-key-maybe-set-transient-map)))
 
 (defun el-search-setup-search (pattern get-buffer-stream &optional setup-function from-here)
   "Create and start a new el-search.
