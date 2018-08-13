@@ -2031,7 +2031,8 @@ The following bindings are available only when a search is active:
    el-search-allow-scroll
    (symbolp command)
    (or (get command 'isearch-scroll) ;isearch is preloaded
-       (get command 'scroll-command))))
+       (get command 'scroll-command)
+       (memq command '(mouse-set-point mouse-drag-region mouse-set-region)))))
 
 (defun el-search-prefix-key-maybe-set-transient-map ()
   (set-transient-map
