@@ -425,6 +425,13 @@
 ;;
 ;; TODO:
 ;;
+;; - Add org and/or Info documentation
+;;
+;; - Make currently hardcoded bindings in
+;;   `el-search-loop-over-bindings' configurable
+;;
+;; - Add menus?
+;;
 ;; - Make searching work in comments, too? (->
 ;;   `parse-sexp-ignore-comments').  Related: should the pattern
 ;;   `symbol' also match strings that contain matches for a symbol so
@@ -584,7 +591,7 @@ from the prompt."
                  (const :tag "On"  t)
                  (const :tag "Ask" ask)))
 
-(defvar el-search-use-transient-map nil
+(defvar el-search-use-prefix-key-transient-map nil
   "Whether el-search should make commands repeatable."
   ;; I originally wanted to make commands repeatable by looking at the
   ;; command keys.  But that got overly complicated: It interfered with
@@ -612,7 +619,7 @@ from the prompt."
     digit-argument negative-argument)
   "List of commands that don't end repeatability of el-search commands.
 
-When `el-search-use-transient-map' is non-nil, when any
+When `el-search-use-prefix-key-transient-map' is non-nil, when any
 \"repeatable\" el-search command had been invoked, executing any
 of these commands will keep the
 `el-search-prefix-key-transient-map' further in effect.")
@@ -787,6 +794,22 @@ nil."
       (pcase cached
         (`(,(pred (equal args)) . ,result) result)
         (_ (cdr (setq cached (cons args (apply function args)))))))))
+
+;; (defun el-search-with-long-term-memory (function &optional predicate)
+;;   "Wrap FUNCTION to cache all calls.
+;; With PREDICATE given, only cache calls where the arguments
+;; fulfill PREDICATE.  In this case, the last call is always
+;; remembered as in `el-search-with-short-term-memory'."
+;;   (let ((cached (make-hash-table :test #'equal)))
+;;     (el-search-with-short-term-memory
+;;      (lambda (&rest args)
+;;        (if-let ((cache-entry (gethash args cached)))
+;;            (cdr cache-entry)
+;;          (let ((result (apply function args)))
+;;            (when (or (not predicate)
+;;                      (apply predicate args))
+;;              (puthash args (cons t result) cached))
+;;            result))))))
 
 (defmacro el-search-when-unwind (body-form &rest unwindforms)
   "Like `unwind-protect' but eval the UNWINDFORMS only if unwinding."
@@ -1729,13 +1752,12 @@ PATTERN and combining the heuristic matchers of the subpatterns."
           (setq buffer (or (find-buffer-visiting next)
                            (let ((warning-minimum-level :error)
                                  (inhibit-message t))
-                             (let ((fresh-buffer (generate-new-buffer " el-search-helper-buffer"))
-                                   (inhibit-message t))
+                             (let ((fresh-buffer (generate-new-buffer " el-search-helper-buffer")))
                                (with-current-buffer fresh-buffer
                                  (insert-file-contents next)
                                  (emacs-lisp-mode)
                                  (setq-local el-search--temp-file-buffer-flag next)
-                                 (setq-local buffer-file-name next) ;make `file' pattern work as expected
+                                 (setq-local buffer-file-name next) ;make `file' pat work as expected
                                  (set-visited-file-modtime)
                                  (set-buffer-modified-p nil))
                                fresh-buffer)))))
@@ -2036,7 +2058,7 @@ The following bindings are available only when a search is active:
 
 (defun el-search-prefix-key-maybe-set-transient-map ()
   (set-transient-map
-   (if el-search-use-transient-map
+   (if el-search-use-prefix-key-transient-map
        el-search-prefix-key-transient-map
      el-search-basic-transient-map)
    (lambda () (or (memq this-command el-search-keep-transient-map-commands)
@@ -2061,7 +2083,7 @@ The following bindings are available only when a search is active:
 (defun el-search-install-bindings-under-prefix (prefix-key)
   (el-search-loop-over-bindings
    (el-search-bind-under-prefix-key-function prefix-key))
-  (setq el-search-use-transient-map t))
+  (setq el-search-use-prefix-key-transient-map t))
 
 (defun el-search-setup-search-1 (pattern get-buffer-stream  &optional from-here setup-function)
   (unless el-search-occur-flag
@@ -2133,7 +2155,8 @@ currently enabled."
     (`(,(and (pred listp) bindings)
        ,(pred stringp))
      (cl-every
-      (lambda (binding) (pcase binding ((or (pred symbolp) `(,(pred symbolp)) `(,(pred symbolp) ,_)) t)))
+      (lambda (binding)
+        (pcase binding ((or (pred symbolp) `(,(pred symbolp)) `(,(pred symbolp) ,_)) t)))
       bindings))))
 
 (defun el-search--string-matcher (regexp-like)
@@ -2141,6 +2164,7 @@ currently enabled."
 That's a predicate returning non-nil when the
 `el-search-regexp-like-p' REGEXP-LIKE matches the (only)
 argument (that should be a string)."
+  ;; FIXME: should we also support literal matching and rx sexps?
   (let ((match-bindings ()) regexp)
     (pcase regexp-like
       ((pred stringp) (setq regexp regexp-like))
@@ -2415,7 +2439,8 @@ function implicitly (but support to specify a :key nonetheless)."
 
 (el-search-defpattern dir (&rest regexps)
   "Like \"filename\" but matches REGEXPS against directory names."
-  (declare (heuristic-matcher (apply-partially #'el-search--filename-matcher #'el-search--file-directory))
+  (declare (heuristic-matcher (apply-partially #'el-search--filename-matcher
+                                               #'el-search--file-directory))
            (inverse-heuristic-matcher t))
   (el-search-defpattern--check-args "dir"
                                     (if (eq (car-safe regexps) :key) (cddr regexps) regexps)
@@ -2573,7 +2598,8 @@ created.")
                          (largest-match-start-not-after-pos-here nil))
                      (pcase-let ((`(,_ ,_ ,matches) el-search--buffer-match-count-data))
                        (setq total-matches (let ((inhibit-message t)) (seq-length matches)))
-                       (while (and (not (stream-empty-p matches)) (< (stream-first matches) (cdr defun-bounds)))
+                       (while (and (not (stream-empty-p matches))
+                                   (< (stream-first matches) (cdr defun-bounds)))
                          (when (<= (stream-first matches) pos-here)
                            (setq largest-match-start-not-after-pos-here (stream-first matches))
                            (unless (= (stream-first matches) pos-here)
@@ -2632,7 +2658,8 @@ created.")
                               (concat (if (not just-count) "[Not at a match]   " "")
                                       (if (= matches-<=-here total-matches)
                                           (format "(%s/%s <-)" matches-<=-here total-matches)
-                                        (format "(-> %s/%s)" (1+ matches-<=-here) total-matches))))))))))))
+                                        (format "(-> %s/%s)" (1+ matches-<=-here) total-matches)))))))))
+                   )))
       (when quit-flag (el-search-keyboard-quit 'dont-quit)))))
 
 (defun el-search-hl-other-matches (matcher)
@@ -2888,7 +2915,8 @@ continued."
                                   (and from-here
                                        (save-excursion
                                          (goto-char (point-min))
-                                         (el-search--search-pattern-1 matcher t nil heuristic-matcher)))))
+                                         (el-search--search-pattern-1
+                                          matcher t nil heuristic-matcher)))))
                          (progn
                            (el-search--message-no-log "No matches")
                            (sit-for .7))
@@ -3212,7 +3240,8 @@ Use the normal search commands to seize the search."
                          (if (and symbol-at-point-text
                                   ;; That should ideally be always true but isn't
                                   (condition-case nil
-                                      (symbolp (setq symbol-at-point (el-search-read symbol-at-point-text)))
+                                      (symbolp (setq symbol-at-point
+                                                     (el-search-read symbol-at-point-text)))
                                     (invalid-read-syntax nil)))
                              symbol-at-point
                            (if (thing-at-point 'sexp)
@@ -3593,7 +3622,8 @@ Prompt for a new pattern and revert."
                                                 (when (< cbeg context-beg)
                                                   (setq context-beg cbeg)
                                                   (setq context-end
-                                                        (or (el-search--end-of-sexp cbeg) context-end)))))))))
+                                                        (or (el-search--end-of-sexp cbeg)
+                                                            context-end)))))))))
                                 (setq matches
                                       (car (stream-divide-with-get-rest-fun
                                             buffer-matches+counts+contexts
@@ -4329,15 +4359,16 @@ modify it")
                                                        (not (alist-get 'is-single-buffer
                                                                        (el-search-object-properties
                                                                         el-search--current-search)))
-                                                       (eq (car (read-multiple-choice
-                                                                 "Replace in all following buffers?"
-                                                                 '((?! "Only this"
-                                                                       "\
+                                                       (eq
+                                                        (car (read-multiple-choice
+                                                              "Also replace in all following buffers?"
+                                                              '((?! "Only this"
+                                                                    "\
 Replace only remaining matches in this buffer")
-                                                                   (?A "All buffers"
-                                                                       "\
+                                                                (?A "All buffers"
+                                                                    "\
 Replace all matches in all buffers"))))
-                                                           ?A))
+                                                        ?A))
                                               (setq replace-all-and-following t))
                                             (setq replace-all t)
                                             (unless replaced-this (funcall do-replace))

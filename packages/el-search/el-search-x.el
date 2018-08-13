@@ -247,8 +247,10 @@ COMMIT defaults to HEAD."
   (let ((default-directory repo-root-dir))
     (mapcar #'expand-file-name
             (split-string
-             (shell-command-to-string
-              (format "git diff -z --name-only %s --" (shell-quote-argument commit)))
+             (let ((current-message (current-message)))
+               (with-temp-message (concat current-message "  [Running Git...]")
+                 (shell-command-to-string
+                  (format "git diff -z --name-only %s --" (shell-quote-argument commit)))))
              "\0" t))))
 
 (defvar vc-git-diff-switches)
