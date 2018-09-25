@@ -2743,8 +2743,10 @@ local binding of `window-scroll-functions'."
   (memq #'el-search-hl-post-command-fun post-command-hook))
 
 (defun el-search--reset-wrap-flag ()
-  (unless (or (eq this-command 'el-search-query-replace)
-              (eq this-command 'el-search-pattern))
+  (unless (eq real-this-command
+              (if (eq el-search--wrap-flag 'forward)
+                  'el-search-pattern
+                'el-search-pattern-backward))
     (remove-hook 'post-command-hook 'el-search--reset-wrap-flag)
     (setq el-search--wrap-flag nil)))
 
