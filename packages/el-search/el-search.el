@@ -799,10 +799,16 @@ nil."
          (unless ,done
            ,@unwindforms)))))
 
+(defvar el-search--last-message nil)
+
 (defun el-search--message-no-log (format-string &rest args)
   "Like `message' but with `message-log-max' bound to nil."
   (let ((message-log-max nil))
     (apply #'message format-string args)))
+
+(defun el-search--set-this-command-refresh-message-maybe ()
+  (when (eq (setq this-command 'el-search-pattern) last-command)
+    (message "%s" el-search--last-message)))
 
 (defalias 'el-search-read
   (if (boundp 'force-new-style-backquotes)
@@ -910,8 +916,11 @@ nil."
     (timer-set-time el-search--mb-hints-timer (time-add (current-time) el-search-mb-hints-delay))
     (timer-activate el-search--mb-hints-timer)))
 
+(defvar el-search--this-session-match-count-data nil)
+
 (defun el-search-read-pattern-setup-mb-hints ()
   (when el-search-display-mb-hints
+    (setq el-search--this-session-match-count-data nil)
     (when (timerp el-search--mb-hints-timer) (cancel-timer el-search--mb-hints-timer))
     (setq el-search--mb-hints-timer nil)
     (add-hook 'post-command-hook #'el-search-read-pattern-trigger-mb-hints t t)))
@@ -2486,12 +2495,21 @@ created.")
   (when (or just-count (and el-search--success (not el-search--wrap-flag)))
     (prog1
         (while-no-input
-          (apply (if just-count #'format #'el-search--message-no-log)
+          (apply (if just-count #'format
+                   (lambda (&rest args)
+                     (setq el-search--last-message (apply #'el-search--message-no-log args))))
                  (progn
 
                    ;; Check whether cached stream of buffer matches is still valid
                    (pcase el-search--buffer-match-count-data
-                     (`(,(pred (eq el-search--current-search))  ,(pred (eq (buffer-chars-modified-tick)))  . ,_))
+                     ((or
+                       (and `(,(and (pred el-search-object-p)
+                                    (pred (eq el-search--current-search)))
+                              . ,_)
+                            (pred (eq el-search--this-session-match-count-data)))
+                       `(,(pred (eq el-search--current-search))
+                         ,(pred (eq (buffer-chars-modified-tick)))  . ,_)))
+
                      (_
                       ;; (message "Refreshing match count data") (sit-for 1)
                       (redisplay) ;don't delay highlighting
@@ -2506,7 +2524,9 @@ created.")
                                     (list
                                      el-search--current-search
                                      (buffer-chars-modified-tick)
-                                     stream-of-buffer-matches)))))
+                                     stream-of-buffer-matches)))
+                      (setq el-search--this-session-match-count-data
+                            el-search--buffer-match-count-data)))
 
                    (let ((pos-here (point)) (matches-<=-here 1) total-matches
                          (defun-bounds (or (el-search--bounds-of-defun) (cons (point) (point))))
@@ -2609,7 +2629,8 @@ local binding of `window-scroll-functions'."
                     (remove-hook 'post-command-hook 'el-search-hl-post-command-fun t)
                     (setq el-search--temp-buffer-flag nil)
                     (el-search-kill-left-over-search-buffers)
-                    (el-search-close-quick-help-maybe))))
+                    (el-search-close-quick-help-maybe)
+                    (setq el-search--this-session-match-count-data nil))))
     (pcase this-command
       ((guard stop) (stop))
       ('el-search-query-replace)
@@ -2622,12 +2643,13 @@ local binding of `window-scroll-functions'."
                       (el-search--make-display-animation-function
                        (lambda (icon)
                          (let ((inhibit-message nil))
-                           (el-search--message-no-log
-                            "%s   %s"
-                            (let ((head (el-search-object-head el-search--current-search)))
-                              (or (el-search-head-file head)
-                                  (el-search-head-buffer head)))
-                            icon))))))))
+                           (setq el-search--last-message
+                                 (el-search--message-no-log
+                                  "%s   %s"
+                                  (let ((head (el-search-object-head el-search--current-search)))
+                                    (or (el-search-head-file head)
+                                        (el-search-head-buffer head)))
+                                  icon)))))))))
          (condition-case err (el-search-display-match-count)
            (error
             (el-search--message-no-log
@@ -2779,7 +2801,7 @@ be the current buffer, and the search will be resumed from point
 instead of the position where the search would normally be
 continued."
   (interactive "P")
-  (setq this-command 'el-search-pattern)
+  (el-search--set-this-command-refresh-message-maybe)
   (unless (eq last-command this-command)
     (el-search--set-search-origin-maybe))
   (el-search-compile-pattern-in-search el-search--current-search)
@@ -3088,7 +3110,7 @@ See the command `el-search-pattern' for more information."
     ;; Make this buffer the current search buffer so that a following C-S
     ;; doesn't delete highlighting
     (el-search--next-buffer el-search--current-search))
-  (setq this-command 'el-search-pattern)
+  (el-search--set-this-command-refresh-message-maybe)
   (when (eq el-search--wrap-flag 'backward)
     (el-search--set-wrap-flag nil)
     (el-search--message-no-log "[Wrapped backward search]")
@@ -3166,7 +3188,7 @@ Use the normal search commands to seize the search."
   "Jump to the first match starting after `window-end'."
   (interactive)
   (el-search-barf-if-not-search-buffer)
-  (setq this-command 'el-search-pattern)
+  (el-search--set-this-command-refresh-message-maybe)
   (let ((here (point)))
     (goto-char (window-end))
     (if (el-search--search-pattern-1 (el-search--current-matcher) t nil
@@ -3180,7 +3202,7 @@ Use the normal search commands to seize the search."
   "Jump to the hindmost match starting before `window-start'."
   (interactive)
   (el-search-barf-if-not-search-buffer)
-  (setq this-command 'el-search-pattern)
+  (el-search--set-this-command-refresh-message-maybe)
   (let ((here (point)))
     (goto-char (window-start))
     (if (el-search--search-backward-1 (el-search--current-matcher) t nil
