@@ -1649,8 +1649,8 @@ PATTERN and combining the heuristic matchers of the subpatterns."
       (walker tree)
       elements)))
 
-(defun el-search-heuristic-buffer-matcher (pattern)
-  (let ((heuristic-matcher (el-search-heuristic-matcher pattern)))
+(defun el-search-heuristic-buffer-matcher (pattern &optional hm)
+  (let ((heuristic-matcher (or hm (el-search-heuristic-matcher pattern))))
     (lambda (file-name-or-buffer)
       (el-search--message-no-log "%s"
                                  (if (stringp file-name-or-buffer)
@@ -1790,7 +1790,7 @@ With ALLOW-LEADING-WHITESPACE non-nil, the match may
 be preceded by whitespace."
   (el-search--looking-at-1 (el-search-make-matcher pattern) allow-leading-whitespace))
 
-(defun el-search--all-matches (search)
+(defun el-search--all-matches (search &optional dont-copy)
   "Return a stream of all matches of SEARCH.
 The returned stream will always start searching from the
 beginning anew even when SEARCH has been used interactively or
@@ -1804,7 +1804,7 @@ The elements of the returned stream will have the form
 where BUFFER or FILE is the buffer or file where a match has been
 found (exactly one of the two will be nil), and MATCH-BEG is the
 position of the beginning of the match."
-  (let* ((search (el-search-reset-search (copy-el-search-object search)))
+  (let* ((search (if dont-copy search (el-search-reset-search (copy-el-search-object search))))
          (head (el-search-object-head search)))
     (seq-filter
      #'identity ;we use `nil' as a "skip" tag
@@ -1849,7 +1849,9 @@ position of the beginning of the match."
   (setf (el-search-head-heuristic-matcher head)
         (el-search-heuristic-matcher pattern))
   (setf (el-search-head-heuristic-buffer-matcher head)
-        (el-search-heuristic-buffer-matcher pattern))
+        (el-search-heuristic-buffer-matcher
+         pattern
+         (el-search-head-heuristic-matcher head)))
   head)
 
 (defun el-search-compile-pattern-in-search (search)
@@ -2513,18 +2515,26 @@ created.")
                      (_
                       ;; (message "Refreshing match count data") (sit-for 1)
                       (redisplay) ;don't delay highlighting
-                      (setq-local el-search--buffer-match-count-data
-                                  (let ((stream-of-buffer-matches
-                                         (seq-map #'cadr
-                                                  (el-search--all-matches
-                                                   (el-search-make-search
-                                                    (el-search--current-pattern)
-                                                    (let ((current-buffer (current-buffer)))
-                                                      (lambda () (stream (list current-buffer)))))))))
-                                    (list
-                                     el-search--current-search
-                                     (buffer-chars-modified-tick)
-                                     stream-of-buffer-matches)))
+                      (let ((new-search (el-search-make-search
+                                         (el-search--current-pattern)
+                                         (let ((current-buffer (current-buffer)))
+                                           (lambda () (stream (list current-buffer)))))))
+                        (let ((head (el-search-object-head new-search)))
+                          ;; reuse already existing heuristic matchers
+                          (setf (el-search-head-heuristic-matcher head)
+                                (el-search-head-heuristic-matcher
+                                 (el-search-object-head el-search--current-search)))
+                          (setf (el-search-head-heuristic-buffer-matcher head)
+                                (el-search-head-heuristic-buffer-matcher
+                                 (el-search-object-head el-search--current-search))))
+                        (setq-local el-search--buffer-match-count-data
+                                    (let ((stream-of-buffer-matches
+                                           (seq-map #'cadr
+                                                    (el-search--all-matches new-search 'dont-copy))))
+                                      (list
+                                       el-search--current-search
+                                       (buffer-chars-modified-tick)
+                                       stream-of-buffer-matches))))
                       (setq el-search--this-session-match-count-data
                             el-search--buffer-match-count-data)))
 
@@ -2803,8 +2813,8 @@ continued."
   (interactive "P")
   (el-search--set-this-command-refresh-message-maybe)
   (unless (eq last-command this-command)
-    (el-search--set-search-origin-maybe))
-  (el-search-compile-pattern-in-search el-search--current-search)
+    (el-search--set-search-origin-maybe)
+    (el-search-compile-pattern-in-search el-search--current-search))
   (el-search-protect-search-head
    (el-search-when-unwind
        (unwind-protect
