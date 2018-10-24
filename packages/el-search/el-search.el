@@ -1531,7 +1531,8 @@ the cursor) are not killed."
   (interactive)
   (dolist (buffer (buffer-list))
     (when (with-current-buffer buffer el-search--temp-buffer-flag)
-      (unless (or (el-search--search-buffer-p buffer)
+      (unless (or (buffer-modified-p buffer) ; modified with el-s-query-replace and auto-save off
+                  (el-search--search-buffer-p buffer)
                   (with-current-buffer buffer (el-search--pending-search-p)))
         (kill-buffer buffer)))))
 
