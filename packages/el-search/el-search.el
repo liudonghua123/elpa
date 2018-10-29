@@ -590,7 +590,7 @@ from the prompt."
                  (const :tag "On"  t)
                  (const :tag "Ask" ask)))
 
-(defvar el-search-use-prefix-key-transient-map nil
+(defvar el-search-use-prefix-key-transient-map t
   "Whether el-search should make commands repeatable."
   ;; I originally wanted to make commands repeatable by looking at the
   ;; command keys.  But that got overly complicated: It interfered with
@@ -2081,6 +2081,7 @@ The following bindings are available only when a search is active:
 ;;;###autoload
 (defun el-search-install-shift-bindings ()
   (interactive)
+  (setq el-search-use-prefix-key-transient-map nil)
   (el-search-loop-over-bindings #'el-search-shift-bindings-bind-function)
   (define-key el-search-basic-transient-map [C-S-next]  #'el-search-scroll-down)
   (define-key el-search-basic-transient-map [C-S-prior] #'el-search-scroll-up))
