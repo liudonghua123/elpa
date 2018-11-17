@@ -1,6 +1,6 @@
 ;;; rmatrix.el --- Matrices implemented as vector of vectors, gives rows priority
 
-;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
 
 ;; Author: David Fox, fox@cs.nyu.edu
 ;; Created-On: Mon Jan  6 14:17:56 1992
@@ -199,49 +199,49 @@
      (setq don-start-r (1+ don-start-r))
      (setq rec-start-r (1+ rec-start-r)))))
 
-;(matrix-copy 0 0 3 3 0 0 aa bb)
-; (inspect bb)
+;;(matrix-copy 0 0 3 3 0 0 aa bb)
+;; (inspect bb)
 
 
 ;;;; IV.	Useful test functions
 
 ;; looks like matrixes are stored as a vector of columns
 
-;(defun create-aa ()
-;  (setq aa (dismal-create-matrix))
-;  (matrix-set aa 0 0 'r0c0)
-;  (matrix-set aa 0 1 'r0c1)
-;  (matrix-set aa 1 1 'r1c1)
-;  (matrix-set aa 3 3 'r3c3)
-;  (matrix-set aa 3 1 'r3c1)
-;  (matrix-set aa 0 2 'r0c2)
-;  (matrix-set aa 0 3 'r0c3))
-;; Note that these results are different from matrix.el
-;; (which is column based).
-; (inspect aa)  [1 1 [[1 0 [nil] nil]] [1 0 [nil] nil]]
-; (matrix-set aa 0 0 'r0c0)
-; (inspect aa) [1 1 [[1 1 [r0c0] nil]] [1 0 [nil] nil]]
-; (matrix-set aa 0 1 'r0c1)
-; (inspect aa) [1 1 [[2 2 [r0c0 r0c1] nil]] [1 0 [nil] nil]]
-; (matrix-set aa 1 1 'r1c1)
-; (inspect aa)
-;             [2 2 [[2 2 [r0c0 r0c1] nil][2 2 [nil r1c1] nil]][1 0 [nil] nil]]
-; (matrix-set aa 3 3 'r3c3)
-; (matrix-set aa 3 1 'r3c1)
-; (matrix-set aa 0 2 'r0c2)
-; (matrix-set aa 0 3 'r0c3)
-; (inspect aa)
-;  [4 4 [[4 4 [r0c0 r0c1 r0c2 r0c3] nil]
-;        [2 2 [nil r1c1] nil]
-;        [1 0 [nil] nil]
-;        [4 4 [nil r3c1 nil r3c3] nil]] [1 0 [nil] nil]]
-; (matrix-delete-column-cells aa 0 1 1)
-; (matrix-width aa)
-; (inspect aa)
-;  [4 4 [[4 4 [r0c0 r1c1 r0c2 r0c3] nil]
-;        [2 2 [nil nil] nil]
-;        [2 2 [nil r3c1] nil]
-;        [4 4 [nil nil nil r3c3] nil]] [1 0 [nil] nil]]
+;;(defun create-aa ()
+;;  (setq aa (dismal-create-matrix))
+;;  (matrix-set aa 0 0 'r0c0)
+;;  (matrix-set aa 0 1 'r0c1)
+;;  (matrix-set aa 1 1 'r1c1)
+;;  (matrix-set aa 3 3 'r3c3)
+;;  (matrix-set aa 3 1 'r3c1)
+;;  (matrix-set aa 0 2 'r0c2)
+;;  (matrix-set aa 0 3 'r0c3))
+;; ;; Note that these results are different from matrix.el
+;; ;; (which is column based).
+;; (inspect aa)  [1 1 [[1 0 [nil] nil]] [1 0 [nil] nil]]
+;; (matrix-set aa 0 0 'r0c0)
+;; (inspect aa) [1 1 [[1 1 [r0c0] nil]] [1 0 [nil] nil]]
+;; (matrix-set aa 0 1 'r0c1)
+;; (inspect aa) [1 1 [[2 2 [r0c0 r0c1] nil]] [1 0 [nil] nil]]
+;; (matrix-set aa 1 1 'r1c1)
+;; (inspect aa)
+;;             [2 2 [[2 2 [r0c0 r0c1] nil][2 2 [nil r1c1] nil]][1 0 [nil] nil]]
+;; (matrix-set aa 3 3 'r3c3)
+;; (matrix-set aa 3 1 'r3c1)
+;; (matrix-set aa 0 2 'r0c2)
+;; (matrix-set aa 0 3 'r0c3)
+;; (inspect aa)
+;;  [4 4 [[4 4 [r0c0 r0c1 r0c2 r0c3] nil]
+;;        [2 2 [nil r1c1] nil]
+;;        [1 0 [nil] nil]
+;;        [4 4 [nil r3c1 nil r3c3] nil]] [1 0 [nil] nil]]
+;; (matrix-delete-column-cells aa 0 1 1)
+;; (matrix-width aa)
+;; (inspect aa)
+;;  [4 4 [[4 4 [r0c0 r1c1 r0c2 r0c3] nil]
+;;        [2 2 [nil nil] nil]
+;;        [2 2 [nil r3c1] nil]
+;;        [4 4 [nil nil nil r3c3] nil]] [1 0 [nil] nil]]
 
 (provide 'rmatrix)
 ;;; rmatrix.el ends here

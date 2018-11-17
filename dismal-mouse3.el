@@ -1,6 +1,6 @@
 ;;; dismal-mouse3.el --- Functionality for using a mouse inside of Dismal
 
-;; Copyright (C) 1997, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 ;; Author: Nigel Jenkins, nej@cs.nott.ac.uk
 ;;                        lpyjnej@psyc.nott.ac.uk  
@@ -30,34 +30,49 @@
 
 ;;; Code:
 
-;;;; i.	Modify `dismal-map' to cope with new mouse controls
+(defvar dismal-max-col)
+(defvar dismal-max-row)
+(defvar dismal-current-row)
 
-;; Keymap additions to dismal-map keymap, allowing the mouse to
-;; be used with dismalfor selecting cells and ranges of cells.
+;;;; i.	Modify `dismal-mode-map' to cope with new mouse controls
 
-(define-key dismal-map [down-mouse-1] 'dis-mouse-highlight-cell-or-range)
-(define-key dismal-map [double-mouse-1] 'ignore)
-(define-key dismal-map [triple-mouse-1] 'ignore)
+;; Keymap additions to dismal-mode-map keymap, allowing the mouse to
+;; be used with dismal for selecting cells and ranges of cells.
 
-;; These are too slow, because of how the matrix is represented, 
-;; so don't offer to user.
-;; (define-key dismal-map [down-mouse-2] 'dis-mouse-highlight-column)
-;; (define-key dismal-map [mouse-2] 'dis-mouse-highlight-column)
-;; had been mouse-yank-at-point, which is a mess with plain text
+(defvar dismal-mouse-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [down-mouse-1] 'dis-mouse-highlight-cell-or-range)
+    (define-key map [double-mouse-1] 'ignore)
+    (define-key map [triple-mouse-1] 'ignore)
 
-(define-key dismal-map [down-mouse-2] 'dis-mouse-highlight-cell-or-range)
-(define-key dismal-map [mouse-2] 'dis-mouse-highlight-cell-or-range)
-(define-key dismal-map [double-mouse-2] 'ignore)
-(define-key dismal-map [triple-mouse-2] 'ignore)
+    ;; These areecause of how the matrix is represented, 
+    ;; so don't r.
+    ;; (define-kde-map [down-mouse-2] 'dis-mouse-highlight-column)
+    ;; (define-kde-map [mouse-2] 'dis-mouse-highlight-column)
+    ;; had been t-point, which is a mess with plain text
+
+    (define-key map [down-mouse-2] 'dis-mouse-highlight-cell-or-range)
+    (define-key map [mouse-2] 'dis-mouse-highlight-cell-or-range)
+    (define-key map [double-mouse-2] 'ignore)
+    (define-key map [triple-mouse-2] 'ignore)
 
 
-(define-key dismal-map [down-mouse-3] 'dis-mouse-highlight-row)
-(define-key dismal-map [mouse-3] 'dis-mouse-highlight-row)
-(define-key dismal-map [double-mouse-3] 'ignore)
-(define-key dismal-map [triple-mouse-3] 'ignore)
-
+    (define-key map [down-mouse-3] 'dis-mouse-highlight-row)
+    (define-key map [mouse-3] 'dis-mouse-highlight-row)
+    (define-key map [double-mouse-3] 'ignore)
+    (define-key map [triple-mouse-3] 'ignore)
+    map))
 
 
+;; helper function
+
+(defsubst dismal-add-text-properties (start end props &optional object)
+ "Add properties while preserving the modified flag."
+ (let ((original-modified-p (buffer-modified-p)))
+   (add-text-properties start end props object)
+    ;; don't let highlighting a cell mark it as modified.23-May-96 -FER
+   (set-buffer-modified-p original-modified-p)))
+
 ;;;; ii.	dismal-find-cell function
 
 ;; Used to set dismal point and mark based on mouse clicks.
@@ -146,32 +161,30 @@
 
   (save-window-excursion
 
-  ;; Store position of point and mouse-position
-  (setq x-pos (car (cdr (mouse-position)))
-	y-pos (cdr (cdr (mouse-position))))
-  (setq click-pos (point))
+    ;; Store position of point and mouse-position
+    (let ((x-pos (car (cdr (mouse-position)))))
   
-  ;; Read the row from the front of the column. (!)
-  (beginning-of-line)
-  (setq row (read (current-buffer)))
-
-  ;; Get the column width directly from y-pos of point
-  (setq col (dismal-raw-column-to-dismal-column x-pos))
+      ;; Read the row from the front of the column. (!)
+      (beginning-of-line)
+      (let ((row (read (current-buffer)))
+            ;; Get the column width directly from y-pos of point
+            (col (dismal-raw-column-to-dismal-column x-pos)))
     
-  ;; column and row of cell which mouse points to are now known 
-  ;; leave them as the return of the defun
-  ;; inserted a guard, for seems to get wacky values
-  (if (> col dismal-max-col) (setq col dismal-max-col))
-  (if (> row dismal-max-row) (setq col dismal-max-row))
-  (cons col row)))
+        ;; column and row of cell which mouse points to are now known 
+        ;; leave them as the return of the defun
+        ;; inserted a guard, for seems to get wacky values
+        (if (> col dismal-max-col) (setq col dismal-max-col))
+        (if (> row dismal-max-row) (setq col dismal-max-row))
+        (cons col row)))))
 
 
 ;;;; iii.	dis-mouse-highlight-cell-or-range bound to [down-mouse-1]
 
-;;  Function is bound to [down-mouse-1] in dismal-map keymap.
+;;  Function is bound to [down-mouse-1] in dismal-mode-map keymap.
 ;;  It allows the user to select a single cell, or drag the mouse
 ;;  and select a range of cells.
 ;;
+(defvar dismal-current-column)
 
 (defun dis-mouse-highlight-cell-or-range ()
   "Highlight a cell or range of cells as choosen by the mouse."
@@ -183,76 +196,77 @@
   (mouse-set-point last-command-event)
   ;; First, clear out old highlight.
   (dismal-add-text-properties (point-min) (point-max) (list 'face 'default))
-  (setq start-drag (dismal-find-cell))
+  (let ((start-drag (dismal-find-cell))
+        (last-drag)
+        (drag-on t))
 
-  (dismal-highlight-cell (car start-drag) (cdr start-drag))
+    (dismal-highlight-cell (car start-drag) (cdr start-drag))
 
-  ;; now track the mouse to see if it either moves or the button is released
-  ;; set DRAG-ON variable to true so as to track the mouse movement.
-  (setq drag-on t)
-  (track-mouse
-    ;; optimization here from Mikio Nakajima <minakaji@osaka.email.ne.jp>
-    (while drag-on
+    ;; now track the mouse to see if it either moves or the button is released
+    ;; set DRAG-ON variable to true so as to track the mouse movement.
+    (track-mouse
+      ;; optimization here from Mikio Nakajima <minakaji@osaka.email.ne.jp>
+      (while drag-on
       
-      ;; read an event
-      (setq mouse-event (read-event))
+        ;; read an event
+        (let ((mouse-event (read-event)))
            
-      ;; work out what event was
-      (cond
+          ;; work out what event was
+          (cond
 
-       ;; mouse-movement is sensed move cursor and highlight the range
-       ((eq (car mouse-event) 'mouse-movement)
-;; was	(goto-char (car (cdr (car (cdr mouse-event)))))
-        (let ((mouse-char  (car (cdr (car (cdr mouse-event))))))
-           (if (not mouse-char)
-               (setq mouse-char (point-max)))
-           (goto-char mouse-char))
-	(setq last-drag (dismal-find-cell))
-	(message (format "Range from: %s  to: %s" 
-			 (dismal-cell-name (cdr start-drag)(car start-drag))
-			 (dismal-cell-name (cdr last-drag)(car last-drag))))
+           ;; mouse-movement is sensed move cursor and highlight the range
+           ((eq (car mouse-event) 'mouse-movement)
+            ;; was	(goto-char (car (cdr (car (cdr mouse-event)))))
+            (let ((mouse-char  (car (cdr (car (cdr mouse-event))))))
+              (if (not mouse-char)
+                  (setq mouse-char (point-max)))
+              (goto-char mouse-char))
+	    (setq last-drag (dismal-find-cell))
+	    (message (format "Range from: %s  to: %s" 
+			     (dismal-cell-name (cdr start-drag)(car start-drag))
+			     (dismal-cell-name (cdr last-drag)(car last-drag))))
 
-	(dismal-highlight-range (car start-drag) (cdr start-drag)
-                                (car last-drag) (cdr last-drag)))
+	    (dismal-highlight-range (car start-drag) (cdr start-drag)
+                                    (car last-drag) (cdr last-drag)))
 
-       ;; Mouse button release at the same place it was pressed
-       ;; visit cell and stop tracking motion
-       ((eq (car mouse-event) 'mouse-1)
-	(dismal-jump-to-cell (cdr start-drag)
-			   (car start-drag))
-	(setq drag-on nil
-	      dismal-current-row (cdr start-drag)
-	      dismal-current-column (car start-drag)))
+           ;; Mouse button release at the same place it was pressed
+           ;; visit cell and stop tracking motion
+           ((eq (car mouse-event) 'mouse-1)
+	    (dismal-jump-to-cell (cdr start-drag)
+			         (car start-drag))
+	    (setq drag-on nil
+	          dismal-current-row (cdr start-drag)
+	          dismal-current-column (car start-drag)))
 
-       ;; Drag motion of mouse has been completed turn tracking off and 
-       ;; highlight the selected range of cells
-       ((eq (car mouse-event) 'drag-mouse-1)
-	(setq drag-on nil)
-        (if (or (not (boundp 'last-drag)) last-drag)
-            (setq last-drag (dismal-find-cell)))
-	;; make sure that start-drag is top-left corner of selection
-	;; and that last-drag is the bottom-right corner of selection
-	(let ((t-start-drag (cons (min (car start-drag) (car last-drag))
-			       (min (cdr start-drag) (cdr last-drag))))
-	      (t-last-drag (cons (max (car start-drag) (car last-drag))
-			      (max (cdr start-drag) (cdr last-drag)))))
+           ;; Drag motion of mouse has been completed turn tracking off and 
+           ;; highlight the selected range of cells
+           ((eq (car mouse-event) 'drag-mouse-1)
+	    (setq drag-on nil)
+            (if (not last-drag)
+                (setq last-drag (dismal-find-cell)))
+	    ;; make sure that start-drag is top-left corner of selection
+	    ;; and that last-drag is the bottom-right corner of selection
+	    (let ((t-start-drag (cons (min (car start-drag) (car last-drag))
+			              (min (cdr start-drag) (cdr last-drag))))
+	          (t-last-drag (cons (max (car start-drag) (car last-drag))
+			             (max (cdr start-drag) (cdr last-drag)))))
 
-	  ;; use temporary variables then reset start-drag and last-drag
-	  (setq start-drag t-start-drag
-		last-drag t-last-drag))
+	      ;; use temporary variables then reset start-drag and last-drag
+	      (setq start-drag t-start-drag
+		    last-drag t-last-drag))
 
-	;; set dismal point and mark to the start and end of the range
-	(dismal-set-mark (cdr start-drag) (car start-drag))
-	(setq dismal-current-row (cdr last-drag)
-	      dismal-current-column (car last-drag))
+	    ;; set dismal point and mark to the start and end of the range
+	    (dismal-set-mark (cdr start-drag) (car start-drag))
+	    (setq dismal-current-row (cdr last-drag)
+	          dismal-current-column (car last-drag))
 
-	(dismal-jump-to-cell dismal-current-row dismal-current-column)
+	    (dismal-jump-to-cell dismal-current-row dismal-current-column)
 
-	;; leave message to say what the range limits are
-	(message (format "Range %s to %s has been selected."
-			 (dismal-cell-name (cdr start-drag)(car start-drag))
-			 (dismal-cell-name (cdr last-drag)(car last-drag))
-			 )))))))
+	    ;; leave message to say what the range limits are
+	    (message (format "Range %s to %s has been selected."
+			     (dismal-cell-name (cdr start-drag)(car start-drag))
+			     (dismal-cell-name (cdr last-drag)(car last-drag))
+			     )))))))))
 
 
 ;;;; I.	dis-mouse-highlight-column bound to [down-mouse-2]
@@ -273,7 +287,7 @@
 ;;  ;; find out what colum is to be highlighted and highlight it
 ;;  (setq column (car (dismal-find-cell)))
 ;;  (dis-highlight-range column 0 column dismal-max-row)
-;;  (dismal-goto-row 0 t)
+;;  (dismal-goto-row 0)
 ;;  (dismal-goto-column column)
 ;;  (message (format "Column %s has been selected." column)))
 
@@ -296,7 +310,7 @@ current range."
   ;; Find out what row is to be highlighted and highlight it.
   (setq row (cdr (dismal-find-cell)))
   (dismal-highlight-range 0 row dismal-max-col row)
-  (dismal-goto-row row t)
+  (dismal-goto-row row)
   (dismal-goto-column 0)
   ;; This sets up range
   (dismal-set-mark dismal-current-row dismal-max-col)
@@ -311,7 +325,7 @@ current range."
   "Function highlights the cell inverting the colours on screen."
   (interactive "nX-pos:\nnY-pos:")
   ;; jump to the appropriate cell 
-  (dismal-goto-row y-cell t)
+  (dismal-goto-row y-cell)
   (dismal-goto-column x-cell)
  
   ;; find start and end point of cell and highlight characters
@@ -355,7 +369,7 @@ current range."
   (while (<= y-now y-end)
     
     ;; Jump to left-most cell and find start-point of cell.
-    (dismal-goto-row y-now t)
+    (dismal-goto-row y-now)
     (dismal-goto-column x-start)
     (setq range-start (1+ (- (point) (dismal-column-width x-start))))
     
@@ -370,7 +384,7 @@ current range."
     (setq y-now (1+ y-now)))
 
     ;; now go back to where you were meant to end up
-    (dismal-goto-row oyend t)
+    (dismal-goto-row oyend)
     (dismal-goto-column oxend)))
 
 
@@ -380,25 +394,16 @@ current range."
 ;;  in `dismal.el', it highlights the selected cell that dismal-point
 ;;  is currently pointing to.
 
-(defun dismal-goto-cell (row column interactivep)
+(defun dismal-goto-cell (row column)
   ;; Move cursor to the end of the cell at ROW, COLUMN.
   ;; does not set dismal-current-row, etc.
-  (dismal-goto-row row interactivep)
+  (dismal-goto-row row)
   (dismal-goto-column column)
   (dismal-add-text-properties (point-min) (point-max) (list 'face 'default))
-  (setq cell-end (point)
-	cell-start (1+ (- (point) (dismal-column-width column))))
-  (dismal-add-text-properties cell-start cell-end (list 'face 'underline)))
+  (let ((cell-end (point))
+	(cell-start (1+ (- (point) (dismal-column-width column)))))
+    (dismal-add-text-properties cell-start cell-end (list 'face 'underline))))
 ;;highlight
-
-;; helper function
-
-(defsubst dismal-add-text-properties (start end props &optional object)
- "Add properties while preserving the modified flag."
- (let ((original-modified-p (buffer-modified-p)))
-   (add-text-properties start end props object)
-    ;; don't let highlighting a cell mark it as modified.23-May-96 -FER
-   (set-buffer-modified-p original-modified-p)))
 
 (provide 'dismal-mouse3)
 

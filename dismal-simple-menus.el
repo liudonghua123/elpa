@@ -1,6 +1,6 @@
 ;;; dismal-simple-menus.el --- Describe the simple-menus in dismal-mode
 
-;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
 
 ;; Author: Frank Ritter
 ;; Created-On: Mon Jan  6 21:19:01 1992
@@ -100,7 +100,7 @@
 (sm-def-menu 'dismal-edit-menu
   "Dis Edit"
   "" ;help prompt
- '(("Undo*        Undo the previous command." dis-no-op)
+ '(("Undo*        Undo the previous command." undefined)
    ("XKill        Kill (cut) a range." dis-kill-range)
    ("2Copy.       Copy a range."  dis-copy-range)
    ("Yank         Yank (paste) the range kill buffer." dis-paste-range)
@@ -331,8 +331,8 @@
 (sm-def-menu 'dis-stats-menu
   "DisCode stats"
   "" ;help prompt
- '(("Stats*       Print out stats (not defined yet)." dis-no-op)
-   ("Count*       Count codes in range (not defined yet)." dis-no-op)
+ '(("Stats*       Print out stats (not defined yet)." undefined)
+   ("Count*       Count codes in range (not defined yet)." undefined)
 ))
 
 
