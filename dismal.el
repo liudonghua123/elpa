@@ -4,7 +4,7 @@
 
 ;; Author: David Fox, fox@cs.nyu.edu
 ;;         Frank E. Ritter, ritter@cs.cmu.edu
-;; Maintainer: FSF
+;; Maintainer: UnMaintainer <emacs-devel@gnu.org>
 ;; Created-On: 31 Oct 1991.
 ;; Version: 1.5
 ;; Package-Requires: ((cl-lib "0"))
@@ -99,6 +99,7 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'dismal-mouse3)
+(require 'dismal-menu3)
 
 ;;;; v.	Global user visible variables
 
@@ -269,7 +270,7 @@ confirmed on entering.")
 (defvar dismal-mode-map
   (let ((map (make-composed-keymap dismal-mouse-map)))
     (suppress-keymap map)
-
+    (define-key map [menu-bar] dismal-menu-map)
     ;; could del work appropriately?
 
     ;; box keys first
@@ -2179,13 +2180,7 @@ argument, inserts the month first."
 
 ;;;; VIII.	Changed movement functions
 
-;; used to use
-;;(require 'dismal-mouse-x)
-
 ;; moved down here so they would load, 19-Jun-96 -FER
-(when t ;; Don't do those `require' at compile-time.
-  (provide 'dismal)
-  (require 'dismal-menu3))
 
 ;; 2-8-93 - EMA: behaves just like move-to-window-line:
 (defun dis-move-to-window-line (arg)
@@ -3953,8 +3948,8 @@ Prefix arg (or optional second arg non-nil) UNDO means uncompress."
 ;;     (dismal-file-header mode-name-to-write)
 ;;     (insert "\n")
 ;;     (mapc (lambda (x)
-;;              (let ((real-x (save-excursion (set-buffer real-buffer)
-;;                                            (eval x))))
+;;              (let ((real-x (with-current-buffer real-buffer
+;;                              (symbol-value x))))
 ;;              (insert "(setq " (prin1-to-string x) " '"
 ;;                      (prin1-to-string real-x) ")\n")))
 ;;           dismal-saved-variables)
