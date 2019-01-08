@@ -1,6 +1,6 @@
 ;;; semi-coder.el --- Let users insert codes from model into Soar/PA sheets.
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 ;; Author: Frank Ritter
 ;; Created-On: Sun Jul 19 02:04:03 1992
@@ -26,6 +26,7 @@
 
 (require 'dismal-data-structures)
 (require 'rmatrix)
+(require 'dismal)                       ;Needed for dismal-directory
 (eval-when-compile (require 'cl-lib))
 
 
