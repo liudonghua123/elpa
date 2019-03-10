@@ -1,6 +1,6 @@
 ;;; dismal.el --- Dis Mode Ain't Lotus: Spreadsheet program Emacs
 
-;; Copyright (C) 1993-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
 ;; Author: David Fox, fox@cs.nyu.edu
 ;;         Frank E. Ritter, ritter@cs.cmu.edu
@@ -6089,7 +6089,7 @@ can use."
                                         ; (setq item "(if (> 3 4) nil 4)")
 (defun dis--formula-string-p (item)  ;;(dis--formula-string-p "(* 34 34)")
   (and (stringp item)           ;;(dis--formula-string-p "(/ (float 3) (float 3))")
-       (string-match "^([a-zA-Z .0-9:$---/^\"+=<>\\]*)$" item)
+       (string-match "\\`(.*)\\'" item)
        (fboundp (car (car (read-from-string item))))))
 
                                         ; (dismal-char-col-to-dismal-col 50)
