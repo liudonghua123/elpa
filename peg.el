@@ -1,8 +1,10 @@
-;;; peg.el --- Parsing Expression Grammars in Emacs Lisp
+;;; peg.el --- Parsing Expression Grammars in Emacs Lisp  -*- lexical-binding:t -*-
+
+;; Copyright (C) 2008-2019  Free Software Foundation, Inc.
 ;;
-;; Copyright 2008  Helmut Eller <eller.helmut@gmail.com>.
-;;
-;; Version: 0.6 (2009-Nov-04)
+;; Author: Helmut Eller <eller.helmut@gmail.com>
+;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
+;; Version: 0.7
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -137,10 +139,9 @@
 ;; Roman Redziejowski does good PEG related research
 ;; http://www.romanredz.se/pubs.htm
 
-(unless (>= emacs-major-version 22)
-  (error "peg.el requires Emacs version 22 or newer"))
-
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 (defmacro peg-parse (&rest rules)
   "Match RULES at point.
@@ -185,27 +186,31 @@ Note: a PE can't \"call\" rules by name."
     (dolist (rule rules)
       (puthash (car rule) (peg-normalize `(and . ,(cdr rule))) peg-rules))
     (peg-check-cycles peg-rules)
-    `(let ((peg-thunks '()) (peg-errors '(-1))
-	   . ,(mapcar #'car rules))
-       ,@(mapcar (lambda (rule)
-		   (let ((name (car rule)))
-		     `(setq ,name
+    `(progn
+       (defvar peg-errors) (defvar peg-thunks)
+       (let ((peg-thunks '()) (peg-errors '(-1)))
+         (letrec
+             ,(mapcar (lambda (rule)
+		        (let ((name (car rule)))
+		          `(,name
 			    (lambda ()
 			      ,(peg-translate-exp (gethash name peg-rules))))))
-		 rules)
-       (cond ((funcall ,(car (car rules)))
-	      (peg-postprocess peg-thunks))
-	     (t
-	      (goto-char (car peg-errors))
-	      (error "Parse error at %d (expecting %S)"
-		     (car peg-errors)
-		     (peg-merge-errors (cdr peg-errors))))))))
+		      rules)
+           (cond ((funcall ,(car (car rules)))
+	          (peg-postprocess peg-thunks))
+	         (t
+	          (goto-char (car peg-errors))
+	          (error "Parse error at %d (expecting %S)"
+		         (car peg-errors)
+		         (peg-merge-errors (cdr peg-errors))))))))))
 
 
 (eval-and-compile
   (defun peg-method-table-name (method-name)
     (intern (format "peg-%s-methods" method-name))))
 
+;; FIXME: Replace peg-define-method-table/peg-add-method with cl-defgeneric and
+;; cl-defmethod?
 (defmacro peg-define-method-table (name)
   (let ((tab (peg-method-table-name name)))
     `(progn
@@ -213,7 +218,8 @@ Note: a PE can't \"call\" rules by name."
        (setq ,tab (make-hash-table :size 20)))))
 
 (defmacro peg-add-method (method type args &rest body)
-  (declare (indent 3))
+  (declare (indent 3)
+           (debug (symbolp symbolp sexp def-body)))
   `(puthash ',type (lambda ,args . ,body) ,(peg-method-table-name method)))
 
 (peg-define-method-table normalize)
@@ -371,7 +377,7 @@ Note: a PE can't \"call\" rules by name."
 				   (insert-before-markers ,replacement))))
 	 (stack-action (x --)))))
 
-(peg-add-method normalize quote (form)
+(peg-add-method normalize quote (_form)
   (error "quote is reserved for future use"))
 
 (peg-define-method-table translate)
@@ -381,6 +387,9 @@ Note: a PE can't \"call\" rules by name."
   "Return the ELisp code to match the PE EXP."
   (let ((translator (or (gethash (car exp) peg-translate-methods)
 			(error "No translator for: %S" (car exp)))))
+    ;; FIXME: This expansion basically duplicates `exp' in the output, which is
+    ;; a serious problem because it's done recursively, so it makes the output
+    ;; code's size exponentially larger than the input!
     `(or ,(apply translator (cdr exp))
 	 (progn
 	   (peg-record-failure ',exp) ; for error reporting
@@ -544,12 +553,13 @@ Note: a PE can't \"call\" rules by name."
 ;; graph as long as we can without consuming input.  When we find a
 ;; recursive call we signal an error.
 
-(defun peg-check-cycles (peg-rules)
-  (maphash (lambda (name exp)
-	     (peg-detect-cycles exp (list name))
-	     (dolist (node (peg-find-star-nodes exp))
-	       (peg-detect-cycles node '())))
-	   peg-rules))
+(defun peg-check-cycles (rules)
+  (let ((peg-rules rules))
+    (maphash (lambda (name exp)
+	       (peg-detect-cycles exp (list name))
+	       (dolist (node (peg-find-star-nodes exp))
+	         (peg-detect-cycles node '())))
+	     rules)))
 
 (defun peg-find-star-nodes (exp)
   (let ((type (car exp)))
