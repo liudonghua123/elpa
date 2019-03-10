@@ -1,7 +1,7 @@
 ;;; psgml-parse.el --- Parser for SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 ;; $Id: psgml-parse.el,v 2.105 2008/06/21 16:13:51 lenst Exp $
 
-;; Copyright (C) 1994-1998, 2016-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2016-2019  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; Acknowledgment:
@@ -43,7 +43,7 @@
 
 ;;;; Advise to do-auto-fill
 
-(defvar sgml-auto-fill-inhibit-function nil
+(defvar sgml-auto-fill-inhibit-function #'ignore
   "If non-nil, it should be a function of no arguments.
 The functions is evaluated before the standard auto-fill function,
 `do-auto-fill', tries to fill a line.  If the function returns a true
@@ -145,16 +145,16 @@ Tested by `sgml-close-element' to see if the parse should be ended.")
 Called with the entity as argument.  The start and end of the
 short reference is `sgml-markup-start' and point.")
 
-(defvar sgml-data-function nil
+(defvar sgml-data-function #'ignore
   "Function called with parsed data.")
 
-(defvar sgml-entity-function nil
+(defvar sgml-entity-function #'sgml--entity-function-default
   "Function called with entity referenced at current point in parse.")
 
-(defvar sgml-pi-function nil
+(defvar sgml-pi-function #'ignore
   "Function called with parsed processing instruction.")
 
-(defvar sgml-signal-data-function nil
+(defvar sgml-signal-data-function #'ignore
   "Called when some data characters are conceptually parsed.
 E.g. a data entity reference.")
 
@@ -1468,9 +1468,9 @@ in any of them."
   (declare (debug (sexp)))
   (cond
    ((consp delim)
-    (list 'skip-chars-forward
-	  (concat "^"
-		  (cl-loop for d in delim
+    `(skip-chars-forward
+      ,(concat "^"
+	       (cl-loop for d in delim
 			concat (let ((ds (member (upcase (format "%s" d))
 						 sgml-delimiters)))
 				 (cl-assert ds)
@@ -1481,9 +1481,9 @@ in any of them."
    (t
     (let ((ds (sgml-get-delim-string (upcase (format "%s" delim)))))
       (if (= 1 (length ds))
-	  (list 'skip-chars-forward (concat "^" ds))
+	  `(skip-chars-forward ,(concat "^" ds))
 	`(and (search-forward ,ds nil t)
-	       (backward-char ,(length ds))))))))
+	      (backward-char ,(length ds))))))))
 
 
 ;;(macroexpand '(sgml-is-delim mdo))
@@ -1591,8 +1591,8 @@ in any of them."
         (cond (psgml-pi
                (goto-char start)
                (sgml--pi-psgml-handler in-declaration end))
-              (sgml-pi-function
-               (funcall sgml-pi-function
+              (t
+               (funcall (or sgml-pi-function #'ignore)
                         (buffer-substring-no-properties start end))))
         (goto-char next))))
   (unless in-declaration
@@ -1739,6 +1739,12 @@ parse the value part of a name=value pair."
      (sgml-set-markup-type 'entity)))
   t)
 
+(defun sgml--entity-function-default (entity)
+  (unless (memql sgml-data-function '(nil ignore))
+    (sgml-push-to-entity entity sgml-markup-start)
+    (funcall sgml-data-function (buffer-string))
+    (sgml-pop-entity)))
+
 (defun sgml-do-entity-ref (name)
   (let ((entity
 	 (sgml-lookup-entity name
@@ -1751,15 +1757,9 @@ parse the value part of a name=value pair."
 	     (sgml-error
 	      "XML forbids data-entity references in data or DTD (%s)"
 	      name))
-	   (when sgml-signal-data-function
-	     (funcall sgml-signal-data-function))
-	   (cond
-	    (sgml-entity-function
-	     (funcall sgml-entity-function entity))
-	    (sgml-data-function
-	     (sgml-push-to-entity entity sgml-markup-start)
-	     (funcall sgml-data-function (buffer-string))
-	     (sgml-pop-entity))))
+	   (funcall sgml-signal-data-function)
+           (funcall (or sgml-entity-function #'sgml--entity-function-default)
+                    entity))
 	  (t
 	   (sgml-push-to-entity entity sgml-markup-start)))))
 
@@ -2229,7 +2229,7 @@ Skips any leading spaces/comments."
 
 (defconst sgml-formal-pubid-regexp
   (concat
-   "^\\(+//\\|-//\\|\\)"		; Registered indicator  [1]
+   "^\\([-+]//\\|\\)"                   ; Registered indicator  [1]
    "\\(\\([^/]\\|/[^/]\\)+\\)"		; Owner                 [2]
    "//"
    "\\([^ ]+\\)"			; Text class            [4]
@@ -2301,20 +2301,21 @@ Skips any leading spaces/comments."
 
 ;;;; Files for SGML declaration and DOCTYPE declaration
 
+(defmacro sgml--in-file (file &rest body)
+  (declare (indent 1) (debug t))
+  `(with-current-buffer (find-file-noselect ,file)
+     ,@body))
+
 (defun sgml-declaration ()
   (or sgml-declaration
       (if sgml-doctype
-	  (sgml-in-file-eval sgml-doctype
-			     '(sgml-declaration)))
+	  (sgml--in-file sgml-doctype
+	    (sgml-declaration)))
       (if sgml-parent-document
-	  (sgml-in-file-eval (car sgml-parent-document)
-			     '(sgml-declaration)))
+	  (sgml--in-file (car sgml-parent-document)
+	    (sgml-declaration)))
       ;; *** check for sgmldecl comment
       (sgml-external-file nil 'sgmldecl)))
-
-(defun sgml-in-file-eval (file expr)
-  (with-current-buffer (find-file-noselect file)
-    (eval expr)))
 
 
 ;;;; Entity references and positions
@@ -2841,9 +2842,8 @@ overrides the entity type in entity look up."
 			 (point-min)))
 	(goto-char (or (next-single-property-change (point) 'invisible)
 		       (point-max)))))
-    (when (and (not executing-macro)
-	       (or (and (boundp 'which-function-mode)
-                        which-function-mode )
+    (when (and (not executing-kbd-macro)
+	       (or (bound-and-true-p which-function-mode)
 		   sgml-set-face)
 	       sgml-buffer-parse-state
 	       (sit-for 0))
@@ -3615,18 +3615,18 @@ Assumes starts with point inside a markup declaration."
   (let ((start (point))
 	(done nil)
 	(eref sgml-current-eref)
-	sgml-signal-data-function)
+	(sgml-signal-data-function #'ignore))
     (while (not done)
       ;; FIXME: a lot of hardcoded knowledge about concrete delimiters
       (cond (marked-section
 	     (skip-chars-forward (if (eq type sgml-cdata) "^]" "^&]"))
-	     (when sgml-data-function
+	     (unless (memql sgml-data-function '(nil ignore))
 	       (funcall sgml-data-function (buffer-substring-no-properties
 					    start (point))))
 	     (setq done (sgml-parse-delim "MS-END")))
 	    (t
 	     (skip-chars-forward (if (eq type sgml-cdata) "^</" "^</&"))
-	     (when sgml-data-function
+	     (unless (memql sgml-data-function '(nil ignore))
 	       (funcall sgml-data-function
                         (buffer-substring-no-properties start (point))))
 	     (setq done (or (sgml-is-delim "ETAGO" gi)
@@ -3640,7 +3640,9 @@ Assumes starts with point inside a markup declaration."
 		      type (if marked-section "marked section")))
 	(sgml-pop-entity)
 	(setq start (point)))
-       ((null sgml-data-function)
+       ((memql sgml-data-function '(nil ignore))
+        ;; FIXME: What about other "nop-like" function values of
+        ;; sgml-data-function?
 	(forward-char 1))
        ((sgml-parse-general-entity-ref)
 	(setq start (point)))
@@ -3660,8 +3662,7 @@ Assumes starts with point inside a markup declaration."
       (sgml-set-markup-type 'ignored))
      ((or (member "CDATA" status)
 	  (member "RCDATA" status))
-      (when sgml-signal-data-function
-	(funcall sgml-signal-data-function))
+      (funcall sgml-signal-data-function)
       (let ((type (if (member "CDATA" status) sgml-cdata sgml-rcdata)))
 	(sgml-do-data type t)
       (sgml-set-markup-type type)))
@@ -4110,17 +4111,17 @@ pointing to start of short ref and point pointing to the end."
   ;;*** should perhaps handle &#nn;?
   (forward-char 1)
   (sgml-parse-pcdata)
-  (when sgml-data-function
-	(funcall sgml-data-function (buffer-substring-no-properties
-				     sgml-markup-start
-				     (point))))
+  (unless (memql sgml-data-function '(nil ignore))
+    (funcall sgml-data-function (buffer-substring-no-properties
+				 sgml-markup-start
+				 (point))))
   (sgml-set-markup-type nil))
 
 (defvar sgml-parser-loop-hook nil)
 
 (defun sgml-parser-loop (extra-cond)
   (let (tem
-	(sgml-signal-data-function (function sgml-pcdata-move)))
+	(sgml-signal-data-function #'sgml-pcdata-move))
     (with-silent-modifications
       (while (and (eq sgml-current-tree sgml-top-tree)
                   (or (< (point) sgml-goal) sgml-current-eref)
