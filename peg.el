@@ -4,7 +4,8 @@
 ;;
 ;; Author: Helmut Eller <eller.helmut@gmail.com>
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 0.7
+;; Package-Requires: ((emacs "25"))
+;; Version: 0.8
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -139,6 +140,19 @@
 ;; Roman Redziejowski does good PEG related research
 ;; http://www.romanredz.se/pubs.htm
 
+;;;; Todo:
+
+;; - Fix the exponential blowup in `peg-translate-exp'.
+;; - Allow global rule definitions.
+;;   Instead of (peg-parse (X1 PEX1) .. (Xn PEXn)) we could let the user write
+;;   (peg-define X1 PEX1) ... (peg-define Xn PEXn) and then (peg-parse X1).
+;;   Each (peg-define X1 PEX1) would simply expand to a function definition like
+;;   (defun peg--rule-X1 ...).  This would allow sharing rules between different
+;;   parsing jobs.
+;;   This would make cycle-detection harder, but other than that I don't
+;;   see any obvious problems.
+;; - Add a proper debug-spec to peg-parse.
+
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
@@ -217,83 +231,70 @@ executed in a postprocessing step, not during parsing.")
   (defun peg-method-table-name (method-name)
     (intern (format "peg-%s-methods" method-name))))
 
-;; FIXME: Replace peg-define-method-table/peg-add-method with cl-defgeneric and
-;; cl-defmethod?
-(defmacro peg-define-method-table (name)
-  (let ((tab (peg-method-table-name name)))
-    `(progn
-       (defvar ,tab)
-       (setq ,tab (make-hash-table :size 20)))))
-
-(defmacro peg-add-method (method type args &rest body)
-  (declare (indent 3)
-           (debug (symbolp symbolp sexp def-body)))
-  `(puthash ',type (lambda ,args . ,body) ,(peg-method-table-name method)))
-
-(peg-define-method-table normalize)
-
 ;; Internally we use a regularized syntax, e.g. we only have binary OR
 ;; nodes.  Regularized nodes are lists of the form (OP ARGS...).
-(defun peg-normalize (exp)
+(cl-defgeneric peg-normalize (exp)
   "Return a \"normalized\" form of EXP."
-  (cond ((and (consp exp)
-	      (let ((fun (gethash (car exp) peg-normalize-methods)))
-		(and fun
-		     (apply fun (cdr exp))))))
-	((stringp exp)
-	 (let ((len (length exp)))
-	   (cond ((zerop len) '(null))
-		 ((= len 1) `(char ,(aref exp 0)))
-		 (t `(str ,exp)))))
-	((and (symbolp exp) exp)
-         ;; (peg--lookup-rule exp)
-	 `(call ,exp))
-	((vectorp exp)
-	 (peg-normalize `(set . ,(append exp '()))))
-	(t
-	 (error "Invalid parsing expression: %S" exp))))
+  (error "Invalid parsing expression: %S" exp))
+
+(cl-defmethod peg-normalize ((exp string))
+  (let ((len (length exp)))
+    (cond ((zerop len) '(null))
+	  ((= len 1) `(char ,(aref exp 0)))
+	  (t `(str ,exp)))))
+
+(cl-defmethod peg-normalize ((exp symbol))
+  ;; (peg--lookup-rule exp)
+  `(call ,exp))
+
+(cl-defmethod peg-normalize ((exp vector))
+  (peg-normalize `(set . ,(append exp '()))))
+
+(cl-defmethod peg-normalize ((exp cons))
+  (apply #'peg--macroexpand exp))
 
 (defvar peg-leaf-types '(null fail any call action char range str set
 			      bob eob bol eol bow eow bos eos syntax-class =))
 
-(dolist (type peg-leaf-types)
-  (puthash type `(lambda (&rest args) (cons ',type args))
-	   peg-normalize-methods))
+(cl-defgeneric peg--macroexpand (head &rest args)
+  (if (memq head peg-leaf-types)
+      (cons head args)
+    (error "Invalid parsing expression: %S" (cons head args))))
 
-(peg-add-method normalize or (&rest args)
+(cl-defmethod peg--macroexpand ((_ (eql or)) &rest args)
   (cond ((null args) '(fail))
 	((null (cdr args)) (peg-normalize (car args)))
 	(t `(or ,(peg-normalize (car args))
 		,(peg-normalize `(or . ,(cdr args)))))))
 
-(peg-add-method normalize and (&rest args)
+(cl-defmethod peg--macroexpand ((_ (eql and)) &rest args)
   (cond ((null args) '(null))
 	((null (cdr args)) (peg-normalize (car args)))
 	(t `(and ,(peg-normalize (car args))
 		 ,(peg-normalize `(and . ,(cdr args)))))))
 
-(peg-add-method normalize * (&rest args)
+(cl-defmethod peg--macroexpand ((_ (eql *)) &rest args)
   `(* ,(peg-normalize `(and . ,args))))
 
 ;; FIXME: this duplicates code; could use some loop to avoid that
-(peg-add-method normalize + (&rest args)
+(cl-defmethod peg--macroexpand ((_ (eql +)) &rest args)
   (let ((e (peg-normalize `(and . ,args))))
     `(and ,e (* ,e))))
 
-(peg-add-method normalize opt (&rest args)
+(cl-defmethod peg--macroexpand ((_ (eql opt)) &rest args)
   (let ((e (peg-normalize `(and . ,args))))
     `(or ,e (null))))
 
-(peg-add-method normalize if (&rest args)
+(cl-defmethod peg--macroexpand ((_ (eql if)) &rest args)
   `(if ,(peg-normalize `(and . ,args))))
 
-(peg-add-method normalize not (&rest args)
+(cl-defmethod peg--macroexpand ((_ (eql not)) &rest args)
   `(not ,(peg-normalize `(and . ,args))))
 
-(peg-add-method normalize \` (form)
+(cl-defmethod peg--macroexpand ((_ (eql \`)) form)
   (peg-normalize `(stack-action ,form)))
 
-(peg-add-method normalize stack-action (form)
+(cl-defmethod peg--macroexpand ((_ (eql stack-action)) form)
   (unless (member '-- form)
     (error "Malformed stack action: %S" form))
   (let ((args (cdr (member '-- (reverse form))))
@@ -306,7 +307,7 @@ executed in a postprocessing step, not during parsing.")
   '(ascii alnum alpha blank cntrl digit graph lower multibyte nonascii print
 	  punct space unibyte upper word xdigit))
 
-(peg-add-method normalize set (&rest specs)
+(cl-defmethod peg--macroexpand ((_ (eql set)) &rest specs)
   (cond ((null specs) '(fail))
 	((and (null (cdr specs))
 	      (let ((range (peg-range-designator (car specs))))
@@ -348,7 +349,7 @@ executed in a postprocessing step, not during parsing.")
       (characterp x)
     (integerp x)))
 
-(peg-add-method normalize list (&rest args)
+(cl-defmethod peg--macroexpand ((_ (eql list)) &rest args)
   (peg-normalize
    (let ((marker (make-symbol "magic-marker")))
      `(and (stack-action (-- ',marker))
@@ -363,19 +364,19 @@ executed in a postprocessing step, not during parsing.")
 					(t (push e l) t))))
 			    l)))))))
 
-(peg-add-method normalize substring (&rest args)
+(cl-defmethod peg--macroexpand ((_ (eql substring)) &rest args)
   (peg-normalize
    `(and `(-- (point))
 	 ,@args
 	 `(start -- (buffer-substring-no-properties start (point))))))
 
-(peg-add-method normalize region (&rest args)
+(cl-defmethod peg--macroexpand ((_ (eql region)) &rest args)
   (peg-normalize
    `(and `(-- (point))
 	 ,@args
 	 `(-- (point)))))
 
-(peg-add-method normalize replace (pe replacement)
+(cl-defmethod peg--macroexpand ((_ (eql replace)) pe replacement)
   (peg-normalize
    `(and (stack-action (-- (point)))
 	 ,pe
@@ -384,23 +385,22 @@ executed in a postprocessing step, not during parsing.")
 				   (insert-before-markers ,replacement))))
 	 (stack-action (_ --)))))
 
-(peg-add-method normalize quote (_form)
+(cl-defmethod peg--macroexpand ((_ (eql quote)) _form)
   (error "quote is reserved for future use"))
 
-(peg-define-method-table translate)
+(cl-defgeneric peg--translate (head &rest args)
+  (error "No translator for: %S" (cons head args)))
 
 ;; This is the main translation function.
 (defun peg-translate-exp (exp)
   "Return the ELisp code to match the PE EXP."
-  (let ((translator (or (gethash (car exp) peg-translate-methods)
-			(error "No translator for: %S" (car exp)))))
-    ;; FIXME: This expansion basically duplicates `exp' in the output, which is
-    ;; a serious problem because it's done recursively, so it makes the output
-    ;; code's size exponentially larger than the input!
-    `(or ,(apply translator (cdr exp))
-	 (progn
-	   (peg-record-failure ',exp) ; for error reporting
-	   nil))))
+  ;; FIXME: This expansion basically duplicates `exp' in the output, which is
+  ;; a serious problem because it's done recursively, so it makes the output
+  ;; code's size exponentially larger than the input!
+  `(or ,(apply #'peg--translate exp)
+       (progn
+	 (peg-record-failure ',exp) ; for error reporting
+	 nil)))
 
 (defun peg-record-failure (exp)
   (cond ((= (point) (car peg--errors))
@@ -408,7 +408,7 @@ executed in a postprocessing step, not during parsing.")
 	((> (point) (car peg--errors))
 	 (setq peg--errors (list (point) exp)))))
 
-(peg-add-method translate and (e1 e2)
+(cl-defmethod peg--translate ((_ (eql and)) e1 e2)
   `(and ,(peg-translate-exp e1)
 	,(peg-translate-exp e2)))
 
@@ -416,7 +416,7 @@ executed in a postprocessing step, not during parsing.")
 ;; enough state, so that we can continue from there if needed.
 (defun peg--choicepoint-moved-p (choicepoint)
   `(/= ,(car choicepoint) (point)))
- 
+
 (defun peg--choicepoint-restore (choicepoint)
   `(progn
      (goto-char ,(car choicepoint))
@@ -428,29 +428,29 @@ executed in a postprocessing step, not during parsing.")
      `(let ((,(car ,var) (point))
 	    (,(cdr ,var) peg--actions))
         ,@(list ,@body))))
- 
-(peg-add-method translate or (e1 e2)
+
+(cl-defmethod peg--translate ((_ (eql or)) e1 e2)
   (peg--with-choicepoint cp
     `(or ,(peg-translate-exp e1)
 	 (,@(peg--choicepoint-restore cp)
 	  ,(peg-translate-exp e2)))))
 
 ;; match empty strings
-(peg-add-method translate null ()
+(cl-defmethod peg--translate ((_ (eql null)))
   `t)
 
 ;; match nothing
-(peg-add-method translate fail ()
+(cl-defmethod peg--translate ((_ (eql fail)))
   `nil)
 
-(peg-add-method translate bob () '(bobp))
-(peg-add-method translate eob () '(eobp))
-(peg-add-method translate eol () '(eolp))
-(peg-add-method translate bol () '(bolp))
-(peg-add-method translate bow () '(looking-at "\\<"))
-(peg-add-method translate eow () '(looking-at "\\>"))
-(peg-add-method translate bos () '(looking-at "\\_<"))
-(peg-add-method translate eos () '(looking-at "\\_>"))
+(cl-defmethod peg--translate ((_ (eql bob))) '(bobp))
+(cl-defmethod peg--translate ((_ (eql eob))) '(eobp))
+(cl-defmethod peg--translate ((_ (eql eol))) '(eolp))
+(cl-defmethod peg--translate ((_ (eql bol))) '(bolp))
+(cl-defmethod peg--translate ((_ (eql bow))) '(looking-at "\\<"))
+(cl-defmethod peg--translate ((_ (eql eow))) '(looking-at "\\>"))
+(cl-defmethod peg--translate ((_ (eql bos))) '(looking-at "\\_<"))
+(cl-defmethod peg--translate ((_ (eql eos))) '(looking-at "\\_>"))
 
 (defvar peg-syntax-classes
   '((whitespace ?-) (word ?w) (symbol ?s) (punctuation ?.)
@@ -458,19 +458,19 @@ executed in a postprocessing step, not during parsing.")
     (math ?$) (prefix ?') (comment ?<) (endcomment ?>)
     (comment-fence ?!) (string-fence ?|)))
 
-(peg-add-method translate syntax-class (class)
+(cl-defmethod peg--translate ((_ (eql syntax-class)) class)
   (let ((probe (assoc class peg-syntax-classes)))
     (cond (probe `(looking-at ,(format "\\s%c" (cadr probe))))
 	  (t (error "Invalid syntax class: %S\nMust be one of: %s" class
 		    (mapcar #'car peg-syntax-classes))))))
 
-(peg-add-method translate = (string)
+(cl-defmethod peg--translate ((_ (eql =)) string)
   `(let ((str ,string))
      (when (zerop (length str))
        (error "Empty strings not allowed for ="))
      (search-forward str (+ (point) (length str)) t)))
 
-(peg-add-method translate * (e)
+(cl-defmethod peg--translate ((_ (eql *)) e)
   `(progn (while ,(peg--with-choicepoint cp
 		    `(if ,(peg-translate-exp e)
                          ;; Just as regexps do for the `*' operator,
@@ -482,29 +482,29 @@ executed in a postprocessing step, not during parsing.")
 		       nil)))
 	  t))
 
-(peg-add-method translate if (e)
+(cl-defmethod peg--translate ((_ (eql if)) e)
   (peg--with-choicepoint cp
     `(when ,(peg-translate-exp e)
        ,(peg--choicepoint-restore cp)
        t)))
 
-(peg-add-method translate not (e)
+(cl-defmethod peg--translate ((_ (eql not)) e)
   (peg--with-choicepoint cp
     `(unless ,(peg-translate-exp e)
        ,(peg--choicepoint-restore cp)
        t)))
 
-(peg-add-method translate any ()
+(cl-defmethod peg--translate ((_ (eql any)) )
   '(when (not (eobp))
      (forward-char)
      t))
 
-(peg-add-method translate char (c)
+(cl-defmethod peg--translate ((_ (eql char)) c)
   `(when (eq (char-after) ',c)
      (forward-char)
      t))
 
-(peg-add-method translate set (ranges chars classes)
+(cl-defmethod peg--translate ((_ (eql set)) ranges chars classes)
   `(when (looking-at ',(peg-make-charset-regexp ranges chars classes))
      (forward-char)
      t))
@@ -525,23 +525,23 @@ executed in a postprocessing step, not during parsing.")
 	    (mapconcat (lambda (c) (format "%c" c)) chars "")
 	    (if hat "^" ""))))
 
-(peg-add-method translate range (from to)
+(cl-defmethod peg--translate ((_ (eql range)) from to)
   `(when (and (char-after)
 	      (<= ',from (char-after))
 	      (<= (char-after) ',to))
      (forward-char)
      t))
 
-(peg-add-method translate str (str)
+(cl-defmethod peg--translate ((_ (eql str)) str)
   `(when (looking-at ',(regexp-quote str))
      (goto-char (match-end 0))
      t))
 
-(peg-add-method translate call (name)
+(cl-defmethod peg--translate ((_ (eql call)) name)
   (peg--lookup-rule name) ;; Signal error if not found!
   `(funcall ,(peg--rule-var name)))
 
-(peg-add-method translate action (form)
+(cl-defmethod peg--translate ((_ (eql action)) form)
   `(progn
      (push (cons (point) (lambda () ,form)) peg--actions)
      t))
@@ -579,18 +579,17 @@ executed in a postprocessing step, not during parsing.")
 		   (cons exp kids)
 		 kids))))))
 
-(peg-define-method-table detect-cycles)
-
 (defun peg-detect-cycles (exp path)
   "Signal an error on a cycle.
 Otherwise traverse EXP recursively and return T if EXP can match
 without consuming input.  Return nil if EXP definetly consumes
 input.  PATH is the list of rules that we have visited so far."
-  (apply (or (gethash (car exp) peg-detect-cycles-methods)
-	     (error "No detect-cycle method for: %S" exp))
-	 path (cdr exp)))
+  (apply #'peg--detect-cycles path exp))
 
-(peg-add-method detect-cycles call (path name)
+(cl-defgeneric peg--detect-cycles (head _path &rest args)
+  (error "No detect-cycle method for: %S" (cons head args)))
+
+(cl-defmethod peg--detect-cycles (path (_ (eql call)) name)
   (cond ((member name path)
 	 (error "Possible left recursion: %s"
 		(mapconcat (lambda (x) (format "%s" x))
@@ -598,45 +597,45 @@ input.  PATH is the list of rules that we have visited so far."
 	(t
 	 (peg-detect-cycles (peg--lookup-rule name) (cons name path)))))
 
-(peg-add-method detect-cycles and (path e1 e2)
+(cl-defmethod peg--detect-cycles (path (_ (eql and)) e1 e2)
   (and (peg-detect-cycles e1 path)
        (peg-detect-cycles e2 path)))
 
-(peg-add-method detect-cycles or (path e1 e2)
+(cl-defmethod peg--detect-cycles (path (_ (eql or)) e1 e2)
   (or (peg-detect-cycles e1 path)
       (peg-detect-cycles e2 path)))
 
-(peg-add-method detect-cycles * (path e)
+(cl-defmethod peg--detect-cycles (path (_ (eql *)) e)
   (peg-detect-cycles e path)
   t)
 
-(peg-add-method detect-cycles if  (path e) (peg-unary-nullable e path))
-(peg-add-method detect-cycles not (path e) (peg-unary-nullable e path))
+(cl-defmethod peg--detect-cycles (path (_ (eql if)) e)
+  (peg-unary-nullable e path))
+(cl-defmethod peg--detect-cycles (path (_ (eql not)) e)
+  (peg-unary-nullable e path))
 
 (defun peg-unary-nullable (exp path)
   (peg-detect-cycles exp path)
   t)
 
-(peg-add-method detect-cycles any   (_path)          nil)
-(peg-add-method detect-cycles char  (_path _c)       nil)
-(peg-add-method detect-cycles set   (_path _r _c _k) nil)
-(peg-add-method detect-cycles range (_path _c1 _c2)  nil)
-(peg-add-method detect-cycles str   (_path s)        (equal s ""))
-(peg-add-method detect-cycles null  (_path)          t)
-(peg-add-method detect-cycles fail  (_path)          nil)
-(peg-add-method detect-cycles bob   (_path)          t)
-(peg-add-method detect-cycles eob   (_path)          t)
-(peg-add-method detect-cycles bol   (_path)          t)
-(peg-add-method detect-cycles eol   (_path)          t)
-(peg-add-method detect-cycles bow   (_path)          t)
-(peg-add-method detect-cycles eow   (_path)          t)
-(peg-add-method detect-cycles bos   (_path)          t)
-(peg-add-method detect-cycles eos   (_path)          t)
-(peg-add-method detect-cycles =     (_path _s)       nil)
-(peg-add-method detect-cycles syntax-class (_p _n)   nil)
-(peg-add-method detect-cycles action (_path _form)   t)
-
-(peg-define-method-table merge-error)
+(cl-defmethod peg--detect-cycles (_path (_ (eql any)))           nil)
+(cl-defmethod peg--detect-cycles (_path (_ (eql char)) _c)       nil)
+(cl-defmethod peg--detect-cycles (_path (_ (eql set)) _r _c _k)  nil)
+(cl-defmethod peg--detect-cycles (_path (_ (eql range)) _c1 _c2) nil)
+(cl-defmethod peg--detect-cycles (_path (_ (eql str)) s)         (equal s ""))
+(cl-defmethod peg--detect-cycles (_path (_ (eql null)))          t)
+(cl-defmethod peg--detect-cycles (_path (_ (eql fail)))          nil)
+(cl-defmethod peg--detect-cycles (_path (_ (eql bob)))           t)
+(cl-defmethod peg--detect-cycles (_path (_ (eql eob)))           t)
+(cl-defmethod peg--detect-cycles (_path (_ (eql bol)))           t)
+(cl-defmethod peg--detect-cycles (_path (_ (eql eol)))           t)
+(cl-defmethod peg--detect-cycles (_path (_ (eql bow)))           t)
+(cl-defmethod peg--detect-cycles (_path (_ (eql eow)))           t)
+(cl-defmethod peg--detect-cycles (_path (_ (eql bos)))           t)
+(cl-defmethod peg--detect-cycles (_path (_ (eql eos)))           t)
+(cl-defmethod peg--detect-cycles (_path (_ (eql =)) _s)          nil)
+(cl-defmethod peg--detect-cycles (_path (_ (eql syntax-class)) _n) nil)
+(cl-defmethod peg--detect-cycles (_path (_ (eql action)) _form)  t)
 
 (defun peg-merge-errors (exps)
   "Build a more readable error message out of failed expression."
@@ -646,52 +645,51 @@ input.  PATH is the list of rules that we have visited so far."
     merged))
 
 (defun peg-merge-error (exp merged)
-  (apply (or (gethash (car exp) peg-merge-error-methods)
-	     (error "No merge-error method for: %S" exp))
-	 merged (cdr exp)))
+  (apply #'peg--merge-error merged exp))
 
-(peg-add-method merge-error or (merged e1 e2)
+(cl-defgeneric peg--merge-error (_merged head &rest args)
+  (error "No merge-error method for: %S" (cons head args)))
+
+(cl-defmethod peg--merge-error (merged (_ (eql or)) e1 e2)
   (peg-merge-error e2 (peg-merge-error e1 merged)))
 
-(peg-add-method merge-error and (merged e1 _e2)
+(cl-defmethod peg--merge-error (merged (_ (eql and)) e1 _e2)
   ;; FIXME: Why is `e2' not used?
   (peg-merge-error e1 merged))
 
-(peg-add-method merge-error str (merged str)
+(cl-defmethod peg--merge-error (merged (_ (eql str)) str)
   ;;(add-to-list 'merged str)
   (cl-adjoin str merged :test #'equal))
 
-(peg-add-method merge-error call (merged rule)
+(cl-defmethod peg--merge-error (merged (_ (eql call)) rule)
   ;; (add-to-list 'merged rule)
   (cl-adjoin rule merged :test #'equal))
 
-(peg-add-method merge-error char (merged char)
+(cl-defmethod peg--merge-error (merged (_ (eql char)) char)
   ;; (add-to-list 'merged (string char))
   (cl-adjoin (string char) merged :test #'equal))
 
-(peg-add-method merge-error set (merged r c k)
+(cl-defmethod peg--merge-error (merged (_ (eql set)) r c k)
   ;; (add-to-list 'merged (peg-make-charset-regexp r c k))
   (cl-adjoin (peg-make-charset-regexp r c k) merged :test #'equal))
 
-(peg-add-method merge-error range (merged from to)
+(cl-defmethod peg--merge-error (merged (_ (eql range)) from to)
   ;; (add-to-list 'merged (format "[%c-%c]" from to))
   (cl-adjoin (format "[%c-%c]" from to) merged :test #'equal))
 
-(peg-add-method merge-error * (merged exp)
+(cl-defmethod peg--merge-error (merged (_ (eql *)) exp)
   (peg-merge-error exp merged))
 
-(peg-add-method merge-error any (merged)
+(cl-defmethod peg--merge-error (merged (_ (eql any)))
   ;; (add-to-list 'merged '(any))
   (cl-adjoin '(any) merged :test #'equal))
 
-(peg-add-method merge-error not (merged x)
+(cl-defmethod peg--merge-error (merged (_ (eql not)) x)
   ;; (add-to-list 'merged `(not ,x))
   (cl-adjoin `(not ,x) merged :test #'equal))
 
-(peg-add-method merge-error action (merged _) merged)
-(peg-add-method merge-error null (merged) merged)
-
-;;; Tests:
+(cl-defmethod peg--merge-error (merged (_ (eql action)) _action) merged)
+(cl-defmethod peg--merge-error (merged (_ (eql null))) merged)
 
 (defmacro peg-parse-string (rules string &optional noerror)
   "Parse STRING according to RULES.
