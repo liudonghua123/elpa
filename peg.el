@@ -151,23 +151,33 @@ Return (T STACK) if the match succeed and nil on failure."
 (defmacro peg-parse-exp (exp)
   "Match the parsing expression EXP at point.
 Note: a PE can't \"call\" rules by name."
-  `(let ((peg-thunks nil))
+  `(let ((peg--actions nil))
      (when ,(peg-translate-exp (peg-normalize exp))
-       (peg-postprocess peg-thunks))))
+       (peg-postprocess peg--actions))))
 
 ;; A table of the PEG rules.  Used during compilation to resolve
 ;; references to named rules.
-(defvar peg-rules)
+(defvar peg--rules)
 
-;; used at runtime for backtracking.  It's a list ((POS . THUNK)...).
-;; Each THUNK is executed at the corresponding POS.  Thunks are
-;; executed in a postprocessing step, not during parsing.
-(defvar peg-thunks)
+(defvar peg--actions nil
+  "Actions collected along the current parse.
+Used at runtime for backtracking.  It's a list ((POS . THUNK)...).
+Each THUNK is executed at the corresponding POS.  Thunks are
+executed in a postprocessing step, not during parsing.")
 
 ;; used at runtime to track the right-most error location.  It's a
 ;; pair (POSITION . EXPS ...).  POSITION is the buffer position and
 ;; EXPS is a list of rules/expressions that failed.
-(defvar peg-errors)
+(defvar peg--errors)
+
+(define-error 'peg-void-rule "Reference to undefined PEG rule: %S")
+
+(defun peg--lookup-rule (name)
+  (or (gethash name peg--rules)
+      (signal 'peg-void-rule (list name))))
+
+(defun peg--rule-var (name)
+  (intern (format "peg--rule-%s" name)))
 
 ;; The basic idea is to translate each rule to a lisp function.
 ;; The result looks like
@@ -180,29 +190,27 @@ Note: a PE can't \"call\" rules by name."
 ;;
 (defun peg-translate-rules (rules)
   "Translate the PEG RULES, to a top-down parser."
-  (let ((peg-rules (make-hash-table :size 20)))
+  (let ((peg--rules (make-hash-table :size 20)))
     (dolist (rule rules)
-      (puthash (car rule) 'defer peg-rules))
-    (dolist (rule rules)
-      (puthash (car rule) (peg-normalize `(and . ,(cdr rule))) peg-rules))
-    (peg-check-cycles peg-rules)
+      (puthash (car rule) (peg-normalize `(and . ,(cdr rule))) peg--rules))
+    (peg-check-cycles)
     `(progn
-       (defvar peg-errors) (defvar peg-thunks)
-       (let ((peg-thunks '()) (peg-errors '(-1)))
+       (defvar peg--errors) (defvar peg--actions)
+       (let ((peg--actions '()) (peg--errors '(-1)))
          (letrec
              ,(mapcar (lambda (rule)
 		        (let ((name (car rule)))
-		          `(,name
+		          `(,(peg--rule-var name)
 			    (lambda ()
-			      ,(peg-translate-exp (gethash name peg-rules))))))
+			      ,(peg-translate-exp (gethash name peg--rules))))))
 		      rules)
-           (cond ((funcall ,(car (car rules)))
-	          (peg-postprocess peg-thunks))
+           (cond ((funcall ,(peg--rule-var (car (car rules))))
+	          (peg-postprocess peg--actions))
 	         (t
-	          (goto-char (car peg-errors))
+	          (goto-char (car peg--errors))
 	          (error "Parse error at %d (expecting %S)"
-		         (car peg-errors)
-		         (peg-merge-errors (cdr peg-errors))))))))))
+		         (car peg--errors)
+		         (peg-merge-errors (cdr peg--errors))))))))))
 
 
 (eval-and-compile
@@ -238,8 +246,7 @@ Note: a PE can't \"call\" rules by name."
 		 ((= len 1) `(char ,(aref exp 0)))
 		 (t `(str ,exp)))))
 	((and (symbolp exp) exp)
-	 (when (not (gethash exp peg-rules))
-	   (error "Reference to undefined PEG rule: %S" exp))
+         ;; (peg--lookup-rule exp)
 	 `(call ,exp))
 	((vectorp exp)
 	 (peg-normalize `(set . ,(append exp '()))))
@@ -291,8 +298,8 @@ Note: a PE can't \"call\" rules by name."
     (error "Malformed stack action: %S" form))
   (let ((args (cdr (member '-- (reverse form))))
 	(values (cdr (member '-- form))))
-    (let ((form `(let ,(mapcar (lambda (var) `(,var (pop peg-stack))) args)
-		   ,@(mapcar (lambda (val) `(push ,val peg-stack)) values))))
+    (let ((form `(let ,(mapcar (lambda (var) `(,var (pop peg--stack))) args)
+		   ,@(mapcar (lambda (val) `(push ,val peg--stack)) values))))
       `(action ,form))))
 
 (defvar peg-char-classes
@@ -349,9 +356,9 @@ Note: a PE can't \"call\" rules by name."
 	   (stack-action (--
 			  (let ((l '()))
 			    (while
-				(let ((e (pop peg-stack)))
+				(let ((e (pop peg--stack)))
 				  (cond ((eq e ',marker) nil)
-					((null peg-stack)
+					((null peg--stack)
 					 (error "No marker on stack"))
 					(t (push e l) t))))
 			    l)))))))
@@ -396,35 +403,37 @@ Note: a PE can't \"call\" rules by name."
 	   nil))))
 
 (defun peg-record-failure (exp)
-  (cond ((= (point) (car peg-errors))
-	 (setcdr peg-errors (cons exp (cdr peg-errors))))
-	((> (point) (car peg-errors))
-	 (setq peg-errors (list (point) exp)))))
+  (cond ((= (point) (car peg--errors))
+	 (setcdr peg--errors (cons exp (cdr peg--errors))))
+	((> (point) (car peg--errors))
+	 (setq peg--errors (list (point) exp)))))
 
 (peg-add-method translate and (e1 e2)
   `(and ,(peg-translate-exp e1)
 	,(peg-translate-exp e2)))
 
-(peg-add-method translate or (e1 e2)
-  (let ((cp (peg-make-choicepoint)))
-    `(,@(peg-save-choicepoint cp)
-      (or ,(peg-translate-exp e1)
-	  (,@(peg-restore-choicepoint cp)
-	   ,(peg-translate-exp e2))))))
-
 ;; Choicepoints are used for backtracking.  At a choicepoint we save
 ;; enough state, so that we can continue from there if needed.
-(defun peg-make-choicepoint ()
-  (cons (make-symbol "point") (make-symbol "thunks")))
-
-(defun peg-save-choicepoint (choicepoint)
-  `(let ((,(car choicepoint) (point))
-	 (,(cdr choicepoint) peg-thunks))))
-
-(defun peg-restore-choicepoint (choicepoint)
+(defun peg--choicepoint-moved-p (choicepoint)
+  `(/= ,(car choicepoint) (point)))
+ 
+(defun peg--choicepoint-restore (choicepoint)
   `(progn
      (goto-char ,(car choicepoint))
-     (setq peg-thunks ,(cdr choicepoint))))
+     (setq peg--actions ,(cdr choicepoint))))
+
+(defmacro peg--with-choicepoint (var &rest body)
+  (declare (indent 1) (debug (symbolp form)))
+  `(let ((,var (cons (make-symbol "point") (make-symbol "actions"))))
+     `(let ((,(car ,var) (point))
+	    (,(cdr ,var) peg--actions))
+        ,@(list ,@body))))
+ 
+(peg-add-method translate or (e1 e2)
+  (peg--with-choicepoint cp
+    `(or ,(peg-translate-exp e1)
+	 (,@(peg--choicepoint-restore cp)
+	  ,(peg-translate-exp e2)))))
 
 ;; match empty strings
 (peg-add-method translate null ()
@@ -462,26 +471,28 @@ Note: a PE can't \"call\" rules by name."
      (search-forward str (+ (point) (length str)) t)))
 
 (peg-add-method translate * (e)
-  (let ((cp (peg-make-choicepoint)))
-    `(progn (while (,@(peg-save-choicepoint cp)
-		    (cond (,(peg-translate-exp e))
-			  (t ,(peg-restore-choicepoint cp)
-			     nil))))
-	    t)))
+  `(progn (while ,(peg--with-choicepoint cp
+		    `(if ,(peg-translate-exp e)
+                         ;; Just as regexps do for the `*' operator,
+                         ;; we allow the body of `*' loops to match
+                         ;; the empty string, but we don't repeat the loop if
+                         ;; we haven't moved, to avoid inf-loops.
+                         ,(peg--choicepoint-moved-p cp)
+                       ,(peg--choicepoint-restore cp)
+		       nil)))
+	  t))
 
 (peg-add-method translate if (e)
-  (let ((cp (peg-make-choicepoint)))
-    `(,@(peg-save-choicepoint cp)
-      (when ,(peg-translate-exp e)
-	,(peg-restore-choicepoint cp)
-	t))))
+  (peg--with-choicepoint cp
+    `(when ,(peg-translate-exp e)
+       ,(peg--choicepoint-restore cp)
+       t)))
 
 (peg-add-method translate not (e)
-  (let ((cp (peg-make-choicepoint)))
-    `(,@(peg-save-choicepoint cp)
-      (when (not ,(peg-translate-exp e))
-	,(peg-restore-choicepoint cp)
-	t))))
+  (peg--with-choicepoint cp
+    `(unless ,(peg-translate-exp e)
+       ,(peg--choicepoint-restore cp)
+       t)))
 
 (peg-add-method translate any ()
   '(when (not (eobp))
@@ -527,39 +538,37 @@ Note: a PE can't \"call\" rules by name."
      t))
 
 (peg-add-method translate call (name)
-  (or (gethash name peg-rules)
-      (error "Reference to unknown rule: %S" name))
-  `(funcall ,name))
+  (peg--lookup-rule name) ;; Signal error if not found!
+  `(funcall ,(peg--rule-var name)))
 
 (peg-add-method translate action (form)
   `(progn
-     (push (cons (point) (lambda () ,form)) peg-thunks)
+     (push (cons (point) (lambda () ,form)) peg--actions)
      t))
 
-(defvar peg-stack nil)
-(defun peg-postprocess (thunks)
+(defvar peg--stack nil)
+(defun peg-postprocess (actions)
   "Execute \"actions\"."
-  (let  ((peg-stack '()))
-    (dolist (thunk (mapcar (lambda (x)
-			     (goto-char (car x))
-			     (cons (point-marker) (cdr x)))
-			   (reverse thunks)))
-      (goto-char (car thunk))
-      (funcall (cdr thunk)))
-    peg-stack))
+  (let  ((peg--stack '()))
+    (pcase-dolist (`(,pos . ,thunk)
+                   (mapcar (lambda (x)
+			     (cons (copy-marker (car x)) (cdr x)))
+			   (reverse actions)))
+      (goto-char pos)
+      (funcall thunk))
+    peg--stack))
 
 ;; Left recursion is presumably a common mistake when using PEGs.
 ;; Here we try to detect such mistakes.  Essentailly we traverse the
 ;; graph as long as we can without consuming input.  When we find a
 ;; recursive call we signal an error.
 
-(defun peg-check-cycles (rules)
-  (let ((peg-rules rules))
-    (maphash (lambda (name exp)
-	       (peg-detect-cycles exp (list name))
-	       (dolist (node (peg-find-star-nodes exp))
-	         (peg-detect-cycles node '())))
-	     rules)))
+(defun peg-check-cycles ()
+  (maphash (lambda (name exp)
+	     (peg-detect-cycles exp (list name))
+	     (dolist (node (peg-find-star-nodes exp))
+	       (peg-detect-cycles node '())))
+	   peg--rules))
 
 (defun peg-find-star-nodes (exp)
   (let ((type (car exp)))
@@ -587,7 +596,7 @@ input.  PATH is the list of rules that we have visited so far."
 		(mapconcat (lambda (x) (format "%s" x))
 			   (reverse (cons name path)) " -> ")))
 	(t
-	 (peg-detect-cycles (gethash name peg-rules) (cons name path)))))
+	 (peg-detect-cycles (peg--lookup-rule name) (cons name path)))))
 
 (peg-add-method detect-cycles and (path e1 e2)
   (and (peg-detect-cycles e1 path)
@@ -598,8 +607,7 @@ input.  PATH is the list of rules that we have visited so far."
       (peg-detect-cycles e2 path)))
 
 (peg-add-method detect-cycles * (path e)
-  (when (peg-detect-cycles e path)
-    (error "Infinite *-loop: %S matches empty string" e))
+  (peg-detect-cycles e path)
   t)
 
 (peg-add-method detect-cycles if  (path e) (peg-unary-nullable e path))
