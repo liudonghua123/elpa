@@ -5,7 +5,7 @@
 ;; Author: Helmut Eller <eller.helmut@gmail.com>
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package-Requires: ((emacs "25"))
-;; Version: 0.9
+;; Version: 0.9.1
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -160,8 +160,8 @@
 (defmacro peg-parse (&rest pexs)
   "Match PEXS at point.
 PEXS is a sequence of PEG expressions, implicitly combined with `and'.
-Return (T STACK) if the match succeed and nil on failure, moving point
-along the way."
+Return STACK if the match succeed and signals an error on failure,
+moving point along the way."
   (if (and (consp (car pexs))
            (symbolp (caar pexs))
            (not (ignore-errors (peg-normalize (car pexs)))))
@@ -170,7 +170,7 @@ along the way."
       `(with-peg-rules ,pexs (peg-parse-at-point (peg-rule-ref ,(caar pexs))))
     `(peg-parse-at-point (peg-rule-ref ,@pexs))))
 
-(defmacro define-peg-rule (name &rest pexs)
+(defmacro define-peg-rule (name args &rest pexs)
   "Define PEG rule NAME as equivalent to PEXS.
 The PEG expressions in PEXS are implicitly combined with the
 sequencing `and' operator of PEG grammars."
@@ -178,7 +178,7 @@ sequencing `and' operator of PEG grammars."
   (let ((id (peg--rule-id name))
         (exp (peg-normalize `(and . ,pexs))))
     `(progn
-       (defun ',id ()
+       (defun ,id ,args
          ,(peg--translate-rule-body name exp))
        (put ',id 'peg--rule-definition ',exp))))
 

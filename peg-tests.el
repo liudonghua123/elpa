@@ -26,7 +26,11 @@
 
 ;;; Tests:
 
+(define-peg-rule peg-test-natural ()
+  [0-9] (* [0-9]))
+
 (ert-deftest peg-test ()
+  (should (peg-parse-string peg-test-natural "99 bottles" t))
   (should (peg-parse-string ((s "a")) "a" t))
   (should (not (peg-parse-string ((s "a")) "b" t)))
   (should (peg-parse-string ((s (not "a"))) "b" t))
