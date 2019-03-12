@@ -5,7 +5,7 @@
 ;; Author: Helmut Eller <eller.helmut@gmail.com>
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package-Requires: ((emacs "25"))
-;; Version: 0.8
+;; Version: 0.9
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,108 +22,114 @@
 ;;
 ;;; Commentary:
 ;;
+;; This package implements Parsing Expression Grammars for Emacs Lisp.
+
 ;; Parsing Expression Grammars (PEG) are a formalism in the spirit of
 ;; Context Free Grammars (CFG) with some simplifications which makes
-;; the implementation of PEGs as recursive descent parser particularly
+;; the implementation of PEGs as recursive descent parsers particularly
 ;; simple and easy to understand [Ford, Baker].
+;; PEGs are more expressive than regexps and potentially easier to use.
 ;;
-;; This file implements a macro `peg-parse' which parses the current
-;; buffer according to a PEG.  E.g. we can match integers with a PEG
-;; like this:
+;; This file implements the macros `define-peg-rule', `with-peg-rules', and
+;; `peg-parse' which parses the current buffer according to a PEG.
+;; E.g. we can match integers with:
 ;;
-;;  (peg-parse (number   sign digit (* digit))
-;;             (sign     (or "+" "-" ""))
-;;             (digit    [0-9]))
+;;     (with-peg-rules
+;;         ((number   sign digit (* digit))
+;;          (sign     (or "+" "-" ""))
+;;          (digit    [0-9]))
+;;       (peg-parse number))
 ;;
 ;; In contrast to regexps, PEGs allow us to define recursive "rules".
-;; A "grammar" is a list of rules.  A rule is written as (NAME PEX...)
-;; E.g. (sign (or "+" "-" "")) is a rule with the name "sign".  The
-;; syntax for PEX (Parsing Expression) is a follows:
+;; A "grammar" is a set of rules.  A rule is written as (NAME PEX...)
+;; E.g. (sign (or "+" "-" "")) is a rule with the name "sign".
+;; The syntax for PEX (Parsing Expression) is a follows:
 ;;
-;; Description		Lisp		Traditional, as in Ford's paper
-;; Sequence		(and e1 e2)	e1 e2
-;; Prioritized Choice   (or e1 e2)	e1 / e2
-;; Not-predicate	(not e)		!e
-;; And-predicate	(if e)		&e
-;; Any character	(any)		.
-;; Literal string	"abc"		"abc"
-;; Character C		(char c)	'c'
-;; Zero-or-more		(* e)		e*
-;; One-or-more		(+ e)		e+
-;; Optional		(opt e)		e?
-;; Character range	(range a b)	[a-b]
-;; Character set	[a-b "+*" ?x]	[a-b+*x]  ; note: [] is a elisp vector
-;; Character classes    [ascii cntrl]
-;; Beginning-of-Buffer  (bob)
-;; End-of-Buffer        (eob)
-;; Beginning-of-Line    (bol)
-;; End-of-Line		(eol)
-;; Beginning-of-Word    (bow)
-;; End-of-Word		(eow)
-;; Beginning-of-Symbol  (bos)
-;; End-of-Symbol	(eos)
-;; Syntax-Class		(syntax-class NAME)
+;;     Description		Lisp		Traditional, as in Ford's paper
+;;     ===========		====		===========
+;;     Sequence			(and e1 e2)	e1 e2
+;;     Prioritized Choice	(or e1 e2)	e1 / e2
+;;     Not-predicate		(not e)		!e
+;;     And-predicate		(if e)		&e
+;;     Any character		(any)		.
+;;     Literal string		"abc"		"abc"
+;;     Character C		(char c)	'c'
+;;     Zero-or-more		(* e)		e*
+;;     One-or-more		(+ e)		e+
+;;     Optional			(opt e)		e?
+;;     Character range		(range a b)	[a-b]
+;;     Character set		[a-b "+*" ?x]	[a-b+*x]   ;Note: it's a vector
+;;     Character classes	[ascii cntrl]
+;;     Beginning-of-Buffer	(bob)
+;;     End-of-Buffer		(eob)
+;;     Beginning-of-Line	(bol)
+;;     End-of-Line		(eol)
+;;     Beginning-of-Word	(bow)
+;;     End-of-Word		(eow)
+;;     Beginning-of-Symbol	(bos)
+;;     End-of-Symbol		(eos)
+;;     Syntax-Class		(syntax-class NAME)
 ;;
 ;; `peg-parse' also supports parsing actions, i.e. Lisp snippets which
 ;; are executed when a pex matches.  This can be used to construct
 ;; syntax trees or for similar tasks.  Actions are written as
 ;;
-;;  (action FORM)          ; evaluate FORM
-;;  `(VAR... -- FORM...)   ; stack action
+;;     (action FORM)          ; evaluate FORM
+;;     `(VAR... -- FORM...)   ; stack action
 ;;
 ;; Actions don't consume input, but are executed at the point of
 ;; match.  A "stack action" takes VARs from the "value stack" and
-;; pushes the result of evaluating FORMs to that stack.  See
-;; `peg-ex-parse-int' for an example.
+;; pushes the result of evaluating FORMs to that stack.
+;; See `peg-ex-parse-int' in `peg-tests.el' for an example.
 ;;
 ;; Derived Operators:
 ;;
 ;; The following operators are implemented as combinations of
 ;; primitive expressions:
 ;;
-;; (substring E)  ; match E and push the substring for the matched region
-;; (region E)     ; match E and push the corresponding start and end positions
-;; (replace E RPL); match E and replace the matched region with RPL.
-;; (list E)       ; match E and push a list out of the items that E produces.
+;;     (substring E)  ; Match E and push the substring for the matched region.
+;;     (region E)     ; Match E and push the start and end positions.
+;;     (replace E RPL); Match E and replace the matched region with RPL.
+;;     (list E)       ; Match E and push a list of the items that E produced.
 ;;
 ;; Regexp equivalents:
 ;;
 ;; Here a some examples for regexps and how those could be written as pex.
 ;; [Most are taken from rx.el]
 ;;
-;; "^[a-z]*"
-;; (and (bol) (* [a-z]))
+;;     "^[a-z]*"
+;;     (and (bol) (* [a-z]))
 ;;
-;; "\n[^ \t]"
-;; (and "\n" (not [" \t"]) (any))
+;;     "\n[^ \t]"
+;;     (and "\n" (not [" \t"]) (any))
 ;;
-;; "\\*\\*\\* EOOH \\*\\*\\*\n"
-;; "*** EOOH ***\n"
+;;     "\\*\\*\\* EOOH \\*\\*\\*\n"
+;;     "*** EOOH ***\n"
 ;;
-;; "\\<\\(catch\\|finally\\)\\>[^_]"
-;; (and (bow) (or "catch" "finally") (eow) (not "_") (any))
+;;     "\\<\\(catch\\|finally\\)\\>[^_]"
+;;     (and (bow) (or "catch" "finally") (eow) (not "_") (any))
 ;;
-;; "[ \t\n]*:\\([^:]+\\|$\\)"
-;; (and (* [" \t\n"]) ":" (or (+ (not ":") (any)) (eol)))
+;;     "[ \t\n]*:\\([^:]+\\|$\\)"
+;;     (and (* [" \t\n"]) ":" (or (+ (not ":") (any)) (eol)))
 ;;
-;; "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
-;; (and (bol)
-;;      "content-transfer-encoding:"
-;;      (* (opt "\n") ["\t "])
-;;      "quoted-printable"
-;;      (* (opt "\n") ["\t "]))
+;;     "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
+;;     (and (bol)
+;;          "content-transfer-encoding:"
+;;          (* (opt "\n") ["\t "])
+;;          "quoted-printable"
+;;          (* (opt "\n") ["\t "]))
 ;;
-;; "\\$[I]d: [^ ]+ \\([^ ]+\\) "
-;; (and "$Id: " (+ (not " ") (any)) " " (+ (not " ") (any)) " ")
+;;     "\\$[I]d: [^ ]+ \\([^ ]+\\) "
+;;     (and "$Id: " (+ (not " ") (any)) " " (+ (not " ") (any)) " ")
 ;;
-;; "^;;\\s-*\n\\|^\n"
-;; (or (and (bol) ";;" (* (syntax-class whitespace)) "\n")
-;;     (and (bol) "\n"))
+;;     "^;;\\s-*\n\\|^\n"
+;;     (or (and (bol) ";;" (* (syntax-class whitespace)) "\n")
+;;         (and (bol) "\n"))
 ;;
-;; "\\\\\\\\\\[\\w+"
-;; (and "\\\\[" (+ (syntax-class word)))
+;;     "\\\\\\\\\\[\\w+"
+;;     (and "\\\\[" (+ (syntax-class word)))
 ;;
-;; Search forward for ";;; Examples" for other examples.
+;; See ";;; Examples" in `peg-tests.el' for other examples.
 ;;
 ;; References:
 ;;
@@ -143,35 +149,70 @@
 ;;;; Todo:
 
 ;; - Fix the exponential blowup in `peg-translate-exp'.
-;; - Allow global rule definitions.
-;;   Instead of (peg-parse (X1 PEX1) .. (Xn PEXn)) we could let the user write
-;;   (peg-define X1 PEX1) ... (peg-define Xn PEXn) and then (peg-parse X1).
-;;   Each (peg-define X1 PEX1) would simply expand to a function definition like
-;;   (defun peg--rule-X1 ...).  This would allow sharing rules between different
-;;   parsing jobs.
-;;   This would make cycle-detection harder, but other than that I don't
-;;   see any obvious problems.
-;; - Add a proper debug-spec to peg-parse.
+;; - Add a proper debug-spec for PEXs.
 
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
 
-(defmacro peg-parse (&rest rules)
-  "Match RULES at point.
-Return (T STACK) if the match succeed and nil on failure."
-  (peg-translate-rules rules))
+;;;; Main entry points
+
+(defmacro peg-parse (&rest pexs)
+  "Match PEXS at point.
+PEXS is a sequence of PEG expressions, implicitly combined with `and'.
+Return (T STACK) if the match succeed and nil on failure, moving point
+along the way."
+  (if (and (consp (car pexs))
+           (symbolp (caar pexs))
+           (not (ignore-errors (peg-normalize (car pexs)))))
+      ;; Backward compatibility with old usage where the args were
+      ;; a list of rules and we used the first rule as entry point.
+      `(with-peg-rules ,pexs (peg-parse-at-point (peg-rule-ref ,(caar pexs))))
+    `(peg-parse-at-point (peg-rule-ref ,@pexs))))
+
+(defmacro define-peg-rule (name &rest pexs)
+  "Define PEG rule NAME as equivalent to PEXS.
+The PEG expressions in PEXS are implicitly combined with the
+sequencing `and' operator of PEG grammars."
+  (declare (indent 1))
+  (let ((id (peg--rule-id name))
+        (exp (peg-normalize `(and . ,pexs))))
+    `(progn
+       (defun ',id ()
+         ,(peg--translate-rule-body name exp))
+       (put ',id 'peg--rule-definition ',exp))))
+
+(defmacro with-peg-rules (rules &rest body)
+  "Make PEG rules RULES available within the scope of BODY.
+RULES is a list of rules of the form (NAME . PEXS), where PEXS is a sequence
+of PEG expressions, implicitly combined with `and'."
+  (declare (indent 1) (debug (sexp form))) ;FIXME: `sexp' is not good enough!
+  (let ((rules
+         ;; First, macroexpand the rules.
+         (mapcar (lambda (rule)
+                   (cons (car rule) (peg-normalize `(and . ,(cdr rule)))))
+                 rules))
+        (ctx (assq :peg-rules macroexpand-all-environment)))
+    (macroexpand-all
+     `(cl-labels
+          ,(mapcar (lambda (rule)
+		     `(,(peg--rule-id (car rule))
+		       ()
+		       ,(peg--translate-rule-body (car rule) (cdr rule))))
+		   rules)
+        ,@body)
+     `((:peg-rules ,@(append rules (cdr ctx)))
+       ,@macroexpand-all-environment))))
 
 (defmacro peg-parse-exp (exp)
   "Match the parsing expression EXP at point.
 Note: a PE can't \"call\" rules by name."
+  (declare (obsolete peg-parse "peg-0.9"))
   `(let ((peg--actions nil))
      (when ,(peg-translate-exp (peg-normalize exp))
        (peg-postprocess peg--actions))))
 
-;; A table of the PEG rules.  Used during compilation to resolve
-;; references to named rules.
-(defvar peg--rules)
+;;;; The actual implementation
 
 (defvar peg--actions nil
   "Actions collected along the current parse.
@@ -184,52 +225,30 @@ executed in a postprocessing step, not during parsing.")
 ;; EXPS is a list of rules/expressions that failed.
 (defvar peg--errors)
 
-(define-error 'peg-void-rule "Reference to undefined PEG rule: %S")
-
 (defun peg--lookup-rule (name)
-  (or (gethash name peg--rules)
-      (signal 'peg-void-rule (list name))))
+  (or (cdr (assq name (cdr (assq :peg-rules macroexpand-all-environment))))
+      (get (peg--rule-id name) 'peg--rule-definition)))
 
-(defun peg--rule-var (name)
-  (intern (format "peg--rule-%s" name)))
+(defun peg--rule-id (name)
+  (intern (format "peg-rule %s" name)))
 
-;; The basic idea is to translate each rule to a lisp function.
-;; The result looks like
-;;   (let ((rule1 (lambda () code-for-rule1))
-;;         ...
-;;         (ruleN (lambda () code-for-ruleN)))
-;;     (funcall rule1))
-;;
-;; code-for-ruleX returns t if the rule matches and nil otherwise.
-;;
-(defun peg-translate-rules (rules)
-  "Translate the PEG RULES, to a top-down parser."
-  (let ((peg--rules (make-hash-table :size 20)))
-    (dolist (rule rules)
-      (puthash (car rule) (peg-normalize `(and . ,(cdr rule))) peg--rules))
-    (peg-check-cycles)
-    `(progn
-       (defvar peg--errors) (defvar peg--actions)
-       (let ((peg--actions '()) (peg--errors '(-1)))
-         (letrec
-             ,(mapcar (lambda (rule)
-		        (let ((name (car rule)))
-		          `(,(peg--rule-var name)
-			    (lambda ()
-			      ,(peg-translate-exp (gethash name peg--rules))))))
-		      rules)
-           (cond ((funcall ,(peg--rule-var (car (car rules))))
-	          (peg-postprocess peg--actions))
-	         (t
-	          (goto-char (car peg--errors))
-	          (error "Parse error at %d (expecting %S)"
-		         (car peg--errors)
-		         (peg-merge-errors (cdr peg--errors))))))))))
+(defmacro peg-rule-ref (&rest pexs)
+  "Get a reference to the rule PEXS."
+  (pcase (peg-normalize `(and . ,pexs))
+    (`(call ,name) `#',(peg--rule-id name))
+    (exp `(lambda () ,(peg-translate-exp exp)))))
 
-
-(eval-and-compile
-  (defun peg-method-table-name (method-name)
-    (intern (format "peg-%s-methods" method-name))))
+(defun peg-parse-at-point (rule-ref)
+  "Parse text at point according to the PEG rule RULE-REF."
+  (defvar peg--errors) (defvar peg--actions)
+  (let ((peg--actions '()) (peg--errors '(-1)))
+    (if (funcall rule-ref)
+        ;; Found a parse: run the actions collected along the way.
+        (peg-postprocess peg--actions)
+      (goto-char (car peg--errors))
+      (error "Parse error at %d (expecting %S)"
+	     (car peg--errors)
+	     (peg-merge-errors (cdr peg--errors))))))
 
 ;; Internally we use a regularized syntax, e.g. we only have binary OR
 ;; nodes.  Regularized nodes are lists of the form (OP ARGS...).
@@ -391,6 +410,19 @@ executed in a postprocessing step, not during parsing.")
 (cl-defgeneric peg--translate (head &rest args)
   (error "No translator for: %S" (cons head args)))
 
+(defun peg--translate-rule-body (name exp)
+  (let ((msg (condition-case err
+                 (progn (peg-detect-cycles exp (list name)) nil)
+               (error (error-message-string err))))
+        (code (peg-translate-exp exp)))
+    (cond
+     ((null msg) code)
+     ((fboundp 'macroexp--warn-and-return)
+      (macroexp--warn-and-return msg code))
+     (t
+      (message "%s" msg)
+      code))))
+
 ;; This is the main translation function.
 (defun peg-translate-exp (exp)
   "Return the ELisp code to match the PE EXP."
@@ -538,8 +570,8 @@ executed in a postprocessing step, not during parsing.")
      t))
 
 (cl-defmethod peg--translate ((_ (eql call)) name)
-  (peg--lookup-rule name) ;; Signal error if not found!
-  `(funcall ,(peg--rule-var name)))
+  ;; (peg--lookup-rule name) ;; Signal error if not found!
+  `(,(peg--rule-id name)))
 
 (cl-defmethod peg--translate ((_ (eql action)) form)
   `(progn
@@ -563,22 +595,6 @@ executed in a postprocessing step, not during parsing.")
 ;; graph as long as we can without consuming input.  When we find a
 ;; recursive call we signal an error.
 
-(defun peg-check-cycles ()
-  (maphash (lambda (name exp)
-	     (peg-detect-cycles exp (list name))
-	     (dolist (node (peg-find-star-nodes exp))
-	       (peg-detect-cycles node '())))
-	   peg--rules))
-
-(defun peg-find-star-nodes (exp)
-  (let ((type (car exp)))
-    (cond ((memq type peg-leaf-types) '())
-	  (t (let ((kids (apply #'append
-				(mapcar #'peg-find-star-nodes (cdr exp)))))
-	       (if (eq type '*)
-		   (cons exp kids)
-		 kids))))))
-
 (defun peg-detect-cycles (exp path)
   "Signal an error on a cycle.
 Otherwise traverse EXP recursively and return T if EXP can match
@@ -590,12 +606,23 @@ input.  PATH is the list of rules that we have visited so far."
   (error "No detect-cycle method for: %S" (cons head args)))
 
 (cl-defmethod peg--detect-cycles (path (_ (eql call)) name)
-  (cond ((member name path)
-	 (error "Possible left recursion: %s"
-		(mapconcat (lambda (x) (format "%s" x))
-			   (reverse (cons name path)) " -> ")))
-	(t
-	 (peg-detect-cycles (peg--lookup-rule name) (cons name path)))))
+  (if (member name path)
+      (error "Possible left recursion: %s"
+	     (mapconcat (lambda (x) (format "%s" x))
+			(reverse (cons name path)) " -> "))
+    (let ((exp (peg--lookup-rule name)))
+      (if (null exp)
+          ;; If there's no rule by that name, either we'll fail at
+          ;; run-time or it will be defined later.  In any case, at this
+          ;; point there's no evidence of a cycle, and if a cycle appears
+          ;; later we'll hopefully catch it when the rule gets defined.
+          ;; FIXME: In practice, if `name' is part of the cycle, we will
+          ;; indeed detect it when it gets defined, but OTOH if `name'
+          ;; is not part of a cycle but it *enables* a cycle because
+          ;; it matches the empty string (i.e. we should have returned t
+          ;; here), then we may not catch the problem at all :-(
+          nil
+	(peg-detect-cycles exp (cons name path))))))
 
 (cl-defmethod peg--detect-cycles (path (_ (eql and)) e1 e2)
   (and (peg-detect-cycles e1 path)
@@ -691,19 +718,23 @@ input.  PATH is the list of rules that we have visited so far."
 (cl-defmethod peg--merge-error (merged (_ (eql action)) _action) merged)
 (cl-defmethod peg--merge-error (merged (_ (eql null))) merged)
 
-(defmacro peg-parse-string (rules string &optional noerror)
-  "Parse STRING according to RULES.
+(defmacro peg-parse-string (pex string &optional noerror)
+  "Parse STRING according to PEX.
 If NOERROR is non-nil, push nil resp. t if the parse failed
 resp. succeded instead of signaling an error."
-  `(with-temp-buffer
-     (insert ,string)
-     (goto-char (point-min))
-     ,(if noerror
-	  (let ((entry (make-symbol "entry"))
-		(start (caar rules)))
-	    `(peg-parse (,entry (or (and ,start `(-- t)) ""))
-			. ,rules))
-	`(peg-parse . ,rules))))
+  (let ((oldstyle (consp (car-safe pex)))) ;PEX is really a list of rules.
+    `(with-temp-buffer
+       (insert ,string)
+       (goto-char (point-min))
+       (peg-parse
+        ,@(cond
+           ((null noerror) (if oldstyle pex `(,pex)))
+           ((not oldstyle) `((or (and ,pex `(-- t)) "")))
+           (t
+	    (let ((entry (make-symbol "entry"))
+		  (start (caar pex)))
+	      `((,entry (or (and ,start `(-- t)) ""))
+	        . ,pex))))))))
 
 (provide 'peg)
 

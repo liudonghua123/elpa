@@ -48,9 +48,9 @@
   (should (peg-parse-string ((s (or "a" "b"))) "a" t))
   (should (peg-parse-string ((s (or "a" "b"))) "b" t))
   (should (not (peg-parse-string ((s (or "a" "b"))) "c" t)))
-  (should (peg-parse-string ((s (and "a" "b"))) "ab" t))
+  (should (peg-parse-string (and "a" "b") "ab" t))
   (should (peg-parse-string ((s (and "a" "b"))) "abc" t))
-  (should (not (peg-parse-string ((s (and "a" "b"))) "ba" t)))
+  (should (not (peg-parse-string (and "a" "b") "ba" t)))
   (should (peg-parse-string ((s (and "a" "b" "c"))) "abc" t))
   (should (peg-parse-string ((s (* "a") "b" (eob))) "b" t))
   (should (peg-parse-string ((s (* "a") "b" (eob))) "ab" t))
@@ -65,7 +65,7 @@
   (should (peg-parse-string ((s (and))) "" t))
   (should (peg-parse-string ((s ["^"])) "^" t))
   (should (peg-parse-string ((s ["^a"])) "a" t))
-  (should (peg-parse-string ((s ["-"])) "-" t))
+  (should (peg-parse-string ["-"] "-" t))
   (should (peg-parse-string ((s ["]-"])) "]" t))
   (should (peg-parse-string ((s ["^]"])) "^" t))
   (should (peg-parse-string ((s [alpha])) "z" t))
@@ -86,8 +86,15 @@
 					   (substring [0-9]))))
 				   "ab0cd1ef2gh")
 		 '("2")))
-  (should-error (peg-parse-string ((s (or "a" other))) "af")
-                :type 'peg-void-rule)
+  ;; The PEG rule `other' doesn't exist, which will cause a byte-compiler
+  ;; warning, but not an error at run time because the rule is not actually
+  ;; used in this particular case.
+  (should (equal (peg-parse-string ((s (substring (or "a" other)))
+                                    ;; Unused left-recursive rule, should
+                                    ;; cause a byte-compiler warning.
+                                    (r (* "a") r))
+                                   "af")
+                 '("a")))
   (should (equal (peg-parse-string ((s (list x y))
 				    (x `(-- 1))
 				    (y `(-- 2)))
