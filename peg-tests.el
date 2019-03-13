@@ -132,6 +132,13 @@
 				  "f"))
 		    (buffer-string)))
 		 '(nil "axyf")))
+  (with-temp-buffer
+    (insert "toro")
+    (goto-char (point-min))
+    (should (peg-parse-p "to"))
+    (should-not (peg-parse-p "to"))
+    (should (peg-parse-p "ro"))
+    (should (eobp)))
   )
 
 ;;; Examples:

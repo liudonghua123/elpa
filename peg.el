@@ -174,6 +174,13 @@ moving point along the way."
       `(with-peg-rules ,pexs (peg-parse-at-point (peg-rule-ref ,(caar pexs))))
     `(peg-parse-at-point (peg-rule-ref ,@pexs))))
 
+(defmacro peg-parse-p (&rest pexs)
+  "Match PEXS at point.
+Like `peg-parse' but returns a boolean indicating success, instead of
+signaling an error on failure.
+PEXS is a sequence of PEG expressions, implicitly combined with `and'."
+  `(peg--parse-no-error (peg-rule-ref ,@pexs)))
+
 (defmacro define-peg-rule (name args &rest pexs)
   "Define PEG rule NAME as equivalent to PEXS.
 The PEG expressions in PEXS are implicitly combined with the
@@ -253,17 +260,24 @@ executed in a postprocessing step, not during parsing.")
     (`(call ,name) `#',(peg--rule-id name))
     (exp `(lambda () ,(peg-translate-exp exp)))))
 
+(define-error 'peg-search-failed "Parse error at %d (expecting %S)")
+
 (defun peg-parse-at-point (rule-ref)
   "Parse text at point according to the PEG rule RULE-REF."
-  (defvar peg--errors) (defvar peg--actions)
   (let ((peg--actions '()) (peg--errors '(-1)))
     (if (funcall rule-ref)
         ;; Found a parse: run the actions collected along the way.
         (peg-postprocess peg--actions)
       (goto-char (car peg--errors))
-      (error "Parse error at %d (expecting %S)"
-	     (car peg--errors)
-	     (peg-merge-errors (cdr peg--errors))))))
+      (signal 'peg-search-failed
+              (list (car peg--errors)
+	            (peg-merge-errors (cdr peg--errors)))))))
+
+(defun peg--parse-no-error (rule-ref)
+  "Parse text at point according to the PEG rule RULE-REF.
+Only moves point and returns a boolean."
+  (let ((peg--actions '()) (peg--errors '(-1)))
+    (funcall rule-ref)))
 
 ;; Internally we use a regularized syntax, e.g. we only have binary OR
 ;; nodes.  Regularized nodes are lists of the form (OP ARGS...).
