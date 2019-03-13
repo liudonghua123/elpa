@@ -49,10 +49,11 @@ The functions is evaluated before the standard auto-fill function,
 `do-auto-fill', tries to fill a line.  If the function returns a true
 value the auto-fill is inhibited.")
 
-;;(defadvice do-auto-fill (around disable-auto-fill-hook activate)
+;;(advice-add 'do-auto-fill :around #'sgml--auto-fill-inhibit)
+;;(defun sgml--auto-fill-inhibit (orig-fun &rest args)
 ;;  (or (and sgml-auto-fill-inhibit-function
-;;	   (funcall sgml-auto-fill-inhibit-function))
-;;      ad-do-it))
+;;	     (funcall sgml-auto-fill-inhibit-function))
+;;      (apply orig-fun args)))
 
 
 ;;;; Variables
