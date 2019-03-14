@@ -230,7 +230,7 @@ of PEG expressions, implicitly combined with `and'."
   "Match the parsing expression EXP at point.
 Note: a PE can't \"call\" rules by name."
   (declare (obsolete peg-parse "peg-0.9"))
-  `(let ((peg--actions nil))
+  `(let ((peg--actions nil) (peg--errors nil))
      (when ,(peg-translate-exp (peg-normalize exp))
        (peg-postprocess peg--actions))))
 
@@ -242,10 +242,10 @@ Used at runtime for backtracking.  It's a list ((POS . THUNK)...).
 Each THUNK is executed at the corresponding POS.  Thunks are
 executed in a postprocessing step, not during parsing.")
 
-;; used at runtime to track the right-most error location.  It's a
-;; pair (POSITION . EXPS ...).  POSITION is the buffer position and
-;; EXPS is a list of rules/expressions that failed.
-(defvar peg--errors)
+(defvar peg--errors nil
+  "Data keeping track of the rightmost parse failure location.
+It's a pair (POSITION . EXPS ...).  POSITION is the buffer position and
+EXPS is a list of rules/expressions that failed.")
 
 (defun peg--lookup-rule (name)
   (or (cdr (assq name (cdr (assq :peg-rules macroexpand-all-environment))))
@@ -267,7 +267,8 @@ executed in a postprocessing step, not during parsing.")
   (let ((peg--actions '()) (peg--errors '(-1)))
     (if (funcall rule-ref)
         ;; Found a parse: run the actions collected along the way.
-        (peg-postprocess peg--actions)
+        (save-excursion
+          (peg-postprocess peg--actions))
       (goto-char (car peg--errors))
       (signal 'peg-search-failed
               (list (car peg--errors)
