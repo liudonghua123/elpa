@@ -26,6 +26,21 @@
 
 ;;; Tests:
 
+(defmacro peg-parse-string (pex string &optional noerror)
+  "Parse STRING according to PEX.
+If NOERROR is non-nil, push nil resp. t if the parse failed
+resp. succeded instead of signaling an error."
+  (let ((oldstyle (consp (car-safe pex)))) ;PEX is really a list of rules.
+    `(with-temp-buffer
+       (insert ,string)
+       (goto-char (point-min))
+       ,(if oldstyle
+            `(with-peg-rules ,pex
+               (peg-run (peg ,(caar pex))
+                        ,(unless noerror '#'peg-signal-failure)))
+          `(peg-run (peg ,pex)
+                    ,(unless noerror '#'peg-signal-failure))))))
+
 (define-peg-rule peg-test-natural ()
   [0-9] (* [0-9]))
 
@@ -126,18 +141,18 @@
   (should (equal (with-temp-buffer
 		   (save-excursion (insert "abcdef"))
 		   (list
-		    (peg-parse (x "a"
+		    (peg-run (peg "a"
 				  (replace "bc" "x")
 				  (replace "de" "y")
 				  "f"))
 		    (buffer-string)))
-		 '(nil "axyf")))
+		 '(t "axyf")))
   (with-temp-buffer
     (insert "toro")
     (goto-char (point-min))
-    (should (peg-parse-p "to"))
-    (should-not (peg-parse-p "to"))
-    (should (peg-parse-p "ro"))
+    (should (peg-run (peg "to")))
+    (should-not (peg-run (peg "to")))
+    (should (peg-run (peg "ro")))
     (should (eobp)))
   )
 
@@ -153,9 +168,10 @@
 ;; 2) [0-9] is the character range from 0 to 9.  This can also be
 ;;    written as (range ?0 ?9).  Note that 0-9 is a symbol.
 (defun peg-ex-recognize-int ()
-  (peg-parse (number   sign digit (* digit))
-	     (sign     (or "+" "-" ""))
-	     (digit    [0-9])))
+  (with-peg-rules ((number   sign digit (* digit))
+	           (sign     (or "+" "-" ""))
+	           (digit    [0-9]))
+    (peg-run (peg number))))
 
 ;; peg-ex-parse-int recognizes integers and computes the corresponding
 ;; value.  The grammer is the same as for `peg-ex-recognize-int'
@@ -173,13 +189,14 @@
 ;; The action `(sign val -- (* sign val)), multiplies val with the
 ;; sign (1 or -1).
 (defun peg-ex-parse-int ()
-  (peg-parse (number sign digit (* digit
-				   `(a b -- (+ (* a 10) b)))
-		     `(sign val -- (* sign val)))
-	     (sign (or (and "+" `(-- 1))
-		       (and "-" `(-- -1))
-		       (and ""  `(-- 1))))
-	     (digit [0-9] `(-- (- (char-before) ?0)))))
+  (with-peg-rules ((number sign digit (* digit
+				         `(a b -- (+ (* a 10) b)))
+		           `(sign val -- (* sign val)))
+                   (sign (or (and "+" `(-- 1))
+	                     (and "-" `(-- -1))
+	                     (and ""  `(-- 1))))
+	           (digit [0-9] `(-- (- (char-before) ?0))))
+    (peg-run (peg number))))
 
 ;; Put point after the ) and press C-x C-e
 ;; (peg-ex-parse-int)-234234

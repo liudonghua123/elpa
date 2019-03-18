@@ -5,7 +5,7 @@
 ;; Author: Helmut Eller <eller.helmut@gmail.com>
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package-Requires: ((emacs "25"))
-;; Version: 0.9.1
+;; Version: 1.0
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,10 +35,15 @@
 ;; E.g. we can match integers with:
 ;;
 ;;     (with-peg-rules
-;;         ((number   sign digit (* digit))
-;;          (sign     (or "+" "-" ""))
-;;          (digit    [0-9]))
-;;       (peg-parse number))
+;;         ((number sign digit (* digit))
+;;          (sign   (or "+" "-" ""))
+;;          (digit  [0-9]))
+;;       (peg-run (peg number)))
+;; or
+;;     (define-peg-rule digit ()
+;;       [0-9])
+;;     (peg-parse (number sign digit (* digit))
+;;                (sign   (or "+" "-" "")))
 ;;
 ;; In contrast to regexps, PEGs allow us to define recursive "rules".
 ;; A "grammar" is a set of rules.  A rule is written as (NAME PEX...)
@@ -74,7 +79,7 @@
 ;;     Beginning-of-Symbol	(bos)
 ;;     End-of-Symbol		(eos)
 ;;
-;; `peg-parse' also supports parsing actions, i.e. Lisp snippets which
+;; PEXs also support parsing actions, i.e. Lisp snippets which
 ;; are executed when a pex matches.  This can be used to construct
 ;; syntax trees or for similar tasks.  Actions are written as
 ;;
@@ -159,27 +164,71 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(defvar peg--actions nil
+  "Actions collected along the current parse.
+Used at runtime for backtracking.  It's a list ((POS . THUNK)...).
+Each THUNK is executed at the corresponding POS.  Thunks are
+executed in a postprocessing step, not during parsing.")
+
+(defvar peg--errors nil
+  "Data keeping track of the rightmost parse failure location.
+It's a pair (POSITION . EXPS ...).  POSITION is the buffer position and
+EXPS is a list of rules/expressions that failed.")
+
 ;;;; Main entry points
 
+;; Sometimes (with-peg-rule ... (peg-run (peg ...))) is too
+;; longwinded for the task at hand, so `peg-parse' comes in handy.
 (defmacro peg-parse (&rest pexs)
   "Match PEXS at point.
 PEXS is a sequence of PEG expressions, implicitly combined with `and'.
-Return STACK if the match succeed and signals an error on failure,
-moving point along the way."
+Returns STACK if the match succeed and signals an error on failure,
+moving point along the way.
+PEXS can also be a list of PEG rules, in which case the first rule is used."
   (if (and (consp (car pexs))
            (symbolp (caar pexs))
            (not (ignore-errors (peg-normalize (car pexs)))))
-      ;; Backward compatibility with old usage where the args were
-      ;; a list of rules and we used the first rule as entry point.
-      `(with-peg-rules ,pexs (peg-parse-at-point (peg-rule-ref ,(caar pexs))))
-    `(peg-parse-at-point (peg-rule-ref ,@pexs))))
+      ;; `pexs' is a list of rules: use the first rule as entry point.
+      `(with-peg-rules ,pexs (peg-run (peg ,(caar pexs)) #'peg-signal-failure))
+    `(peg-run (peg ,@pexs) #'peg-signal-failure)))
 
-(defmacro peg-parse-p (&rest pexs)
-  "Match PEXS at point.
-Like `peg-parse' but returns a boolean indicating success, instead of
-signaling an error on failure.
-PEXS is a sequence of PEG expressions, implicitly combined with `and'."
-  `(peg--parse-no-error (peg-rule-ref ,@pexs)))
+(defmacro peg (&rest pexs)
+  "Return a PEG-matcher that matches PEXS."
+  (pcase (peg-normalize `(and . ,pexs))
+    (`(call ,name) `#',(peg--rule-id name)) ;Optimize this case by η-reduction!
+    (exp `(lambda () ,(peg-translate-exp exp)))))
+
+;; There are several "infos we want to return" when parsing a given PEX:
+;; 1- We want to return the success/failure of the parse.
+;; 2- We want to return the data of the successful parse (the stack).
+;; 3- We want to return the diagnostic of the failures.
+;; 4- We want to perform the actions (upon parse success)!
+;; `peg-parse' used an error signal to encode the (1) boolean, which
+;; lets it return all the info conveniently but the error signal was sometimes
+;; inconvenient.  Other times one wants to just know (1) maybe without even
+;; performing (4).
+;; `peg-run' lets you choose all that, and by default gives you
+;; (1) as a simple boolean, while also doing (2), and (4).
+
+(defun peg-run (peg-matcher &optional failure-function success-function)
+  "Parse with PEG-MATCHER at point and run the success/failure function.
+If a match was found, move to the end of the match and call SUCCESS-FUNCTION
+with one argument: a function which will perform all the actions collected
+during the parse and then return the resulting stack (or t if empty).
+If no match was found, move to the (rightmost) point of parse failure and call
+FAILURE-FUNCTION with one argument, which is a list of PEG expressions that
+failed at this point.
+SUCCESS-FUNCTION defaults to `funcall' and FAILURE-FUNCTION
+defaults to `ignore'."
+  (let ((peg--actions '()) (peg--errors '(-1)))
+    (if (funcall peg-matcher)
+        ;; Found a parse: run the actions collected along the way.
+        (funcall (or success-function #'funcall)
+                 (lambda ()
+                   (save-excursion (peg-postprocess peg--actions))))
+      (goto-char (car peg--errors))
+      (when failure-function
+        (funcall failure-function (peg-merge-errors (cdr peg--errors)))))))
 
 (defmacro define-peg-rule (name args &rest pexs)
   "Define PEG rule NAME as equivalent to PEXS.
@@ -202,7 +251,8 @@ sequencing `and' operator of PEG grammars."
                ;; main purpose but we can live with it.
                (apply #'peg--translate exp)
              (peg--translate-rule-body name exp)))
-         (put ',id 'peg--rule-definition ',exp)))))
+         (eval-and-compile
+           (put ',id 'peg--rule-definition ',exp))))))
 
 (defmacro with-peg-rules (rules &rest body)
   "Make PEG rules RULES available within the scope of BODY.
@@ -226,26 +276,14 @@ of PEG expressions, implicitly combined with `and'."
      `((:peg-rules ,@(append rules (cdr ctx)))
        ,@macroexpand-all-environment))))
 
+;;;;; Old entry points
+
 (defmacro peg-parse-exp (exp)
-  "Match the parsing expression EXP at point.
-Note: a PE can't \"call\" rules by name."
+  "Match the parsing expression EXP at point."
   (declare (obsolete peg-parse "peg-0.9"))
-  `(let ((peg--actions nil) (peg--errors nil))
-     (when ,(peg-translate-exp (peg-normalize exp))
-       (peg-postprocess peg--actions))))
+  `(peg-run (peg ,exp)))
 
 ;;;; The actual implementation
-
-(defvar peg--actions nil
-  "Actions collected along the current parse.
-Used at runtime for backtracking.  It's a list ((POS . THUNK)...).
-Each THUNK is executed at the corresponding POS.  Thunks are
-executed in a postprocessing step, not during parsing.")
-
-(defvar peg--errors nil
-  "Data keeping track of the rightmost parse failure location.
-It's a pair (POSITION . EXPS ...).  POSITION is the buffer position and
-EXPS is a list of rules/expressions that failed.")
 
 (defun peg--lookup-rule (name)
   (or (cdr (assq name (cdr (assq :peg-rules macroexpand-all-environment))))
@@ -254,31 +292,17 @@ EXPS is a list of rules/expressions that failed.")
 (defun peg--rule-id (name)
   (intern (format "peg-rule %s" name)))
 
-(defmacro peg-rule-ref (&rest pexs)
-  "Get a reference to the rule PEXS."
-  (pcase (peg-normalize `(and . ,pexs))
-    (`(call ,name) `#',(peg--rule-id name))
-    (exp `(lambda () ,(peg-translate-exp exp)))))
-
 (define-error 'peg-search-failed "Parse error at %d (expecting %S)")
 
-(defun peg-parse-at-point (rule-ref)
-  "Parse text at point according to the PEG rule RULE-REF."
-  (let ((peg--actions '()) (peg--errors '(-1)))
-    (if (funcall rule-ref)
-        ;; Found a parse: run the actions collected along the way.
-        (save-excursion
-          (peg-postprocess peg--actions))
-      (goto-char (car peg--errors))
-      (signal 'peg-search-failed
-              (list (car peg--errors)
-	            (peg-merge-errors (cdr peg--errors)))))))
+(defun peg-signal-failure (failures)
+  (signal 'peg-search-failed (list (point) failures)))
 
-(defun peg--parse-no-error (rule-ref)
-  "Parse text at point according to the PEG rule RULE-REF.
-Only moves point and returns a boolean."
-  (let ((peg--actions '()) (peg--errors '(-1)))
-    (funcall rule-ref)))
+(defun peg-parse-at-point (peg-matcher)
+  "Parse text at point according to the PEG rule PEG-MATCHER."
+  (declare (obsolete peg-run "peg-1.0"))
+  (peg-run peg-matcher
+           #'peg-signal-failure
+           (lambda (f) (let ((r (funcall f))) (if (listp r) r)))))
 
 ;; Internally we use a regularized syntax, e.g. we only have binary OR
 ;; nodes.  Regularized nodes are lists of the form (OP ARGS...).
@@ -599,14 +623,14 @@ Only moves point and returns a boolean."
 (defvar peg--stack nil)
 (defun peg-postprocess (actions)
   "Execute \"actions\"."
-  (let  ((peg--stack '()))
-    (pcase-dolist (`(,pos . ,thunk)
-                   (mapcar (lambda (x)
-			     (cons (copy-marker (car x)) (cdr x)))
-			   (reverse actions)))
+  (let  ((peg--stack '())
+         (forw-actions ()))
+    (pcase-dolist (`(,pos . ,thunk) actions)
+      (push (cons (copy-marker pos) thunk) forw-actions))
+    (pcase-dolist (`(,pos . ,thunk) forw-actions)
       (goto-char pos)
       (funcall thunk))
-    peg--stack))
+    (or peg--stack t)))
 
 ;; Left recursion is presumably a common mistake when using PEGs.
 ;; Here we try to detect such mistakes.  Essentailly we traverse the
@@ -726,24 +750,6 @@ input.  PATH is the list of rules that we have visited so far."
 
 (cl-defmethod peg--merge-error (merged (_ (eql action)) _action) merged)
 (cl-defmethod peg--merge-error (merged (_ (eql null))) merged)
-
-(defmacro peg-parse-string (pex string &optional noerror)
-  "Parse STRING according to PEX.
-If NOERROR is non-nil, push nil resp. t if the parse failed
-resp. succeded instead of signaling an error."
-  (let ((oldstyle (consp (car-safe pex)))) ;PEX is really a list of rules.
-    `(with-temp-buffer
-       (insert ,string)
-       (goto-char (point-min))
-       (peg-parse
-        ,@(cond
-           ((null noerror) (if oldstyle pex `(,pex)))
-           ((not oldstyle) `((or (and ,pex `(-- t)) "")))
-           (t
-	    (let ((entry (make-symbol "entry"))
-		  (start (caar pex)))
-	      `((,entry (or (and ,start `(-- t)) ""))
-	        . ,pex))))))))
 
 (provide 'peg)
 (require 'peg)
