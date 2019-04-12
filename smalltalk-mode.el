@@ -1,15 +1,15 @@
 ;;; smalltalk-mode.el --- Major mode for the Smalltalk programming language
 
 ;; Author: Steve Byrne
+;; Maintainer: Derek Zhou <derek@shannon-data.com>
 ;; Version: 3.2.92
-;; Copyright 1988-92, 1994-95, 1999, 2000, 2003, 2007, 2008, 2009
-;; Free Software Foundation, Inc.
+;; Copyright 1988-2019  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Smalltalk.
 
 ;; GNU Smalltalk is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
-;; Software Foundation; either version 2, or (at your option) any later
+;; Software Foundation; either version 3, or (at your option) any later
 ;; version.
 
 ;; GNU Smalltalk is distributed in the hope that it will be useful, but
@@ -230,6 +230,28 @@ Commands:
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.st\\'" . smalltalk-mode))
+
+;; GNU Smalltalk apparently uses files with extension `.star' which use
+;; the zip format.
+;; Duplicate zip files' setup for those .star files or fall back on
+;; archive-mode, which scans file contents to determine type so is
+;; safe to use.
+;;;###autoload
+(add-to-list
+ 'auto-mode-alist
+ (cons "\\.star\\'"
+       (catch 'archive-mode
+	 (dolist (mode-assoc auto-mode-alist 'archive-mode)
+	   (and (string-match (car mode-assoc) "Starfile.zip")
+		(functionp (cdr mode-assoc))
+		(throw 'archive-mode (cdr mode-assoc)))))))
+
+;;;###autoload
+(add-to-list (if (boundp 'inhibit-local-variables-regexps)
+                 'inhibit-local-variables-regexps
+               'inhibit-first-line-modes-regexp)
+             "\\.star\\'")
+
 
 (defun smalltalk-tab ()
   (interactive)

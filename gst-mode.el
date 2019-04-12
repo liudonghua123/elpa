@@ -1,29 +1,31 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;; Copyright 1988-92, 1994-95, 1999, 2000, 2003, 2007, 2008
-;;; Free Software Foundation, Inc.
-;;; Written by Steve Byrne.
-;;;
-;;; This file is part of GNU Smalltalk.
-;;;
-;;; GNU Smalltalk is free software; you can redistribute it and/or modify it
-;;; under the terms of the GNU General Public License as published by the Free
-;;; Software Foundation; either version 2, or (at your option) any later 
-;;; version.
-;;;
-;;; GNU Smalltalk is distributed in the hope that it will be useful, but
-;;; WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-;;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-;;; for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License along
-;;; with GNU Smalltalk; see the file COPYING.  If not, write to the Free
-;;; Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-;;;
+;;; gst-mode.el --- Interaction with GNU Smalltalk subprocess
+;;
+;; Copyright 1988-2019  Free Software Foundation, Inc.
+;; Written by Steve Byrne.
+;;
+;; This file is part of GNU Smalltalk.
+;;
+;; GNU Smalltalk is free software; you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by the Free
+;; Software Foundation; either version 3, or (at your option) any later
+;; version.
+;;
+;; GNU Smalltalk is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+;; for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; Incorporates Frank Caggiano's changes for Emacs 19.
-;;; Updates and changes for Emacs 20 and 21 by David Forster
+;;; Commentary:
+
+;; Incorporates Frank Caggiano's changes for Emacs 19.
+;; Updates and changes for Emacs 20 and 21 by David Forster
+
+;;; Code:
 
 (require 'comint)
 
@@ -32,7 +34,7 @@
 
 (defvar *gst-process* nil
   "Holds the GNU Smalltalk process")
-(defvar gst-program-name "@bindir@/gst -V"
+(defvar gst-program-name "gst -V"
   "GNU Smalltalk command to run.  Do not use the -a, -f or -- options.")
 
 (defvar smalltalk-command-string nil
@@ -63,6 +65,7 @@
     keymap)
   "Keymap used in Smalltalk interactor mode.")
 
+;;;###autoload
 (defun gst (command-line)
   "Invoke GNU Smalltalk"
   (interactive (list (if (null current-prefix-arg)
