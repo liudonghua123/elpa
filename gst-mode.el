@@ -1,4 +1,4 @@
-;;; gst-mode.el --- Interaction with GNU Smalltalk subprocess
+;;; gst-mode.el --- Interaction with GNU Smalltalk subprocess  -*- lexical-binding:t -*-
 ;;
 ;; Copyright 1988-2019  Free Software Foundation, Inc.
 ;; Written by Steve Byrne.
@@ -28,19 +28,21 @@
 ;;; Code:
 
 (require 'comint)
+(require 'smalltalk-mode)
 
 (defvar smalltalk-prompt-pattern "^st> *"
   "Regexp to match prompts in smalltalk buffer.")
 
-(defvar *gst-process* nil
-  "Holds the GNU Smalltalk process")
+(defvar smalltalk--process nil
+  "Holds the GNU Smalltalk process.")
+
 (defvar gst-program-name "gst -V"
   "GNU Smalltalk command to run.  Do not use the -a, -f or -- options.")
 
 (defvar smalltalk-command-string nil
-  "Non nil means that we're accumulating output from Smalltalk")
+  "Non-nil means that we're accumulating output from Smalltalk.")
 
-(defvar smalltalk-eval-data nil
+(defvar smalltalk-eval-data nil         ;FIXME: Not used?
   "?")
 
 (defvar smalltalk-ctl-t-map
@@ -49,10 +51,10 @@
     (define-key keymap "\C-e" 'smalltalk-toggle-exec-tracing)
     (define-key keymap "\C-v" 'smalltalk-toggle-verbose-exec-tracing)
     keymap)
-  "Keymap of subcommands of C-c C-t, tracing related commands")
+  "Keymap of subcommands of C-c C-t, tracing related commands.")
 
 (defvar gst-mode-map
-  (let ((keymap (copy-keymap comint-mode-map)))
+  (let ((keymap (make-sparse-keymap)))
     (define-key keymap "\C-c\C-t" smalltalk-ctl-t-map)
 
     (define-key keymap "\C-\M-f"   'smalltalk-forward-sexp)
@@ -67,20 +69,23 @@
 
 ;;;###autoload
 (defun gst (command-line)
-  "Invoke GNU Smalltalk"
+  "Invoke GNU Smalltalk."
   (interactive (list (if (null current-prefix-arg)
 			 gst-program-name
-		       (read-smalltalk-command))))
+		       (smalltalk--read-command))))
   (setq gst-program-name command-line)
-  (funcall (if (not (eq major-mode 'gst-mode))
+  (funcall (if (not (derived-mode-p 'gst-mode))
 	       #'switch-to-buffer-other-window
 	     ;; invoked from a Smalltalk interactor window, so stay
 	     ;; there
 	     #'identity)
-	   (apply 'make-gst "gst" (parse-smalltalk-command gst-program-name)))
-  (setq *smalltalk-process* (get-buffer-process (current-buffer))))
+	   (apply #'smalltalk--make-gst
+                  "gst" (smalltalk--parse-command gst-program-name)))
+  (setq smalltalk--process (get-buffer-process (current-buffer))))
 
-(defun read-smalltalk-command (&optional command-line)
+(defvar smalltalk--mode-status nil)
+
+(defun smalltalk--read-command (&optional command-line)
   "Reads the program name and arguments to pass to Smalltalk,
 providing COMMAND-LINE as a default (which itself defaults to
 `gst-program-name'), answering the string."
@@ -89,7 +94,7 @@ providing COMMAND-LINE as a default (which itself defaults to
 (defun smalltalk-file-name (str)
   (if (file-name-directory str) (expand-file-name str) str))
 
-(defun parse-smalltalk-command (&optional str)
+(defun smalltalk--parse-command (&optional str)
   "Parse a list of command-line arguments from STR (default
 `gst-program-name'), adding --emacs-mode and answering the list."
   (unless str (setq str gst-program-name))
@@ -101,18 +106,17 @@ providing COMMAND-LINE as a default (which itself defaults to
 		(setq str (substring str end)))
     (nreverse result-args)))
 
-(defun make-gst (name &rest switches)
+(defun smalltalk--make-gst (name &rest switches)
   (let ((buffer (get-buffer-create (concat "*" name "*")))
-	proc status size)
+	proc status) ;; size
     (setq proc (get-buffer-process buffer))
     (if proc (setq status (process-status proc)))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       ;;    (setq size (buffer-size))
       (if (memq status '(run stop))
 	  nil
 	(if proc (delete-process proc))
-	(setq proc (apply  'start-process
+	(setq proc (apply  #'start-process
 			   name buffer
 			   "env"
 			   ;; I'm choosing to leave these here
@@ -125,53 +129,46 @@ providing COMMAND-LINE as a default (which itself defaults to
 	(setq name (process-name proc)))
       (goto-char (point-max))
       (set-marker (process-mark proc) (point))
-      (set-process-filter proc 'gst-filter)
+      (set-process-filter proc #'smalltalk--gst-filter)
       (gst-mode))
     buffer))
 
-(defun gst-filter (process string)
+(defun smalltalk--gst-filter (process string)
   "Make sure that the window continues to show the most recently output
 text."
-  (let (where ch command-str)
-    (setq where 0)			;fake to get through the gate
+  (let ((where 0))			;fake to get through the gate
     (while (and string where)
       (if smalltalk-command-string
 	  (setq string (smalltalk-accum-command string)))
       (if (and string
 	       (setq where (string-match "\C-a\\|\C-b" string)))
-	  (progn
-	    (setq ch (aref string where))
+	  (let ((ch (aref string where)))
 	    (cond ((= ch ?\C-a)		;strip these out
 		   (setq string (concat (substring string 0 where)
 					(substring string (1+ where)))))
 		  ((= ch ?\C-b)		;start of command
 		   (setq smalltalk-command-string "") ;start this off
 		   (setq string (substring string (1+ where))))))))
-    (save-excursion
-      (set-buffer (process-buffer process))
+    (with-current-buffer (process-buffer process)
       (goto-char (point-max))
       (and string
-	   (setq mode-status "idle")
+	   (setq smalltalk--mode-status "idle")
 	   (insert string))
       (if (process-mark process)
 	  (set-marker (process-mark process) (point-max)))))
   ;;  (if (eq (process-buffer process)
   ;;	  (current-buffer))
   ;;      (goto-char (point-max)))
-					;  (save-excursion
-					;      (set-buffer (process-buffer process))
+					;  (with-current-buffer (process-buffer process)
 					;      (goto-char (point-max))
   ;;      (set-window-point (get-buffer-window (current-buffer)) (point-max))
 					;      (sit-for 0))
-  (let ((buf (current-buffer)))
-    (set-buffer (process-buffer process))
-    (goto-char (point-max)) (sit-for 0)
-    (set-window-point (get-buffer-window (current-buffer)) (point-max))
-    (set-buffer buf)))
+  (with-current-buffer (process-buffer process)
+    (goto-char (point-max)) (sit-for 0) ;FIXME: Why sit-for?
+    (set-window-point (get-buffer-window (current-buffer)) (point-max))))
 
 (defun smalltalk-accum-command (string)
-  (let (where)
-    (setq where (string-match "\C-a" string))
+  (let ((where (string-match "\C-a" string)))
     (setq smalltalk-command-string
 	  (concat smalltalk-command-string (substring string 0 where)))
     (if where
@@ -187,37 +184,28 @@ text."
 (defun smalltalk-handle-command (str)
   (eval (read str)))
 
-(defun gst-mode ()
+(define-derived-mode gst-mode comint-mode "GST"
   "Major mode for interacting Smalltalk subprocesses.
 
 Entry to this mode calls the value of gst-mode-hook with no arguments,
 if that value is non-nil; likewise with the value of comint-mode-hook.
 gst-mode-hook is called after comint-mode-hook."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'gst-mode)
-  (setq mode-name "GST")
-  (require 'comint)
-  (comint-mode)
+  ;; FIXME: Don't impose our own choice of modeline!
   (setq mode-line-format
 	'("" mode-line-modified mode-line-buffer-identification "   "
-	  global-mode-string "   %[(" mode-name ": " mode-status
+	  global-mode-string "   %[(" mode-name ": " smalltalk--mode-status
 	  "%n" mode-line-process ")%]----" (-3 . "%p") "-%-"))
 
-  (setq comint-prompt-regexp smalltalk-prompt-pattern)
-  (setq comint-use-prompt-regexp t) 
-  (use-local-map gst-mode-map)
-  (make-local-variable 'mode-status)
-  (make-local-variable 'smalltalk-command-string)
-  (setq smalltalk-command-string nil)
-  (setq mode-status "starting-up")
-  (run-hooks 'comint-mode-hook 'gst-mode-hook))
+  (set (make-local-variable 'comint-prompt-regexp) smalltalk-prompt-pattern)
+  (set (make-local-variable 'comint-use-prompt-regexp) t)
+  (set (make-local-variable 'smalltalk-command-string) nil)
+  (set (make-local-variable 'smalltalk--mode-status) "starting-up"))
 
 
 (defun smalltalk-print-region (start end &optional label)
-  (let (str filename line pos extra)
+  (let (str line pos extra)
     (save-excursion
-      (save-restriction 
+      (save-restriction
 	(goto-char (max start end))
 	(smalltalk-backward-whitespace)
 	(setq pos (point))
@@ -232,10 +220,9 @@ gst-mode-hook is called after comint-mode-hook."
 
 	;; unrelated, but reusing save-excursion
 	(goto-char (min start end))
-	(setq pos (1- (point)))
-	(setq filename (buffer-file-name))
+	(setq pos (1- (point)))         ;FIXME: Why -1?
 	(widen)
-	(setq line (1+ (count-lines 1 (point))))))
+	(setq line (1+ (count-lines (point-min) (point))))))
     (send-to-smalltalk (format "(%s) printNl%s\n" str extra)
 		       (or label "eval")
 		       (smalltalk-pos line pos))))
@@ -244,20 +231,20 @@ gst-mode-hook is called after comint-mode-hook."
   "Evaluate START to END as a Smalltalk expression in Smalltalk window.
 If the expression does not end with an exclamation point, one will be
 added (at no charge)."
-  (let (str filename line pos)
-    (setq str (buffer-substring start end))
+  (let ((str (buffer-substring start end))
+        line pos)
     (save-excursion
-      (save-restriction 
+      (save-restriction
 	(goto-char (min start end))
 	(setq pos (point))
-	(setq filename (buffer-file-name))
 	(widen)
-	(setq line (1+ (count-lines 1 (point))))))
+	(setq line (1+ (count-lines (point-min) (point))))))
     (send-to-smalltalk (concat str "\n")
 		       (or label "eval")
 		       (smalltalk-pos line pos))))
 
 (defun smalltalk-doit (use-line)
+  ;; FIXME: Missing docstring!
   (interactive "P")
   (let* ((start (or (mark) (point)))
 	 (end (point))
@@ -279,11 +266,11 @@ added (at no charge)."
 
 (defun smalltalk-bound-expr ()
   "Returns a cons of the region of the buffer that contains a smalltalk expression."
-  (save-excursion 
-    (beginning-of-line) 
+  (save-excursion
+    (beginning-of-line)
     (cons
      (point)
-     (progn (next-line)
+     (progn (forward-line 1)
      	    (smalltalk-backward-whitespace)
 	    (point)))))
 
@@ -294,35 +281,32 @@ added (at no charge)."
 (defun smalltalk-compile (start end)
   (interactive "r")
   (let ((str (buffer-substring start end))
-	(filename (buffer-file-name))
 	(pos start)
 	(line (save-excursion
 		(save-restriction
 		  (widen)
-		  (setq line (1+ (line-number-at-pos start)))))))
+	          (1+ (line-number-at-pos start))))))
     (send-to-smalltalk str "compile"
 		       (smalltalk-pos line pos))))
 
 (defun smalltalk-quote-strings (str)
-  (let (new-str)
-    (save-excursion
-      (set-buffer (get-buffer-create " st-dummy "))
-      (erase-buffer)
-      (insert str)
-      (goto-char 1)
-      (while (and (not (eobp))
-		  (search-forward "'" nil 'to-end))
-	(insert "'"))
-      (buffer-string))))
+  (with-current-buffer (get-buffer-create " st-dummy ")
+    (erase-buffer)
+    (insert str)
+    (goto-char 1)
+    (while (and (not (eobp))
+		(search-forward "'" nil 'to-end))
+      (insert "'"))
+    (buffer-string)))
 
 (defun smalltalk-snapshot (&optional snapshot-name)
   (interactive (if current-prefix-arg
-		   (list (setq snapshot-name 
-			       (expand-file-name 
-				(read-file-name "Snapshot to: "))))))
-  (if snapshot-name
-      (send-to-smalltalk (format "ObjectMemory snapshot: '%s'\n" "Snapshot"))
-  (send-to-smalltalk "ObjectMemory snapshot\n" "Snapshot")))
+		   (list (expand-file-name
+			  (read-file-name "Snapshot to: ")))))
+  (send-to-smalltalk (if snapshot-name
+                         (format "ObjectMemory snapshot: '%s'\n" snapshot-name)
+                       "ObjectMemory snapshot\n")
+                     "Snapshot"))
 
 (defun smalltalk-quit ()
   "Terminate the Smalltalk session and associated process.  Emacs remains
@@ -348,7 +332,7 @@ running."
 
 (defun smalltalk-toggle-exec-tracing ()
   (interactive)
-  (send-to-smalltalk 
+  (send-to-smalltalk
    "Smalltalk executionTrace: Smalltalk executionTrace not\n"))
 
 
@@ -358,7 +342,7 @@ running."
    "Smalltalk verboseTrace: Smalltalk verboseTrace not\n"))
 
 (defun send-to-smalltalk (str &optional mode fileinfo)
-    (save-window-excursion
+    (save-window-excursion ;FIXME: If GST popups up a frame, this won't undo it!
       (gst gst-program-name)
       (save-excursion
 	(goto-char (point-max))
@@ -367,26 +351,25 @@ running."
 	    (progn (end-of-line)
 		   (insert "\n"))))
 
-      (if mode (setq mode-status mode))
+      (if mode (setq smalltalk--mode-status mode))
 
       (if fileinfo
-	(let (temp-file buf switch-back old-buf)
+	(let (temp-file buf)
 	  (setq temp-file (concat "/tmp/" (make-temp-name "gst")))
-	  (save-excursion
-	    (setq buf (get-buffer-create " zap-buffer "))
-	    (set-buffer buf)
+	  (with-current-buffer (setq buf (get-buffer-create " zap-buffer "))
 	    (erase-buffer)
 	    (princ str buf)
 	    (write-region (point-min) (point-max) temp-file nil 'no-message)
 	    )
 	  (kill-buffer buf)
 	  (process-send-string
-	   *smalltalk-process*
+	   smalltalk--process
 	   (format
 	    "FileStream fileIn: '%s' line: %d from: '%s' at: %d\n"
 	    temp-file (nth 0 fileinfo) (nth 1 fileinfo) (nth 2 fileinfo))))
-        (comint-send-string *smalltalk-process* str))
-      (switch-to-buffer-other-window (process-buffer *smalltalk-process*))))
+        (comint-send-string smalltalk--process str))
+      (switch-to-buffer-other-window (process-buffer smalltalk--process))))
 
 
 (provide 'gst-mode)
+;;; gst-mode.el ends here.
