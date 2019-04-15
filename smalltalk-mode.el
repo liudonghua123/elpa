@@ -218,13 +218,39 @@
     ;; in case we use the compiled file on a newer Emacs.
     `(eval '(if (fboundp ',sym) ,exp))))
 
+(defun smalltalk--pragma-start-p (pos)
+  ;; I think in practice it's not disastrous if we fail to mark some pragmas,
+  ;; whereas if we mistakenly mark a binary `<' as an open-paren, this
+  ;; can throw things off pretty badly, so when in doubt presume it's just
+  ;; a binary `<'.
+  (save-excursion
+    (goto-char pos)
+    (forward-comment (- (point)))
+    (pcase (char-before)
+      ((or `nil `?\[) t)
+      (`?> (and (< (point) pos)      ;; >< is a binary selector
+                (equal (syntax-after (1- (point)))
+                       (string-to-syntax ")<")))))))
+
+
+(defun smalltalk--pragma-end-p (pos)
+  (save-excursion
+    (let ((ppss (syntax-ppss pos)))
+      (and (nth 1 ppss)
+           (eq ?< (char-after (nth 1 ppss)))))))
+
 (defconst smalltalk--syntax-propertize
   (smalltalk--when-fboundp syntax-propertize-rules
     (syntax-propertize-rules
      ;; $ is marked as escaping because it can escape a ' or a " when
      ;; used for a character literal, but not when used within strings.
      ("\\(\\$\\)[][(){}'\")]"
-      (1 (if (nth 8 (syntax-ppss)) (string-to-syntax ".")))))))
+      (1 (if (nth 8 (syntax-ppss)) (string-to-syntax "."))))
+     ("<" (0 (if (smalltalk--pragma-start-p (match-beginning 0))
+                 (string-to-syntax "(>"))))
+     (">" (0 (if (smalltalk--pragma-end-p (match-beginning 0))
+                 (string-to-syntax ")<"))))
+     )))
 
 ;;;; ---[ SMIE support ]------------------------------------------------
 
