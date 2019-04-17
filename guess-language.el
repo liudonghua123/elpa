@@ -76,7 +76,7 @@ guess-language doesn't do anything because there is likely too
 little material to reliably guess the language."
   :type 'integer)
 
-(defvar guess-language-regexps nil      ;FIXME: Use "guess-language--" prefix?
+(defvar guess-language--regexps nil
   "The regular expressions that are used to count trigrams.")
 
 (defcustom guess-language-langcodes
@@ -119,10 +119,12 @@ beginning and end of the region in which the language was
 detected."
   :type 'hook)
 
-(defcustom guess-language-trigrams-directory (file-name-directory (find-library-name "guess-language"))
+(defcustom guess-language-trigrams-directory
+  (file-name-directory (or load-file-name (find-library-name "guess-language")))
   "Directory where trigrams are stored.
 
-By default it's the same directory where this module is installed.")
+By default it's the same directory where this module is installed."
+  :type '(file :must-match t))
 
 (defvar guess-language-current-language nil
   "The language detected when `guess-language' was last executed.
@@ -144,30 +146,28 @@ Uses ISO 639-1 to identify languages.")
 
 (defun guess-language-compile-regexps ()
   "Compile regular expressions used for guessing language."
-  (setq guess-language-regexps
+  (setq guess-language--regexps
         (cl-loop
          for lang in (guess-language-load-trigrams)
-         ;; FIXME: Why all those \(..\)?
-         for regexp = (mapconcat #'identity (cdr lang) "\\)\\|\\(")
-         for regexp = (concat "\\(" regexp "\\)")
+         for regexp = (mapconcat 'identity (cdr lang) "\\|")
          collect (cons (car lang) regexp))))
 
 (defun guess-language-backward-paragraph ()
   "Uses whatever method for moving to the previous paragraph is
 most appropriate given the buffer mode."
-  ;; FIXME: Why doesn't backward-paragraph do the right thing in Org?
-  ;; Should we use something else, e.g. fill-forward-paragraph-function?
-  (if (eq major-mode 'org-mode)         ;FIXME: Use derived-mode-p
+  (if (derived-mode-p 'org-mode)
       ;; When in list, go to the beginning of the top-level list:
       (if (org-in-item-p) 
           (org-beginning-of-item-list)
         (org-backward-paragraph))
-    (backward-paragraph)))
+    (backward-paragraph)
+    (when (looking-at-p "[[:space:]]")
+      (forward-whitespace 1))))
 
 (defun guess-language-forward-paragraph ()
   "Uses whatever method for moving to the next paragraph is
 most appropriate given the buffer mode."
-  (if (eq major-mode 'org-mode)         ;FIXME: Use derived-mode-p
+  (if (derived-mode-p 'org-mode)
       (if (org-in-item-p)
           (org-end-of-item-list)
         (org-forward-paragraph))
@@ -178,12 +178,12 @@ most appropriate given the buffer mode."
 
 Region starts at BEGINNING and ends at END."
   (interactive "*r")
-  (unless guess-language-regexps
+  (unless guess-language--regexps
     (guess-language-compile-regexps))
-  (when (cl-set-exclusive-or guess-language-languages (mapcar #'car guess-language-regexps))
+  (when (cl-set-exclusive-or guess-language-languages (mapcar #'car guess-language--regexps))
     (guess-language-compile-regexps))
   (let ((tally (cl-loop
-                for lang in guess-language-regexps
+                for lang in guess-language--regexps
                 for regexp = (cdr lang)
                 collect (cons (car lang) (how-many regexp beginning end)))))
     (car (cl-reduce (lambda (x y) (if (> (cdr x) (cdr y)) x y)) tally))))
@@ -241,22 +241,27 @@ which LANG was detected."
          (new-dictionary (cadr (assq lang guess-language-langcodes))))
     (unless (string= old-dictionary new-dictionary)
       (ispell-change-dictionary new-dictionary)
-      (let ((flyspell-issue-welcome-flag nil)
-            (flyspell-issue-message-flag nil)
-            (flyspell-incorrect-hook nil)
-            (flyspell-large-region 1))
-        (flyspell-region beginning end)))))
+      ;; Flyspell the region with the new dictionary after we return
+      ;; from flyspell-incorrect-hook that called us. Otherwise, the
+      ;; word at point is highlighted as incorrect even if it is
+      ;; correct according to the new dictionary.
+      (run-at-time 0 nil
+                   (lambda ()
+                     (let ((flyspell-issue-welcome-flag nil)
+                           (flyspell-issue-message-flag nil)
+                           (flyspell-incorrect-hook nil)
+                           (flyspell-large-region 1))
+                       (flyspell-region beginning end)))))))
 
 (defun guess-language-switch-typo-mode-function (lang _beginning _end)
   "Switch the language used by typo-mode.
 
 LANG is the ISO 639-1 code of the language (as a
 symbol).  BEGINNING and END are the endpoints of the region in
-which LANG was detected."
-  (when (boundp 'typo-mode)             ;FIXME: Use `bound-and-true-p'?
+which LANG was detected (not used)."
+  (when (bound-and-true-p typo-mode)
     (let* ((typo-lang (cl-caddr (assq lang guess-language-langcodes))))
-      (when typo-lang
-        (typo-change-language typo-lang)))))
+      (typo-change-language typo-lang))))
 
 (defun guess-language-flyspell-buffer-wrapper (orig-fun &rest args)
   "Do not guess language when an unknown word is encountered

@@ -1,0 +1,3 @@
+*.elc
+guess-language-autoloads.el
+guess-language-pkg.el
