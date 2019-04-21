@@ -264,6 +264,10 @@
      ;; used for a character literal, but not when used within strings.
      ("\\(\\$\\)[][(){}'\")]"
       (1 (if (nth 8 (syntax-ppss)) (string-to-syntax "."))))
+     ;; A '' within a string is an escaped quote and not the end of a string
+     ;; and the beginning of another.
+     ("''" (0 (if (save-excursion (nth 3 (syntax-ppss (match-beginning 0))))
+                  (string-to-syntax "."))))
      ("<" (0 (if (smalltalk--pragma-start-p (match-beginning 0))
                  (string-to-syntax "(>"))))
      (">" (0 (if (smalltalk--pragma-end-p (match-beginning 0))
@@ -504,6 +508,12 @@ The SMIE support is currently experimental work-in-progress.")
          `(column . ,(current-column)))))
     ))
 
+;;;; ---[ Prettify-symbols ]--------------------------------------------
+
+(defvar smalltalk-prettify-symbols-alist
+  '(("^" . ?↑)
+    (":=" . ?←)))
+
 ;;;; ---[ Interactive functions ]---------------------------------------
 
 ;;;###autoload
@@ -529,6 +539,8 @@ Commands:
                 :forward-token  #'smalltalk--smie-forward-token
                 :backward-token #'smalltalk--smie-backward-token))
 
+  (set (make-local-variable 'prettify-symbols-alist)
+       smalltalk-prettify-symbols-alist)
   (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'comment-start) "\"")
   (set (make-local-variable 'comment-end) "\"")
