@@ -83,7 +83,7 @@ Requires Emacs≥23.3."
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?:  ".   " table) ; Symbol-char
     (modify-syntax-entry ?_  "_   " table) ; Symbol-char
-    (modify-syntax-entry ?\" "!1  " table) ; Comment (generic)
+    (modify-syntax-entry ?\" "!   " table) ; Comment (generic)
     (modify-syntax-entry ?'  "\"' " table) ; String
     (modify-syntax-entry ?#  "'   " table) ; Symbol or Array constant
     (modify-syntax-entry ?\( "()  " table) ; Grouping
@@ -179,8 +179,9 @@ Requires Emacs≥23.3."
     keymap)
   "Keymap for Smalltalk mode.")
 
-(defconst smalltalk-binsel "\\([-+*/~,<>=|&?]\\{1,2\\}\\|:=\\)"
-  "Smalltalk binary selectors.")
+(defconst smalltalk-binsel "[-+*/~,<>=|&?]\\{1,2\\}\\|\\(:=\\)"
+  "Smalltalk binary selectors.
+Also matches the assignment operator (in submatch 1).")
 
 (defconst smalltalk-font-lock-keywords
   `((,(concat "#" smalltalk-name-regexp) (0 'font-lock-constant-face))
@@ -548,9 +549,8 @@ Commands:
   (set (make-local-variable 'find-tag-default-function)
        #'smalltalk-find-message))
 
-;;;###autoload
-;; for hideshow.
-;; hideshow does not cope with comment-start and comment-end being the same
+;; For hideshow.
+;; Hideshow does not cope with comment-start and comment-end being the same
 ;; so I change it to "= ... =" which seems to be the convention in GNU smalltalk
 (add-to-list 'hs-special-modes-alist '(smalltalk-mode "\\[" "\\]" "\"=" nil nil))
 
