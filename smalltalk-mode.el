@@ -142,15 +142,13 @@ Requires Emacs≥23.3."
     (define-key keymap "\C-c\C-n"   'smalltalk-goto-next-keyword)
     (define-key keymap "\C-c\C-t"      smalltalk-template-map)
     ;; the following four are NOT deprecated
-    ;; FIXME: Set `beginning-of-defun-function' instead!
-    ;; FIXME: Set `end-of-defun-function' instead!
     (unless smalltalk-use-smie
       (define-key keymap "\C-\M-a"   'smalltalk-begin-of-defun)
       (define-key keymap "\C-\M-e"   'smalltalk-end-of-defun)
       (define-key keymap "\C-\M-f"   'smalltalk-forward-sexp)
       (define-key keymap "\C-\M-b"   'smalltalk-backward-sexp))
     ;; FIXME: Use post-self-insert-hook!
-    ;; (define-key keymap "!" 	   'smalltalk-bang)
+    (define-key keymap "!" 	   'smalltalk-bang)
     ;; `electric-indent-local-mode' was added when we changed
     ;; `electric-indent-mode' to be enabled by default, in which case we'll get
     ;; the same result as `smalltalk-colon' via electric-indent-chars.
@@ -275,25 +273,22 @@ Also matches the assignment operator (in submatch 1).")
 If search is successful, return t; point ends up at the beginning
 of the line where the search succeeded.  Otherwise, return nil.
 FIXME: This version assumes gst3 syntax"
-  (interactive)
   (while (progn
-	   (skip-chars-backward "^[")
-	   (backward-char 1)
+	   (while (progn              ;; to ignote string/comment
+		    (search-backward "[")
+		    (nth 8 (syntax-ppss))))
 	   (smalltalk--smie-exp-p)))  ;; is it an exp or method body?
-  (beginning-of-line)                 ;; assming the method header is one line
-  (skip-chars-forward smalltalk-whitespace))
+  (when (looking-at "\\[")
+    (smalltalk--smie-begin-def)))
 
 (defun smalltalk-goto-defun-end ()
   "Move forward to next end of defun.
    FIXME: This version assumes gst3 syntax"
-  (interactive)
-  (let ((pos (point)))
-    (smalltalk-goto-defun-start)
-    (skip-chars-forward "^[")           ;; assuming the method has a [
-    (forward-sexp)
-    (unless (>= (point) pos)             ;; make sure we are making forward progress
-      (skip-chars-forward "^[")
-      (forward-sexp))))
+  (while (progn                       ;; to ignote string/comment
+	   (search-forward "[")
+	   (nth 8 (syntax-ppss))))
+  (backward-char 1)
+  (forward-sexp))
 
 ;;;; ---[ SMIE support ]------------------------------------------------
 
