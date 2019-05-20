@@ -1,9 +1,1 @@
-MANIFEST
-Makefile
-autom4te.cache
-config.*
-configure
-configure.lineno
-info
-tramp-*.tar.gz*
-*.diff
+*.elc

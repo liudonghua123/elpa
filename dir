@@ -17,3 +17,7 @@ The Info Directory
   or cross reference to follow it to its target.
 
 * Menu: Each line that starts with a * is a topic you can select with "m".
+
+Emacs network features
+* Tramp: (tramp).               Transparent Remote Access, Multiple Protocol 
+                                  Emacs remote file access via ssh and scp.
