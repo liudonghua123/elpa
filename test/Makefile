@@ -1,3 +1,6 @@
+# -*- coding: utf-8; -*-
+# Emacs Makefile for Tramp
+
 # Copyright (C) 2019 Free Software Foundation, Inc.
 
 # Author: Michael Albinus <michael.albinus@gmx.de>
@@ -16,25 +19,35 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-EMACS		= emacs -Q -batch -L .
-LISP_FILES	= $(wildcard *.el)
+# This Makefile requires GNU make.
 
-.PHONY: all autoloads check info test
+EMACS		= emacs -Q -batch -L ../
+CLEAN_FILES	= .\\\#* \\\#* .*~ *~ *.elc *.log
+TESTS		= $(if ${REMOTE_TEMPORARY_FILE_DIRECTORY},, tramp-archive-tests)
+TESTS		+= tramp-tests
 
-.SUFFIXES: .el
+TRAMP_TEST_ARGS ?=
+SELECTOR	?= t
 
-all: autoloads info
+.PHONY: all check test clean distclean
 
-autoloads: $(LISP_FILES)
-	$(EMACS) -l autoload						    \
-	  --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
-	  --eval "(setq generated-autoload-file				    \
-		    (expand-file-name \"tramp-loaddefs.el\"))"		    \
-	  --eval "(setq make-backup-files nil)"				    \
-	  -f batch-update-autoloads .
+# We want to keep *.elc files.
+.SECONDARY:
 
-info:
-	$(MAKE) -C texi
+.SUFFIXES: .elc .el
 
-check test: autoloads
-	$(MAKE) -C test "TRAMP_TEST_ARGS=$(TRAMP_TEST_ARGS)" all
+all: check
+
+check test: $(TESTS)
+
+%-tests: %-tests.elc
+	-$(EMACS) -L . -l tramp $(TRAMP_TEST_ARGS) -l $@	\
+	--eval '(ert-run-tests-batch-and-exit (quote ${SELECTOR}))'
+
+%.elc: %.el
+	$(EMACS) -l bytecomp -f batch-byte-compile $?
+
+clean:
+	$(RM) $(CLEAN_FILES)
+
+distclean: clean

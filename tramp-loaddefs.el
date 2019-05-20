@@ -3,8 +3,7 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "tramp-adb" "tramp-adb.el" (23763 57074 521599
-;;;;;;  9000))
+;;;### (autoloads nil "tramp-adb" "tramp-adb.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-adb.el
 
 (defconst tramp-adb-method "adb" "\
@@ -34,8 +33,7 @@ Return a list of (nil host) tuples allowed to access.
 
 ;;;***
 
-;;;### (autoloads nil "tramp-archive" "tramp-archive.el" (23775 50326
-;;;;;;  68548 132000))
+;;;### (autoloads nil "tramp-archive" "tramp-archive.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-archive.el
 
 (defconst tramp-archive-file-name-regexp (ignore-errors (tramp-archive-autoload-file-name-regexp)) "\
@@ -57,8 +55,7 @@ pass to the OPERATION.
 
 ;;;***
 
-;;;### (autoloads nil "tramp-cache" "tramp-cache.el" (23769 11592
-;;;;;;  330242 265000))
+;;;### (autoloads nil "tramp-cache" "tramp-cache.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-cache.el
 
 (defvar tramp-cache-data (make-hash-table :test #'equal) "\
@@ -151,9 +148,7 @@ Print hash table TABLE.
 \(fn TABLE)" nil nil)
 
 (autoload 'tramp-list-connections "tramp-cache" "\
-Return all known `tramp-file-name' structs according to `tramp-cache'.
-
-\(fn)" nil nil)
+Return all known `tramp-file-name' structs according to `tramp-cache'." nil nil)
 
 (autoload 'tramp-parse-connection-properties "tramp-cache" "\
 Return a list of (user host) tuples allowed to access for METHOD.
@@ -167,8 +162,7 @@ Whether to read persistent data at startup time.")
 
 ;;;***
 
-;;;### (autoloads nil "tramp-cmds" "tramp-cmds.el" (23769 11640 120244
-;;;;;;  319000))
+;;;### (autoloads nil "tramp-cmds" "tramp-cmds.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-cmds.el
 
 (autoload 'tramp-change-syntax "tramp-cmds" "\
@@ -192,23 +186,17 @@ When called interactively, a Tramp connection has to be selected.
 \(fn VEC &optional KEEP-DEBUG KEEP-PASSWORD)" t nil)
 
 (autoload 'tramp-cleanup-this-connection "tramp-cmds" "\
-Flush all connection related objects of the current buffer's connection.
-
-\(fn)" t nil)
+Flush all connection related objects of the current buffer's connection." t nil)
 
 (defvar tramp-cleanup-all-connections-hook nil "\
 List of functions to be called after all Tramp connections are cleaned up.")
 
 (autoload 'tramp-cleanup-all-connections "tramp-cmds" "\
 Flush all Tramp internal objects.
-This includes password cache, file cache, connection cache, buffers.
-
-\(fn)" t nil)
+This includes password cache, file cache, connection cache, buffers." t nil)
 
 (autoload 'tramp-cleanup-all-buffers "tramp-cmds" "\
-Kill all remote buffers.
-
-\(fn)" t nil)
+Kill all remote buffers." t nil)
 
 (autoload 'tramp-version "tramp-cmds" "\
 Print version number of tramp.el in minibuffer or current buffer.
@@ -216,20 +204,15 @@ Print version number of tramp.el in minibuffer or current buffer.
 \(fn ARG)" t nil)
 
 (autoload 'tramp-bug "tramp-cmds" "\
-Submit a bug report to the Tramp developers.
-
-\(fn)" t nil)
+Submit a bug report to the Tramp developers." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "tramp-ftp" "tramp-ftp.el" (23670 58815 895105
-;;;;;;  31000))
+;;;### (autoloads nil "tramp-ftp" "tramp-ftp.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-ftp.el
 
 (autoload 'tramp-ftp-enable-ange-ftp "tramp-ftp" "\
-Reenable Ange-FTP, when Tramp is unloaded.
-
-\(fn)" nil nil)
+Reenable Ange-FTP, when Tramp is unloaded." nil nil)
 
 (defconst tramp-ftp-method "ftp" "\
 When this method name is used, forward all calls to Ange-FTP.")
@@ -250,8 +233,7 @@ Check if it's a filename that should be forwarded to Ange-FTP." (and (tramp-tram
 
 ;;;***
 
-;;;### (autoloads nil "tramp-gvfs" "tramp-gvfs.el" (23777 2103 568823
-;;;;;;  152000))
+;;;### (autoloads nil "tramp-gvfs" "tramp-gvfs.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-gvfs.el
 
 (defvar tramp-gvfs-methods '("afp" "dav" "davs" "gdrive" "nextcloud" "sftp") "\
@@ -284,8 +266,7 @@ pass to the OPERATION.
 
 ;;;***
 
-;;;### (autoloads nil "tramp-rclone" "tramp-rclone.el" (23670 63427
-;;;;;;  98631 676000))
+;;;### (autoloads nil "tramp-rclone" "tramp-rclone.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-rclone.el
 
 (defconst tramp-rclone-method "rclone" "\
@@ -316,8 +297,7 @@ Return a list of (nil host) tuples allowed to access.
 
 ;;;***
 
-;;;### (autoloads nil "tramp-sh" "tramp-sh.el" (23776 11451 80265
-;;;;;;  246000))
+;;;### (autoloads nil "tramp-sh" "tramp-sh.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-sh.el
 
 (defvar tramp-terminal-type "dumb" "\
@@ -328,7 +308,7 @@ files conditionalize this setup based on the TERM environment variable.")
 
 (custom-autoload 'tramp-terminal-type "tramp-sh" t)
 
-(defconst tramp-display-escape-sequence-regexp "[[;0-9]+m" "\
+(defconst tramp-display-escape-sequence-regexp "\33[[;0-9]+m" "\
 Terminal control escape sequences for display attributes.")
 
 (defconst tramp-initial-end-of-output "#$ " "\
@@ -430,8 +410,7 @@ Return ATTR.
 
 ;;;***
 
-;;;### (autoloads nil "tramp-smb" "tramp-smb.el" (23763 57225 909605
-;;;;;;  514000))
+;;;### (autoloads nil "tramp-smb" "tramp-smb.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-smb.el
 
 (defconst tramp-smb-method "smb" "\
@@ -459,8 +438,8 @@ pass to the OPERATION.
 
 ;;;***
 
-;;;### (autoloads nil "tramp-sudoedit" "tramp-sudoedit.el" (23679
-;;;;;;  47645 458071 427000))
+;;;### (autoloads nil "tramp-sudoedit" "tramp-sudoedit.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from tramp-sudoedit.el
 
 (defconst tramp-sudoedit-method "sudoedit" "\
@@ -485,8 +464,7 @@ pass to the OPERATION.
 
 ;;;***
 
-;;;### (autoloads nil "tramp-uu" "tramp-uu.el" (23595 15054 962016
-;;;;;;  358000))
+;;;### (autoloads nil "tramp-uu" "tramp-uu.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-uu.el
 
 (autoload 'tramp-uuencode-region "tramp-uu" "\
@@ -496,11 +474,10 @@ UU-encode the region between BEG and END.
 
 ;;;***
 
-;;;### (autoloads nil "trampver" "trampver.el" (23670 44052 667602
-;;;;;;  295000))
+;;;### (autoloads nil "trampver" "trampver.el" (0 0 0 0))
 ;;; Generated autoloads from trampver.el
 
-(defconst tramp-version "2.4.2-pre" "\
+(defconst tramp-version "0" "\
 This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org" "\
@@ -509,7 +486,7 @@ Email address to send bug reports to.")
 ;;;***
 
 ;;;### (autoloads nil nil ("tramp-compat.el" "tramp-integration.el"
-;;;;;;  "tramp.el") (23777 8599 550294 538000))
+;;;;;;  "tramp.el") (0 0 0 0))
 
 ;;;***
 

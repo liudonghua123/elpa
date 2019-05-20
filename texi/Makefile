@@ -16,25 +16,22 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-EMACS		= emacs -Q -batch -L .
-LISP_FILES	= $(wildcard *.el)
+# This Makefile requires GNU make and GNU texinfo.  If there is an
+# insufficient version of makeinfo, autoconf refuses to generate
+# Makefile.  Problems of texi2dvi, texi2pdf or install-info result in
+# a warning.
 
-.PHONY: all autoloads check info test
+MAKEINFO	= makeinfo --no-warn --no-split
+TEXI_FILES	= $(wildcard *.texi)
+CLEAN_FILES	= .\\\#* \\\#* .*~ *~ *.aux *.cp *.cps *.diff *.fn *.fns \
+		  *.ky *.log *.pg *.tmp *.toc *.tp *.vr *.vrs
 
-.SUFFIXES: .el
+.PHONY: all clean
 
-all: autoloads info
+all: ../tramp.info
 
-autoloads: $(LISP_FILES)
-	$(EMACS) -l autoload						    \
-	  --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
-	  --eval "(setq generated-autoload-file				    \
-		    (expand-file-name \"tramp-loaddefs.el\"))"		    \
-	  --eval "(setq make-backup-files nil)"				    \
-	  -f batch-update-autoloads .
+../tramp.info: $(TEXI_FILES)
+	$(MAKEINFO) --footnote-style=end -o $@ $<
 
-info:
-	$(MAKE) -C texi
-
-check test: autoloads
-	$(MAKE) -C test "TRAMP_TEST_ARGS=$(TRAMP_TEST_ARGS)" all
+clean:
+	$(RM) $(CLEAN_FILES)
