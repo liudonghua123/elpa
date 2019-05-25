@@ -23,8 +23,7 @@
 
 EMACS		= emacs -Q -batch -L ../
 CLEAN_FILES	= .\\\#* \\\#* .*~ *~ *.elc *.log
-TESTS		= $(if ${REMOTE_TEMPORARY_FILE_DIRECTORY},, tramp-archive-tests)
-TESTS		+= tramp-tests
+TESTS		= tramp-tests
 
 TRAMP_TEST_ARGS ?=
 SELECTOR	?= t
