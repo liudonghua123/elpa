@@ -1,0 +1,8 @@
+This repository has two remotes, "origin" and "elpa". They are
+pulled/pushed like this:
+
+git pull origin
+git push origin
+
+git pull elpa externals/tramp
+git push elpa externals/tramp
