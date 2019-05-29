@@ -41,17 +41,20 @@
 ;; The entry point for the "top-speed" mode is `gnus-mock-run-tests';
 ;; for the "stop-and-look" mode, it's `gnus-mock-run-tests-halt'.
 
+;; These tests are tied directly to the dummy data provided in Gnus
+;; mock.  If that data changes at all, these tests will almost
+;; certainly have to be adjusted accordingly.
+
 ;;; Code:
 
 (require 'ert)
 
-(defcustom gnus-mock-halt-seconds 1
+(defcustom gnus-mock-halt-seconds 2
   "In `gnus-mock-run-tests-halt', halt for this many seconds."
   :group 'gnus-mock
   :type '(integer
 	  :tag "Number of seconds to halt for"
 	  :validate
-	  ;; Should be a positive integer.
 	  (lambda (widg)
 	    (let ((val (widget-value widg)))
 	      (unless (> val 0)
@@ -59,21 +62,36 @@
 		widg)))))
 
 (defvar gnus-mock-halt nil
-  "When non-nil, pause at key points during the testing processs.
+  "When non-nil, pause at key points during the testing process.
 This gives the user a chance to confirm that everything looks the
 way it ought to.
 
 This variable shouldn't be set directly, it is let-bound inside
 `gnus-mock-run-tests-halt'.")
 
-(defsubst gnus-mock-maybe-halt ()
+(defsubst gnus-mock-maybe-halt (&optional message)
   (when gnus-mock-halt
-    (sit-for gnus-mock-halt-seconds)))
+    (with-temp-message message
+      (sit-for gnus-mock-halt-seconds))))
+
+(defmacro with-topic-mode-on (&rest body)
+  `(let ((was-topic (if gnus-topic-mode 1 -1)))
+     (gnus-topic-mode 1)
+     (unwind-protect
+	 (progn ,@body)
+       (gnus-topic-mode was-topic))))
+
+(defmacro with-topic-mode-off (&rest body)
+  `(let ((was-topic (if gnus-topic-mode 1 -1)))
+     (gnus-topic-mode -1)
+     (unwind-protect
+	 (progn ,@body)
+       (gnus-topic-mode was-topic))))
 
 (defun gnus-mock-run-tests ()
   (interactive)
   (require 'gnus)
-  (unless (gnus-alive-p) ;; Why does this make a *Group* buffer?
+  (unless (gnus-alive-p)
     (user-error "Start Gnus before running tests"))
   (call-interactively #'ert))
 
@@ -84,10 +102,38 @@ This variable shouldn't be set directly, it is let-bound inside
 
 (ert-deftest gnus-mock-test-sanity ()
   "Sanity test."
-  (let ((g-num (hash-table-count gnus-newsrc-hashtb)))
-    (message "Hi there, you're testing.")
-    (gnus-mock-maybe-halt)
-    (message "You have %s groups" g-num)))
+  (let ((number-of-groups (hash-table-count gnus-newsrc-hashtb)))
+    (gnus-mock-maybe-halt "Hi there, you're testing.")
+    (should (= number-of-groups 10))
+    (with-current-buffer gnus-group-buffer
+      (should (= (count-lines (point-min) (point-max)) 5)))))
+
+(ert-deftest gnus-mock-test-sort-flat-alpha ()
+  "Test sorting group names alphabetically."
+  (with-current-buffer gnus-group-buffer
+    (with-topic-mode-off
+     (call-interactively #'gnus-group-sort-groups-by-alphabet)
+     (gnus-mock-maybe-halt "Groups sorted by name")
+     (goto-char (point-min))
+     (should (string-equal (gnus-group-group-name) "Welcome"))
+     (let ((current-prefix-arg '(4)))
+       (call-interactively #'gnus-group-sort-groups-by-alphabet))
+     (goto-char (point-min))
+     (gnus-mock-maybe-halt "Groups sorted by reverse name")
+     (should (string-equal (gnus-group-group-name) "nnimap+Mocky:Приветмир")))))
+
+(ert-deftest gnus-mock-test-sort-topics-alpha ()
+  (with-current-buffer gnus-group-buffer
+    (with-topic-mode-on
+     (gnus-topic-jump-to-topic "misc")
+     (call-interactively #'gnus-topic-sort-groups-by-alphabet)
+     (forward-line)
+     (gnus-mock-maybe-halt "Topic groups sorted by name")
+     (should (string-equal (gnus-group-group-name) "Welcome"))
+     (let ((current-prefix-arg '(4)))
+       (call-interactively #'gnus-topic-sort-groups-by-alphabet))
+     (gnus-mock-maybe-halt "Topic groups sorted by reverse name")
+     (should (string-equal (gnus-group-group-name) "nnimap+Mocky:Приветмир")))))
 
 (provide 'gnus-mock-tests)
 ;;; gnus-mock-tests.el ends here
