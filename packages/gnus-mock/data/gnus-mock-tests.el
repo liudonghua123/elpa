@@ -45,9 +45,18 @@
 ;; mock.  If that data changes at all, these tests will almost
 ;; certainly have to be adjusted accordingly.
 
+;; The code tries to use `call-interactively' where possible, but it's
+;; not always possible (when passing specific interactive arguments.
+;; It also attempts to leave Gnus the way it was when it started, but
+;; that's not always possible either.
+
 ;;; Code:
 
 (require 'ert)
+(require 'gnus)
+
+(autoload 'gnus-topic-mode "gnus-topic")
+(defvar gnus-topic-mode nil)
 
 (defcustom gnus-mock-halt-seconds 2
   "In `gnus-mock-run-tests-halt', halt for this many seconds."
@@ -79,18 +88,22 @@ This variable shouldn't be set directly, it is let-bound inside
      (gnus-topic-mode 1)
      (unwind-protect
 	 (progn ,@body)
-       (gnus-topic-mode was-topic))))
+       (let ((current-prefix-arg was-topic))
+	 ;; `gnus-topic-mode' only redisplays the group buffer if it
+	 ;; was called interactively, and it's very confusing not to
+	 ;; have the buffer redisplayed.
+	 (call-interactively #'gnus-topic-mode)))))
 
 (defmacro with-topic-mode-off (&rest body)
   `(let ((was-topic (if gnus-topic-mode 1 -1)))
      (gnus-topic-mode -1)
      (unwind-protect
 	 (progn ,@body)
-       (gnus-topic-mode was-topic))))
+       (let ((current-prefix-arg was-topic))
+	 (call-interactively #'gnus-topic-mode)))))
 
 (defun gnus-mock-run-tests ()
   (interactive)
-  (require 'gnus)
   (unless (gnus-alive-p)
     (user-error "Start Gnus before running tests"))
   (call-interactively #'ert))
@@ -126,14 +139,58 @@ This variable shouldn't be set directly, it is let-bound inside
   (with-current-buffer gnus-group-buffer
     (with-topic-mode-on
      (gnus-topic-jump-to-topic "misc")
-     (call-interactively #'gnus-topic-sort-groups-by-alphabet)
+     (gnus-topic-sort-groups-by-alphabet)
      (forward-line)
      (gnus-mock-maybe-halt "Topic groups sorted by name")
      (should (string-equal (gnus-group-group-name) "Welcome"))
+     (gnus-topic-jump-to-topic "misc")
      (let ((current-prefix-arg '(4)))
        (call-interactively #'gnus-topic-sort-groups-by-alphabet))
+     (forward-line)
      (gnus-mock-maybe-halt "Topic groups sorted by reverse name")
      (should (string-equal (gnus-group-group-name) "nnimap+Mocky:Приветмир")))))
+
+(ert-deftest gnus-mock-make-multibyte-group ()
+  "Test creation of a nnml group with non-ascii name."
+  (with-current-buffer gnus-group-buffer
+    (unwind-protect
+	(progn
+	  (gnus-group-make-group "测试" "nnml:")
+	  (gnus-mock-maybe-halt)
+	  (should (gnus-group-goto-group "nnml:测试"))
+	  (gnus-mock-maybe-halt)
+	  (should (gnus-group-entry "nnml:测试"))
+	  (should (gnus-active "nnml:测试"))
+	  (gnus-group-save-newsrc)
+	  (with-temp-buffer
+	    (insert-file-contents
+	     (concat gnus-current-startup-file ".eld"))
+	    ;; Group names should now be saved with proper encoding.
+	    (should (re-search-forward "nnml:测试"))))
+      (gnus-group-delete-group "nnml:测试" t t))))
+
+(ert-deftest gnus-mock-copy-article-to-multibyte-group ()
+  "Test copying an article to a group with non-ascii name."
+  (with-current-buffer gnus-group-buffer
+    (with-topic-mode-off
+     (unwind-protect
+	 (progn
+	   (gnus-group-make-group "หลอดทดลอง" "nnml:")
+	   (gnus-mock-maybe-halt "Made new group")
+	   (gnus-group-jump-to-group "mails" nil)
+	   (call-interactively #'gnus-group-select-group)
+	   (gnus-mock-maybe-halt)
+	   (gnus-summary-move-article 1 "nnml:หลอดทดลอง")
+	   ;; Do we need to `should' anything?  It ought to be enough
+	   ;; that no error was raised.
+	   (gnus-mock-maybe-halt "Moved article")
+	   (call-interactively #'gnus-summary-exit)
+	   (gnus-group-jump-to-group "nnml:หลอดทดลอง")
+	   (call-interactively #'gnus-group-select-group)
+	   (gnus-mock-maybe-halt)
+	   (should (= 1 (length gnus-newsgroup-data)))
+	   (call-interactively #'gnus-summary-exit))
+       (gnus-group-delete-group "nnml:หลอดทดลอง" t t)))))
 
 (provide 'gnus-mock-tests)
 ;;; gnus-mock-tests.el ends here
