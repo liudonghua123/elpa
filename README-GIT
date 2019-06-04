@@ -8,5 +8,5 @@ remotes, "origin" and "elpa". They are pulled/pushed like this:
 # git push elpa externals/tramp
 
 These commands do not apply to the local ELPA repository. This uses
-"make externals" for a pull; a push for the Tramp part is not
-expected.
+"git pull; make externals" for a pull; a push for the Tramp part is
+not expected.

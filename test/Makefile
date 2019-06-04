@@ -28,7 +28,7 @@ TESTS		= tramp-tests
 TRAMP_TEST_ARGS ?=
 SELECTOR	?= t
 
-.PHONY: all check test clean distclean
+.PHONY: all check clean distclean sync test
 
 # We want to keep *.elc files.
 .SECONDARY:
@@ -45,6 +45,9 @@ check test: $(TESTS)
 
 %.elc: %.el
 	$(EMACS) -l bytecomp -f batch-byte-compile $?
+
+sync:
+	cp -p ~/src/tramp/test/tramp-tests.el tramp-tests.el
 
 clean:
 	$(RM) $(CLEAN_FILES)

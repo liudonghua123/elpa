@@ -19,11 +19,30 @@
 EMACS		= emacs -Q -batch -L .
 LISP_FILES	= $(wildcard *.el)
 
-.PHONY: all autoloads check info test
+.PHONY: all autoloads check info sync test
 
 .SUFFIXES: .el
 
-all: autoloads info
+all: sync autoloads info
+
+sync:
+	cp -p ~/src/tramp/lisp/tramp-adb.el tramp-adb.el
+	cp -p ~/src/tramp/lisp/tramp-archive.el tramp-archive.el
+	cp -p ~/src/tramp/lisp/tramp-cache.el tramp-cache.el
+	cp -p ~/src/tramp/lisp/tramp-cmds.el tramp-cmds.el
+	cp -p ~/src/tramp/lisp/tramp-compat.el tramp-compat.el
+	cp -p ~/src/tramp/lisp/tramp-ftp.el tramp-ftp.el
+	cp -p ~/src/tramp/lisp/tramp-gvfs.el tramp-gvfs.el
+	cp -p ~/src/tramp/lisp/tramp-integration.el tramp-integration.el
+	cp -p ~/src/tramp/lisp/tramp-rclone.el tramp-rclone.el
+	cp -p ~/src/tramp/lisp/tramp-sh.el tramp-sh.el
+	cp -p ~/src/tramp/lisp/tramp-smb.el tramp-smb.el
+	cp -p ~/src/tramp/lisp/tramp-sudoedit.el tramp-sudoedit.el
+	cp -p ~/src/tramp/lisp/tramp-uu.el tramp-uu.el
+	cp -p ~/src/tramp/lisp/tramp.el tramp.el
+	cp -p ~/src/tramp/lisp/trampver.el trampver.el
+	$(MAKE) -C texi sync
+	$(MAKE) -C test sync
 
 autoloads: $(LISP_FILES)
 	$(EMACS) -l autoload						    \

@@ -26,9 +26,13 @@ TEXI_FILES	= $(wildcard *.texi)
 CLEAN_FILES	= .\\\#* \\\#* .*~ *~ *.aux *.cp *.cps *.diff *.fn *.fns \
 		  *.ky *.log *.pg *.tmp *.toc *.tp *.vr *.vrs
 
-.PHONY: all clean
+.PHONY: all clean sync
 
 all: ../tramp.info
+
+sync:
+	cp -p ~/src/tramp/texi/tramp.texi tramp.texi
+	cp -p ~/src/tramp/texi/trampver.texi trampver.texi
 
 ../tramp.info: $(TEXI_FILES)
 	$(MAKEINFO) --footnote-style=end -o $@ $<

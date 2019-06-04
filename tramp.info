@@ -246,6 +246,8 @@ TRAMP is included as part of Emacs (since Emacs 22.1).
    TRAMP is also freely packaged for download on the Internet at
 <https://ftp.gnu.org/gnu/tramp/>.
 
+   TRAMP is available as GNU ELPA (https://elpa.gnu.org) package.
+
    TRAMP development versions are available on Git servers.  Development
 versions contain new and incomplete features.
 
@@ -4096,6 +4098,7 @@ Concept Index
 * git method:                            Customizing Methods. (line  37)
 * GNOME Online Accounts:                 Quick Start Guide.   (line 104)
 * GNOME Online Accounts <1>:             GVFS based methods.  (line  47)
+* GNU ELPA:                              Obtaining TRAMP.     (line   6)
 * google drive:                          Quick Start Guide.   (line 104)
 * google drive <1>:                      GVFS based methods.  (line  34)
 * gud.el:                                Remote processes.    (line 208)
@@ -4300,58 +4303,58 @@ Tag Table:
 Node: Top933
 Node: Overview5348
 Node: Obtaining TRAMP10682
-Node: Quick Start Guide11980
-Ref: Quick Start Guide: File name syntax12757
-Ref: Quick Start Guide: ssh and plink methods13859
-Ref: Quick Start Guide: su, sudo and sg methods14403
-Ref: Quick Start Guide: ssh, plink, su, sudo and sg methods14967
-Ref: Quick Start Guide: sudoedit method15497
-Ref: Quick Start Guide: smb method15908
-Ref: Quick Start Guide: GVFS-based methods16239
-Ref: Quick Start Guide: GNOME Online Accounts based methods16651
-Ref: Quick Start Guide: Android17193
-Ref: Quick Start Guide: rclone method17425
-Node: Configuration17752
-Node: Connection types20224
-Node: Inline methods21638
-Node: External methods26301
-Node: GVFS based methods36820
-Node: Default Method39710
-Node: Default User42727
-Node: Default Host44250
-Node: Multi-hops45382
-Node: Firewalls49574
-Node: Customizing Methods51031
-Node: Customizing Completion53371
-Node: Password handling56861
-Ref: Using an authentication file57331
-Ref: Caching passwords58833
-Node: Connection caching59351
-Node: Predefined connection information60281
-Node: Remote programs62626
-Node: Remote shell setup65547
-Node: Android shell setup73757
-Node: Auto-save and Backup76144
-Node: Windows setup hints79219
-Node: Usage80839
-Node: File name syntax82137
-Node: Change file name syntax84144
-Node: File name completion85575
-Node: Ad-hoc multi-hops88648
-Node: Remote processes90714
-Ref: Running a debugger on a remote host99468
-Node: Cleanup remote connections101438
-Node: Archive file names102886
-Node: Bug Reports107245
-Node: Frequently Asked Questions109627
-Node: Files directories and localnames131908
-Node: Localname deconstruction132344
-Node: External packages132997
-Node: Traces and Profiles135042
-Node: GNU Free Documentation License137011
-Node: Function Index162382
-Node: Variable Index164986
-Node: Concept Index171810
+Node: Quick Start Guide12047
+Ref: Quick Start Guide: File name syntax12824
+Ref: Quick Start Guide: ssh and plink methods13926
+Ref: Quick Start Guide: su, sudo and sg methods14470
+Ref: Quick Start Guide: ssh, plink, su, sudo and sg methods15034
+Ref: Quick Start Guide: sudoedit method15564
+Ref: Quick Start Guide: smb method15975
+Ref: Quick Start Guide: GVFS-based methods16306
+Ref: Quick Start Guide: GNOME Online Accounts based methods16718
+Ref: Quick Start Guide: Android17260
+Ref: Quick Start Guide: rclone method17492
+Node: Configuration17819
+Node: Connection types20291
+Node: Inline methods21705
+Node: External methods26368
+Node: GVFS based methods36887
+Node: Default Method39777
+Node: Default User42794
+Node: Default Host44317
+Node: Multi-hops45449
+Node: Firewalls49641
+Node: Customizing Methods51098
+Node: Customizing Completion53438
+Node: Password handling56928
+Ref: Using an authentication file57398
+Ref: Caching passwords58900
+Node: Connection caching59418
+Node: Predefined connection information60348
+Node: Remote programs62693
+Node: Remote shell setup65614
+Node: Android shell setup73824
+Node: Auto-save and Backup76211
+Node: Windows setup hints79286
+Node: Usage80906
+Node: File name syntax82204
+Node: Change file name syntax84211
+Node: File name completion85642
+Node: Ad-hoc multi-hops88715
+Node: Remote processes90781
+Ref: Running a debugger on a remote host99535
+Node: Cleanup remote connections101505
+Node: Archive file names102953
+Node: Bug Reports107312
+Node: Frequently Asked Questions109694
+Node: Files directories and localnames131975
+Node: Localname deconstruction132411
+Node: External packages133064
+Node: Traces and Profiles135109
+Node: GNU Free Documentation License137078
+Node: Function Index162449
+Node: Variable Index165053
+Node: Concept Index171877
 
 End Tag Table
 
