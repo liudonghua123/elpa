@@ -119,7 +119,13 @@ insert a literal % quote it using a backslash."
           (has-< (match-string-no-properties 4 command))
           (has-> (match-string-no-properties 5 command))
           (has-| (match-string-no-properties 6 command))
-          (rest  (match-string-no-properties 7 command)))
+          (rest (condition-case nil
+                    (replace-regexp-in-string
+                     (rx (* ?\\ ?\\) (or ?\\ (group "%")))
+                     buffer-file-name
+                     (match-string-no-properties 7 command)
+                     nil nil 1)
+                  (error (match-string-no-properties 7 command)))))
       (cond (arg-! (bang (bang--find-last-command arg-!)
                          beg end))
             (num-! (bang (bang--get-command-number num-! rest)
