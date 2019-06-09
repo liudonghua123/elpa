@@ -1,10 +1,36 @@
-;;; -*- lexical-binding: t -*-
-;;; published under CC0 into the public domain
-;;; author: philip k. [https://zge.us.to], 2019
-;;;
-;;; based on bang from http://chneukirchen.org/dotfiles/.emacs
+;;; bang.el --- a more inteligent shell-command -*- lexical-binding: t -*-
+
+;; Author: Philip K. <philip@warpmail.net>
+;; Version: 0.1.0
+;; Keywords: unix, processes, convenience
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
+;; URL: https://git.sr.ht/~zge/bang
+
+;; This file is NOT part of Emacs.
+;; 
+;; This file is in the public domain, to the extent possible under law,
+;; published under the CC0 1.0 Universal license.
+;;
+;; For a full copy of the CC0 license see
+;; https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+;;; Commentary:
+;;
+;; Bang is a interactive `shell-command' substitute, that extends the
+;; regular Emacs function by considering the first character as special.
+;; Read `bang's docstring for more details.
+;;
+;; This version of Bang has been based on Leah Neukirchen's version, and
+;; has been (messily) extended to handle history commands (!32 for the
+;; 32'nd last command, !xterm for the last command starting with xterm).
+;; Most of the internal code of `bang' has been rewritten for this sake.
+;;
+;; The original version can be found here:
+;; http://leahneukirchen.org/dotfiles/.emacs
 
 (require 'rx)
+
+;;; Code:
 
 (defconst bang--command-regexp
   (rx bos (* space)
@@ -26,6 +52,7 @@
   "Number of commands to save in `bang--last-commands'.")
 
 (defun bang--remember-command (command)
+  "Helper function to save COMMAND in bang's history."
   (push command bang--last-commands)
   (let ((overflow (- (length bang--last-commands)
                      bang-history-size)))
@@ -34,6 +61,7 @@
             (nbutlast bang--last-commands overflow)))))
 
 (defun bang--find-last-command (prefix)
+  "Helper function to find last command that started with PREFIX."
   (catch 'found
     (dolist (cmd bang--last-commands)
       (when (string-prefix-p prefix cmd)
@@ -41,6 +69,9 @@
     (error "no such command in history")))
 
 (defun bang--get-command-number (arg rest)
+  "Helper function to find ARG'th last command.
+
+Second argument REST will be concatenated to what was found."
   (let* ((num (string-to-number arg))
          (pos (- (length bang--last-commands)
                  (1- num)))
@@ -63,8 +94,7 @@
     (pop-to-buffer buf)))
 
 (defun bang (command beg end)
-  "Intelligently execute string COMMAND in inferior shell, like
-with `shell-command'.
+  "Intelligently execute string COMMAND in inferior shell.
 
 When COMMAND starts with
   <  the output of COMMAND replaces the current selection
@@ -111,3 +141,5 @@ insert a literal % quote it using a backslash."
         (bang--remember-command command)))))
 
 (provide 'bang)
+
+;;; bang.el ends here
