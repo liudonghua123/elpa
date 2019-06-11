@@ -84,6 +84,11 @@ Symbols `int', `max' and `min' are substituted with
   :type '(list face)
   :group 'face-shift)
 
+(defun face-shift--force-fit (color)
+  (let ((max (apply #'max color)))
+    (mapcar (lambda (x) (/ x max))
+            color)))
+
 (defun face-shift-by (face prop mat)
   "Calculate colour distortion and apply to property PROP of FACE.
 MAT describes the linear transformation that calculates the new
@@ -100,8 +105,7 @@ colour. If property PROP is not a color, nothing is changed."
            #'color-rgb-to-hex
            (append
             (if face-shift-force-fit
-                (mapcar (lambda (x) (if (< x 1) 1 x))
-                        trans)
+                (face-shift--force-fit trans)
               trans)
             '(2)))))
     (unless (eq bg 'unspecified)
