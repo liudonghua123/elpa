@@ -142,7 +142,7 @@ insert a literal % quote it using a backslash."
             (t (shell-command command nil shell-command-default-error-buffer)))
       (when (or has-! has->)
         (with-current-buffer "*Shell Command Output*"
-          (kill-ring-save (point-min) (point-max))))
+          (delete-region (point-min) (point-max))))
       (unless (or num-! arg-!)
         (bang--remember-command command)))))
 
