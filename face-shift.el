@@ -41,23 +41,21 @@
   "Ensure transformations stay in RGB-unit-space.
 
 This will be done by wrapping values over 1.0 to 1.0."
-  :type 'boolean
-  :group 'face-shift)
+  :type 'boolean)
 
 (defcustom face-shift-intensity 0.9
   "Value to replace a `int' symbol with in `face-shift-colors'."
-  :type 'float
-  :group 'face-shift)
+  :type 'float)
 
 (defcustom face-shift-minimum 0.0
   "Value to replace a `min' symbol with in `face-shift-colors'."
-  :type 'float
-  :group 'face-shift)
+  :type 'float)
 
 (defcustom face-shift-maximum 1.0
   "Value to replace a `max' symbol with in `face-shift-colors'."
-  :type 'float
-  :group 'face-shift)
+  :type 'float)
+
+
 
 (defcustom face-shift-colors
   '((blue .   ((int min min) (min max min) (min min max)))
