@@ -43,6 +43,13 @@
 This will be done by wrapping values over 1.0 to 1.0."
   :type 'boolean)
 
+(defcustom face-shift-inverted nil
+  "Should colour-space be inverted before transformed?
+
+Note that it might be necessary to change the value of
+`face-shift-intensity' to get the intended effect."
+  :type 'boolean)
+
 (defcustom face-shift-intensity 0.9
   "Value to replace a `int' symbol with in `face-shift-colors'."
   :type 'float)
@@ -54,8 +61,6 @@ This will be done by wrapping values over 1.0 to 1.0."
 (defcustom face-shift-maximum 1.0
   "Value to replace a `max' symbol with in `face-shift-colors'."
   :type 'float)
-
-
 
 (defcustom face-shift-colors
   '((blue .   ((int min min) (min max min) (min min max)))
@@ -91,21 +96,37 @@ Symbols `int', `max' and `min' are substituted with
   "Calculate colour distortion and apply to property PROP of FACE.
 MAT describes the linear transformation that calculates the new
 colour. If property PROP is not a color, nothing is changed."
-  (let* ((mvp (lambda (vec)
+  (let* ((inv (lambda (col)
+                (mapcar (apply-partially #'- 1) col)))
+         (mvp (lambda (matrix vec)
                 (mapcar (lambda (row)
                           (apply #'+ (cl-mapcar #'* row vec)))
-                        mat)))
+                        matrix)))
          (bg (face-attribute face prop))
-         (colors (color-name-to-rgb bg))
-         (trans (funcall mvp colors))
-         (ncolor
-          (apply
-           #'color-rgb-to-hex
-           (append
-            (if face-shift-force-fit
-                (face-shift--force-fit trans)
-              trans)
-            '(2)))))
+         (colors (if face-shift-inverted
+                     (funcall inv (color-name-to-rgb bg))
+                   (color-name-to-rgb bg)))
+         (shifted (funcall mvp mat colors))
+         (trans (if face-shift-inverted
+                    ;; the inverted transformation shifts the hue by
+                    ;; 180°, which we now turn around again by a
+                    ;; rgb->hsv->rotation*->rgb transformation.
+                    (let* ((col (funcall inv shifted))
+                           (hsl (apply #'color-rgb-to-hsl col))
+                           (hue (mod (+ (nth 0 hsl)
+										(/ (sin (/ (nth 0 hsl)
+												   (* 2 pi)))
+										   2))
+									 1)))
+                      (apply #'color-hsl-to-rgb
+                             (list hue (nth 1 hsl) (nth 2 hsl))))
+                  shifted))
+         (ncolor (apply #'color-rgb-to-hex
+                        (append
+                         (if face-shift-force-fit
+                             (face-shift--force-fit trans)
+                           trans)
+                         '(2)))))
     (unless (eq bg 'unspecified)
       (face-remap-add-relative face `(,prop ,ncolor)))
     ncolor))
