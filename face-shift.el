@@ -88,6 +88,7 @@ Symbols `int', `max' and `min' are substituted with
   :group 'face-shift)
 
 (defun face-shift--force-fit (color)
+  "Scale a colour back into RGB colour space."
   (let ((max (apply #'max color)))
     (mapcar (lambda (x) (/ x max))
             color)))
