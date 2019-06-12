@@ -2,8 +2,8 @@
 
 ;; Author: Philip K. <philip@warpmail.net>
 ;; Version: 0.1.0
-;; Keywords: c, abbrev, convenience
-;; Package-Requires: ((emacs "24"))
+;; Keywords: faces
+;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://git.sr.ht/~zge/face-shift
 
 ;; This file is NOT part of Emacs.
