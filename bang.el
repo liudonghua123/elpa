@@ -1,4 +1,4 @@
-;;; bang.el --- a more inteligent shell-command -*- lexical-binding: t -*-
+;;; bang.el --- A more inteligent shell-command -*- lexical-binding: t -*-
 
 ;; Author: Philip K. <philip@warpmail.net>
 ;; Version: 0.1.0
