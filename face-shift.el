@@ -1,4 +1,4 @@
-;;; face-shift.el --- shift the color of certain faces -*- lexical-binding: t -*-
+;;; face-shift.el --- Shift the color of certain faces -*- lexical-binding: t -*-
 
 ;; Author: Philip K. <philip@warpmail.net>
 ;; Version: 0.1.0
