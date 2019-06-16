@@ -25,6 +25,21 @@ LISP_FILES	= $(wildcard *.el)
 
 all: sync autoloads info
 
+autoloads: $(LISP_FILES)
+	$(EMACS) -l autoload						    \
+	  --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
+	  --eval "(setq generated-autoload-file				    \
+		    (expand-file-name \"tramp-loaddefs.el\"))"		    \
+	  --eval "(setq make-backup-files nil)"				    \
+	  -f batch-update-autoloads .
+
+info:
+	$(MAKE) -C texi
+
+check test: autoloads
+	$(MAKE) -C test "TRAMP_TEST_ARGS=$(TRAMP_TEST_ARGS)" all
+
+# This target is for the maintainer only.
 sync:
 	cp -p ~/src/tramp/lisp/tramp-adb.el tramp-adb.el
 	cp -p ~/src/tramp/lisp/tramp-archive.el tramp-archive.el
@@ -43,17 +58,3 @@ sync:
 	cp -p ~/src/tramp/lisp/trampver.el trampver.el
 	$(MAKE) -C texi sync
 	$(MAKE) -C test sync
-
-autoloads: $(LISP_FILES)
-	$(EMACS) -l autoload						    \
-	  --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
-	  --eval "(setq generated-autoload-file				    \
-		    (expand-file-name \"tramp-loaddefs.el\"))"		    \
-	  --eval "(setq make-backup-files nil)"				    \
-	  -f batch-update-autoloads .
-
-info:
-	$(MAKE) -C texi
-
-check test: autoloads
-	$(MAKE) -C test "TRAMP_TEST_ARGS=$(TRAMP_TEST_ARGS)" all

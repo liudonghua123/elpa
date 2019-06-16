@@ -30,12 +30,13 @@ CLEAN_FILES	= .\\\#* \\\#* .*~ *~ *.aux *.cp *.cps *.diff *.fn *.fns \
 
 all: ../tramp.info
 
-sync:
-	cp -p ~/src/tramp/texi/tramp.texi tramp.texi
-	cp -p ~/src/tramp/texi/trampver.texi trampver.texi
-
 ../tramp.info: $(TEXI_FILES)
 	$(MAKEINFO) --footnote-style=end -o $@ $<
 
 clean:
 	$(RM) $(CLEAN_FILES)
+
+# This target is for the maintainer only.
+sync:
+	cp -p ~/src/tramp/texi/tramp.texi tramp.texi
+	cp -p ~/src/tramp/texi/trampver.texi trampver.texi
