@@ -73,7 +73,8 @@ Note that it might be necessary to change the value of
 Symbols `int', `max' and `min' are substituted with
 `face-shift-intensity', `face-shift-maximum' and
 `face-shift-minimum' respectively."
-  :type '(list (list symbol))
+  :type '(alist :key-type symbol
+                :value-type (list (list (choice symbol float))))
   :group 'face-shift)
 
 (defcustom face-shift-faces
