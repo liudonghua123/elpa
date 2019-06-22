@@ -26,7 +26,7 @@
 ;; Most of the internal code of `bang' has been rewritten for this sake.
 ;;
 ;; The original version can be found here:
-;; http://leahneukirchen.org/dotfiles/.emacs
+;; https://leahneukirchen.org/dotfiles/.emacs
 
 (require 'rx)
 
@@ -66,7 +66,7 @@
     (dolist (cmd bang--last-commands)
       (when (string-prefix-p prefix cmd)
         (throw 'found cmd)))
-    (error "no such command in history")))
+    (error "No such command in history")))
 
 (defun bang--get-command-number (arg rest)
   "Helper function to find ARG'th last command.
@@ -106,7 +106,10 @@ When COMMAND starts with
 Without any argument, `bang' will behave like `shell-command'.
 
 Inside COMMAND, % is replaced with the current file name. To
-insert a literal % quote it using a backslash."
+insert a literal % quote it using a backslash.
+
+In case a region is active, bang will only work with the region
+between BEG and END. Otherwise the whole buffer is processed."
   (interactive (list (read-shell-command "Bang command: ")
                      (if mark-active (region-beginning) (point-min))
                      (if mark-active (region-end) (point-max))))
