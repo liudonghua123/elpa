@@ -116,11 +116,11 @@ colour. If property PROP is not a colour, nothing is changed."
                     (let* ((col (funcall inv shifted))
                            (hsl (apply #'colour-rgb-to-hsl col))
                            (hue (mod (+ (nth 0 hsl)
-										(/ (sin (/ (nth 0 hsl)
-												   (* 2 pi)))
-										   2))
-									 1)))
-                      (apply #'color-hsl-to-rgb
+                                        (/ (sin (/ (nth 0 hsl)
+                                                   (* 2 pi)))
+                                           2))
+                                     1)))
+                      (apply #'colour-hsl-to-rgb
                              (list hue (nth 1 hsl) (nth 2 hsl))))
                   shifted))
          (ncolour (apply #'colour-rgb-to-hex
