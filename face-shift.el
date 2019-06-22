@@ -81,7 +81,7 @@ Symbols `int', `max' and `min' are substituted with
   (append '(default cursor region isearch)
           (cl-remove-if-not
            (lambda (sym)
-             (string-match-p (rx bos "font-lock-")
+             (string-match-p "\\`font-lock-"
                              (symbol-name sym)))
            (face-list)))
   "Faces that `face-shift' should distort."
