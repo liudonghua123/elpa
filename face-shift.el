@@ -1,4 +1,4 @@
-;;; face-shift.el --- Shift the colour of certain faces -*- lexical-binding: t -*-
+;;; face-shift.el --- Shift the color of certain faces -*- lexical-binding: t -*-
 
 ;; Author: Philip K. <philip@warpmail.net>
 ;; Version: 0.1.0
@@ -37,44 +37,31 @@
   :group 'faces
   :prefix "face-shift-")
 
-(defcustom face-shift-force-fit nil
-  "Ensure transformations stay in RGB-unit-space.
-
-This will be done by wrapping values over 1.0 to 1.0."
-  :type 'boolean)
-
 (defcustom face-shift-inverted nil
-  "Should colour-space be inverted before transformed?
+  "Should color-space be inverted before transformed?
 
 Note that it might be necessary to change the value of
 `face-shift-intensity' to get the intended effect."
   :type 'boolean)
 
-(defcustom face-shift-intensity 0.9
+(defcustom face-shift-intensity 0.25
   "Value to replace a `int' symbol with in `face-shift-color'."
   :type 'float)
 
-(defcustom face-shift-minimum 0.0
-  "Value to replace a `min' symbol with in `face-shift-color'."
-  :type 'float)
-
-(defcustom face-shift-maximum 1.0
-  "Value to replace a `max' symbol with in `face-shift-color'."
-  :type 'float)
-
 (defcustom face-shift-color
-  '((blue .   ((int min min) (min max min) (min min max)))
-    (pink .   ((max min min) (min int min) (min min max)))
-    (yellow . ((max min min) (min max min) (min min int)))
-    (peach .  ((max min min) (min int min) (min min int)))
-    (green .  ((int min min) (min max min) (min min int)))
-    (purple . ((int min min) (min int min) (min min max))))
+  '((red . 0)
+    (cyan . 180)
+    (blue . 240)
+    (pink . 300)
+    (yellow . 60)
+    (peach . 40)
+    (green . 120)
+    (purple . 280))
   "Alist of matrices representing RGB transformations.
 Symbols `int', `max' and `min' are substituted with
 `face-shift-intensity', `face-shift-maximum' and
 `face-shift-minimum' respectively."
-  :type '(alist :key-type symbol
-                :value-type (list (list (choice symbol float))))
+  :type '(alist :key-type symbol :value-type float)
   :group 'face-shift)
 
 (defcustom face-shift-faces
@@ -88,58 +75,31 @@ Symbols `int', `max' and `min' are substituted with
   :type '(list face)
   :group 'face-shift)
 
-(defun face-shift--force-fit (coulor)
-  "Scale a COLOUR back into RGB colour space."
-  (let ((max (apply #'max coulor)))
-    (mapcar (lambda (x) (/ x max))
-            coulor)))
-
-(defun face-shift-by (face prop mat)
-  "Calculate colour distortion and apply to property PROP of FACE.
+(defun face-shift-by (face prop hue)
+  "Calculate color distortion and apply to property PROP of FACE.
 MAT describes the linear transformation that calculates the new
-colour. If property PROP is not a colour, nothing is changed."
-  (let* ((inv (lambda (col)
-                (mapcar (apply-partially #'- 1) col)))
-         (mvp (lambda (matrix vec)
-                (mapcar (lambda (row)
-                          (apply #'+ (cl-mapcar #'* row vec)))
-                        matrix)))
-         (bg (face-attribute face prop))
-         (color (if face-shift-inverted
-                     (funcall inv (color-name-to-rgb bg))
-                   (color-name-to-rgb bg)))
-         (shifted (funcall mvp mat color))
-         (trans (if face-shift-inverted
-                    ;; the inverted transformation shifts the hue by
-                    ;; 180°, which we now turn around again by a
-                    ;; rgb->hsv->rotation*->rgb transformation.
-                    (let* ((col (funcall inv shifted))
-                           (hsl (apply #'colour-rgb-to-hsl col))
-                           (hue (mod (+ (nth 0 hsl)
-                                        (/ (sin (/ (nth 0 hsl)
-                                                   (* 2 pi)))
-                                           2))
-                                     1)))
-                      (apply #'colour-hsl-to-rgb
-                             (list hue (nth 1 hsl) (nth 2 hsl))))
-                  shifted))
-         (ncolour (apply #'colour-rgb-to-hex
-                        (append
-                         (if face-shift-force-fit
-                             (face-shift--force-fit trans)
-                           trans)
-                         '(2)))))
+color. If property PROP is not a color, nothing is changed."
+  (let* ((intensity (if face-shift-inverted
+                           (- 1 face-shift-intensity)
+                      face-shift-intensity))
+         (bg (face-attribute face prop)))
     (unless (eq bg 'unspecified)
-      (face-remap-add-relative face `(,prop ,ncolour)))
-    ncolour))
+	  (let* ((color-rgb (color-name-to-rgb bg))
+			 (color-hsl (apply #'color-rgb-to-hsl color-rgb))
+			 (new-rgb (apply #'color-hsl-to-rgb
+							 (list (/ hue 360.0)
+								   face-shift-intensity
+								   (nth 2 color-hsl))))
+			 (ncolor (apply #'color-rgb-to-hex new-rgb)))
+		(face-remap-add-relative face `(,prop ,ncolor))))))
 
-(defun face-shift (colour &optional ignore)
+(defun face-shift (color &optional ignore)
   "Produce a function that will shift face color.
 
 All background and foreground color behind the faces listed in
 `face-shift-faces' will be attempted to shift using
 `face-shift-by'. The generated function can then be added to a
-hook. COLOUR should index a transformation from the
+hook. COLOR should index a transformation from the
 `face-shift-color' alist.
 
 If IGNORE is non-nil, it has to be a list of modes that should be
@@ -149,16 +109,12 @@ ignored by this hook. For example
 
 will apply the green shift, unless the mode of the hook it was
 added to is ‘mail-mode’ or a derivative."
-  (let ((mat (cl-sublis
-              `((int . ,face-shift-intensity)
-                (max . ,face-shift-maximum)
-                (min . ,face-shift-minimum))
-              (cdr (assq colour face-shift-color)))))
+  (let ((hue (cdr (assq color face-shift-color))))
     (lambda ()
       (unless (cl-some #'derived-mode-p ignore)
         (dolist (face face-shift-faces)
-          (face-shift-by face :foreground mat)
-          (face-shift-by face :background mat))))))
+          (face-shift-by face :foreground hue)
+          (face-shift-by face :background hue))))))
 
 (provide 'face-shift)
 
