@@ -18,3 +18,6 @@ just-test:
 
 install:
 	$(EMACS_ENV) $(CASK) install
+
+html:
+	texi2html persist.texi
