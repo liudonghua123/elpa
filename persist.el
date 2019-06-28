@@ -10,7 +10,7 @@
 
 ;; The contents of this file are subject to the GPL License, Version 3.0.
 
-;; Copyright (C) 2019, Phillip Lord
+;; Copyright (C) 2019 Free Software Foundation, Inc.
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -76,6 +76,7 @@ DOCSTRING need to be given."
 
   ;; Don't support 2-arity calls either because we are lazy and
   ;; because if you want to persist it, you want to doc it.
+  (declare (debug defvar) (doc-string 3))
   (let ((form
          `(defvar ,symbol ,initvalue ,docstring)))
     (persist-symbol symbol initvalue)
