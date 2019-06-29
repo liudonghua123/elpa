@@ -3,7 +3,7 @@
 ;; Author: Philip K. <philip@warpmail.net>
 ;; Version: 0.1.0
 ;; Keywords: unix, processes, convenience
-;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.1") (seq "2.20"))
 ;; URL: https://git.sr.ht/~zge/bang
 
 ;; This file is NOT part of Emacs.
@@ -29,6 +29,7 @@
 ;; https://leahneukirchen.org/dotfiles/.emacs
 
 (require 'rx)
+(require 'seq)
 
 ;;; Code:
 
@@ -62,11 +63,9 @@
 
 (defun bang--find-last-command (prefix)
   "Helper function to find last command that started with PREFIX."
-  (catch 'found
-    (dolist (cmd bang--last-commands)
-      (when (string-prefix-p prefix cmd)
-        (throw 'found cmd)))
-    (error "No such command in history")))
+  (or (seq-find (apply-partially #'string-prefix-p prefix)
+                bang--last-commands)
+      (error "No such command in history")))
 
 (defun bang--get-command-number (arg rest)
   "Helper function to find ARG'th last command.
@@ -111,8 +110,8 @@ insert a literal % quote it using a backslash.
 In case a region is active, bang will only work with the region
 between BEG and END. Otherwise the whole buffer is processed."
   (interactive (list (read-shell-command "Bang command: ")
-                     (if mark-active (region-beginning) (point-min))
-                     (if mark-active (region-end) (point-max))))
+                     (if (use-region-p) (region-beginning) (point-min))
+                     (if (use-region-p) (region-end) (point-max))))
   (save-match-data
     (unless (string-match bang--command-regexp command)
       (error "Invalid command"))
