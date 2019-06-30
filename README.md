@@ -19,7 +19,7 @@ Neukirchen][leah].
 How to use
 ----------
 
-Using MELPA and `use-package`, a minimal setup might look something like
+Using [MELPA] and `use-package`, a minimal setup might look something like
 this:
 
 	(use-package bang
@@ -32,4 +32,5 @@ Copying
 Domain Dedication][cc0] license.
 
 [leah]: http://leahneukirchen.org/dotfiles/.emacs
+[MELPA]: https://melpa.org/#/bang
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
