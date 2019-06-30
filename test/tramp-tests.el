@@ -19,8 +19,6 @@
 
 ;;; Commentary:
 
-;; The tests require a recent ert.el from Emacs 24.4.
-
 ;; Some of the tests require access to a remote host files.  Since
 ;; this could be problematic, a mock-up connection method "mock" is
 ;; used.  Emulating a remote connection, it simply calls "sh -i".
@@ -55,6 +53,7 @@
 (declare-function tramp-get-remote-path "tramp-sh")
 (declare-function tramp-get-remote-perl "tramp-sh")
 (declare-function tramp-get-remote-stat "tramp-sh")
+(declare-function tramp-list-tramp-buffers "tramp-cmds")
 (declare-function tramp-method-out-of-band-p "tramp-sh")
 (declare-function tramp-smb-get-localname "tramp-smb")
 (defvar auto-save-file-name-transforms)
@@ -168,18 +167,19 @@ properly.  BODY shall not contain a timeout."
   (declare (indent 1) (debug (natnump body)))
   `(let ((tramp-verbose (max (or ,verbose 0) (or tramp-verbose 0)))
 	 (tramp-message-show-message t)
-	 (tramp-debug-on-error t)
 	 (debug-ignored-errors
-	  (cons "^make-symbolic-link not supported$" debug-ignored-errors))
+	  (append
+	   '("^make-symbolic-link not supported$"
+	     "^error with add-name-to-file")
+	   debug-ignored-errors))
 	 inhibit-message)
      (unwind-protect
 	 (let ((tramp--test-instrument-test-case-p t)) ,@body)
        ;; Unwind forms.
        (when (and (null tramp--test-instrument-test-case-p) (> tramp-verbose 3))
 	 (dolist (buf (tramp-list-tramp-buffers))
-	   (message ";; %s" buf)
 	   (with-current-buffer buf
-	     (message "%s" (buffer-string))))))))
+	     (message ";; %s\n%s" buf (buffer-string))))))))
 
 (defsubst tramp--test-message (fmt-string &rest arguments)
   "Emit a message into ERT *Messages*."
@@ -411,9 +411,6 @@ properly.  BODY shall not contain a timeout."
 
 (ert-deftest tramp-test02-file-name-dissect ()
   "Check remote file name components."
-  ;; `user-error' has appeared in Emacs 24.3.
-  (skip-unless (fboundp 'user-error))
-
   (let ((tramp-default-method "default-method")
 	(tramp-default-user "default-user")
 	(tramp-default-host "default-host")
@@ -864,9 +861,6 @@ properly.  BODY shall not contain a timeout."
 (ert-deftest tramp-test02-file-name-dissect-simplified ()
   "Check simplified file name components."
   :tags '(:expensive-test)
-  ;; `user-error' has appeared in Emacs 24.3.
-  (skip-unless (fboundp 'user-error))
-
   (let ((tramp-default-method "default-method")
 	(tramp-default-user "default-user")
 	(tramp-default-host "default-host")
@@ -1198,9 +1192,6 @@ properly.  BODY shall not contain a timeout."
 (ert-deftest tramp-test02-file-name-dissect-separate ()
   "Check separate file name components."
   :tags '(:expensive-test)
-  ;; `user-error' has appeared in Emacs 24.3.
-  (skip-unless (fboundp 'user-error))
-
   (let ((tramp-default-method "default-method")
 	(tramp-default-user "default-user")
 	(tramp-default-host "default-host")
@@ -1890,8 +1881,6 @@ properly.  BODY shall not contain a timeout."
   "Check host name rules for host-less methods."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
-  ;; `user-error' has appeared in Emacs 24.3.
-  (skip-unless (fboundp 'user-error))
 
   ;; Host names must match rules in case the command template of a
   ;; method doesn't use them.
@@ -1915,8 +1904,6 @@ properly.  BODY shall not contain a timeout."
 (ert-deftest tramp-test03-file-name-method-rules ()
   "Check file name rules for some methods."
   (skip-unless (tramp--test-enabled))
-  ;; `user-error' has appeared in Emacs 24.3.
-  (skip-unless (fboundp 'user-error))
 
   ;; Multi hops are allowed for inline methods only.
   (should-error
@@ -2345,6 +2332,7 @@ This checks also `file-name-as-directory', `file-name-directory',
           ;; Run the test.
           (advice-add 'write-region :before advice)
           (setq-local file-precious-flag t)
+          (setq-local backup-inhibited t)
           (insert "bar")
           (should (null (save-buffer)))
           (should-not (cl-member tmp-name written-files :test #'string=)))
@@ -2958,17 +2946,16 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	(ignore-errors (delete-directory tmp-name2 'recursive))))))
 
 ;; Method "smb" supports `make-symbolic-link' only if the remote host
-;; has CIFS capabilities.  tramp-adb.el and tramp-gvfs.el do not
-;; support symbolic links at all.
+;; has CIFS capabilities.  tramp-adb.el, tramp-gvfs.el and
+;; tramp-rclone.el do not support symbolic links at all.
 (defmacro tramp--test-ignore-make-symbolic-link-error (&rest body)
   "Run BODY, ignoring \"make-symbolic-link not supported\" file error."
-  (declare (indent defun) (debug t))
+  (declare (indent defun) (debug (body)))
   `(condition-case err
        (progn ,@body)
-     ((error quit debug)
-      (unless (and (eq (car err) 'file-error)
-		   (string-equal (error-message-string err)
-				 "make-symbolic-link not supported"))
+     (file-error
+      (unless (string-equal (error-message-string err)
+			    "make-symbolic-link not supported")
 	(signal (car err) (cdr err))))))
 
 (ert-deftest tramp-test18-file-attributes ()
@@ -3175,13 +3162,12 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 ;; Method "smb" could run into "NT_STATUS_REVISION_MISMATCH" error.
 (defmacro tramp--test-ignore-add-name-to-file-error (&rest body)
   "Run BODY, ignoring \"error with add-name-to-file\" file error."
-  (declare (indent defun) (debug t))
+  (declare (indent defun) (debug (body)))
   `(condition-case err
        (progn ,@body)
-     ((error quit debug)
-      (unless (and (eq (car err) 'file-error)
-		   (string-match "^error with add-name-to-file"
-				 (error-message-string err)))
+     (file-error
+      (unless (string-match "^error with add-name-to-file"
+			    (error-message-string err))
 	(signal (car err) (cdr err))))))
 
 (ert-deftest tramp-test21-file-links ()
@@ -4171,7 +4157,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (numberp (process-get proc 'remote-pid)))
 	  (should (interrupt-process proc))
 	  ;; Let the process accept the interrupt.
-	  (while (accept-process-output proc nil nil 0))
+	  (with-timeout (10 (tramp--test-timeout-handler))
+	    (while (accept-process-output proc nil nil 0)))
 	  (should-not (process-live-p proc))
 	  ;; An interrupted process cannot be interrupted, again.
 	  (should-error (interrupt-process proc) :type 'error))
@@ -4286,9 +4273,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	(ignore-errors (delete-file tmp-name)))
 
       ;; Test `async-shell-command-width'.  Since Emacs 27.1.
-      (when (and (boundp 'async-shell-command-width)
-		 (zerop (call-process "tput" nil nil nil "cols"))
-                 (zerop (process-file "tput" nil nil nil "cols")))
+      (when (ignore-errors
+	      (and (boundp 'async-shell-command-width)
+		   (zerop (call-process "tput" nil nil nil "cols"))
+                   (zerop (process-file "tput" nil nil nil "cols"))))
 	(let (async-shell-command-width)
 	  (should
 	   (string-equal
@@ -5483,6 +5471,37 @@ Use the `ls' command."
 (defconst tramp--test-asynchronous-requests-timeout 300
   "Timeout for `tramp-test43-asynchronous-requests'.")
 
+(defmacro tramp--test-with-proper-process-name-and-buffer (proc &rest body)
+  "Set \"process-name\" and \"process-buffer\" connection properties.
+This is needed in timer functions as well as process filters and sentinels."
+  (declare (indent 1) (debug (processp body)))
+  `(let* ((v (tramp-get-connection-property ,proc "vector" nil))
+	  (pname (tramp-get-connection-property v "process-name" nil))
+	  (pbuffer (tramp-get-connection-property v "process-buffer" nil)))
+     (tramp--test-message
+      "tramp--test-with-proper-process-name-and-buffer before %s %s"
+      (tramp-get-connection-property v "process-name" nil)
+      (tramp-get-connection-property v "process-buffer" nil))
+     (if (process-name ,proc)
+	 (tramp-set-connection-property v "process-name" (process-name ,proc))
+       (tramp-flush-connection-property v "process-name"))
+     (if (process-buffer ,proc)
+	 (tramp-set-connection-property
+	  v "process-buffer" (process-buffer ,proc))
+       (tramp-flush-connection-property v "process-buffer"))
+     (tramp--test-message
+      "tramp--test-with-proper-process-name-and-buffer changed %s %s"
+      (tramp-get-connection-property v "process-name" nil)
+      (tramp-get-connection-property v "process-buffer" nil))
+     (unwind-protect
+	 (progn ,@body)
+       (if pname
+	   (tramp-set-connection-property v "process-name" pname)
+	 (tramp-flush-connection-property v "process-name"))
+       (if pbuffer
+	   (tramp-set-connection-property v "process-buffer" pbuffer)
+	 (tramp-flush-connection-property v "process-buffer")))))
+
 ;; This test is inspired by Bug#16928.
 (ert-deftest tramp-test43-asynchronous-requests ()
   "Check parallel asynchronous requests.
@@ -5492,6 +5511,7 @@ process sentinels.  They shall not disturb each other."
   ;; we mark it as unstable.
   :tags '(:expensive-test :unstable)
   (skip-unless (tramp--test-enabled))
+  (skip-unless nil)
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
   ;; remote processes in Emacs.  That doesn't work for tramp-adb.el.
   (skip-unless (or (and (tramp--test-adb-p) (tramp--test-emacs27-p))
@@ -5503,12 +5523,14 @@ process sentinels.  They shall not disturb each other."
     (let* (;; For the watchdog.
 	   (default-directory (expand-file-name temporary-file-directory))
 	   (shell-file-name (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh"))
+	   ;; It doesn't work on w32 systems.
 	   (watchdog
-            (start-process-shell-command
-             "*watchdog*" nil
-             (format
-	      "sleep %d; kill -USR1 %d"
-	      tramp--test-asynchronous-requests-timeout (emacs-pid))))
+	    (unless (tramp--test-windows-nt)
+              (start-process-shell-command
+               "*watchdog*" nil
+               (format
+		"sleep %d; kill -USR1 %d"
+		tramp--test-asynchronous-requests-timeout (emacs-pid)))))
            (tmp-name (tramp--test-make-temp-name))
            (default-directory tmp-name)
            ;; Do not cache Tramp properties.
@@ -5532,10 +5554,10 @@ process sentinels.  They shall not disturb each other."
              ((getenv "EMACS_HYDRA_CI") 10)
              (t 1)))
            ;; We must distinguish due to performance reasons.
-           (timer-operation
-            (cond
-             ((tramp--test-mock-p) #'vc-registered)
-             (t #'file-attributes)))
+           ;; (timer-operation
+           ;;  (cond
+           ;;   ((tramp--test-mock-p) #'vc-registered)
+           ;;   (t #'file-attributes)))
 	   ;; This is when all timers start.  We check inside the
 	   ;; timer function, that we don't exceed timeout.
 	   (timer-start (current-time))
@@ -5553,25 +5575,31 @@ process sentinels.  They shall not disturb each other."
              (run-at-time
               0 timer-repeat
               (lambda ()
-                (when (> (- (time-to-seconds) (time-to-seconds timer-start))
-                         tramp--test-asynchronous-requests-timeout)
-                  (tramp--test-timeout-handler))
-                (when buffers
-                  (let ((time (float-time))
-                        (default-directory tmp-name)
-                        (file
-                         (buffer-name (nth (random (length buffers)) buffers))))
-                    (tramp--test-message
-                     "Start timer %s %s" file (current-time-string))
-                    (funcall timer-operation file)
-                    ;; Adjust timer if it takes too much time.
-                    (tramp--test-message
-                     "Stop timer %s %s" file (current-time-string))
-                    (when (> (- (float-time) time) timer-repeat)
-                      (setq timer-repeat (* 1.5 timer-repeat))
-                      (setf (timer--repeat-delay timer) timer-repeat)
+                (tramp--test-with-proper-process-name-and-buffer
+                    (get-buffer-process
+                     (tramp-get-buffer
+                      (tramp-dissect-file-name
+                       tramp-test-temporary-file-directory)))
+                  (when (> (- (time-to-seconds) (time-to-seconds timer-start))
+                           tramp--test-asynchronous-requests-timeout)
+                    (tramp--test-timeout-handler))
+                  (when buffers
+                    (let ((time (float-time))
+                          (default-directory tmp-name)
+                          (file
+                           (buffer-name
+                            (nth (random (length buffers)) buffers))))
                       (tramp--test-message
-		       "Increase timer %s" timer-repeat)))))))
+                       "Start timer %s %s" file (current-time-string))
+                      ;; (funcall timer-operation file)
+                      (tramp--test-message
+                       "Stop timer %s %s" file (current-time-string))
+                      ;; Adjust timer if it takes too much time.
+                      (when (> (- (float-time) time) timer-repeat)
+                        (setq timer-repeat (* 1.1 timer-repeat))
+                        (setf (timer--repeat-delay timer) timer-repeat)
+                        (tramp--test-message
+                         "Increase timer %s" timer-repeat))))))))
 
             ;; Create temporary buffers.  The number of buffers
             ;; corresponds to the number of processes; it could be
@@ -5598,27 +5626,28 @@ process sentinels.  They shall not disturb each other."
                 (set-process-filter
                  proc
                  (lambda (proc string)
-                   (tramp--test-message
-                    "Process filter %s %s %s" proc string (current-time-string))
-                   (with-current-buffer (process-buffer proc)
-                     (insert string))
-                   (when (< (process-get proc 'bar) 2)
-		     (dired-uncache (process-get proc 'foo))
-                     (should (file-attributes (process-get proc 'foo))))))
+		   (tramp--test-with-proper-process-name-and-buffer proc
+                     (tramp--test-message
+                      "Process filter %s %s %s"
+		      proc string (current-time-string))
+                     (with-current-buffer (process-buffer proc)
+                       (insert string))
+                     (when (< (process-get proc 'bar) 2)
+		       (dired-uncache (process-get proc 'foo))
+                       (should (file-attributes (process-get proc 'foo)))))))
                 ;; Add process sentinel.  It shall not perform remote
                 ;; operations, triggering Tramp processes.  This blocks.
                 (set-process-sentinel
                  proc
                  (lambda (proc _state)
-                   (tramp--test-message
-                    "Process sentinel %s %s" proc (current-time-string))))))
+		   (tramp--test-with-proper-process-name-and-buffer proc
+                     (tramp--test-message
+                      "Process sentinel %s %s" proc (current-time-string)))))))
 
             ;; Send a string to the processes.  Use a random order of
             ;; the buffers.  Mix with regular operation.
             (let ((buffers (copy-sequence buffers)))
               (while buffers
-		;; Activate timer.
-		(sit-for 0.01 'nodisp)
                 (let* ((buf (nth (random (length buffers)) buffers))
                        (proc (get-buffer-process buf))
                        (file (process-get proc 'foo))
@@ -5632,9 +5661,7 @@ process sentinels.  They shall not disturb each other."
                     (should (file-attributes file)))
                   ;; Send string to process.
                   (process-send-string proc (format "%s\n" (buffer-name buf)))
-                  (while (accept-process-output proc 0 nil 0))
-                  ;; Give the watchdog a chance.
-                  (read-event nil nil 0.01)
+                  (while (accept-process-output nil 0))
                   (tramp--test-message
                    "Continue action %d %s %s" count buf (current-time-string))
                   ;; Regular operation post process action.
@@ -5972,8 +5999,8 @@ Since it unloads Tramp, it shall be the last test to run."
 ;; * Fix `tramp-test29-start-file-process' and
 ;;   `tramp-test30-make-process' on MS Windows (`process-send-eof'?).
 ;; * Implement `tramp-test31-interrupt-process' for `adb'.
-;; * Fix Bug#16928 in `tramp-test43-asynchronous-requests'.  Looks
-;;   like it is resolved now.  Remove `:unstable' tag?
+;; * Fix Bug#16928 in `tramp-test43-asynchronous-requests'.  A remote
+;;   file name operation cannot run in the timer.  Remove `:unstable' tag?
 ;; * Fix `tramp-test44-threads'.
 
 (provide 'tramp-tests)

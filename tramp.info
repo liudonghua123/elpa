@@ -21,10 +21,11 @@ END-INFO-DIR-ENTRY
 
 File: tramp.info,  Node: Top,  Next: Overview,  Prev: (dir),  Up: (dir)
 
-TRAMP 0 User Manual
-*******************
+TRAMP 2.4.2 User Manual
+***********************
 
-This file documents TRAMP 0, a remote file editing package for Emacs.
+This file documents TRAMP 2.4.2, a remote file editing package for
+Emacs.
 
    TRAMP stands for “Transparent Remote (file) Access, Multiple
 Protocol”.  This package provides remote file editing, similar to Ange
@@ -244,16 +245,32 @@ File: tramp.info,  Node: Obtaining TRAMP,  Next: Quick Start Guide,  Prev: Overv
 TRAMP is included as part of Emacs (since Emacs 22.1).
 
    TRAMP is also freely packaged for download on the Internet at
-<https://ftp.gnu.org/gnu/tramp/>.
+<https://ftp.gnu.org/gnu/tramp/>.  The version number of TRAMP can be
+obtained by the variable ‘tramp-version’.  For released TRAMP versions,
+this is a three-number string like “2.4.2”.
 
-   TRAMP is available as GNU ELPA (https://elpa.gnu.org) package.
+   A TRAMP release, which is packaged with Emacs, could differ slightly
+from the corresponding standalone release.  This is because it isn’t
+always possible to synchronize release dates between Emacs and TRAMP.
+Such version numbers have the Emacs version number as suffix, like
+“2.3.5.26.3”.  This means TRAMP 2.3.5 as integrated in Emacs 26.3.  A
+complete list of TRAMP versions packaged with Emacs can be retrieved by
+
+     (assoc 'Tramp customize-package-emacs-version-alist)
+
+   TRAMP is also available as GNU ELPA (https://elpa.gnu.org) package.
+Besides the standalone releases, further minor version of TRAMP will
+appear on GNU ELPA, until the next TRAMP release appears.  These minor
+versions have a four-number string, like “2.4.2.1”.
 
    TRAMP development versions are available on Git servers.  Development
-versions contain new and incomplete features.
+versions contain new and incomplete features.  The development version
+of TRAMP is always the version number of the next release, plus the
+suffix “-pre”, like “2.4.3-pre”.
 
-   One way to obtain from Git server is to visit the Savannah project
-page at the following URL and then clicking on the Git link in the
-navigation bar at the top.
+   One way to obtain TRAMP from Git server is to visit the Savannah
+project page at the following URL and then clicking on the Git link in
+the navigation bar at the top.
 
 <https://savannah.gnu.org/projects/tramp/>
 
@@ -2516,7 +2533,8 @@ They are
 
    • ‘.shar’ — Shell archives
 
-   • ‘.tar’, ‘.tbz’, ‘.tgz’, ‘.tlz’, ‘.txz’ — (Compressed) tape archives
+   • ‘.tar’, ‘.tbz’, ‘.tgz’, ‘.tlz’, ‘.txz’, ‘.tzst’ — (Compressed) tape
+     archives
 
    • ‘.warc’ — Web archives
 
@@ -2531,9 +2549,9 @@ They are
    File archives could also be compressed, identified by an additional
 compression suffix.  Valid compression suffixes are listed in the
 constant ‘tramp-archive-compression-suffixes’.  They are ‘.bz2’, ‘.gz’,
-‘.lrz’, ‘.lz’, ‘.lz4’, ‘.lzma’, ‘.lzo’, ‘.uu’, ‘.xz’ and ‘.Z’.  A valid
-archive file name would be ‘/path/to/dir/file.tar.gz/dir/file’.  Even
-several suffixes in a row are possible, like
+‘.lrz’, ‘.lz’, ‘.lz4’, ‘.lzma’, ‘.lzo’, ‘.uu’, ‘.xz’, ‘.Z’, and ‘.zst’.
+A valid archive file name would be ‘/path/to/dir/file.tar.gz/dir/file’.
+Even several suffixes in a row are possible, like
 ‘/path/to/dir/file.tar.gz.uu/dir/file’.
 
    An archive file name could be a remote file name, as in
@@ -3082,8 +3100,8 @@ File: tramp.info,  Node: Frequently Asked Questions,  Next: Files directories an
           Since ‘filecache’ remembers visited places, add the remote
           directory to the cache:
 
-               (eval-after-load "filecache"
-                 '(file-cache-add-directory
+               (with-eval-after-load 'filecache
+                 (file-cache-add-directory
                    "/ssh:news@news.my.domain:/opt/news/etc/"))
 
           Then use directory completion in the minibuffer with ‘C-x C-f
@@ -3888,6 +3906,7 @@ Variable Index
 * backup-directory-alist:                Auto-save and Backup.
                                                               (line   6)
 * COLUMNS, environment variable:         Remote processes.    (line 165)
+* customize-package-emacs-version-alist: Obtaining TRAMP.     (line  20)
 * DISPLAY, environment variable:         Remote processes.    (line  93)
 * EDITOR, environment variable:          Frequently Asked Questions.
                                                               (line 536)
@@ -3918,8 +3937,8 @@ Variable Index
 * tramp-actions-before-shell:            Remote shell setup.  (line 102)
 * tramp-adb-connect-if-not-connected:    External methods.    (line 190)
 * tramp-adb-program:                     External methods.    (line 182)
-* tramp-archive-all-gvfs-methods:        Archive file names.  (line  90)
-* tramp-archive-compression-suffixes:    Archive file names.  (line  82)
+* tramp-archive-all-gvfs-methods:        Archive file names.  (line  91)
+* tramp-archive-compression-suffixes:    Archive file names.  (line  83)
 * tramp-archive-suffixes:                Archive file names.  (line  27)
 * tramp-auto-save-directory:             Auto-save and Backup.
                                                               (line  68)
@@ -3970,6 +3989,8 @@ Variable Index
                                                               (line 257)
 * tramp-use-ssh-controlmaster-options:   Frequently Asked Questions.
                                                               (line 197)
+* tramp-verbose:                         Traces and Profiles. (line   6)
+* tramp-version:                         Obtaining TRAMP.     (line   6)
 * tramp-wrong-passwd-regexp:             Remote shell setup.  (line  33)
 
 
@@ -4075,12 +4096,13 @@ Concept Index
 * file archive suffix tgz:               Archive file names.  (line  71)
 * file archive suffix tlz:               Archive file names.  (line  71)
 * file archive suffix txz:               Archive file names.  (line  71)
-* file archive suffix warc:              Archive file names.  (line  72)
-* file archive suffix xar:               Archive file names.  (line  74)
-* file archive suffix xpi:               Archive file names.  (line  76)
-* file archive suffix xps:               Archive file names.  (line  78)
-* file archive suffix zip:               Archive file names.  (line  80)
-* file archive suffix ZIP:               Archive file names.  (line  80)
+* file archive suffix tzst:              Archive file names.  (line  71)
+* file archive suffix warc:              Archive file names.  (line  73)
+* file archive suffix xar:               Archive file names.  (line  75)
+* file archive suffix xpi:               Archive file names.  (line  77)
+* file archive suffix xps:               Archive file names.  (line  79)
+* file archive suffix zip:               Archive file names.  (line  81)
+* file archive suffix ZIP:               Archive file names.  (line  81)
 * file archives:                         Archive file names.  (line   6)
 * file name completion:                  File name completion.
                                                               (line   6)
@@ -4283,78 +4305,79 @@ Concept Index
 * tset unix command:                     Remote shell setup.  (line  92)
 * txz file archive suffix:               Archive file names.  (line  71)
 * type-ahead:                            Usage.               (line  12)
+* tzst file archive suffix:              Archive file names.  (line  71)
 * unix command nc:                       Remote shell setup.  (line 180)
 * unix command tset:                     Remote shell setup.  (line  92)
 * using non-standard methods:            Customizing Methods. (line   6)
 * using TRAMP:                           Usage.               (line   6)
 * uuencode:                              Inline methods.      (line  16)
 * vagrant method:                        Customizing Methods. (line  48)
-* warc file archive suffix:              Archive file names.  (line  72)
+* warc file archive suffix:              Archive file names.  (line  73)
 * winexe:                                Remote processes.    (line 239)
-* xar file archive suffix:               Archive file names.  (line  74)
-* xpi file archive suffix:               Archive file names.  (line  76)
-* xps file archive suffix:               Archive file names.  (line  78)
-* zip file archive suffix:               Archive file names.  (line  80)
-* ZIP file archive suffix:               Archive file names.  (line  80)
+* xar file archive suffix:               Archive file names.  (line  75)
+* xpi file archive suffix:               Archive file names.  (line  77)
+* xps file archive suffix:               Archive file names.  (line  79)
+* zip file archive suffix:               Archive file names.  (line  81)
+* ZIP file archive suffix:               Archive file names.  (line  81)
 
 
 
 Tag Table:
 Node: Top933
-Node: Overview5348
-Node: Obtaining TRAMP10682
-Node: Quick Start Guide12047
-Ref: Quick Start Guide: File name syntax12824
-Ref: Quick Start Guide: ssh and plink methods13926
-Ref: Quick Start Guide: su, sudo and sg methods14470
-Ref: Quick Start Guide: ssh, plink, su, sudo and sg methods15034
-Ref: Quick Start Guide: sudoedit method15564
-Ref: Quick Start Guide: smb method15975
-Ref: Quick Start Guide: GVFS-based methods16306
-Ref: Quick Start Guide: GNOME Online Accounts based methods16718
-Ref: Quick Start Guide: Android17260
-Ref: Quick Start Guide: rclone method17492
-Node: Configuration17819
-Node: Connection types20291
-Node: Inline methods21705
-Node: External methods26368
-Node: GVFS based methods36887
-Node: Default Method39777
-Node: Default User42794
-Node: Default Host44317
-Node: Multi-hops45449
-Node: Firewalls49641
-Node: Customizing Methods51098
-Node: Customizing Completion53438
-Node: Password handling56928
-Ref: Using an authentication file57398
-Ref: Caching passwords58900
-Node: Connection caching59418
-Node: Predefined connection information60348
-Node: Remote programs62693
-Node: Remote shell setup65614
-Node: Android shell setup73824
-Node: Auto-save and Backup76211
-Node: Windows setup hints79286
-Node: Usage80906
-Node: File name syntax82204
-Node: Change file name syntax84211
-Node: File name completion85642
-Node: Ad-hoc multi-hops88715
-Node: Remote processes90781
-Ref: Running a debugger on a remote host99535
-Node: Cleanup remote connections101505
-Node: Archive file names102953
-Node: Bug Reports107312
-Node: Frequently Asked Questions109694
-Node: Files directories and localnames131975
-Node: Localname deconstruction132411
-Node: External packages133064
-Node: Traces and Profiles135109
-Node: GNU Free Documentation License137078
-Node: Function Index162449
-Node: Variable Index165053
-Node: Concept Index171877
+Node: Overview5360
+Node: Obtaining TRAMP10694
+Node: Quick Start Guide13046
+Ref: Quick Start Guide: File name syntax13823
+Ref: Quick Start Guide: ssh and plink methods14925
+Ref: Quick Start Guide: su, sudo and sg methods15469
+Ref: Quick Start Guide: ssh, plink, su, sudo and sg methods16033
+Ref: Quick Start Guide: sudoedit method16563
+Ref: Quick Start Guide: smb method16974
+Ref: Quick Start Guide: GVFS-based methods17305
+Ref: Quick Start Guide: GNOME Online Accounts based methods17717
+Ref: Quick Start Guide: Android18259
+Ref: Quick Start Guide: rclone method18491
+Node: Configuration18818
+Node: Connection types21290
+Node: Inline methods22704
+Node: External methods27367
+Node: GVFS based methods37886
+Node: Default Method40776
+Node: Default User43793
+Node: Default Host45316
+Node: Multi-hops46448
+Node: Firewalls50640
+Node: Customizing Methods52097
+Node: Customizing Completion54437
+Node: Password handling57927
+Ref: Using an authentication file58397
+Ref: Caching passwords59899
+Node: Connection caching60417
+Node: Predefined connection information61347
+Node: Remote programs63692
+Node: Remote shell setup66613
+Node: Android shell setup74823
+Node: Auto-save and Backup77210
+Node: Windows setup hints80285
+Node: Usage81905
+Node: File name syntax83203
+Node: Change file name syntax85210
+Node: File name completion86641
+Node: Ad-hoc multi-hops89714
+Node: Remote processes91780
+Ref: Running a debugger on a remote host100534
+Node: Cleanup remote connections102504
+Node: Archive file names103952
+Node: Bug Reports108340
+Node: Frequently Asked Questions110722
+Node: Files directories and localnames133006
+Node: Localname deconstruction133442
+Node: External packages134095
+Node: Traces and Profiles136140
+Node: GNU Free Documentation License138109
+Node: Function Index163480
+Node: Variable Index166084
+Node: Concept Index173127
 
 End Tag Table
 

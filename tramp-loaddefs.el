@@ -477,7 +477,7 @@ UU-encode the region between BEG and END.
 ;;;### (autoloads nil "trampver" "trampver.el" (0 0 0 0))
 ;;; Generated autoloads from trampver.el
 
-(defconst tramp-version "0" "\
+(defconst tramp-version "2.4.2" "\
 This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org" "\
