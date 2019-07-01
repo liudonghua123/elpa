@@ -25,6 +25,8 @@ this:
 	(use-package bang
 	  :bind ("M-!" . bang))
 
+Bug reports and patches should be sent to my [public inbox].
+
 Copying
 -------
 
@@ -33,4 +35,5 @@ Domain Dedication][cc0] license.
 
 [leah]: http://leahneukirchen.org/dotfiles/.emacs
 [MELPA]: https://melpa.org/#/bang
+[public inbox]: https://lists.sr.ht/~zge/public-inbox
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
