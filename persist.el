@@ -132,8 +132,8 @@ variables persist automatically when Emacs exits."
   (unless (persist--persistant-p symbol)
     (error (format
             "Symbol %s is not persistant" symbol)))
-  (when (not (= (symbol-value symbol)
-                (persist-default symbol)))
+  (unless (equal (symbol-value symbol)
+                 (persist-default symbol))
     (let ((dir-loc
            (file-name-directory
             (persist--file-location symbol))))
