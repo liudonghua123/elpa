@@ -55,7 +55,7 @@ Bugs
   effect, since the by default try to decrease some RGB values. In that
   case, consider setting `face-shift-inverted` to non-nil.
 
-Any further bugs or questions can be submitted to the [mailing list].
+Any further bugs or questions can be submitted to my [public inbox].
 
 Copying
 -------
@@ -64,5 +64,5 @@ Copying
 Domain Dedication][cc0] license.
 
 [screenshot]: https://files.catbox.moe/cvm7lm.png
-[mailing list]: https://lists.sr.ht/~zge/face-shift
+[mailing list]: https://lists.sr.ht/~zge/public-inbox
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
