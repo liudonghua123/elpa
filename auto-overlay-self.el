@@ -47,15 +47,13 @@
   ;; so that any cascading that is required is performed before anything else
   ;; happens.
   (add-hook 'before-change-functions 'auto-o-perform-self-cascades
-	    nil t)
-  ;; initialise variables
-  (setq auto-o-pending-self-cascade nil)
-)
+	    nil t))
 
 
 (defun auto-o-self-unload ()
   ;; Remove `auto-o-perform-self-cascades' from `before-change-functions'.
-  (remove-hook 'before-change-functions 'auto-o-perform-self-cascades t))
+  (remove-hook 'before-change-functions 'auto-o-perform-self-cascades t)
+  (setq auto-o-pending-self-cascade nil))
 
 
 

@@ -120,14 +120,16 @@
      (cdr (assq buff (auto-o-get-full-buffer-list ,set-id)))))
 
 
-(defmacro auto-o-enable-set (set-id buffer)
+(defmacro auto-o-enable-set (set-id &optional buffer)
   ;; Set enabled flag for BUFFER in regexp set SET-ID.
-  `(setcdr (assq ,buffer (auto-o-get-full-buffer-list ,set-id)) t))
+  `(let ((buff (or ,buffer (current-buffer))))
+     (setcdr (assq buff (auto-o-get-full-buffer-list ,set-id)) t)))
 
 
-(defmacro auto-o-disable-set (set-id buffer)
+(defmacro auto-o-disable-set (set-id &optional buffer)
   ;; Unset enabled flag for BUFFER in regexp set SET-ID.
-  `(setcdr (assq ,buffer (auto-o-get-full-buffer-list ,set-id)) nil))
+  `(let ((buff (or ,buffer (current-buffer))))
+     (setcdr (assq buff (auto-o-get-full-buffer-list ,set-id)) nil)))
 
 
 
@@ -196,8 +198,8 @@
 (defmacro auto-o-regexp-group (o-match)
   ;; Return match overlay O-MATCH's regexp group.
   `(auto-o-entry-regexp-group (overlay-get ,o-match 'set-id)
-			    (overlay-get ,o-match 'definition-id)
-			    (overlay-get ,o-match 'regexp-id)))
+			      (overlay-get ,o-match 'definition-id)
+			      (overlay-get ,o-match 'regexp-id)))
 
 
 (defmacro auto-o-entry-regexp-group-nth (n set-id definition-id
@@ -214,10 +216,9 @@
 (defmacro auto-o-regexp-group-nth (n o-match)
   ;; Return match overlay O-MATCH's Nth regexp group entry, or 0 if there is
   ;; no Nth entry.
-  `(auto-o-entry-regexp-group-nth ,n
-				(overlay-get ,o-match 'set-id)
-				(overlay-get ,o-match 'definition-id)
-				(overlay-get ,o-match 'regexp-id)))
+  `(auto-o-entry-regexp-group-nth ,n (overlay-get ,o-match 'set-id)
+				  (overlay-get ,o-match 'definition-id)
+				  (overlay-get ,o-match 'regexp-id)))
 
 
 (defmacro auto-o-entry-props (set-id definition-id &optional regexp-id)
@@ -229,8 +230,8 @@
 (defmacro auto-o-props (o-match)
   ;; Return properties associated with match overlay O-MATCH.
   `(auto-o-entry-props (overlay-get ,o-match 'set-id)
-		      (overlay-get ,o-match 'definition-id)
-		      (overlay-get ,o-match 'regexp-id)))
+		       (overlay-get ,o-match 'definition-id)
+		       (overlay-get ,o-match 'regexp-id)))
 
 
 (defmacro auto-o-entry-edge (set-id definition-id regexp-id)
@@ -635,6 +636,46 @@ See `auto-overlay-highest-priority-at-point' for a definition of
 ;;;          Public auto-overlay definition functions
 
 ;;;###autoload
+(defun auto-overlay-load-set (set-id definitions)
+  "Load the set of auto-overlay DEFINITIONS
+in the current buffer.
+
+DEFINITIONS should be a list of the form:
+
+  (DEFINITION1 DEFINITION2 ... )
+
+The DEFINITION's should be lists of the form:
+
+  (CLASS @optional :id DEFINITION-ID @rest REGEXP1 REGEXP2 ... )
+
+CLASS is a symbol specifying the auto-overlay class. The standard
+classes are 'word, 'line, 'self, 'flat and 'nested. The :id
+property is optional. It should be a symbol that can be used to
+uniquely identify DEFINITION (see
+`auto-overlay-unload-definition').
+
+The REGEXP's should be lists of the form:
+
+  (RGXP &optional :edge EDGE :id REGEXP-ID
+        &rest PROPERTY1 PROPERTY2 ... )
+
+RGXP is either a single regular expression (a string), or a cons
+cell of the form (RGXP . GROUP) where RGXP is a regular
+expression and GROUP is an integer specifying which group in the
+regular expression forms the delimiter for the auto-overlay. The
+rest of the PROPERTY entries should be cons cells of the
+form (NAME . VALUE) where NAME is an overlay property name (a
+symbol) and VALUE is its value.
+
+The :edge and :id properties are optional. EDGE should be one of
+the symbols 'start or 'end. If it is not specified, :edge is
+assumed to be 'start. ID property is a symbol that can be used to
+uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
+  (dolist (def definitions)
+    (auto-overlay-load-definition set-id def)))
+
+
+;;;###autoload
 (defun auto-overlay-load-definition (set-id definition &optional pos)
   "Load DEFINITION into the set of auto-overlay definitions SET-ID
 in the current buffer. If SET-ID does not exist, it is created.
@@ -662,7 +703,7 @@ property is optional. It should be a symbol that can be used to
 uniquely identify DEFINITION (see
 `auto-overlay-unload-definition').
 
-The REGEXP's should be lists of the form:
+REGEXP should be a list of the form:
 
   (RGXP &optional :edge EDGE :id REGEXP-ID
         &rest PROPERTY1 PROPERTY2 ... )
@@ -675,11 +716,10 @@ rest of the PROPERTY entries should be cons cells of the
 form (NAME . VALUE) where NAME is an overlay property name (a
 symbol) and VALUE is its value.
 
-The properties :edge and :id are optional. The :edge property
-EDGE should be one of the symbols 'start or 'end. If it is not
-specified, :edge is assumed to be 'start. The :id property is a
-symbol that can be used to uniquely identify REGEXP (see
-`auto-overlay-unload-regexp')."
+The :edge and :id properties are optional. EDGE should be one of
+the symbols 'start or 'end. If it is not specified, :edge is
+assumed to be 'start. ID property is a symbol that can be used to
+uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
 
   (let ((regexps (auto-o-get-regexps set-id))
 	(class (car definition))
@@ -753,11 +793,10 @@ rest of the PROPERTY entries should be cons cells of the
 form (NAME . VALUE) where NAME is an overlay property name (a
 symbol) and VALUE is its value.
 
-The properties :edge and :id are optional. The :edge property
-EDGE should be one of the symbols 'start or 'end. If it is not
-specified, :edge is assumed to be 'start. The :id property is a
-symbol that can be used to uniquely identify REGEXP (see
-`auto-overlay-unload-regexp')."
+The :edge and :id properties are optional. EDGE should be one of
+the symbols 'start or 'end. If it is not specified, :edge is
+assumed to be 'start. ID property is a symbol that can be used to
+uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
 
   (let ((defs (assq definition-id (auto-o-get-regexps set-id)))
 	regexp-id rgxp edge props)
@@ -959,30 +998,31 @@ refinitions are the same as when the overlays were saved."
     ;; add hook to simulate missing `delete-in-front-hooks' and
     ;; `delete-behind-hooks' overlay properties
     (add-hook 'after-change-functions
-	      'auto-o-schedule-delete-in-front-or-behind-suicide nil t)
+	      'auto-o-schedule-delete-in-front-or-behind-suicide
+	      nil t)
 
-    ;; set enabled flag for regexp set, and make sure buffer is in buffer list
-    ;; for the regexp set
-    (auto-o-enable-set set-id (current-buffer))
-
-    ;; try to load overlays from file
-    (unless (and (or (null save-file) (stringp save-file))
-		 (auto-overlay-load-overlays set-id nil save-file
-					     no-regexp-check))
-      ;; if loading was unsuccessful, search for new auto overlays
-      (let ((lines (count-lines (point-min) (point-max))))
-	(goto-char (point-min))
-	(message "Scanning for auto-overlays...(line 1 of %d)"
-		 lines)
-	(dotimes (i lines)
-	  (when (= 9 (mod i 10))
-	    (message
-	     "Scanning for auto-overlays...(line %d of %d)"
-	     (+ i 1) lines))
-	  (auto-overlay-update nil nil set-id)
-	  (forward-line 1))
-	(message "Scanning for auto-overlays...done")))
-    ))
+    (unless (auto-o-enabled-p set-id)
+      ;; set enabled flag for regexp set, and make sure buffer is in buffer list
+      ;; for the regexp set
+      (auto-o-enable-set set-id)
+      ;; try to load overlays from file
+      (unless (and (or (null save-file) (stringp save-file))
+		   (auto-overlay-load-overlays set-id nil save-file
+					       no-regexp-check))
+	;; if loading was unsuccessful, search for new auto overlays
+	(let ((lines (count-lines (point-min) (point-max))))
+	  (goto-char (point-min))
+	  (message "Scanning for auto-overlays...(line 1 of %d)"
+		   lines)
+	  (dotimes (i lines)
+	    (when (= 9 (mod i 10))
+	      (message
+	       "Scanning for auto-overlays...(line %d of %d)"
+	       (+ i 1) lines))
+	    (auto-overlay-update nil nil set-id)
+	    (forward-line 1))
+	  (message "Scanning for auto-overlays...done")))
+      )))
 
 
 
@@ -1005,7 +1045,7 @@ is about to be killed in which case it speeds things up a bit\)."
   (save-excursion
     (when buffer (set-buffer buffer))
     ;; disable overlay set
-    (auto-o-disable-set set-id (current-buffer))
+    (auto-o-disable-set set-id)
 
     ;; if SAVE-FILE is non-nil and buffer is associated with a file, save
     ;; overlays to file

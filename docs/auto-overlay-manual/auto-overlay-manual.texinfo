@@ -170,14 +170,14 @@ the start of the overlay. An example use would be to create overlays
 covering single-line comments in programming languages such as c.
 
 @item self
+@cindex self overlay class
+@cindex overlay class, self
+@cindex class, self
 These are used to define overlays that stretch from one regexp match to
 the next match for the same regexp, so naturally require a single
 regexp. An example use would be to create overlays covering strings
 delimited by @samp{""}.
 
-@cindex self overlay class
-@cindex overlay class, self
-@cindex class, self
 Note that for efficiency reasons, @code{self} overlays are @emph{not}
 fully updated when a new match is found. Instead, when a modification is
 subsequently made at any position in the buffer after the new match, the
@@ -218,6 +218,7 @@ able to have only part of the regexp match act as the delimeter. This
 can be done by grouping that part of the regexp (@pxref{Defining
 Regexps}). Overlays will then start and end at the text matching the
 group, instead of the text matching the entire regexp.
+
 
 Of course, automatically creating overlays isn't much use without some
 way of setting their properties too. Overlay properties can be defined
@@ -260,9 +261,11 @@ ignoring other regexp matches within comments in code.
 
 To use auto-overlays in an Elisp package, you must load the
 overlay classes that you require by including lines of the form
+
 @lisp
 (require 'auto-overlay-@var{class})
 @end lisp
+
 near the beginning of your package, where @var{class} is the class
 name. The standard classes are: @code{word}, @code{line}, @code{self},
 @code{nested} and @code{flat} (@pxref{Overview}), though new classes can
@@ -272,9 +275,11 @@ Sometimes it is useful for a package to make use of auto-overlays if any
 are defined, without necessarily requiring them. To facilitate this, the
 relevant functions can be loaded separately from the rest of the
 auto-overlays package with the line
+
 @lisp
 (require 'auto-overlay-common)
 @end lisp
+
 This provides all the functions related to searching for overlays and
 retrieving overlay properties. @xref{Searching for Overlays}. Note that
 there is no need to include this line if any auto-overlay classes are
@@ -302,9 +307,11 @@ package. @xref{Extending the Auto-Overlays Package}.
 @cindex functions, loading and unloading regexps
 
 An auto-overlay definition is a list of the form:
+
 @lisp
 (@var{class} &optional :id @var{entry-id} @var{regexp1} @var{regexp2} ...)
 @end lisp
+
 @var{class} is one of the regexp classes described in the previous
 section (@pxref{Overview}). The optional @code{:id} property should be a
 symbol that can be used to uniquely identify the auto-overlay
@@ -312,9 +319,11 @@ definition.
 
 Each @var{regexp} defines one of the regexps that make up the
 auto-overlay definition. It should be a list of the form
+
 @lisp
 (@var{rgxp} &optional :edge @var{edge} :id @var{subentry-id} @@rest @var{property1} @var{property2} ...)
 @end lisp
+
 The @code{:edge} property should be one of the symbols @code{'start} or
 @code{'end}, and determines which edge of the auto-overlay this regexp
 corresponds to. If @code{:edge} is not specified, it is assumed to be
@@ -328,9 +337,11 @@ name (a symbol) and @var{value} its value. In its simplest form,
 
 If only part of the regexp should act as the delimeter
 (@pxref{Overview}), @var{rgxp} should instead be a cons cell:
+
 @lisp
 (@var{rx} . @var{group})
 @end lisp
+
 @noindent where @var{rx} is a regexp that contains at least one group
 (@pxref{Regular Expressions,,,elisp, GNU Emacs Lisp Reference Manual}),
 and @var{group} is an integer identifying which group should act as the
@@ -338,9 +349,11 @@ delimeter.
 
 If the overlay class requires additional groups to be specified,
 @var{rgxp} should instead be a list:
+
 @lisp
 (@var{rx} @var{group0} @var{group1} ...)
 @end lisp
+
 @noindent where @var{rx} is a regexp. The first @var{group0} still specifies the
 part that acts as the delimeter, as before. If the entire regexp should
 act as the delimeter, @var{group0} must still be supplied but should be
@@ -358,6 +371,17 @@ The following functions are used to load and unload regexp definitions:
 @cindex functions, loading and unloading regexps
 
 @table @code
+@item (auto-overlay-load-set @var{definitions})
+@findex auto-overlay-load-set
+@cindex auto-overlay definitions
+@cindex auto-overlays, defining
+@cindex auto-overlays, loading
+@cindex loading auto-overlay definitions
+@cindex defining auto-overlays
+Load a new set of auto-overlay @var{definitions} into the set identified by
+the symbol @var{set-id}. @var{definitions} should be a list of
+definitions, each element being a definition of the form described above.
+
 @item (auto-overlay-load-definition @var{set-id} @var{definition} &optional @var{pos})
 @findex auto-overlay-load-definition
 @cindex auto-overlay definitions
@@ -572,11 +596,13 @@ overlays with properties matching criteria specified by
 @var{prop-tests}. This should be a list defining a property test, with
 one of the following forms (or a list of such lists, if more than one
 property test is required):
+
 @lisp
 (@var{function} @var{property})
 (@var{function} @var{property} @var{value})
 (@var{function} (@var{property1} @var{property2} ...) (@var{value1} @var{value2} ...))
 @end lisp
+
 where @var{function} is a function, @var{property} is an overlay
 property name (a symbol), and @var{value} can be any value or lisp
 expression. For each overlay, first the values corresponding to the
@@ -1374,9 +1400,11 @@ class, though the convention is not enforced in any way.
 A parse function is passed a single argument containing a match
 overlay. It should return a list containing any new auto-overlays it
 creates, or @code{nil} if none were created.
+
 @lisp
 @var{o-list} = (auto-o-parse-@var{class}-match @var{o-match})
 @end lisp
+
 Note that the parse function itself is responsible for calling the
 @command{auto-o-update-exclusive} function if a new exclusive overlay is
 created. @xref{Functions for Modifying Overlays}.
@@ -1389,9 +1417,11 @@ created. @xref{Functions for Modifying Overlays}.
 @findex auto-o-@{class@}-suicide
 A suicide function is passed a single argument containing a match
 overlay. Its return value is ignored.
+
 @lisp
 (auto-o-@var{class}-suicide @var{o-match})
 @end lisp
+
 The text covered by the match overlay should be considered to no longer
 match its regexp, although in certain cases matches are ignored for
 other reasons and this may not really be the case (for example if a new,
@@ -1407,9 +1437,11 @@ higher-priority, exclusive overlay overlaps the match,
 A match function is passed a single argument containing a match overlay
 that has just been matched with an edge of an auto-overlay
 (@pxref{Functions for Modifying Overlays}). Its return value is ignored.
+
 @lisp
 (auto-o-match-@var{class} @var{o-match})
 @end lisp
+
 The auto-overlay it is matched with is stored in the match overlay's
 @code{parent} property.
 @end table
@@ -1417,14 +1449,17 @@ The auto-overlay it is matched with is stored in the match overlay's
 To integrate the new class into the auto-overlays package, the parse and
 suicide functions must be added to the property list of the symbol used
 to refer to the new class, denoted here by @var{class}:
+
 @lisp
 (put '@var{class} 'auto-overlay-parse-function
      'auto-o-parse-@var{class}-match)
 (put '@var{class} 'auto-overlay-suicide-function
      'auto-o-@var{class}-suicide)
 @end lisp
+
 If the optional match function is defined, it should similarly be added
 to the symbol's property list:
+
 @lisp
 (put '@var{class} 'auto-overlay-match-function
      'auto-o-match-@var{class})
@@ -1707,9 +1742,11 @@ overlay suicide functions are called, then modified buffer lines are
 scanned for new regexp matches. Three pseudo-hooks are defined that are
 called before, after and in between these stages. Their values are lists
 containing elements of the form:
+
 @lisp
 (@var{function} @var{arg1} @var{arg2} ...)
 @end lisp
+
 where @var{function} is the function to be called by the hook, and the
 @var{arg}'s are the arguments to be passed to that function. The list
 elements are evaluated in order. The pseudo-hooks are cleared each time
