@@ -199,10 +199,8 @@
 			(if (eq (auto-o-edge o-match) 'start)
 			    (overlay-get o-match 'delim-end)
 			  (overlay-get o-match 'delim-start))
-			(list '(eq auto-overlay t)
-			      (list 'eq 'set-id (overlay-get o-match 'set-id))
-			      (list 'eq 'definition-id
-				    (overlay-get o-match 'definition-id)))))
+			`(eq set-id ,(overlay-get o-match 'set-id))
+			`(eq definition-id ,(overlay-get o-match 'definition-id))))
 	(o-parent (overlay-get o-match 'parent)))
     ;; sort the list by overlay length, i.e. from innermost to outermose
     (sort overlay-stack

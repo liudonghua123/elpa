@@ -29,66 +29,41 @@
 (provide 'auto-overlay-common)
 
 
-;;;###autoload
-(defun auto-overlays-at-point (&optional point prop-test inactive)
-  "Return overlays overlapping POINT
-(or the point, if POINT is null). If PROP-TEST is supplied, it
-should be a list which specifies a property test with one of the
-following forms (or a list of such lists if more than one
-property test is required):
+(defun auto-o--plist-delete (plist &rest keys)
+  ;; Destructively delete KEYS from PLIST
+  (while (memq (car plist) keys)
+    (setq plist (cddr plist)))
+  (let ((el (cdr plist)))
+    (while el
+      (when (memq (cadr el) keys)
+	(setcdr el (cdddr el)))
+      (setq el (cddr el))))
+  plist)
 
-  (FUNCTION PROPERTY)
 
-  (FUNCTION PROPERTY VALUE)
-
-  (FUNCTION (PROPERTY1 PROPERTY2 ...) (VALUE1 VALUE2 ...))
-
-where PROPERTY indicates an overlay property name (a symbol), and
-VALUE indicates an arbitrary value or lisp expression.
-
-For each overlay overlapping POINT, first the values
-corresponding to the property names are retrieved from the
-overlay, then FUNCTION is called with the properties values
-followed by the other values as its arguments. The test is
-satisfied if the result is non-nil, otherwise it fails. Tests are
-evaluated in order, but only up to the first failure. Only
-overlays that satisfy all property tests are returned.
-
-If INACTIVE is non-nil, both active and inactive overlays are
-returned (usually inactive ones are ignored).
-
-Note that this function returns any overlay. If you want to
-restrict it to auto overlays, include '(identity auto-overlay) in
-PROP-TEST."
-  (when (null point) (setq point (point)))
-
-  (let (overlay-list)
-    ;; get overlays overlapping POINT and zero-length overlays at POINT
-    (setq overlay-list
-	  (auto-overlays-in point point prop-test nil inactive))
-    ;; get overlays that end at POINT
-    (dolist (o (auto-overlays-in (1- point) point prop-test nil inactive))
-      (when (and (< (overlay-start o) point)
-		 (= (overlay-end o) point))
-	(push o overlay-list)))
-    ;; get overlays that start at POINT
-    (dolist (o (auto-overlays-in point (1+ point) prop-test nil inactive))
-      (when (and (> (overlay-end o) point)
-		 (= (overlay-start o) point))
-	(push o overlay-list)))
-
-    overlay-list))
-
+(defun auto-overlay-< (a b)
+  "Return non-nil iff overlay A comes before overlay B in buffer."
+  (and (eq (overlay-buffer a) (overlay-buffer b))
+       (or (< (overlay-start a) (overlay-start b))
+	   (and (= (overlay-start a) (overlay-start b))
+		(> (overlay-end a) (overlay-end b))))))
 
 
 ;;;###autoload
-(defun auto-overlays-in (start end &optional prop-test within inactive)
-;; FIXME: get rid of INACTIVE argument?
-  "Return auto overlays overlapping region between START and END.
+(cl-defun auto-overlays-at-point (&optional point
+				  &rest prop-tests
+				  &key inactive all-overlays &allow-other-keys)
+  "Return overlays overlapping POINT, defaulting to the point.
 
-If PROP-TEST is supplied, it should be a list which specifies a
-property test with one of the following forms (or a list of such
-lists if more than one property test is required):
+If keyword argument :inactive is non-nil, both active and
+inactive overlays are returned (usually inactive ones are
+ignored).
+
+If keyword argument :all-overlays is non-nil, all overlays are
+returned, not just auto-overlays.
+
+Any remaining arguments specify property tests, each of which
+should be a list with one of the following forms:
 
   (FUNCTION PROPERTY)
 
@@ -105,27 +80,76 @@ overlay, then FUNCTION is called with the properties values
 followed by the other values as its arguments. The test is
 satisfied if the result is non-nil, otherwise it fails. Tests are
 evaluated in order, but only up to the first failure. Only
-overlays that satisfy all property tests are returned.
+overlays that satisfy all property tests are returned."
 
-If WITHIN is non-nil, only overlays entirely within START and END
-are returned. If INACTIVE is non-nil, both active and inactive
-overlays are returned (usually inactive ones are ignored).
+  (when (null point) (setq point (point)))
+  (auto-overlay-trigger-update point)
 
-Note that this function returns any overlay. If you want to
-restrict it to auto overlays, include '(identity auto-overlay) in
-PROP-TEST."
+  (let (overlay-list)
+    ;; get overlays overlapping POINT and zero-length overlays at POINT
+    (setq overlay-list
+	  (apply #'auto-overlays-in point point prop-tests))
+    ;; get overlays that end at POINT
+    (dolist (o (apply #'auto-overlays-in (1- point) point prop-tests))
+      (when (and (< (overlay-start o) point)
+		 (= (overlay-end o) point))
+	(push o overlay-list)))
+    ;; get overlays that start at POINT
+    (dolist (o (apply #'auto-overlays-in point (1+ point) prop-tests))
+      (when (and (> (overlay-end o) point)
+		 (= (overlay-start o) point))
+	(push o overlay-list)))
+    (sort overlay-list #'auto-overlay-<)))
 
-  ;; make sure prop-test is a list of lists, even if there's only one, and
+
+
+;;;###autoload
+(cl-defun auto-overlays-in (start end &rest prop-tests
+				  &key within inactive all-overlays &allow-other-keys)
+;; FIXME: get rid of INACTIVE argument?
+  "Return auto overlays overlapping region between START and END.
+
+If keyword argument :within is non-nil, only overlays entirely
+within START and END are returned.
+
+If keyword argument :inactive is non-nil, both active and
+inactive overlays are returned (usually inactive ones are
+ignored).
+
+If keyword argument :all-overlays is non-nil, all overlays are
+returned, not just auto-overlays.
+
+Any remaining arguments specify property tests, each of which
+should be a list with one of the following forms:
+
+  (FUNCTION PROPERTY)
+
+  (FUNCTION PROPERTY VALUE)
+
+  (FUNCTION (PROPERTY1 PROPERTY2 ...) (VALUE1 VALUE2 ...))
+
+where PROPERTY indicates an overlay property name (a symbol), and
+VALUE indicates an arbitrary value or lisp expression.
+
+For each overlay between START and END, first the values
+corresponding to the property names are retrieved from the
+overlay, then FUNCTION is called with the properties values
+followed by the other values as its arguments. The test is
+satisfied if the result is non-nil, otherwise it fails. Tests are
+evaluated in order, but only up to the first failure. Only
+overlays that satisfy all property tests are returned."
+
+  ;; remove any keyword arguments from PROP-TESTS
+  (setq prop-tests
+	(auto-o--plist-delete prop-tests :within :inactive :all-overlays))
   ;; exclude inactive overlays unless told not to
-  (cond
-   ((null prop-test)
-    (unless inactive (setq prop-test '((null inactive)))))
-   ((functionp (car prop-test))
-    (if inactive
-	(setq prop-test (list prop-test))
-      (setq prop-test (list '(null inactive) prop-test))))
-   (t
-    (unless inactive (setq prop-test (push '(null inactive) prop-test)))))
+  (unless inactive (push '(null inactive) prop-tests))
+  ;; exclude non-auto-overlays unless told not to
+  (unless all-overlays (push '(identity auto-overlay) prop-tests))
+
+  ;; FIXME: Is updating just START and END enough to trigger all updates?
+  (auto-overlay-trigger-update start)
+  (unless (= start end) (auto-overlay-trigger-update end))
 
   (let (overlay-list function prop-list value-list result)
     ;; check properties of each overlay in region
@@ -139,7 +163,7 @@ PROP-TEST."
 	(setq result t)
 	(catch 'failed
 	  ;; check if properties match
-	  (dolist (test prop-test)
+	  (dolist (test prop-tests)
 	    ;; (Note: the whole thing would be neater with something like
 	    ;; (apply 'and (map ...)) but 'and is a special form, not a
 	    ;; function, so can't be applied)
@@ -164,24 +188,27 @@ PROP-TEST."
       ;; add overlay to result list if its properties matched
       (when result (push o overlay-list)))
     ;; return result list
-    overlay-list))
+    (nreverse overlay-list)))
 
 
 
 ;;;###autoload
-(defun auto-overlay-highest-priority-at-point (&optional point proptest)
-  "Return highest priority overlay at POINT (defaults to the point).
+(cl-defun auto-overlay-highest-priority-at-point (&optional point
+					          &rest prop-tests
+						  &key inactive all-overlays
+						  &allow-other-keys)
+  "Return highest priority overlay at POINT, defaulting to the point.
 
 If two overlays have the same priority, the innermost one takes
 precedence (i.e. the one that begins later, or if they begin at
 the same point the one that ends earlier).
 
-See `auto-overlays-at' for ane explanation of the PROPTEST argument."
+The remaining arguments are as for `auto-overlays-at' (which see)."
 
   (unless point (setq point (point)))
 
   ;; get all overlays at point with a non-nil SYMBOL property
-  (let* ((overlay-list (auto-overlays-at-point point proptest))
+  (let* ((overlay-list (apply #'auto-overlays-at-point point prop-tests))
 	 (overlay (pop overlay-list))
 	 p p1)
 

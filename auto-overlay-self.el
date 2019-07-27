@@ -197,8 +197,7 @@
   ;; buffer is modified. Called from `before-change-functions'.
 
   ;; check all overlays waiting to be cascaded, from first in buffer to last
-  (dolist (o (sort auto-o-pending-self-cascade
-		   (lambda (a b) (< (overlay-start a) (overlay-start b)))))
+  (dolist (o (sort auto-o-pending-self-cascade #'auto-overlay-<))
     ;; if buffer modification occurs after the end of an overlay waiting to be
     ;; cascaded, cascade all overlays between it and the modified text
     (when (and (overlay-start o) (<= (overlay-start o) beg))
@@ -286,14 +285,9 @@
 ;; 			(push o overlay-list)))
 ;; 	  (auto-overlays-in
 ;; 	   (point-min) (point-max)
-;; 	   (list
 ;; 	    '(identity auto-overlay)
-;; 	    (list 'eq 'set-id (overlay-get o-start 'set-id))
-;; 	    (list 'eq 'definition-id (overlay-get o-start 'definition-id)))))
-;;     ;; sort the list by start position, from first to last
-;;     (sort overlay-list
-;; 	  (lambda (a b) (< (overlay-start a) (overlay-start b)))))
-;; )
+;; 	    `(eq set-id ,(overlay-get o-start 'set-id))
+;; 	    `(eq definition-id ,(overlay-get o-start 'definition-id))))))
 
 
 
@@ -313,13 +307,8 @@
 	  ;;       (above) in all circumstances.
 	  (auto-overlays-in
 	   (1- (overlay-get o-start 'delim-start)) (1+ end)
-	   `((identity auto-overlay)
-	     (eq set-id ,(overlay-get o-start 'set-id))
-	     (eq definition-id ,(overlay-get o-start 'definition-id)))))
-    ;; sort the list by start position, from first to last
-    (sort overlay-list
-	  (lambda (a b) (< (overlay-start a) (overlay-start b))))
-    ))
+	   `(eq set-id ,(overlay-get o-start 'set-id))
+	   `(eq definition-id ,(overlay-get o-start 'definition-id))))))
 
 
 ;;; auto-overlay-self.el ends here

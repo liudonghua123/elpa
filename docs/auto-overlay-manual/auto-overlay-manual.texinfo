@@ -564,13 +564,12 @@ properties. The auto-overlays package provides some additional
 functions.
 
 @table @code
-@item (auto-overlays-at-point @@optional @var{point} @var{prop-test} @var{inactive})
+@item (auto-overlays-at-point @@optional @var{point} @@key @var{inactive} @var{all-overlays} @@rest @var{prop-tests})
 @findex auto-overlays-at-point
-Return a list of overlays overlapping @var{point}, or the point if
-@var{point} is null. The list includes @emph{all} overlays, not just
-auto-overlays (but see below). The list can be filtered to only return
+Return a list of auto-overlays overlapping @var{point}, or the point if
+@var{point} is null. The list can be filtered to only return
 overlays with properties matching criteria specified by
-@var{prop-test}. This should be a list defining a property test, with
+@var{prop-tests}. This should be a list defining a property test, with
 one of the following forms (or a list of such lists, if more than one
 property test is required):
 @lisp
@@ -588,44 +587,40 @@ arguments. The test is satisfied if the result is non-nil, otherwise it
 fails. Tests are evaluated in order, but only up to the first
 failure. Only overlays that satisfy all property tests are returned.
 
-All auto-overlays are given a non-nil @code{auto-overlay} property, so
-to restrict the list to auto-overlays, @var{prop-test} should include
-the following property test:
-@lisp
-('identity 'auto-overlay)
-@end lisp
 For efficiency reasons, the auto-overlays package sometimes leaves
 overlays hanging around in the buffer even when they should have been
 deleted. These are marked with a non-nil @code{inactive} property. By
 default, @command{auto-overlays-at-point} ignores these. A non-nil
-@var{inactive} will override this, causing inactive overlays to be
-included in the returned list (assuming they pass all property tests).
+@var{inactive} keyword argument will override this, causing inactive
+overlays to be included in the returned list (assuming they pass all
+property tests).
 
+By default, @command{auto-overlays-at-point} only returns overlays
+created by the auto-overlays package. If you want to include @emph{all}
+overlays, pass a non-nil @var{all-overlays} keyword argument.
 
-@item (auto-overlays-in @var{start} @var{end} @@optional @var{prop-test} @var{within} @var{inactive})
+@item (auto-overlays-in @var{start} @var{end} @@key @var{within} @var{inactive} @var{all-overlays} @@rest @var{prop-tests})
 @findex auto-overlays-in
 Return a list of overlays overlapping the region between @var{start} and
-@var{end}. The @var{prop-test} and @var{inactive} arguments have the
-same behaviour as in @command{auto-overlays-at-point}, above. If
-@var{within} is non-nil, only overlays that are entirely within the
-region from @var{start} to @var{end} will be returned, not overlays that
-extend outside that region.
+@var{end}. A non-nil @var{within} keyword argument, restricts the
+results to overlays that are entirely within the region from @var{start}
+to @var{end}, not overlays that extend outside that region. The
+remaining arguments are as for @command{auto-overlays-at-point}, above.
 
-
-@item (auto-overlay-highest-priority-at-point @@optional @var{point} @var{prop-test})
+@item (auto-overlay-highest-priority-at-point @@optional @var{point} @@key @var{inactive} @var{all-overlays} @@rest @var{prop-tests})
 @findex auto-overlay-highest-priority-at-point
 @cindex overlays, priority
 @cindex highest priority overlay
 Return the highest priority overlay at @var{point} (or the point, if
-@var{point} is null). The @var{prop-test} argument has the same
-behaviour as in @command{auto-overlays-at-point}, above. An overlay's
-priority is determined by the value of its @code{priority} property
-(@pxref{Overlay Properties,,,elisp, GNU Emacs Lisp Reference
-Manual}). If two overlays have the same priority, the innermost one
-takes precedence (i.e. the one that begins later in the buffer, or if
-they begin at the same point the one that ends earlier; if two overlays
-have the same priority and extend over the same region, there is no way
-to predict which will be returned).
+@var{point} is null). An overlay's priority is determined by the value
+of its @code{priority} property (@pxref{Overlay Properties,,,elisp, GNU
+Emacs Lisp Reference Manual}). If two overlays have the same priority,
+the innermost one takes precedence (i.e. the one that begins later in
+the buffer, or if they begin at the same point the one that ends
+earlier; if two overlays have the same priority and extend over the same
+region, there is no way to predict which will be returned).
+The remaining arguments are as for @command{auto-overlays-at-point}.
+
 
 @item (auto-overlay-local-binding @var{symbol} @@optional @var{point})
 @findex auto-overlay-local-binding

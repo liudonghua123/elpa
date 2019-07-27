@@ -586,9 +586,10 @@ from the current buffer. Returns the deleted definition."
       (set-buffer buff)
       (when (auto-o-enabled-p set-id)
 	(mapc (lambda (o) (auto-o-suicide o 'force))
-	      (auto-overlays-in (point-min) (point-max)
-				`((eq set-id ,set-id)
-				  (eq definition-id ,definition-id))))))
+	      (auto-overlays-in (point-min) (point-max) :all-overlays t
+				'(identity auto-overlay-match)
+				`(eq set-id ,set-id)
+				`(eq definition-id ,definition-id)))))
     ;; delete definition
     (let ((olddef (assq definition-id (auto-o-get-regexps set-id)))
 	   def-id class regexps regexp edge regexp-id props)
@@ -629,11 +630,11 @@ Returns the deleted regexp."
       (set-buffer buff)
       (when (auto-o-enabled-p set-id)
 	(mapc (lambda (o) (auto-o-suicide o 'force))
-	      (auto-overlays-in (point-min) (point-max)
-				`((identity auto-overlay-match)
-				  (eq set-id ,set-id)
-				  (eq definition-id ,definition-id)
-				  (eq regexp-id ,regexp-id))))))
+	      (auto-overlays-in (point-min) (point-max) :all-overlays t
+				'(identity auto-overlay-match)
+				`(eq set-id ,set-id)
+				`(eq definition-id ,definition-id)
+				`(eq regexp-id ,regexp-id)))))
     ;; delete regexp entry
     (let* ((def (cdr (assq definition-id (auto-o-get-regexps set-id))))
 	   (oldregexp (assq regexp-id def))
@@ -765,12 +766,10 @@ is about to be killed in which case it speeds things up a bit\)."
     (unless leave-overlays
       (mapc 'delete-overlay
       	    (auto-overlays-in
-      	     (point-min) (point-max)
-      	     (list
-      	      (list (lambda (overlay match) (or overlay match))
-      		    '(auto-overlay auto-overlay-match))
-      	      (list 'eq 'set-id set-id))
-      	     nil 'inactive)))
+      	     (point-min) (point-max) :all-overlays t :inactive t
+	     (list (lambda (overlay match) (or overlay match))
+		   '(auto-overlay auto-overlay-match))
+	     `(eq set-id ,set-id))))
 
     ;; if there are no more active auto-overlay definitions...
     (unless (catch 'enabled
@@ -831,15 +830,9 @@ The overlays can be loaded again later using
 
       ;; get sorted list of all match overlays in set SET-ID
       (setq overlay-list
-	    (auto-overlays-in (point-min) (point-max)
-			      (list '(identity auto-overlay-match)
-				    (list 'eq 'set-id set-id))))
-      (setq overlay-list
-	    (sort overlay-list
-		  (lambda (a b)
-		    (or (< (overlay-start a) (overlay-start b))
-			(and (= (overlay-start a) (overlay-start b))
-			     (> (overlay-end a) (overlay-end b)))))))
+	    (auto-overlays-in (point-min) (point-max) :all-overlays t
+			      '(identity auto-overlay-match)
+			      `(eq set-id ,set-id)))
 
       ;; write overlay data to temporary buffer
       (mapc (lambda (o)
@@ -1087,7 +1080,8 @@ overlays were saved."
   ;; in front or behind it, to simulate missing `delete-in-front-hooks' and
   ;; `delete-behind-hooks' overlay properties
   (unless (= len 0)
-    (dolist (o (auto-overlays-at-point nil '(identity auto-overlay-match)))
+    (dolist (o (auto-overlays-at-point nil :all-overlays t
+				       '(identity auto-overlay-match)))
       (when (or (= (overlay-end o) start) (= (overlay-start o) end))
 	(auto-o-adjoin o auto-o-pending-suicides)))))
 
@@ -1238,6 +1232,21 @@ overlays were saved."
 	))))
 
 
+(defun auto-overlay-trigger-update (&optional point)
+  "Trigger auto-overlay update at POINT, defaulting to the point."
+  ;; FIXME: Inserting and deleting to trigger change hooks is hacky. But some
+  ;;        updates are triggered by overlay change hooks (e.g. self overlay
+  ;;        cascades), and auto-overlays doesn't know about these. Would need
+  ;;        to refactor how class-specific updates are performed.
+  (unless point (setq point (point)))
+  (let ((inhibit-read-only t))
+    (with-silent-modifications
+      (save-excursion
+	(goto-char point)
+	(insert " ")
+	(backward-delete-char 1)))))
+
+
 
 (defun auto-o-suicide (o-self &optional force)
   ;; This function is assigned to all match overlay modification hooks, and
@@ -1303,18 +1312,16 @@ overlays were saved."
       ;; matched and have priority lower than NEW-PRIORITY
       (setq overlay-list
 	    (auto-overlays-in
-	     beg end
-	     (list '(identity auto-overlay)
-		   (list 'eq 'set-id set-id)
-		   '(identity start)
-		   (list (lambda (definition-id start end)
-			   (or (null (auto-o-entry-complex-class-p
-				      set-id definition-id))
-			       (and start end)))
-			 '(definition-id start end))
-		   (list (lambda (pri new) (or (null pri) (< pri new)))
-			 'priority new-priority))
-	     'within))
+	     beg end :within t
+	     `(eq set-id ,set-id)
+	     '(identity start)
+	     (list (lambda (definition-id start end)
+		     (or (null (auto-o-entry-complex-class-p
+				set-id definition-id))
+			 (and start end)))
+		   '(definition-id start end))
+	     (list (lambda (pri new) (or (null pri) (< pri new)))
+		   'priority new-priority)))
       ;; mark overlays in list as inactive (more efficient than calling
       ;; suicide functions or deleting the overlays, and leaves them intact in
       ;; case the exclusivity of the region is later reduced - see below)
@@ -1324,23 +1331,23 @@ overlays were saved."
       ;; NEW-PRIORITY but still have an active parent overlay
       (setq overlay-list
 	    (auto-overlays-in
-	     beg end
-	     (list '(identity auto-overlay-match)
-		   (list 'eq 'set-id set-id)
-		   ;; note: parentless overlays are possible if a suicide is
-		   ;; in progress, so need to check overlay has a parent first
-		   '(identity parent)
-		   (list (lambda (parent)
-			   (not (overlay-get parent 'inactive)))
-			 'parent)
-		   (list (lambda (set-id definition-id regexp-id new-pri)
-			   (let ((pri (cdr (assq
-					    'priority
-					    (auto-o-entry-props
-					     set-id definition-id regexp-id)))))
-			     (or (null pri) (< pri new-pri))))
-			 '(set-id definition-id regexp-id)
-			 (list new-priority)))))
+	     beg end :all-overlays t
+	     '(identity auto-overlay-match)
+	     `(eq set-id ,set-id)
+	     ;; note: parentless overlays are possible if a suicide is in
+	     ;; progress, so need to check overlay has a parent first
+	     '(identity parent)
+	     (list (lambda (parent)
+		     (not (overlay-get parent 'inactive)))
+		   'parent)
+	     (list (lambda (set-id definition-id regexp-id new-pri)
+		     (let ((pri (cdr (assq
+				      'priority
+				      (auto-o-entry-props
+				       set-id definition-id regexp-id)))))
+		       (or (null pri) (< pri new-pri))))
+		   '(set-id definition-id regexp-id)
+		   (list new-priority))))
       ;; call appropriate suicide function for each match overlay in list
       (dolist (o overlay-list) (funcall (auto-o-suicide-function o) o)))
 
@@ -1352,13 +1359,11 @@ overlays were saved."
       ;; higher or equal to NEW-PRIORITY
       (setq overlay-list
 	    (auto-overlays-in
-	     beg end
-	     (list '(identity auto-overlay)
-		   (list 'eq 'set-id set-id)
-		   '(identity inactive)
-		   (list (lambda (pri new) (or (null new) (>= pri new)))
-			 'priority new-priority))
-	     'within 'inactive))
+	     beg end :within t :inactive t
+	     `(eq set-id ,set-id)
+	     '(identity inactive)
+	     (list (lambda (pri new) (or (null new) (>= pri new)))
+		   'priority new-priority)))
       ;; mark overlays in list as active again
       (dolist (o overlay-list) (overlay-put o 'inactive nil))
 
@@ -1366,18 +1371,18 @@ overlays were saved."
       ;; equal to NEW-PRIORITY but no parent overlay
       (setq overlay-list
 	    (auto-overlays-in
-	     beg end
-	     (list '(identity auto-overlay-match)
-		   (list 'eq 'set-id set-id)
-		   '(null parent)
-		   (list (lambda (set-id definition-id regexp-id new-pri)
-			   (let ((pri (cdr (assq
-					    'priority
-					    (auto-o-entry-props
-					     set-id definition-id regexp-id)))))
-			     (or (null new-pri) (>= pri new-pri))))
-			 '(set-id definition-id regexp-id)
-			 (list new-priority)))))
+	     beg end :all-overlays t
+	     '(identity auto-overlay-match)
+	     `(eq set-id ,set-id)
+	     '(null parent)
+	     (list (lambda (set-id definition-id regexp-id new-pri)
+		     (let ((pri (cdr (assq
+				      'priority
+				      (auto-o-entry-props
+				       set-id definition-id regexp-id)))))
+		       (or (null new-pri) (>= pri new-pri))))
+		   '(set-id definition-id regexp-id)
+		   (list new-priority))))
       ;; call appropriate parse function for each match overlay in list
       (dolist (o-match overlay-list)
 	(when (not (auto-o-within-exclusive-p o-match))
@@ -1663,11 +1668,9 @@ overlay changes."
   ;; look for higher priority exclusive overlays
   (auto-overlays-in
    match end
-   (list '(identity auto-overlay)
-	 '(identity exclusive)
-	 (list (lambda (p q) (and p (or (null q) (> p q))))
-	       'priority priority)))
-)
+   '(identity exclusive)
+   (list (lambda (p q) (and p (or (null q) (> p q))))
+	 'priority priority)))
 
 
 
