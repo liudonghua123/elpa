@@ -977,7 +977,7 @@ overlays were saved."
   ;; order.
 
   ;; ignore changes that aren't either insertions or deletions
-  (when (and (not undo-in-progress)
+  (when (and ;;(not undo-in-progress)
 	     (or (and (/= beg end) (=  len 0))    ; insertion
 		 (and (=  beg end) (/= len 0))))  ; deletion
     ;; repeat until all the pending functions have been cleared (it may be
@@ -1236,7 +1236,6 @@ overlays were saved."
 		(forward-line 1))
 	      )))
 	))))
-
 
 
 
