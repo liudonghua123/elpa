@@ -30,6 +30,7 @@
 (provide 'auto-overlay-self)
 
 (defvar auto-o-pending-self-cascade nil)
+(make-variable-buffer-local 'auto-o-pending-self-cascade)
 
 ;; set self overlay parsing and suicide functions
 (put 'self 'auto-overlay-parse-function 'auto-o-parse-self-match)
@@ -54,9 +55,7 @@
 
 (defun auto-o-self-unload ()
   ;; Remove `auto-o-perform-self-cascades' from `before-change-functions'.
-  (remove-hook 'before-change-functions 'auto-o-perform-self-cascades t)
-)
-
+  (remove-hook 'before-change-functions 'auto-o-perform-self-cascades t))
 
 
 
@@ -110,6 +109,9 @@
 	  ;; end match which is now matched with start of new one
 	  (auto-o-match-overlay o nil o-match 'no-props nil 'protect-match))
 
+	;; cascade new overlay one step
+	(when overlay-list (auto-o-self-cascade (list o-new (car overlay-list))))
+
       ;; return newly created overlay
       o-new))
      ))
@@ -153,8 +155,7 @@
 	   'unmatched)))
       ;; add parent to uncascaded overlay list
       (push o-parent auto-o-pending-self-cascade))
-     ))
-)
+     )))
 
 
 
@@ -200,9 +201,14 @@
 		   (lambda (a b) (< (overlay-start a) (overlay-start b)))))
     ;; if buffer modification occurs after the end of an overlay waiting to be
     ;; cascaded, cascade all overlays between it and the modified text
-    (when (and (overlay-end o) (< (overlay-end o) end))
-      (auto-o-self-cascade (auto-o-self-list (overlay-get o 'start) end))))
-)
+    (when (and (overlay-start o) (<= (overlay-start o) beg))
+      (auto-o-self-cascade (auto-o-self-list
+			    (overlay-get o 'start)
+			    (max (save-excursion
+				   (goto-char (overlay-end o))
+				   (line-end-position))
+				 end))))
+    ))
 
 
 
@@ -297,7 +303,6 @@
   ;; is null, all overlays after O-START are included.
 
   (when (null end) (setq end (point-max)))
-
   (let (overlay-list)
     ;; create list of all overlays corresponding to same entry between O-START
     ;; and END
@@ -308,14 +313,13 @@
 	  ;;       (above) in all circumstances.
 	  (auto-overlays-in
 	   (1- (overlay-get o-start 'delim-start)) (1+ end)
-	   (list
-	    '(identity auto-overlay)
-	    (list 'eq 'set-id (overlay-get o-start 'set-id))
-	    (list 'eq 'definition-id (overlay-get o-start 'definition-id)))))
+	   `((identity auto-overlay)
+	     (eq set-id ,(overlay-get o-start 'set-id))
+	     (eq definition-id ,(overlay-get o-start 'definition-id)))))
     ;; sort the list by start position, from first to last
     (sort overlay-list
-	  (lambda (a b) (< (overlay-start a) (overlay-start b)))))
-)
+	  (lambda (a b) (< (overlay-start a) (overlay-start b))))
+    ))
 
 
 ;;; auto-overlay-self.el ends here
