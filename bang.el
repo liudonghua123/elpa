@@ -76,7 +76,8 @@ between BEG and END. Otherwise the whole buffer is processed."
             (has-| (shell-command-on-region
                     beg end rest t t
                     shell-command-default-error-buffer t))
-            (t (shell-command command nil shell-command-default-error-buffer)))
+            (t (shell-command command (if current-prefix-arg t nil)
+                              shell-command-default-error-buffer)))
       (when has->
         (with-current-buffer "*Shell Command Output*"
           (delete-region (point-min) (point-max)))))))
