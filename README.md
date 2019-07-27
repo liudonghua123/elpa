@@ -10,8 +10,6 @@ explains:
 	  <  the output of COMMAND replaces the current selection
 	  >  COMMAND is run with the current selection as input
 	  |  the current selection is filtered through COMMAND
-	  !  executes the last command that started with COMMAND,
-		 or if a number, re-execute nth last command
 
 Bang has been based on a function of the same name by [Leah
 Neukirchen][leah].
