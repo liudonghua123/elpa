@@ -224,7 +224,7 @@ Of course, automatically creating overlays isn't much use without some
 way of setting their properties too. Overlay properties can be defined
 along with the regexp, and are applied to any overlays created by a
 match to that regexp. Certain properties have implications for
-auto-overlay behaviour.
+auto-overlay behaviour:
 
 @table @code
 @item priority
@@ -260,35 +260,18 @@ ignoring other regexp matches within comments in code.
 @cindex using auto-overlays
 
 To use auto-overlays in an Elisp package, you must load the
-overlay classes that you require by including lines of the form
+package by including a line of the form
 
 @lisp
-(require 'auto-overlay-@var{class})
+(require 'auto-overlays)
 @end lisp
 
-near the beginning of your package, where @var{class} is the class
-name. The standard classes are: @code{word}, @code{line}, @code{self},
-@code{nested} and @code{flat} (@pxref{Overview}), though new classes can
-easily be added (@pxref{Extending the Auto-Overlays Package}).
-
-Sometimes it is useful for a package to make use of auto-overlays if any
-are defined, without necessarily requiring them. To facilitate this, the
-relevant functions can be loaded separately from the rest of the
-auto-overlays package with the line
-
-@lisp
-(require 'auto-overlay-common)
-@end lisp
-
-This provides all the functions related to searching for overlays and
-retrieving overlay properties. @xref{Searching for Overlays}. Note that
-there is no need to include this line if any auto-overlay classes are
-@code{require}d, though it will do no harm.
+@noindent near the beginning of your package.
 
 This section describes the functions that are needed in order to make
-use of auto-overlays in an Elisp package. It does @emph{not} describe
-functions related to extending the auto-overlays
-package. @xref{Extending the Auto-Overlays Package}.
+use of auto-overlays in an Elisp package. Functions related to extending
+the auto-overlays package are explained in a later section.
+@xref{Extending the Auto-Overlays Package}.
 
 @menu
 * Defining Regexps::
@@ -313,36 +296,47 @@ An auto-overlay definition is a list of the form:
 @end lisp
 
 @var{class} is one of the regexp classes described in the previous
-section (@pxref{Overview}). The optional @code{:id} property should be a
-symbol that can be used to uniquely identify the auto-overlay
-definition.
+section (@pxref{Overview}).
+
+The optional @code{:id} property should be a symbol that can be used to
+uniquely identify the auto-overlay definition.
 
 Each @var{regexp} defines one of the regexps that make up the
 auto-overlay definition. It should be a list of the form
 
 @lisp
-(@var{rgxp} &optional :edge @var{edge} :id @var{subentry-id} @@rest @var{property1} @var{property2} ...)
+(@var{rgxp} &optional :id @var{subentry-id} :edge @var{edge} :exclusitve @var{exclusive} @@rest @var{property1} @var{property2} ...)
 @end lisp
+
+The optional @code{:id} property should be a symbol that can be used to
+uniquely identify the regexp.
 
 The @code{:edge} property should be one of the symbols @code{'start} or
 @code{'end}, and determines which edge of the auto-overlay this regexp
 corresponds to. If @code{:edge} is not specified, it is assumed to be
 @code{'start}. Auto-overlay classes that do not require separate
-@code{start} and @code{end} regexps ignore this property. The @code{:id}
-property should be a symbol that can be used to uniquely identify the
-regexp. Any further elements in the list are cons cells of the form
-@code{(property . value)}, where @var{property} is an overlay property
-name (a symbol) and @var{value} its value. In its simplest form,
-@var{rgxp} is a single regular expression.
+@code{start} and @code{end} regexps ignore this property.
 
-If only part of the regexp should act as the delimeter
-(@pxref{Overview}), @var{rgxp} should instead be a cons cell:
+The optional @code{exclusive} property specifies that this regexp
+matches exclusively; no lower-priority regexp is allowed to match the
+same text. (Contrast with the @code{exclusive} overlay property, which
+prevents any auto-overlay matches @emph{within} the auto-overlay itself.
+@pxref{Overview})
+
+Any further elements in the list are cons cells of the form
+@code{(property . value)}, where @var{property} is an overlay property
+name (a symbol) and @var{value} its value.
+
+In its simplest form, @var{rgxp} is a single regular expression. If only
+part of the regexp should act as the delimeter (@pxref{Overview}),
+@var{rgxp} should instead be a cons cell:
 
 @lisp
 (@var{rx} . @var{group})
 @end lisp
 
-@noindent where @var{rx} is a regexp that contains at least one group
+@noindent
+where @var{rx} is a regexp that contains at least one group
 (@pxref{Regular Expressions,,,elisp, GNU Emacs Lisp Reference Manual}),
 and @var{group} is an integer identifying which group should act as the
 delimeter.
@@ -354,7 +348,8 @@ If the overlay class requires additional groups to be specified,
 (@var{rx} @var{group0} @var{group1} ...)
 @end lisp
 
-@noindent where @var{rx} is a regexp. The first @var{group0} still specifies the
+@noindent
+where @var{rx} is a regexp. The first @var{group0} still specifies the
 part that acts as the delimeter, as before. If the entire regexp should
 act as the delimeter, @var{group0} must still be supplied but should be
 set to 0 (meaning the entire regexp). None of the standard classes make
@@ -603,15 +598,16 @@ property test is required):
 (@var{function} (@var{property1} @var{property2} ...) (@var{value1} @var{value2} ...))
 @end lisp
 
+@noindent
 where @var{function} is a function, @var{property} is an overlay
 property name (a symbol), and @var{value} can be any value or lisp
 expression. For each overlay, first the values corresponding to the
 @var{property} names are retrieved from the overlay and any @var{value}s
 that are lisp expressions are evaluated. Then @var{function} is called
-with the property values followed by the other values as its
-arguments. The test is satisfied if the result is non-nil, otherwise it
-fails. Tests are evaluated in order, but only up to the first
-failure. Only overlays that satisfy all property tests are returned.
+with the property values followed by the other values as its arguments.
+The test is satisfied if the result is non-nil, otherwise it fails.
+Tests are evaluated in order, but only up to the first failure. Only
+overlays that satisfy all property tests are returned.
 
 For efficiency reasons, the auto-overlays package sometimes leaves
 overlays hanging around in the buffer even when they should have been
@@ -1405,6 +1401,7 @@ creates, or @code{nil} if none were created.
 @var{o-list} = (auto-o-parse-@var{class}-match @var{o-match})
 @end lisp
 
+@noindent
 Note that the parse function itself is responsible for calling the
 @command{auto-o-update-exclusive} function if a new exclusive overlay is
 created. @xref{Functions for Modifying Overlays}.
@@ -1442,6 +1439,7 @@ that has just been matched with an edge of an auto-overlay
 (auto-o-match-@var{class} @var{o-match})
 @end lisp
 
+@noindent
 The auto-overlay it is matched with is stored in the match overlay's
 @code{parent} property.
 @end table
@@ -1457,6 +1455,7 @@ to refer to the new class, denoted here by @var{class}:
      'auto-o-@var{class}-suicide)
 @end lisp
 
+@noindent
 If the optional match function is defined, it should similarly be added
 to the symbol's property list:
 
@@ -1747,6 +1746,7 @@ containing elements of the form:
 (@var{function} @var{arg1} @var{arg2} ...)
 @end lisp
 
+@noindent
 where @var{function} is the function to be called by the hook, and the
 @var{arg}'s are the arguments to be passed to that function. The list
 elements are evaluated in order. The pseudo-hooks are cleared each time

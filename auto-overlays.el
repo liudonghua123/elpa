@@ -207,14 +207,13 @@
   ;; Return Nth regexp group entry corresponsing to SET-ID, DEFINITION-ID and
   ;; REGEXP-ID, or 0 if there is no Nth entry.
   `(let ((regexp (nth 1 (auto-o-entry ,set-id ,definition-id ,regexp-id))))
-     (cond
-      ((atom regexp) 0)
-      ((> (1+ ,n) (length (cdr regexp))) 0)
-      (t (nth ,n (cdr regexp))))))
+     (unless (or (atom regexp)
+		 (> (1+ ,n) (length (cdr regexp))))
+      (nth ,n (cdr regexp)))))
 
 
 (defmacro auto-o-regexp-group-nth (n o-match)
-  ;; Return match overlay O-MATCH's Nth regexp group entry, or 0 if there is
+  ;; Return match overlay O-MATCH's Nth regexp group entry, or nil if there is
   ;; no Nth entry.
   `(auto-o-entry-regexp-group-nth ,n (overlay-get ,o-match 'set-id)
 				  (overlay-get ,o-match 'definition-id)
@@ -224,7 +223,7 @@
 (defmacro auto-o-entry-props (set-id definition-id &optional regexp-id)
   ;; Return properties of regexp corresponding to SET-ID, DEFINITION-ID and
   ;; REGEXP-ID.
-  `(nthcdr 2 (auto-o-entry ,set-id ,definition-id ,regexp-id)))
+  `(nthcdr 3 (auto-o-entry ,set-id ,definition-id ,regexp-id)))
 
 
 (defmacro auto-o-props (o-match)
@@ -245,6 +244,19 @@
   `(auto-o-entry-edge (overlay-get ,o-match 'set-id)
 		      (overlay-get ,o-match 'definition-id)
 		      (overlay-get ,o-match 'regexp-id)))
+
+
+(defmacro auto-o-entry-match-exclusive (set-id definition-id regexp-id)
+  ;; Return :exclusive property of regexp with SET-ID, DEFINITION-ID and
+  ;; REGEXP-ID
+  `(nth 2 (auto-o-entry ,set-id ,definition-id ,regexp-id)))
+
+
+(defmacro auto-o-match-exclusive (o-match)
+  ;; Return :exclusive property of match overlay O-MATCH
+  `(auto-o-entry-match-exclusive (overlay-get ,o-match 'set-id)
+				 (overlay-get ,o-match 'definition-id)
+				 (overlay-get ,o-match 'regexp-id)))
 
 
 (defmacro auto-o-parse-function (o-match)
@@ -799,7 +811,7 @@ assumed to be 'start. ID property is a symbol that can be used to
 uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
 
   (let ((defs (assq definition-id (auto-o-get-regexps set-id)))
-	regexp-id rgxp edge props)
+	regexp-id rgxp edge exclusive props)
     (when (null defs)
       (error "Definition \"%s\" not found in auto-overlay regexp set %s"
 	     (symbol-name definition-id) (symbol-name set-id)))
@@ -814,6 +826,13 @@ uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
 	(setq edge (nth (1+ n) regexp))
 	(setq regexp (append (auto-o-sublist regexp 0 n)
 			     (auto-o-sublist regexp (+ n 2)))))
+
+      ;; extract exclusive
+      (when (setq n (auto-o-position :exclusive regexp))
+	(setq exclusive (nth (1+ n) regexp))
+	(setq regexp (append (auto-o-sublist regexp 0 n)
+			     (auto-o-sublist regexp (+ n 2)))))
+
       ;; extract regexp-id
       (if (setq n (auto-o-position :id regexp))
 	  (progn
@@ -833,7 +852,7 @@ uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
       (setq props regexp))
 
     ;; create regexp definition
-    (setq regexp (append (list regexp-id edge rgxp) props))
+    (setq regexp (append (list regexp-id edge rgxp exclusive) props))
 
     (cond
      ;; adding at end
@@ -1929,15 +1948,16 @@ overlay changes."
   (let (o-match)
     (catch 'match
       (mapc (lambda (o)
-	      (when (and (overlay-get o 'auto-overlay-match)
-			 (eq (overlay-get o 'set-id) set-id)
-			 (eq (overlay-get o 'definition-id) definition-id)
-			 (eq (overlay-get o 'regexp-id) regexp-id)
+	      (when (and (or (auto-o-match-exclusive o)
+			     (and (eq (overlay-get o 'definition-id) definition-id)
+				  (eq (overlay-get o 'regexp-id) regexp-id)))
 			 (= (overlay-start o) beg)
 			 (= (overlay-end o) end))
 		(setq o-match o)
 		(throw 'match t)))
-	    (overlays-in beg end)))
+	    (auto-overlays-in beg end :all-overlays t
+			      '(identity auto-overlay-match)
+			      `(eq set-id ,set-id))))
     o-match))
 
 
@@ -1972,17 +1992,18 @@ overlay changes."
   (let (o-overlap)
     (catch 'match
       (mapc (lambda (o)
-	      (when (and (overlay-get o 'auto-overlay-match)
-			 (eq (overlay-get o 'set-id) set-id)
-			 (eq (overlay-get o 'definition-id) definition-id)
-			 (not (eq (overlay-get o 'regexp-id) regexp-id))
-			 (eq (auto-o-edge o) edge)
+	      (when (and (or (auto-o-match-exclusive o)
+			     (and (eq (overlay-get o 'definition-id) definition-id)
+				  (not (eq (overlay-get o 'regexp-id) regexp-id)))
+			     (eq (auto-o-edge o) edge))
 			 ;; check delimiter (not just o) overlaps BEG to END
 			 (< (overlay-get o 'delim-start) end)
 			 (> (overlay-get o 'delim-end) beg))
 		(setq o-overlap o)
 		(throw 'match t)))
-	    (overlays-in beg end)))
+	    (auto-overlays-in beg end :all-overlays t
+			      '(identity auto-overlay-match)
+			      `(eq set-id ,set-id))))
     o-overlap))
 
 
