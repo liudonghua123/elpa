@@ -6,8 +6,24 @@
 ;;;### (autoloads nil "tramp-adb" "tramp-adb.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-adb.el
 
+(defvar tramp-adb-program "adb" "\
+Name of the Android Debug Bridge program.")
+
+(custom-autoload 'tramp-adb-program "tramp-adb" t)
+
+(defvar tramp-adb-connect-if-not-connected nil "\
+Try to run `adb connect' if provided device is not connected currently.
+It is used for TCP/IP devices.")
+
+(custom-autoload 'tramp-adb-connect-if-not-connected "tramp-adb" t)
+
 (defconst tramp-adb-method "adb" "\
 When this method name is used, forward all calls to Android Debug Bridge.")
+
+(defvar tramp-adb-prompt "^[[:digit:]]*|?[[:alnum:]\33;[]*@?[[:alnum:]]*[^#\\$]*[#\\$][[:space:]]" "\
+Regexp used as prompt in almquist shell.")
+
+(custom-autoload 'tramp-adb-prompt "tramp-adb" t)
 
 (tramp--with-startup (add-to-list 'tramp-methods `(,tramp-adb-method (tramp-tmpdir "/data/local/tmp") (tramp-default-port 5555))) (add-to-list 'tramp-default-host-alist `(,tramp-adb-method nil "")) (tramp-set-completion-function tramp-adb-method '((tramp-adb-parse-device-names ""))))
 
@@ -70,6 +86,11 @@ matching entry for PROPERTY in `tramp-cache-data'.  For more
 details see the info pages.")
 
 (custom-autoload 'tramp-connection-properties "tramp-cache" t)
+
+(defvar tramp-persistency-file-name (expand-file-name (locate-user-emacs-file "tramp")) "\
+File which keeps connection history for Tramp connections.")
+
+(custom-autoload 'tramp-persistency-file-name "tramp-cache" t)
 
 (autoload 'tramp-get-file-property "tramp-cache" "\
 Get the PROPERTY of FILE from the cache context of KEY.
@@ -243,6 +264,11 @@ List of methods for remote files, accessed with GVFS.")
 
 (tramp--with-startup (when (string-match "\\(.+\\)@\\(\\(?:gmail\\|googlemail\\)\\.com\\)" user-mail-address) (add-to-list 'tramp-default-user-alist `("\\`gdrive\\'" nil ,(match-string 1 user-mail-address))) (add-to-list 'tramp-default-host-alist '("\\`gdrive\\'" nil (\, (match-string 2 user-mail-address))))))
 
+(defvar tramp-gvfs-zeroconf-domain "local" "\
+Zeroconf domain to be used for discovering services, like host names.")
+
+(custom-autoload 'tramp-gvfs-zeroconf-domain "tramp-gvfs" t)
+
 (when (featurep 'dbusbind) (tramp--with-startup (dolist (elt tramp-gvfs-methods) (unless (assoc elt tramp-methods) (add-to-list 'tramp-methods (cons elt nil))))))
 
 (defconst tramp-goa-service "org.gnome.OnlineAccounts" "\
@@ -272,6 +298,11 @@ pass to the OPERATION.
 (defconst tramp-rclone-method "rclone" "\
 When this method name is used, forward all calls to rclone mounts.")
 
+(defvar tramp-rclone-program "rclone" "\
+Name of the rclone program.")
+
+(custom-autoload 'tramp-rclone-program "tramp-rclone" t)
+
 (tramp--with-startup (add-to-list 'tramp-methods `(,tramp-rclone-method (tramp-mount-args nil) (tramp-copyto-args nil) (tramp-moveto-args nil) (tramp-about-args ("--full")))) (add-to-list 'tramp-default-host-alist `(,tramp-rclone-method nil "")) (tramp-set-completion-function tramp-rclone-method '((tramp-rclone-parse-device-names ""))))
 
 (defconst tramp-rclone-file-name-handler-alist '((access-file . tramp-handle-access-file) (add-name-to-file . tramp-handle-add-name-to-file) (copy-file . tramp-rclone-handle-copy-file) (delete-directory . tramp-rclone-handle-delete-directory) (delete-file . tramp-rclone-handle-delete-file) (directory-file-name . tramp-handle-directory-file-name) (directory-files . tramp-rclone-handle-directory-files) (directory-files-and-attributes . tramp-handle-directory-files-and-attributes) (dired-compress-file . ignore) (dired-uncache . tramp-handle-dired-uncache) (exec-path . ignore) (expand-file-name . tramp-handle-expand-file-name) (file-accessible-directory-p . tramp-handle-file-accessible-directory-p) (file-acl . ignore) (file-attributes . tramp-rclone-handle-file-attributes) (file-directory-p . tramp-handle-file-directory-p) (file-equal-p . tramp-handle-file-equal-p) (file-executable-p . tramp-rclone-handle-file-executable-p) (file-exists-p . tramp-handle-file-exists-p) (file-in-directory-p . tramp-handle-file-in-directory-p) (file-local-copy . tramp-handle-file-local-copy) (file-modes . tramp-handle-file-modes) (file-name-all-completions . tramp-rclone-handle-file-name-all-completions) (file-name-as-directory . tramp-handle-file-name-as-directory) (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p) (file-name-completion . tramp-handle-file-name-completion) (file-name-directory . tramp-handle-file-name-directory) (file-name-nondirectory . tramp-handle-file-name-nondirectory) (file-newer-than-file-p . tramp-handle-file-newer-than-file-p) (file-notify-add-watch . ignore) (file-notify-rm-watch . ignore) (file-notify-valid-p . ignore) (file-ownership-preserved-p . ignore) (file-readable-p . tramp-rclone-handle-file-readable-p) (file-regular-p . tramp-handle-file-regular-p) (file-remote-p . tramp-handle-file-remote-p) (file-selinux-context . tramp-handle-file-selinux-context) (file-symlink-p . tramp-handle-file-symlink-p) (file-system-info . tramp-rclone-handle-file-system-info) (file-truename . tramp-handle-file-truename) (file-writable-p . tramp-handle-file-writable-p) (find-backup-file-name . tramp-handle-find-backup-file-name) (insert-directory . tramp-handle-insert-directory) (insert-file-contents . tramp-handle-insert-file-contents) (load . tramp-handle-load) (make-auto-save-file-name . tramp-handle-make-auto-save-file-name) (make-directory . tramp-rclone-handle-make-directory) (make-directory-internal . ignore) (make-nearby-temp-file . tramp-handle-make-nearby-temp-file) (make-process . ignore) (make-symbolic-link . tramp-handle-make-symbolic-link) (process-file . ignore) (rename-file . tramp-rclone-handle-rename-file) (set-file-acl . ignore) (set-file-modes . ignore) (set-file-selinux-context . ignore) (set-file-times . ignore) (set-visited-file-modtime . tramp-handle-set-visited-file-modtime) (shell-command . ignore) (start-file-process . ignore) (substitute-in-file-name . tramp-handle-substitute-in-file-name) (temporary-file-directory . tramp-handle-temporary-file-directory) (tramp-set-file-uid-gid . ignore) (unhandled-file-name-directory . ignore) (vc-registered . ignore) (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime) (write-region . tramp-handle-write-region)) "\
@@ -300,6 +331,21 @@ Return a list of (nil host) tuples allowed to access.
 ;;;### (autoloads nil "tramp-sh" "tramp-sh.el" (0 0 0 0))
 ;;; Generated autoloads from tramp-sh.el
 
+(defvar tramp-inline-compress-start-size 4096 "\
+The minimum size of compressing where inline transfer.
+When inline transfer, compress transferred data of file whose
+size is this value or above (up to `tramp-copy-size-limit' for
+out-of-band methods).
+If it is nil, no compression at all will be applied.")
+
+(custom-autoload 'tramp-inline-compress-start-size "tramp-sh" t)
+
+(defvar tramp-copy-size-limit 10240 "\
+The maximum file size where inline copying is preferred over an out-of-the-band copy.
+If it is nil, out-of-the-band copy will be used without a check.")
+
+(custom-autoload 'tramp-copy-size-limit "tramp-sh" t)
+
 (defvar tramp-terminal-type "dumb" "\
 Value of TERM environment variable for logging in to remote host.
 Because Tramp wants to parse the output of the remote shell, it is easily
@@ -308,11 +354,29 @@ files conditionalize this setup based on the TERM environment variable.")
 
 (custom-autoload 'tramp-terminal-type "tramp-sh" t)
 
+(defvar tramp-histfile-override "~/.tramp_history" "\
+When invoking a shell, override the HISTFILE with this value.
+When setting to a string, it redirects the shell history to that
+file.  Be careful when setting to \"/dev/null\"; this might
+result in undesired results when using \"bash\" as shell.
+
+The value t unsets any setting of HISTFILE, and sets both
+HISTFILESIZE and HISTSIZE to 0.  If you set this variable to nil,
+however, the *override* is disabled, so the history will go to
+the default storage location, e.g. \"$HOME/.sh_history\".")
+
+(custom-autoload 'tramp-histfile-override "tramp-sh" t)
+
 (defconst tramp-display-escape-sequence-regexp "\33[[;0-9]+m" "\
 Terminal control escape sequences for display attributes.")
 
 (defconst tramp-initial-end-of-output "#$ " "\
 Prompt when establishing a connection.")
+
+(defvar tramp-use-ssh-controlmaster-options t "\
+Whether to use `tramp-ssh-controlmaster-options'.")
+
+(custom-autoload 'tramp-use-ssh-controlmaster-options "tramp-sh" t)
 
 (tramp--with-startup (add-to-list 'tramp-methods '("rcp" (tramp-login-program "rsh") (tramp-login-args (("%h") ("-l" "%u"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-copy-program "rcp") (tramp-copy-args (("-p" "%k") ("-r"))) (tramp-copy-keep-date t) (tramp-copy-recursive t))) (add-to-list 'tramp-methods '("remcp" (tramp-login-program "remsh") (tramp-login-args (("%h") ("-l" "%u"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-copy-program "rcp") (tramp-copy-args (("-p" "%k"))) (tramp-copy-keep-date t))) (add-to-list 'tramp-methods '("scp" (tramp-login-program "ssh") (tramp-login-args (("-l" "%u") ("-p" "%p") ("%c") ("-e" "none") ("%h"))) (tramp-async-args (("-q"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-copy-program "scp") (tramp-copy-args (("-P" "%p") ("-p" "%k") ("-q") ("-r") ("%c"))) (tramp-copy-keep-date t) (tramp-copy-recursive t))) (add-to-list 'tramp-methods '("scpx" (tramp-login-program "ssh") (tramp-login-args (("-l" "%u") ("-p" "%p") ("%c") ("-e" "none") ("-t" "-t") ("%h") ("/bin/sh"))) (tramp-async-args (("-q"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-copy-program "scp") (tramp-copy-args (("-P" "%p") ("-p" "%k") ("-q") ("-r") ("%c"))) (tramp-copy-keep-date t) (tramp-copy-recursive t))) (add-to-list 'tramp-methods '("rsync" (tramp-login-program "ssh") (tramp-login-args (("-l" "%u") ("-p" "%p") ("%c") ("-e" "none") ("%h"))) (tramp-async-args (("-q"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-copy-program "rsync") (tramp-copy-args (("-t" "%k") ("-p") ("-r") ("-s") ("-c"))) (tramp-copy-env (("RSYNC_RSH") ("ssh" "%c"))) (tramp-copy-keep-date t) (tramp-copy-keep-tmpfile t) (tramp-copy-recursive t))) (add-to-list 'tramp-methods '("rsh" (tramp-login-program "rsh") (tramp-login-args (("%h") ("-l" "%u"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")))) (add-to-list 'tramp-methods '("remsh" (tramp-login-program "remsh") (tramp-login-args (("%h") ("-l" "%u"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")))) (add-to-list 'tramp-methods '("ssh" (tramp-login-program "ssh") (tramp-login-args (("-l" "%u") ("-p" "%p") ("%c") ("-e" "none") ("%h"))) (tramp-async-args (("-q"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")))) (add-to-list 'tramp-methods '("sshx" (tramp-login-program "ssh") (tramp-login-args (("-l" "%u") ("-p" "%p") ("%c") ("-e" "none") ("-t" "-t") ("%h") ("/bin/sh"))) (tramp-async-args (("-q"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")))) (add-to-list 'tramp-methods '("telnet" (tramp-login-program "telnet") (tramp-login-args (("%h") ("%p") ("2>/dev/null"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")))) (add-to-list 'tramp-methods '("nc" (tramp-login-program "telnet") (tramp-login-args (("%h") ("%p") ("2>/dev/null"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-copy-program "nc") (tramp-copy-args (("-w" "1") ("-v") ("%h") ("%r"))) (tramp-remote-copy-program "nc") (tramp-remote-copy-args (("-l") ("-p" "%r") ("2>/dev/null"))))) (add-to-list 'tramp-methods '("su" (tramp-login-program "su") (tramp-login-args (("-") ("%u"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-connection-timeout 10))) (add-to-list 'tramp-methods '("sg" (tramp-login-program "sg") (tramp-login-args (("-") ("%u"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-args ("-c")) (tramp-connection-timeout 10))) (add-to-list 'tramp-methods '("sudo" (tramp-login-program "sudo") (tramp-login-args (("-u" "%u") ("-s") ("-H") ("-p" "P\"\"a\"\"s\"\"s\"\"w\"\"o\"\"r\"\"d\"\":"))) (tramp-login-env (("SHELL") ("/bin/sh"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-connection-timeout 10) (tramp-session-timeout 300))) (add-to-list 'tramp-methods '("doas" (tramp-login-program "doas") (tramp-login-args (("-u" "%u") ("-s"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-args ("-c")) (tramp-connection-timeout 10) (tramp-session-timeout 300))) (add-to-list 'tramp-methods '("ksu" (tramp-login-program "ksu") (tramp-login-args (("%u") ("-q"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-connection-timeout 10))) (add-to-list 'tramp-methods '("krlogin" (tramp-login-program "krlogin") (tramp-login-args (("%h") ("-l" "%u") ("-x"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")))) (add-to-list 'tramp-methods `("plink" (tramp-login-program "plink") (tramp-login-args (("-l" "%u") ("-P" "%p") ("-ssh") ("-t") ("%h") ("\"") (,(format "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=%s'" tramp-terminal-type tramp-initial-end-of-output)) ("/bin/sh") ("\""))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")))) (add-to-list 'tramp-methods `("plinkx" (tramp-login-program "plink") (tramp-login-args (("-load") ("%h") ("-t") ("\"") (,(format "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=%s'" tramp-terminal-type tramp-initial-end-of-output)) ("/bin/sh") ("\""))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")))) (add-to-list 'tramp-methods `("pscp" (tramp-login-program "plink") (tramp-login-args (("-l" "%u") ("-P" "%p") ("-ssh") ("-t") ("%h") ("\"") (,(format "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=%s'" tramp-terminal-type tramp-initial-end-of-output)) ("/bin/sh") ("\""))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-copy-program "pscp") (tramp-copy-args (("-l" "%u") ("-P" "%p") ("-scp") ("-p" "%k") ("-q") ("-r"))) (tramp-copy-keep-date t) (tramp-copy-recursive t))) (add-to-list 'tramp-methods `("psftp" (tramp-login-program "plink") (tramp-login-args (("-l" "%u") ("-P" "%p") ("-ssh") ("-t") ("%h") ("\"") (,(format "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=%s'" tramp-terminal-type tramp-initial-end-of-output)) ("/bin/sh") ("\""))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-c")) (tramp-copy-program "pscp") (tramp-copy-args (("-l" "%u") ("-P" "%p") ("-sftp") ("-p" "%k") ("-q"))) (tramp-copy-keep-date t))) (add-to-list 'tramp-methods '("fcp" (tramp-login-program "fsh") (tramp-login-args (("%h") ("-l" "%u") ("sh" "-i"))) (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l")) (tramp-remote-shell-args ("-i") ("-c")) (tramp-copy-program "fcp") (tramp-copy-args (("-p" "%k"))) (tramp-copy-keep-date t))) (add-to-list 'tramp-default-method-alist `(,tramp-local-host-regexp "\\`root\\'" "su")) (add-to-list 'tramp-default-user-alist `(,(concat "\\`" (regexp-opt '("su" "sudo" "doas" "ksu")) "\\'") nil "root")) (add-to-list 'tramp-default-user-alist `(,(concat "\\`" (regexp-opt '("rcp" "remcp" "rsh" "telnet" "nc" "krlogin" "fcp")) "\\'") nil ,(user-login-name))))
 
@@ -420,9 +484,45 @@ Method to connect SAMBA and M$ SMB servers.")
 
 (tramp--with-startup (add-to-list 'tramp-default-user-alist `(,(concat "\\`" tramp-smb-method "\\'") nil nil)) (tramp-set-completion-function tramp-smb-method '((tramp-parse-netrc "~/.netrc"))))
 
+(defvar tramp-smb-program "smbclient" "\
+Name of SMB client to run.")
+
+(custom-autoload 'tramp-smb-program "tramp-smb" t)
+
+(defvar tramp-smb-acl-program "smbcacls" "\
+Name of SMB acls to run.")
+
+(custom-autoload 'tramp-smb-acl-program "tramp-smb" t)
+
+(defvar tramp-smb-conf "/dev/null" "\
+Path of the smb.conf file.
+If it is nil, no smb.conf will be added to the `tramp-smb-program'
+call, letting the SMB client use the default one.")
+
+(custom-autoload 'tramp-smb-conf "tramp-smb" t)
+
 (defconst tramp-smb-file-name-handler-alist '((access-file . tramp-handle-access-file) (add-name-to-file . tramp-smb-handle-add-name-to-file) (copy-directory . tramp-smb-handle-copy-directory) (copy-file . tramp-smb-handle-copy-file) (delete-directory . tramp-smb-handle-delete-directory) (delete-file . tramp-smb-handle-delete-file) (directory-file-name . tramp-handle-directory-file-name) (directory-files . tramp-smb-handle-directory-files) (directory-files-and-attributes . tramp-handle-directory-files-and-attributes) (dired-compress-file . ignore) (dired-uncache . tramp-handle-dired-uncache) (exec-path . ignore) (expand-file-name . tramp-smb-handle-expand-file-name) (file-accessible-directory-p . tramp-handle-file-accessible-directory-p) (file-acl . tramp-smb-handle-file-acl) (file-attributes . tramp-smb-handle-file-attributes) (file-directory-p . tramp-handle-file-directory-p) (file-file-equal-p . tramp-handle-file-equal-p) (file-executable-p . tramp-handle-file-exists-p) (file-exists-p . tramp-handle-file-exists-p) (file-in-directory-p . tramp-handle-file-in-directory-p) (file-local-copy . tramp-smb-handle-file-local-copy) (file-modes . tramp-handle-file-modes) (file-name-all-completions . tramp-smb-handle-file-name-all-completions) (file-name-as-directory . tramp-handle-file-name-as-directory) (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p) (file-name-completion . tramp-handle-file-name-completion) (file-name-directory . tramp-handle-file-name-directory) (file-name-nondirectory . tramp-handle-file-name-nondirectory) (file-newer-than-file-p . tramp-handle-file-newer-than-file-p) (file-notify-add-watch . tramp-handle-file-notify-add-watch) (file-notify-rm-watch . tramp-handle-file-notify-rm-watch) (file-notify-valid-p . tramp-handle-file-notify-valid-p) (file-ownership-preserved-p . ignore) (file-readable-p . tramp-handle-file-exists-p) (file-regular-p . tramp-handle-file-regular-p) (file-remote-p . tramp-handle-file-remote-p) (file-selinux-context . tramp-handle-file-selinux-context) (file-symlink-p . tramp-handle-file-symlink-p) (file-system-info . tramp-smb-handle-file-system-info) (file-truename . tramp-handle-file-truename) (file-writable-p . tramp-smb-handle-file-writable-p) (find-backup-file-name . tramp-handle-find-backup-file-name) (insert-directory . tramp-smb-handle-insert-directory) (insert-file-contents . tramp-handle-insert-file-contents) (load . tramp-handle-load) (make-auto-save-file-name . tramp-handle-make-auto-save-file-name) (make-directory . tramp-smb-handle-make-directory) (make-directory-internal . tramp-smb-handle-make-directory-internal) (make-nearby-temp-file . tramp-handle-make-nearby-temp-file) (make-process . ignore) (make-symbolic-link . tramp-smb-handle-make-symbolic-link) (process-file . tramp-smb-handle-process-file) (rename-file . tramp-smb-handle-rename-file) (set-file-acl . tramp-smb-handle-set-file-acl) (set-file-modes . tramp-smb-handle-set-file-modes) (set-file-selinux-context . ignore) (set-file-times . ignore) (set-visited-file-modtime . tramp-handle-set-visited-file-modtime) (shell-command . tramp-handle-shell-command) (start-file-process . tramp-smb-handle-start-file-process) (substitute-in-file-name . tramp-smb-handle-substitute-in-file-name) (temporary-file-directory . tramp-handle-temporary-file-directory) (tramp-set-file-uid-gid . ignore) (unhandled-file-name-directory . ignore) (vc-registered . ignore) (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime) (write-region . tramp-smb-handle-write-region)) "\
 Alist of handler functions for Tramp SMB method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
+
+(defvar tramp-smb-winexe-program "winexe" "\
+Name of winexe client to run.
+If it isn't found in the local $PATH, the absolute path of winexe
+shall be given.  This is needed for remote processes.")
+
+(custom-autoload 'tramp-smb-winexe-program "tramp-smb" t)
+
+(defvar tramp-smb-winexe-shell-command "powershell.exe" "\
+Shell to be used for processes on remote machines.
+This must be Powershell V2 compatible.")
+
+(custom-autoload 'tramp-smb-winexe-shell-command "tramp-smb" t)
+
+(defvar tramp-smb-winexe-shell-command-switch "-file -" "\
+Command switch used together with `tramp-smb-winexe-shell-command'.
+This can be used to disable echo etc.")
+
+(custom-autoload 'tramp-smb-winexe-shell-command-switch "tramp-smb" t)
 
 (defsubst tramp-smb-file-name-p (filename) "\
 Check if it's a filename for SMB servers." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-smb-method)))
@@ -477,7 +577,7 @@ UU-encode the region between BEG and END.
 ;;;### (autoloads nil "trampver" "trampver.el" (0 0 0 0))
 ;;; Generated autoloads from trampver.el
 
-(defconst tramp-version "2.4.2" "\
+(defconst tramp-version "2.4.2.1" "\
 This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org" "\
