@@ -1456,7 +1456,7 @@ overlays were saved."
   (save-restriction
     (widen)
     (let (regexp-entry definition-id class regexp group priority set-id
-		       regexp-id o-match o-overlap o-new)
+		       regexp-id o-match o-overlap o-new beg end)
       (unless start (setq start (line-number-at-pos)))
       (save-excursion
 	(save-match-data
@@ -1503,15 +1503,17 @@ overlays were saved."
 		    (while (let ((case-fold-search nil))
 			     (re-search-forward regexp (line-end-position) t))
 		      ;; sanity check regexp definition against match
-		      (when (or (null (match-beginning group))
-				(null (match-end group)))
+		      (when (or (null (setq beg (match-beginning group)))
+				(null (setq end (match-end group))))
 			(error "Match for regexp \"%s\" has no group %d"
 			       regexp group))
 
 		      (cond
 		       ;; ignore match if it already has a match overlay
-		       ((auto-o-matched-p (match-beginning 0) (match-end 0)
-					  set-id definition-id regexp-id))
+		       ((setq o-match (auto-o-matched-p (match-beginning 0) (match-end 0)
+							set-id definition-id regexp-id))
+			(overlay-put o-match 'delim-start beg)
+			(overlay-put o-match 'delim-end end))
 
 
 		       ;; if existing match overlay corresponding to same entry
@@ -1528,8 +1530,7 @@ overlays were saved."
 			  (setq o-match (auto-o-make-match
 					 set-id definition-id regexp-id
 					 (match-beginning 0) (match-end 0)
-					 (match-beginning group)
-					 (match-end group)))
+					 beg end))
 			  (when (overlay-get o-overlap 'parent)
 			    (auto-o-match-overlay
 			     (overlay-get o-overlap 'parent)
@@ -1544,8 +1545,7 @@ overlays were saved."
 						   priority)
 			(auto-o-make-match set-id definition-id regexp-id
 					   (match-beginning 0) (match-end 0)
-					   (match-beginning group)
-					   (match-end group)))
+					   beg end))
 
 
 		       ;; if we're going to parse the new match...
@@ -1554,10 +1554,10 @@ overlays were saved."
 			(setq o-match (auto-o-make-match
 				       set-id definition-id regexp-id
 				       (match-beginning 0) (match-end 0)
-				       (match-beginning group)
-				       (match-end group)))
+				       beg end))
 			;; call the appropriate parse function
-			(setq o-new (auto-o-call-parse-function o-match))
+			(setq o-new (auto-o-call-parse-function
+			o-match))
 			(unless (listp o-new) (setq o-new (list o-new)))
 			;; give any new overlays some basic properties
 			(mapc (lambda (o)
@@ -1761,9 +1761,11 @@ overlays were saved."
     (overlay-put o-match 'delim-start
 		 (set-marker (make-marker)
 			     (if delim-start delim-start start)))
+    (set-marker-insertion-type (overlay-get o-match 'delim-start) nil)
     (overlay-put o-match 'delim-end
 		 (set-marker (make-marker)
 			     (if delim-end delim-end end)))
+    (set-marker-insertion-type (overlay-get o-match 'delim-end) t)
     (set-marker-insertion-type (overlay-get o-match 'delim-start) t)
     (set-marker-insertion-type (overlay-get o-match 'delim-end) nil)
     (overlay-put o-match 'modification-hooks '(auto-o-schedule-suicide))
