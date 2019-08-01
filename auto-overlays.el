@@ -298,37 +298,40 @@ Comparison is done with `eq'."
   (auto-o--plist-tail (cdr (auto-o-get-regexp set-id definition-id regexp-id))))
 
 
+(defun auto-o-regexp-key-value (set-id definition-id regexp-id key)
+  ;; Return value for KEY in regexp corresponding to SET-ID, DEFINITON-ID and
+  ;; REGEXP-ID.
+  (auto-o--plist-get (auto-o-get-regexp set-id definition-id regexp-id) key))
+
+
 (defun auto-o-regexp-edge (set-id definition-id regexp-id)
   ;; Return edge ('start or 'end) of regexp corresponding to SET-ID,
   ;; DEFINITION-ID and REGEXP-ID
-  (auto-o--plist-get (auto-o-get-regexp set-id definition-id regexp-id) :edge))
+  (auto-o-regexp-key-value set-id definition-id regexp-id :edge))
 
 
 (defun auto-o-regexp-match-exclusive (set-id definition-id regexp-id)
   ;; Return :exclusive property of regexp corresponding to SET-ID,
   ;; DEFINITION-ID and REGEXP-ID
-  (auto-o--plist-get (auto-o-get-regexp set-id definition-id regexp-id) :exclusive))
+  (auto-o-regexp-key-value set-id definition-id regexp-id :exclusive))
 
 
 (defun auto-o-regexp-parse-hook-function (set-id definition-id regexp-id)
   ;; Return parse hook function of regexp corresponding to SET-ID,
   ;; DEFINITION-ID and REGEXP-ID.
-  (auto-o--plist-get (auto-o-get-regexp set-id definition-id regexp-id)
-		     :parse-function))
+  (auto-o-regexp-key-value set-id definition-id regexp-id :parse-function))
 
 
 (defun auto-o-regexp-suicide-hook-function (set-id definition-id regexp-id)
   ;; Return suicide hook function of regexp corresponding to SET-ID,
   ;; DEFINITION-ID and REGEXP-ID.
-  (auto-o--plist-get (auto-o-get-regexp set-id definition-id regexp-id)
-		     :suicide-function))
+  (auto-o-regexp-key-value set-id definition-id regexp-id :suicide-function))
 
 
 (defun auto-o-regexp-match-hook-function (set-id definition-id regexp-id)
   ;; Return match hook function of regexp corresponding to SET-ID,
   ;; DEFINITION-ID and REGEXP-ID.
-  (auto-o--plist-get (auto-o-get-regexp set-id definition-id regexp-id)
-		     :match-function))
+  (auto-o-regexp-key-value set-id definition-id regexp-id :match-function))
 
 
 
@@ -367,6 +370,13 @@ Comparison is done with `eq'."
 	(when g
 	  (string-match (auto-o-regexp o-match) str)
 	  (match-string g str))))))
+
+(defun auto-o-key-value (o-match key)
+  ;; Return value of regexp KEY for match overlay O-MATCH.
+  (auto-o-regexp-key-value (overlay-get o-match 'set-id)
+			   (overlay-get o-match 'definition-id)
+			   (overlay-get o-match 'regexp-id)
+			   key))
 
 
 (defun auto-o-edge (o-match)
