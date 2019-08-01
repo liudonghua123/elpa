@@ -176,7 +176,7 @@
 		 `(eq set-id ,(overlay-get o-match 'set-id))
 		 `(eq definition-id ,(overlay-get o-match 'definition-id))
 		 (list (lambda (set-id definition-id regexp-id edge)
-			 (eq (auto-o-entry-edge set-id definition-id regexp-id)
+			 (eq (auto-o-regexp-edge set-id definition-id regexp-id)
 			     edge))
 		       '(set-id definition-id regexp-id)
 		       (list edge)))))
