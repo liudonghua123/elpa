@@ -412,6 +412,20 @@ Comparison is done with `eq'."
   (get (auto-o-class o-match) 'auto-overlay-complex-class))
 
 
+;; (defun auto-o-priority (o-match)
+;;   ;; Return the priority of match overlay O-MATCH
+;;   (overlay-get o-match 'priority))
+
+
+(defun auto-o-priority-< (a b)
+  ;; Return t iff the priority of A (overlay, number or nil) is smaller than
+  ;; that of B (overlay, number or nil).
+  (when (overlayp a) (setq a (overlay-get a 'priority)))
+  (when (overlayp b) (setq b (overlay-get b 'priority)))
+  (or (and (null a) b)
+      (and a b (< a b))))
+
+
 (defun auto-o-rank (o-match)
   ;; Return the rank of match overlay O-MATCH
   (auto-o-assq-position
@@ -979,8 +993,9 @@ from the current buffer. Returns the deleted definition."
 
       (dolist (rgxp regexps)
 	(nconc olddef
-	       (nconc (list (nth 1 rgxp) :id (nth 0 rgxp))
-		      (nthcdr 2 rgxp))))
+	       (list
+		(nconc (list (nth 1 rgxp) :id (nth 0 rgxp))
+		       (nthcdr 2 rgxp)))))
       olddef)))  ; return deleted definition
 
 
@@ -1520,10 +1535,12 @@ overlays were saved."
 
 		      (cond
 		       ;; ignore match if it already has a match overlay
-		       ((setq o-match (auto-o-matched-p (match-beginning 0) (match-end 0)
-							set-id definition-id regexp-id))
-			(overlay-put o-match 'delim-start beg)
-			(overlay-put o-match 'delim-end end))
+		       ((setq o-match
+			      (auto-o-matched-p (match-beginning 0) (match-end 0)
+						set-id definition-id regexp-id
+						priority))
+			(move-marker (overlay-get o-match 'delim-start) beg)
+			(move-marker (overlay-get o-match 'delim-end) end))
 
 
 		       ;; if existing match overlay corresponding to same entry
@@ -1535,7 +1552,10 @@ overlays were saved."
 			       (auto-o-regexp-edge set-id definition-id regexp-id)))
 			;; if new match takes precedence, replace existing one
 			;; with new one, otherwise ignore new match
-			(when (< rank (auto-o-rank o-overlap))
+			(when (or (auto-o-priority-<
+				   (overlay-get o-overlap 'priority)
+				   priority)
+				  (< rank (auto-o-rank o-overlap)))
 			  (delete-overlay o-overlap)
 			  (setq o-match (auto-o-make-match
 					 set-id definition-id regexp-id
@@ -1556,7 +1576,6 @@ overlays were saved."
 			(auto-o-make-match set-id definition-id regexp-id
 					   (match-beginning 0) (match-end 0)
 					   beg end))
-
 
 		       ;; if we're going to parse the new match...
 		       (t
@@ -1992,16 +2011,18 @@ overlay changes."
 
 
 
-(defun auto-o-matched-p (beg end set-id definition-id &optional regexp-id)
+(defun auto-o-matched-p (beg end set-id definition-id regexp-id &optional priority)
   ;; Determine if characters between BEG end END are already matched by a
-  ;; match overlay corresponding to DEFINITION-ID (and optionally REGEXP-ID)
-  ;; of regexp set SET-ID.
+  ;; match overlay corresponding to SET-ID, DEFINITION-ID and REGEXP-ID, or to
+  ;; a higher-priority match-exclusive match overlay.
   (let (o-match)
     (catch 'match
       (mapc (lambda (o)
-	      (when (and (or (auto-o-match-exclusive o)
-			     (and (eq (overlay-get o 'definition-id) definition-id)
-				  (eq (overlay-get o 'regexp-id) regexp-id)))
+	      (when (and (or (and (eq (overlay-get o 'definition-id) definition-id)
+				  (eq (overlay-get o 'regexp-id) regexp-id))
+			     (and (auto-o-match-exclusive o)
+				  (not (auto-o-priority-<
+					(overlay-get o 'priority) priority))))
 			 (= (overlay-start o) beg)
 			 (= (overlay-end o) end))
 		(setq o-match o)
@@ -2040,22 +2061,19 @@ overlay changes."
   ;; EDGE but different REGEXP-ID whose delimiter overlaps region from BEG to
   ;; END. (Only returns first one it finds; which is returned if more than one
   ;; exists is undefined.)
-  (let (o-overlap)
-    (catch 'match
-      (mapc (lambda (o)
-	      (when (and (or (auto-o-match-exclusive o)
-			     (and (eq (overlay-get o 'definition-id) definition-id)
-				  (not (eq (overlay-get o 'regexp-id) regexp-id)))
-			     (eq (auto-o-edge o) edge))
-			 ;; check delimiter (not just o) overlaps BEG to END
-			 (< (overlay-get o 'delim-start) end)
-			 (> (overlay-get o 'delim-end) beg))
-		(setq o-overlap o)
-		(throw 'match t)))
-	    (auto-overlays-in beg end :all-overlays t
-			      '(identity auto-overlay-match)
-			      `(eq set-id ,set-id))))
-    o-overlap))
+  (catch 'match
+    (mapc (lambda (o)
+	    (when (and (eq (overlay-get o 'definition-id) definition-id)
+		       (not (eq (overlay-get o 'regexp-id) regexp-id))
+		       (eq (auto-o-edge o) edge)
+		       ;; check delimiter (not just o) overlaps BEG to END
+		       (< (overlay-get o 'delim-start) end)
+		       (> (overlay-get o 'delim-end) beg))
+	      (throw 'match o)))
+	  (auto-overlays-in beg end :all-overlays t
+			    '(identity auto-overlay-match)
+			    `(eq set-id ,set-id)))
+    nil))
 
 
 ;;; auto-overlays.el ends here
