@@ -541,7 +541,6 @@ with REP."
 ;;;###autoload
 (cl-defun auto-overlays-in (start end &rest prop-tests
 				  &key within inactive all-overlays &allow-other-keys)
-;; FIXME: get rid of INACTIVE argument?
   "Return auto overlays overlapping region between START and END.
 
 If keyword argument :within is non-nil, only overlays entirely
@@ -756,7 +755,7 @@ See `auto-overlay-highest-priority-at-point' for a definition of
 ;;;          Public auto-overlay definition functions
 
 ;;;###autoload
-(defun auto-overlay-load-set (set-id definitions)
+(defun auto-overlay-load-set (set-id definitions &optional noparse)
   "Load the set of auto-overlay DEFINITIONS
 into the set identified by SET-ID the current buffer.
 
@@ -791,12 +790,20 @@ The :edge and :id properties are optional. EDGE should be one of
 the symbols 'start or 'end. If it is not specified, :edge is
 assumed to be 'start. ID property is a symbol that can be used to
 uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
-  (dolist (def definitions)
-    (auto-overlay-load-definition set-id def)))
+
+  ;; load new set of definitions, and collect definition-id's
+  (let ((definition-ids
+	  (mapcar (lambda (def)
+		    (auto-overlay-load-definition set-id def nil 'no-parse))
+		  definitions)))
+    ;; reparse buffer for new definitions
+    (when (and (not noparse) (auto-o-enabled-p set-id))
+      (auto-o-parse-buffer set-id))
+    definition-ids))
 
 
 ;;;###autoload
-(defun auto-overlay-load-definition (set-id definition &optional pos)
+(defun auto-overlay-load-definition (set-id definition &optional pos noparse)
   "Load DEFINITION into the set of auto-overlay definitions SET-ID
 in the current buffer. If SET-ID does not exist, it is created.
 
@@ -867,9 +874,9 @@ identifies REGEXP within DEFINITION (see
 				 (auto-o-sublist definition (+ n 2))))
 	(when (assq definition-id regexps)
 	  (error "Definition ID \"%s\" is not unique"
-		 (symbol-name definition-id)))
-	))
+		 (symbol-name definition-id)))))
 
+    ;; load new definition
     (cond
      ;; adding first entry or at start
      ((or (eq pos t) (= (length regexps) 0)
@@ -881,17 +888,19 @@ identifies REGEXP within DEFINITION (see
      ;; adding at POS
      ((integerp pos)
       (auto-o-insert-definition set-id pos (list definition-id class))))
-
-    ;; load regexp definitions
+    ;; load new regexps
     (dolist (regexp (auto-o--plist-tail (cdr definition)))
-      (auto-overlay-load-regexp set-id definition-id regexp))
+      (auto-overlay-load-regexp set-id definition-id regexp nil 'no-parse))
 
-    definition-id))  ; return new entry ID
+    ;; re-parse buffer for new definitions
+    (when (and (auto-o-enabled-p set-id) (not noparse))
+      (auto-o-parse-buffer set-id definition-id))
+    definition-id))  ; return new definition ID
 
 
 
 ;;;###autoload
-(defun auto-overlay-load-regexp (set-id definition-id regexp &optional pos)
+(defun auto-overlay-load-regexp (set-id definition-id regexp &optional pos noparse)
   "Load REGEXP into the auto-overlay definition identified by
 DEFINITION-ID in the regexp list named SET-ID in the current
 buffer.
@@ -936,7 +945,7 @@ uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
 		       (mapcar (lambda (elt)
 				 (if (integerp (car elt)) (car elt) -1))
 			       (cddr defs))))))
-
+    ;; construct new regexp definition
     (setq regexp (cons regexp-id regexp))
 
     (cond
@@ -952,6 +961,10 @@ uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
      ((integerp pos)
       (setcdr (nthcdr (1- pos) (cddr defs))
 	      (nconc (list regexp) (nthcdr pos (cddr defs))))))
+
+    ;; re-parse buffer for new regexp
+    (when (and (auto-o-enabled-p set-id) (not noparse))
+      (auto-o-parse-buffer set-id definition-id))
 
     regexp-id))  ; return new ID
 
@@ -979,7 +992,10 @@ from the current buffer. Returns the deleted definition."
     (dolist (buff (auto-o-get-buffer-list set-id))
       (set-buffer buff)
       (when (auto-o-enabled-p set-id)
-	(mapc (lambda (o) (auto-o-suicide o 'force))
+	(mapc (lambda (o)
+		(let ((line (line-number-at-pos (overlay-start o))))
+		  (auto-o-suicide o 'force)
+		  (auto-o-schedule-update line nil nil set-id)))
 	      (auto-overlays-in (point-min) (point-max) :all-overlays t
 				'(identity auto-overlay-match)
 				`(eq set-id ,set-id)
@@ -1019,7 +1035,10 @@ Returns the deleted regexp."
     (dolist (buff (auto-o-get-buffer-list set-id))
       (set-buffer buff)
       (when (auto-o-enabled-p set-id)
-	(mapc (lambda (o) (auto-o-suicide o 'force))
+	(mapc (lambda (o)
+		(let ((line (line-number-at-pos (overlay-start o))))
+		  (auto-o-suicide o 'force)
+		  (auto-o-schedule-update line nil nil set-id)))
 	      (auto-overlays-in (point-min) (point-max) :all-overlays t
 				'(identity auto-overlay-match)
 				`(eq set-id ,set-id)
@@ -1109,20 +1128,9 @@ refinitions are the same as when the overlays were saved."
       (unless (and (or (null save-file) (stringp save-file))
 		   (auto-overlay-load-overlays set-id nil save-file
 					       no-regexp-check))
-	;; if loading was unsuccessful, search for new auto overlays
-	(let ((lines (count-lines (point-min) (point-max))))
-	  (goto-char (point-min))
-	  (message "Scanning for auto-overlays...(line 1 of %d)"
-		   lines)
-	  (dotimes (i lines)
-	    (when (= 9 (mod i 10))
-	      (message
-	       "Scanning for auto-overlays...(line %d of %d)"
-	       (+ i 1) lines))
-	    (auto-overlay-update nil nil set-id)
-	    (forward-line 1))
-	  (message "Scanning for auto-overlays...done")))
-      )))
+	;; if loading from file was unsuccessful, search for new auto overlays
+	(auto-o-parse-buffer set-id)))
+    ))
 
 
 
@@ -1355,7 +1363,7 @@ overlays were saved."
   ;; order.
 
   ;; ignore changes that aren't either insertions or deletions
-  (when (and ;;(not undo-in-progress)
+  (when (and (not undo-in-progress)
 	     (or (and (/= beg end) (=  len 0))    ; insertion
 		 (and (=  beg end) (/= len 0))))  ; deletion
     ;; repeat until all the pending functions have been cleared (it may be
@@ -1480,20 +1488,28 @@ overlays were saved."
 
 
 
-(defun auto-overlay-update (&optional start end set-id)
+(defun auto-overlay-update (&optional start-line end-line set-ids definition-ids)
   ;; Parse lines from line number START to line number END. If only START is
   ;; supplied, just parse that line. If neither are supplied, parse line
-  ;; containing the point. If SET-ID is specified, only look for matches in
-  ;; that set of overlay regexps definitions.
+  ;; containing the point. If one or both of SET-ID and DEFINITION-ID are
+  ;; specified, only look for matches for specified regexp definitions.
+
+  ;; FIXME: Switch to using buffer positions, not line numbers!
+
+  ;; sort our arguments
+  (cond
+   ((null set-ids) (setq set-ids (mapcar #'car auto-overlay-regexps)))
+   ((atom set-ids) (setq set-ids (list set-ids))))
+  (unless (listp definition-ids) (setq definition-ids (list definition-ids)))
 
   (save-restriction
     (widen)
-    (let (regexp-entry definition-id class regexp group priority set-id
-		       regexp-id o-match o-overlap o-new beg end)
-      (unless start (setq start (line-number-at-pos)))
+    (let (definition-id regexp-id class def regexp group priority
+	   o-match o-overlap o-new beg end)
+      (unless start-line (setq start-line (line-number-at-pos)))
       (save-excursion
 	(save-match-data
-	  ;; (goto-line start) without messing around with mark and messages
+	  ;; (goto-line start-line) without messing around with mark and messages
 	  ;; Note: this is a bug in simple.el; there clearly can be a need for
 	  ;;       non-interactive calls to goto-line from Lisp code, and
 	  ;;       there's no warning about doing this. Yet goto-line *always*
@@ -1501,116 +1517,117 @@ overlays were saved."
 	  ;;       Lisp programs, as its docstring warns.
 	  (goto-char 1)
 	  (if (eq selective-display t)
-	      (re-search-forward "[\n\C-m]" nil 'end (1- start))
-	    (forward-line (1- start)))
+	      (re-search-forward "[\n\C-m]" nil 'end (1- start-line))
+	    (forward-line (1- start-line)))
 
-	  (dotimes (i (if end (1+ (- end start)) 1))
+	  (dotimes (_ (if end-line (1+ (- end-line start-line)) 1))
 
 	    ;; check each enabled set of overlays, or just the specified set
-	    (dotimes (s (if set-id 1 (length auto-overlay-regexps)))
-	      (setq set-id (or set-id (car (nth s auto-overlay-regexps))))
+	    (dolist (set-id set-ids)
 	      (when (auto-o-enabled-p set-id)
 
-		;; check each auto-overlay definition in regexp set
-		(dolist (regexp-entry (auto-o-get-set set-id))
-		  (setq definition-id (pop regexp-entry))
-		  (setq class (pop regexp-entry))
+		;; check each definition in regexp set, or just the specified one
+		(dolist (def (auto-o-get-set set-id))
+		  (setq definition-id (pop def))
+		  (when (or (null definition-ids)
+			    (memq definition-id definition-ids))
+		    (setq class (pop def))
 
-		  ;; check all regexps for current definition
-		  (dotimes (rank (length regexp-entry))
-		    (setq regexp-id (car (nth rank regexp-entry)))
+		    ;; check all regexps for current definition
+		    (dotimes (rank (length def))
+		      (setq regexp-id (car (nth rank def)))
 
-		    ;; extract regexp properties from current entry
-		    (setq regexp (auto-o-regexp-regexp
-				  set-id definition-id regexp-id)
-			  group  (auto-o-regexp-group
-				  set-id definition-id regexp-id)
-			  priority (cdr (assq 'priority
-					      (auto-o-regexp-props
-					       set-id definition-id regexp-id))))
-
-
-		    ;; look for matches in current line, ensuring case *is*
-		    ;; significant
-		    (forward-line 0)
-		    (while (let ((case-fold-search nil))
-			     (re-search-forward regexp (line-end-position) t))
-		      ;; sanity check regexp definition against match
-		      (when (or (null (setq beg (match-beginning group)))
-				(null (setq end (match-end group))))
-			(error "Match for regexp \"%s\" has no group %d"
-			       regexp group))
-
-		      (cond
-		       ;; ignore match if it already has a match overlay
-		       ((setq o-match
-			      (auto-o-matched-p (match-beginning 0) (match-end 0)
-						set-id definition-id regexp-id
-						priority))
-			(move-marker (overlay-get o-match 'delim-start) beg)
-			(move-marker (overlay-get o-match 'delim-end) end))
+		      ;; extract regexp properties from current entry
+		      (setq regexp (auto-o-regexp-regexp
+				    set-id definition-id regexp-id)
+			    group  (auto-o-regexp-group
+				    set-id definition-id regexp-id)
+			    priority (cdr (assq 'priority
+						(auto-o-regexp-props
+						 set-id definition-id regexp-id))))
 
 
-		       ;; if existing match overlay corresponding to same entry
-		       ;; and edge but different subentry overlaps new match...
-		       ((setq o-overlap
-			      (auto-o-overlapping-match
-			       (match-beginning group) (match-end group)
-			       set-id definition-id regexp-id
-			       (auto-o-regexp-edge set-id definition-id regexp-id)))
-			;; if new match takes precedence, replace existing one
-			;; with new one, otherwise ignore new match
-			(when (or (auto-o-priority-<
-				   (overlay-get o-overlap 'priority)
-				   priority)
-				  (< rank (auto-o-rank o-overlap)))
-			  (delete-overlay o-overlap)
+		      ;; look for matches in current line, ensuring case *is*
+		      ;; significant
+		      (forward-line 0)
+		      (while (let ((case-fold-search nil))
+			       (re-search-forward regexp (line-end-position) t))
+			;; sanity check regexp definition against match
+			(when (or (null (setq beg (match-beginning group)))
+				  (null (setq end (match-end group))))
+			  (error "Match for regexp \"%s\" has no group %d"
+				 regexp group))
+
+			(cond
+			 ;; ignore match if it already has a match overlay
+			 ((setq o-match
+				(auto-o-matched-p (match-beginning 0) (match-end 0)
+						  set-id definition-id regexp-id
+						  priority))
+			  (move-marker (overlay-get o-match 'delim-start) beg)
+			  (move-marker (overlay-get o-match 'delim-end) end))
+
+
+			 ;; if existing match overlay corresponding to same entry
+			 ;; and edge but different subentry overlaps new match...
+			 ((setq o-overlap
+				(auto-o-overlapping-match
+				 (match-beginning group) (match-end group)
+				 set-id definition-id regexp-id
+				 (auto-o-regexp-edge set-id definition-id regexp-id)))
+			  ;; if new match takes precedence, replace existing one
+			  ;; with new one, otherwise ignore new match
+			  (when (or (auto-o-priority-<
+				     (overlay-get o-overlap 'priority)
+				     priority)
+				    (< rank (auto-o-rank o-overlap)))
+			    (delete-overlay o-overlap)
+			    (setq o-match (auto-o-make-match
+					   set-id definition-id regexp-id
+					   (match-beginning 0) (match-end 0)
+					   beg end))
+			    (when (overlay-get o-overlap 'parent)
+			      (auto-o-match-overlay
+			       (overlay-get o-overlap 'parent)
+			       o-match))
+			    ;; run match function if there is one
+			    (auto-o-call-match-function o-match)))
+
+			 ;; if match is within a higher priority exclusive
+			 ;; overlay, create match overlay but don't parse it
+			 ((auto-o-within-exclusive-p (match-beginning group)
+						     (match-end group)
+						     priority)
+			  (auto-o-make-match set-id definition-id regexp-id
+					     (match-beginning 0) (match-end 0)
+					     beg end))
+
+			 ;; if we're going to parse the new match...
+			 (t
+			  ;; create a match overlay for it
 			  (setq o-match (auto-o-make-match
 					 set-id definition-id regexp-id
 					 (match-beginning 0) (match-end 0)
 					 beg end))
-			  (when (overlay-get o-overlap 'parent)
-			    (auto-o-match-overlay
-			     (overlay-get o-overlap 'parent)
-			     o-match))
+			  ;; call the appropriate parse function
+			  (setq o-new (auto-o-call-parse-function
+				       o-match))
+			  (unless (listp o-new) (setq o-new (list o-new)))
+			  ;; give any new overlays some basic properties
+			  (mapc (lambda (o)
+				  (overlay-put o 'auto-overlay t)
+				  (overlay-put o 'set-id set-id)
+				  (overlay-put o 'definition-id definition-id)
+				  (overlay-put o 'regexp-id regexp-id))
+				o-new)
 			  ;; run match function if there is one
 			  (auto-o-call-match-function o-match)))
 
-		       ;; if match is within a higher priority exclusive
-		       ;; overlay, create match overlay but don't parse it
-		       ((auto-o-within-exclusive-p (match-beginning group)
-						   (match-end group)
-						   priority)
-			(auto-o-make-match set-id definition-id regexp-id
-					   (match-beginning 0) (match-end 0)
-					   beg end))
 
-		       ;; if we're going to parse the new match...
-		       (t
-			;; create a match overlay for it
-			(setq o-match (auto-o-make-match
-				       set-id definition-id regexp-id
-				       (match-beginning 0) (match-end 0)
-				       beg end))
-			;; call the appropriate parse function
-			(setq o-new (auto-o-call-parse-function
-			o-match))
-			(unless (listp o-new) (setq o-new (list o-new)))
-			;; give any new overlays some basic properties
-			(mapc (lambda (o)
-				(overlay-put o 'auto-overlay t)
-				(overlay-put o 'set-id set-id)
-				(overlay-put o 'definition-id definition-id)
-				(overlay-put o 'regexp-id regexp-id))
-			      o-new)
-			;; run match function if there is one
-			(auto-o-call-match-function o-match)))
-
-
-		      ;; go to character one beyond the start of the match, to
-		      ;; make sure we don't miss the next match (if we find the
-		      ;; same one again, it will just be ignored)
-		      (goto-char (+ (match-beginning 0) 1)))))
+			;; go to character one beyond the start of the match, to
+			;; make sure we don't miss the next match (if we find the
+			;; same one again, it will just be ignored)
+			(goto-char (+ (match-beginning 0) 1))))))
 		(forward-line 1))
 	      )))
 	))))
@@ -1630,6 +1647,24 @@ overlays were saved."
 	(insert " ")
 	(delete-char -1)))))
 
+
+(defun auto-o-parse-buffer (&optional set-id definition-id buffer)
+  ;; Parse whole BUFFER for auto-overlays, restricted to SET-ID and
+  ;; DEFINITION-ID if specified.
+  (save-excursion
+    (with-current-buffer (or buffer (current-buffer))
+      (let ((lines (count-lines (point-min) (point-max))))
+	(goto-char (point-min))
+	(message "Scanning for auto-overlays...(line 1 of %d)"
+		 lines)
+	(dotimes (i lines)
+	  (when (= 9 (mod i 10))
+	    (message
+	     "Scanning for auto-overlays...(line %d of %d)"
+	     (+ i 1) lines))
+	  (auto-overlay-update nil nil set-id definition-id)
+	  (forward-line 1))
+	(message "Scanning for auto-overlays...done")))))
 
 
 (defun auto-o-suicide (o-self &optional force)
