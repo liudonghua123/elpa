@@ -1,0 +1,370 @@
+;;; wisitoken-grammar-mode.el --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
+
+;; Copyright (C) 2017 - 2019  Free Software Foundation, Inc.
+
+;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
+;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
+;; Keywords: languages
+;; Version: 1.0.0
+;; package-requires: ((wisi "2.1.1") (emacs "25.0") (mmm-mode "0.5.7"))
+
+;; (Gnu ELPA requires single digits between dots in versions)
+;; no ’url’; just ELPA
+
+;; This file is part of GNU Emacs.
+
+;; wisitoken-grammar-mode is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; wisitoken-grammar-mode is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+;;
+;;; Commentary:
+
+(require 'cl-lib)
+(require 'xref)
+(require 'wisi)
+(require 'wisitoken_grammar_1-process)
+(require 'wisi-process-parse)
+
+(eval-and-compile
+  (when (locate-library "mmm-mode")
+    (require 'wisitoken-grammar-mmm)))
+
+(defgroup wisitoken-grammar nil
+  "Major mode for editing Wisi grammar files in Emacs."
+  :group 'languages)
+
+(defcustom wisitoken-grammar-process-parse-exec "wisitoken_grammar_mode_parse.exe"
+  "Name of executable to use for external process wisitoken-grammar parser,"
+  :type 'string
+  :group 'wisitoken-grammar)
+
+(defvar wisitoken-grammar-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    ;; see wisitoken-grammar-syntax-propertize for comment start
+    (modify-syntax-entry ?\n ">   " table)
+    (modify-syntax-entry ?= ".   " table) ;; default symbol
+    (modify-syntax-entry ?* ".   " table) ;; default symbol
+    table))
+
+(defvar wisitoken-grammar-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; C-c <letter> are reserved for users
+
+    ;; comment-dwim is in global map on M-;
+    (define-key map "\C-c\C-f" 'wisi-show-parse-error)
+    (define-key map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
+    (define-key map [S-return] 'wisitoken-grammar-new-line)
+    map
+  )  "Local keymap used for wisitoken-grammar mode.")
+
+(defvar-local wisitoken-grammar-action-mode nil
+  "Emacs major mode used for actions and code, inferred from ’%generate’ declaration or file local variable.")
+
+(cl-defstruct (wisitoken-grammar-parser (:include wisi-process--parser))
+  ;; no new slots
+  )
+
+(cl-defmethod wisi-parse-format-language-options ((_parser wisitoken-grammar-parser))
+  "")
+
+(defun wisitoken-grammar-check-parens (sexp)
+  "For `wisi-process--parse-Language'"
+  ;; sexp is [Language index token-first token-last]
+
+  ;; Check for missing parens in the action; otherwise only
+  ;; checked at grammar generation time.
+    (let* ((start (aref sexp 2))
+	   (stop (1+ (aref sexp 3)))
+	   (paren-depth-start (nth 0 (syntax-ppss start)))
+	   (paren-depth-stop (nth 0 (syntax-ppss stop))))
+      ;; We could check for paren-depth = 0 at start, but then we'd
+      ;; get errors on every action after that.
+      (unless (= paren-depth-start paren-depth-stop)
+	(push
+	 (make-wisi--parse-error
+	  :pos (copy-marker start)
+	  :message
+	  (format "%s:%d: missing paren or bracket in %d %d"
+		  (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
+		  ;; file-name can be nil during vc-resolve-conflict
+		  (line-number-at-pos start)
+		  start stop))
+	 (wisi-parser-parse-errors wisi--parser))
+
+	;; As of mmm version 0.5.7, mmm-parse-region calls
+	;; font-lock-ensure, which calls us. So we can't do
+	;; mmm-parse-region here. FIXME: fix mmm to do parse-region in
+	;; syntax-propertize.
+	)))
+
+(defun wisitoken-grammar-in-action-or-comment ()
+  ;; (info "(elisp) Parser State" "*info syntax-ppss*")
+  (let* ((state (syntax-ppss))
+	 (paren-depth (nth 0 state))
+	 (done nil)
+	 (result nil))
+    (cond
+     ((nth 3 state)
+      ;; in string
+      t)
+
+     ((nth 4 state)
+      ;; in comment
+      t)
+
+     ((> paren-depth 0)
+      ;; check for action delimiters
+      (save-excursion
+	(while (not done)
+	  (if (= ?% (char-before (nth 1 state)))
+	      ;; in code, regexp, or action
+	      (setq done t
+		    result t)
+
+	    ;; else go up one level
+	    (setq state (syntax-ppss (1- (nth 1 state))))
+	    )))
+      result)
+     )))
+
+(defun wisitoken-grammar-find-begin (begin)
+  "Starting at BEGIN, search backward for a parse start point."
+  (goto-char begin)
+  (cond
+   ((wisi-search-backward-skip "^%[^({[]\\|:" #'wisitoken-grammar-in-action-or-comment)
+    (when (looking-at ":")
+      ;; Move back to before the nonterminal name
+      (forward-comment (- (line-number-at-pos (point))))
+      (skip-syntax-backward "w_"))
+    (point))
+
+   (t
+    (point-min))
+   ))
+
+(defun wisitoken-grammar-find-end (end)
+  "Starting at END, search forward for a parse end point."
+  (goto-char end)
+  (cond
+   ((wisi-search-forward-skip "^%\\|;$" #'wisitoken-grammar-in-action-or-comment)
+    (point))
+
+   (t
+    (point-max))
+   ))
+
+(cl-defmethod wisi-parse-expand-region ((_parser wisitoken-grammar-parser) begin end)
+    (save-excursion
+      (let ((begin-cand (wisitoken-grammar-find-begin begin))
+	    (end-cand (wisitoken-grammar-find-end end)))
+	(cons begin-cand end-cand)
+	)))
+
+(defun wisitoken-grammar-mmm-parse ()
+  "If in action, call `mmm-parse-region' on it."
+  (interactive)
+  (save-excursion
+    (let* ((begin (search-backward-regexp "%[(}]" nil t))
+	   (end   (when begin (search-forward-regexp "[)}]%" nil t))))
+      (when (and begin end)
+	(mmm-parse-region begin end)))
+    ))
+
+(defun wisitoken-grammar-new-line ()
+  "If in comment, insert new comment line.
+If in nonterminal, insert new production right hand side.
+Otherwise insert a plain new line."
+  (interactive)
+  (if (nth 4 (syntax-ppss))
+      ;; in comment
+      (comment-indent-new-line)
+
+    (let ((pos (point))
+	  (cache (save-excursion (wisi-goto-statement-start))))
+	(if (and cache
+		 (eq (wisi-cache-nonterm cache) 'nonterminal)
+		 (wisi-cache-end cache)
+		 (> (wisi-cache-end cache) pos))
+	    (progn
+	      ;; in nonterminal
+	      (insert "\n| ")
+	      (indent-according-to-mode))
+
+	  (newline-and-indent)
+	  ))
+    ))
+
+(defun wisitoken-grammar-which-function ()
+  "For `which-func-functions', `add-log-current-defun-function'."
+  (wisi-validate-cache (point-min) (point-max) nil 'navigate)
+  ;; no message on parse fail, since this could be called from which-func-mode
+  (when (wisi-cache-covers-pos 'navigate (point))
+    (save-excursion
+      (wisi-goto-statement-start)
+      (wisi-next-name))))
+
+(defun wisitoken-grammar-add-log-current-function ()
+  "For `add-log-current-defun-function'; return name of current non-terminal or declaration."
+  ;; add-log-current-defun is typically called with point at the start
+  ;; of an ediff change section, which is before the start of the
+  ;; declaration of a new item. So go to the end of the current line
+  ;; first
+  (save-excursion
+    (end-of-line 1)
+    (wisitoken-grammar-which-function)))
+
+(defun wisitoken-grammar-syntax-propertize (start end)
+  "Assign `syntax-table' properties in accessible part of buffer."
+  ;; (info "(elisp)Syntax Properties")
+  ;;
+  ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
+  ;; syntax-propertize-extend-region-functions is set to
+  ;; syntax-propertize-wholelines by default.
+  (let ((inhibit-read-only t)
+	(inhibit-point-motion-hooks t))
+    (goto-char start)
+    (save-match-data
+      (while (re-search-forward
+	      (concat
+	       "\\(;;\\)"     ;; comment start
+	       "\\|\\(%\\[\\)" ;; regexp begin
+	       )
+	      end t)
+	(cond
+	 ((match-beginning 1)
+	  (put-text-property (match-beginning 1) (match-end 1) 'syntax-table '(11 . nil)))
+
+	 ((match-beginning 2)
+	  (let ((begin (match-beginning 2))
+		(end (search-forward "]%")))
+	    ;; allow single quotes in regexp to not mess up the rest of the buffer
+	    (put-text-property begin end 'syntax-table '(11 . nil))
+	    ))
+	 ))
+      )))
+
+(defun wisitoken-grammar-set-action-mode ()
+  (save-excursion
+    (goto-char (point-min))
+    (if (search-forward-regexp "%generate +\\([A-Za-z_0-9]+\\) *\\([A-Za-z_0-9]+\\)?" (point-max) t)
+	(cond
+	 ((string-equal (match-string 1) "None")
+	  ;; unit test
+	  (setq wisitoken-grammar-action-mode 'emacs-lisp-mode))
+
+	 ((or
+	   (string-equal (match-string 2) "Ada_Emacs")
+	   (string-equal (match-string 2) "Elisp")
+	   (string-equal (match-string 2) "elisp"))
+	  (setq wisitoken-grammar-action-mode 'emacs-lisp-mode))
+
+	 ((string-equal (match-string 2) "Ada")
+	  (setq wisitoken-grammar-action-mode 'ada-mode))
+
+	 (t
+	  (error "unrecognized output language %s" (match-string 2)))
+	 )
+
+      ;; We can still support the grammar statements, just not the actions.
+      (setq wisitoken-grammar-action-mode 'nil))))
+
+
+;;; xref integration
+(defun wisitoken-grammar--xref-backend ()
+  'wisitoken-grammar)
+
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql wisitoken-grammar)))
+  (wisi-xref-identifier-at-point))
+
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql wisitoken-grammar)))
+  (wisi-xref-identifier-completion-table))
+
+(cl-defmethod xref-backend-definitions ((_backend (eql wisitoken-grammar)) identifier)
+  (unless (and (string-match wisi-xref-ident-regexp identifier)
+	       (match-string 2 identifier))
+    ;; Identifier is from identifier-at-point; get line from completion table
+    (setq identifier (try-completion identifier (wisi-xref-identifier-completion-table)))
+    (unless (test-completion identifier (wisi-xref-identifier-completion-table))
+      (setq identifier (completing-read "decl: " (wisi-xref-identifier-completion-table) nil t identifier)))
+    (string-match wisi-xref-ident-regexp identifier))
+
+  (let* ((ident (match-string 1 identifier))
+	 (line-str (match-string 2 identifier))
+	 (line (when line-str (string-to-number line-str))))
+    (when line
+      (list (xref-make ident (xref-make-file-location (buffer-file-name) line  0))))
+    ))
+
+;;; debug
+(defun wisitoken-grammar-set-exec (exec-file)
+  "Set EXEC-FILE for current and future wisitoken-grammar parsers."
+  (interactive "f")
+  (setq wisitoken-grammar-process-parse-exec exec-file)
+  (wisi-process-parse-set-exec "wisitoken-grammar" exec-file))
+
+;;;;
+;;;###autoload
+(define-derived-mode wisitoken-grammar-mode prog-mode "Wisi"
+  "A major mode for Wisi grammar files."
+  (set (make-local-variable 'syntax-propertize-function) 'wisitoken-grammar-syntax-propertize)
+  (syntax-ppss-flush-cache (point-min));; reparse with new function
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'parse-sexp-lookup-properties) t)
+
+  (set (make-local-variable 'comment-start) ";;")
+  (set (make-local-variable 'comment-end) "") ;; setting this to \n causes errors
+  (set (make-local-variable 'comment-use-syntax) t);; the automatic test for this does not use syntax-propertize
+  (set (make-local-variable 'comment-start-skip) ";;*[ \t]*")
+  (set (make-local-variable 'comment-multi-line) nil)
+  (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'add-log-current-defun-function)
+       #'wisitoken-grammar-add-log-current-function)
+
+  (wisitoken-grammar-set-action-mode)
+
+  (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend
+	    nil ;; append
+	    t)
+  (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+  (add-hook 'before-save-hook 'copyright-update nil t)
+
+  (wisi-setup
+   :indent-calculate nil
+   :post-indent-fail nil
+   :parser (wisi-process-parse-get
+	    (make-wisitoken-grammar-parser
+	     :label "wisitoken-grammar"
+	     :language-protocol-version "1"
+	     :exec-file wisitoken-grammar-process-parse-exec
+	     :face-table wisitoken_grammar_1-process-face-table
+	     :token-table wisitoken_grammar_1-process-token-table
+	     :language-action-table [wisitoken-grammar-check-parens]
+	     ))
+   :lexer nil)
+
+  ;; Our wisi parser does not fontify comments and strings, so tell
+  ;; font-lock to do that.
+  (setq font-lock-defaults
+	'(nil ;; keywords
+	  nil ;; keywords-only
+	  ))
+  )
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.wy\\'" . wisitoken-grammar-mode))
+
+(put 'wisitoken-grammar-mode 'custom-mode-group 'wisitoken-grammar)
+
+(provide 'wisitoken-grammar-mode)
+;;; wisitoken-grammar-mode.el ends here
