@@ -5,7 +5,7 @@
 ;;
 ;; Orig-Date:     1-Jan-94
 ;;
-;; Copyright (C) 1994-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019  Free Software Foundation, Inc.
 ;; See the "HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -23,17 +23,23 @@
 ;;; Public variables
 ;;; ************************************************************************
 
-(defconst hyperb:version "7.0.2a" "GNU Hyperbole revision number.")
+(defconst hyperb:version "7.0.3b" "GNU Hyperbole revision number.")
 
 ;;;###autoload
-(defvar hyperb:microcruft-os-p
+(defvar hyperb:microsoft-os-p
   (memq system-type '(ms-windows windows-nt ms-dos win32))
-  "T iff Hyperbole is running under a Microcruft OS.")
+  "Non-nil iff Hyperbole is running under a Microsoft OS but not under Windows Subsystem for Linux (WSL).
+Use `hyperb:wsl-os-p' to test if running under WSL.")
+
+;;;###autoload
+(defvar hyperb:wsl-os-p
+  (and (eq system-type 'gnu/linux) (executable-find "wsl.exe") t)
+  "T iff Hyperbole is running under Microsoft Windows Subsystem for Linux (WSL).")
 
 ;;;###autoload
 (defvar hyperb:mouse-buttons
-  (if (or (and hyperb:microcruft-os-p (not (memq window-system '(w32 w64 x))))
-	  (and (not (featurep 'xemacs)) (memq window-system '(ns dps))))
+  (if (or (and hyperb:microsoft-os-p (not (memq window-system '(w32 w64 x))))
+	  (memq window-system '(ns dps)))
       2 3)
   "Number of live buttons available on the mouse.
 Override this if the system-computed default is incorrect for your specific mouse.")
@@ -127,7 +133,7 @@ Where a part in the term-type is delimited by a `-' or  an `_'."
 			  ;; then there is a window system to support.
 			  (display-mouse-p))
 		      ;; X11, macOS, NEXTSTEP (DPS), or OS/2 Presentation Manager (PM)
-		      (if (featurep 'xemacs) "xemacs" "emacs"))
+		      "emacs")
 		     ((or (featurep 'eterm-fns)
 			  (equal (getenv "TERM") "NeXT")
 			  (equal (getenv "TERM") "eterm"))

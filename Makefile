@@ -54,10 +54,10 @@
 
 # This ver setup won't work under any make except GNU make, so set it manually.
 #HYPB_VERSION = "`head -3 hversion.el | tail -1 | sed -e 's/.*|\(.*\)|.*/\1/'`"
-HYPB_VERSION = 7.0.2a
+HYPB_VERSION = 7.0.3b
 
 # Emacs executable used to byte-compile .el files into .elc's.
-# Possibilities include: emacs, infodock, xemacs, etc.
+# Possibilities include: emacs, infodock, etc.
 EMACS = \emacs
 
 # Site-specific Emacs Lisp libraries to load before byte-compiling any files
@@ -132,8 +132,7 @@ ELISP_TO_COMPILE = $(pkg_dir)/elc-${USER}
 # Libraries that must be pre-loaded before trying to byte-compile anything.
 PRELOADS = $(SITE_PRELOADS) -l ./hload-path.el -l ./hversion.el -l ./hyperbole.el 
 
-# Compile in batch mode. Under Emacs and XEmacs, load
-# site-lisp/site-start.el, which may set load-path.
+# Compile in batch mode.  Load site-lisp/site-start.el, which may set load-path.
 BATCHFLAGS = -batch -Q
 
 # Directories other than the current directory in which to find files.
@@ -141,7 +140,7 @@ BATCHFLAGS = -batch -Q
 # explicitly to those files which need it.
 VPATH = kotl man
 
-EL_SRC = hui-em-but.el hui-xe-but.el
+EL_SRC = hui-em-but.el
 
 EL_COMPILE = hact.el hactypes.el hargs.el hbdata.el hbmap.el hbut.el \
 	     hgnus.el hhist.el hib-debbugs.el hib-doc-id.el hib-kbd.el \
@@ -156,7 +155,7 @@ EL_COMPILE = hact.el hactypes.el hargs.el hbdata.el hbmap.el hbut.el \
 EL_KOTL = kotl/kexport.el kotl/kfile.el kotl/kfill.el kotl/kimport.el kotl/klabel.el \
 	  kotl/klink.el kotl/kmenu.el kotl/knode.el kotl/kotl-mode.el \
           kotl/kcell.el kotl/kproperty.el kotl/kprop-em.el \
-	  kotl/kprop-xe.el kotl/kview.el kotl/kvspec.el
+	  kotl/kview.el kotl/kvspec.el
 
 ELC_COMPILE =  hactypes.elc hibtypes.elc hib-debbugs.elc hib-doc-id.elc hib-kbd.elc \
 	     hib-social.elc hact.elc \
@@ -171,11 +170,11 @@ ELC_COMPILE =  hactypes.elc hibtypes.elc hib-debbugs.elc hib-doc-id.elc hib-kbd.
 ELC_KOTL = kotl/kexport.elc kotl/kfile.elc kotl/kfill.elc kotl/kimport.elc kotl/klabel.elc \
 	   kotl/klink.elc kotl/kmenu.elc kotl/knode.elc kotl/kotl-mode.elc \
            kotl/kcell.elc kotl/kproperty.elc \
-	   kotl/kprop-xe.elc kotl/kview.el kotl/kvspec.elc
+	    kotl/kview.el kotl/kvspec.elc
 
 HYPERBOLE_FILES = dir hyperbole-pkg.el info html $(EL_SRC) $(EL_COMPILE) $(EL_KOTL) \
 	$(ELC_COMPILE) Changes COPYING Makefile HY-ABOUT HY-ANNOUNCE HY-NEWS \
-	HY-WHY.kotl INSTALL DEMO DEMO-ROLO.otl MANIFEST README _hypb .hypb file-newer smart-clib-sym \
+	HY-WHY.kotl INSTALL DEMO DEMO-ROLO.otl MANIFEST README _hypb .hypb smart-clib-sym \
 	topwin.py hyperbole-banner.png $(man_dir)/hkey-help.txt \
 	$(man_dir)/hyperbole.texi $(man_dir)/hyperbole.css $(man_dir)/version.texi
 
@@ -256,16 +255,18 @@ version: doc
 # Build the Info, HTML and Postscript versions of the user manual and README.md.html.
 doc: info html pdf README.md.html
 
+TEXINFO_SRC = $(man_dir)/hyperbole.texi $(man_dir)/version.texi $(man_dir)/hkey-help.txt $(man_dir)/im/*.png
+
 info: $(man_dir)/hyperbole.info
-$(man_dir)/hyperbole.info: $(man_dir)/hyperbole.texi $(man_dir)/version.texi $(man_dir)/hkey-help.txt
+$(man_dir)/hyperbole.info: $(TEXINFO_SRC)
 	cd $(man_dir) && $(TEXI2INFO) hyperbole.texi
 
 html: $(man_dir)/hyperbole.html
-$(man_dir)/hyperbole.html: $(man_dir)/hyperbole.texi $(man_dir)/version.texi $(man_dir)/hkey-help.txt $(man_dir)/hyperbole.css
+$(man_dir)/hyperbole.html: $(TEXINFO_SRC) $(man_dir)/hyperbole.css
 	cd ${man_dir} && $(TEXI2HTML) hyperbole.texi
 
 pdf: $(man_dir)/hyperbole.pdf
-$(man_dir)/hyperbole.pdf: $(man_dir)/hyperbole.texi $(man_dir)/version.texi $(man_dir)/hkey-help.txt
+$(man_dir)/hyperbole.pdf: $(TEXINFO_SRC)
 	cd $(man_dir) && $(TEXI2PDF) hyperbole.texi
 
 # github-markdown is an npm, installed with: npm install markdown-to-html -g

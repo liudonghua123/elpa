@@ -4,7 +4,7 @@
 ;;
 ;; Orig-Date:    30-May-94 at 00:11:57
 ;;
-;; Copyright (C) 1994-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019  Free Software Foundation, Inc.
 ;; See the "HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -26,7 +26,7 @@
 ;;; Other required Elisp libraries
 ;;; ************************************************************************
 
-(eval-and-compile (mapc #'require '(hsettings hmouse-drv hmouse-sh)))
+(eval-when-compile (mapc #'require '(hsettings hmouse-drv hmouse-sh)))
 
 ;;; ************************************************************************
 ;;; Public functions

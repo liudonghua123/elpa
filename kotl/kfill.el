@@ -4,7 +4,7 @@
 ;;
 ;; Orig-Date:    23-Jan-94
 ;;
-;; Copyright (C) 1994-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019  Free Software Foundation, Inc.
 ;; See the "../HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -95,7 +95,7 @@ number of lines that could not be moved, otherwise 0."
     (forward-visible-line n)
     (if (< n 0)
 	nil
-      (skip-chars-forward "[\n\r]"))
+      (skip-chars-forward "\n\r"))
 ;    (- (abs n) (count-matches "\n" opoint (point)))
     0))
 
@@ -106,6 +106,7 @@ number of lines that could not be moved, otherwise 0."
 	      ;; Need this or Emacs ignores fill-prefix when inside a
 	      ;; comment.
 	      (comment-multi-line t)
+	      (fill-paragraph-handle-comment t)
 	      fill-prefix)
 	  (kfill:adapt nil)
 	  (do-auto-fill))
@@ -150,8 +151,8 @@ number of lines that could not be moved, otherwise 0."
   (if (not (derived-mode-p 'kotl-mode))
       (apply orig-fun args)
     (setq prior-fill-prefix fill-prefix)
-    (if (equal prior-fill-prefix "")
-        (setq prior-fill-prefix nil))
+    (when (equal prior-fill-prefix "")
+      (setq prior-fill-prefix nil))
     (apply orig-fun args)
     (cond (fill-prefix
 	   (message "fill-prefix: \"%s\"; prior-fill-prefix: \"%s\""

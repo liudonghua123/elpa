@@ -1,18 +1,18 @@
 ;;; hibtypes.el --- GNU Hyperbole default implicit button types
 ;;
-;; Author:       Bob Weiner
+;; Author: Bob Weiner
 ;;
-;; Orig-Date:    19-Sep-91 at 20:45:31
+;; Orig-Date: 19-Sep-91 at 20:45:31
 ;;
-;; Copyright (C) 1991-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1991-2019  Free Software Foundation, Inc.
 ;; See the "HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
-;;
 ;;; Commentary:
 ;;
-;;   Implicit button types in this file are defined in increasing order
-;;   of priority within this file (last one is highest priority).
+;;   Implicit button types in this file are defined in increasing
+;;   order of priority within this file (last one is highest
+;;   priority).
 
 ;;; Code:
 ;;; ************************************************************************
@@ -60,11 +60,11 @@
 ;;; ************************************************************************
 ;;; Public implicit button types
 ;;; ************************************************************************
-  
+
 (run-hooks 'hibtypes-begin-load-hook)
 
 ;;; ========================================================================
-;;; Follows Org mode links by invoking a web browser.
+;;; Follows Org mode links and radio targets and cycles Org heading views
 ;;; ========================================================================
 
 (require 'hsys-org)
@@ -74,9 +74,10 @@
 ;;; ========================================================================
 
 (defvar mail-address-mode-list
-  '(emacs-lisp-mode lisp-interaction-mode lisp-mode scheme-mode c-mode
-    c++-mode html-mode java-mode js2-mode objc-mode python-mode
-    smalltalk-mode fundamental-mode text-mode indented-text-mode web-mode) 
+  '(emacs-lisp-mode lisp-interaction-mode lisp-mode scheme-mode
+    c-mode c++-mode html-mode java-mode js2-mode objc-mode
+    python-mode smalltalk-mode fundamental-mode text-mode
+    indented-text-mode web-mode)
   "List of major modes in which mail address implicit buttons are active.")
 
 (defun mail-address-at-p ()
@@ -125,20 +126,24 @@ any buffer attached to a file in `hyrolo-file-list', or any buffer with
 
 (defib pathname ()
   "Makes a valid pathname display the path entry.
-Also works for delimited and non-delimited remote pathnames, Texinfo @file{}
-entries, and hash-style link references to HTML, Markdown or Emacs outline
-headings.  Emacs Lisp library files (filenames without any directory component
-that end in .el and .elc) are looked up using the `load-path' directory list.
+Also works for delimited and non-delimited remote pathnames,
+Texinfo @file{} entries, and hash-style link references to HTML,
+Markdown or Emacs outline headings, and MSWindows paths (see
+\"${hyperb:dir}/DEMO#POSIX and MSWindows Paths\" for details).
+Emacs Lisp library files (filenames without any directory
+component that end in .el and .elc) are looked up using the
+`load-path' directory list.
 
 See `hpath:at-p' function documentation for possible delimiters.
-See `hpath:suffixes' variable documentation for suffixes that are added to or
-removed from pathname when searching for a valid match.
-See `hpath:find' function documentation for special file display options."
+See `hpath:suffixes' variable documentation for suffixes that are
+added to or removed from pathname when searching for a valid
+match.  See `hpath:find' function documentation for special file
+display options."
   ;;
   ;; Ignore paths in Buffer menu, dired and helm modes.
   (unless (or (eq major-mode 'helm-major-mode)
-	      (delq nil (mapcar (lambda (substring) (string-match
-						     substring (format-mode-line mode-name)))
+	      (delq nil (mapcar (lambda (substring)
+				  (string-match substring (format-mode-line mode-name)))
 				'("Buffer Menu" "IBuffer" "Dired"))))
     (let ((path (hpath:at-p))
 	  full-path)
@@ -174,8 +179,14 @@ See `hpath:find' function documentation for special file display options."
 		  ))))))
 
 ;;; ========================================================================
-;;; Displays files at specific lines and optional column number locations.
+;;; Displays files at specific lines and optional column number
+;;; locations.
 ;;; ========================================================================
+
+(defconst hibtypes-path-line-and-col-regexp
+  ;; Allow for 'c:' single letter drive prefixes on MSWindows and
+  ;; Elisp vars with colons in them.
+  "\\([^ \t\n\r\f:][^\t\n\r\f:]+\\(:[^0-9\t\n\r\f]*\\)*\\):\\([0-9]+\\)\\(:\\([0-9]+\\)\\)?$")
 
 (defib pathname-line-and-column ()
   "Makes a valid pathname:line-num[:column-num] pattern display the path at line-num and optional column-num.
@@ -187,12 +198,11 @@ removed from pathname when searching for a valid match.
 See `hpath:find' function documentation for special file display options."
   (let ((path-line-and-col (hpath:delimited-possible-path)))
     (if (and (stringp path-line-and-col)
-	     (string-match "\\([^ \t\n\r:]+\\):\\([0-9]+\\)\\(:\\([0-9]+\\)\\)?"
-			   path-line-and-col))
-	(let ((file (expand-file-name (match-string-no-properties 1 path-line-and-col)))
-	      (line-num (string-to-number (match-string-no-properties 2 path-line-and-col)))
-	      (col-num (if (match-end 3) (string-to-number (match-string-no-properties
-							    4 path-line-and-col)))))
+	     (string-match hibtypes-path-line-and-col-regexp path-line-and-col))
+	(let ((file (save-match-data (expand-file-name (hpath:substitute-value (match-string-no-properties 1 path-line-and-col)))))
+	      (line-num (string-to-number (match-string-no-properties 3 path-line-and-col)))
+	      (col-num (if (match-end 4) (string-to-number (match-string-no-properties
+							    5 path-line-and-col)))))
 	  (when (save-match-data (setq file (hpath:is-p file)))
 	    (ibut:label-set file (match-beginning 1) (match-end 1))
 	    (if col-num
@@ -241,29 +251,6 @@ current major mode is one handled by func-menu."
 		(hact 'function-in-buffer function-name function-pos)))))))
 
 ;;; ========================================================================
-;;; Use the Emacs imenu library to jump to definition of an identifier
-;;; defined in the same file in which it is referenced.  Identifier
-;;; references across files are handled separately by clauses within
-;;; the `hkey-alist' variable.
-;;; ========================================================================
-
-;;; This implicit button type is not needed because hkey-alist handles imenu items.
-;; (defib imenu-item ()
-;;   "Displays the in-buffer definition of an identifier that point is within or after, else nil.
-;; This triggers only when imenu has already been used to generate an in-buffer item index."
-;;   (when (and (featurep 'imenu) imenu--index-alist)
-;;     (save-excursion
-;;       (skip-syntax-backward "w_")
-;;       (if (looking-at "\\(\\sw\\|\\s_\\)+")
-;; 	  (let* ((item-name (buffer-substring-no-properties (point) (match-end 0)))
-;; 		 (start (point))
-;; 		 (end (match-end 0))
-;; 		 (item-pos (imenu-item-p item-name)))
-;; 	    (when item-pos
-;; 	      (ibut:label-set item-name start end)
-;; 	      (hact 'imenu-display-item-where item-name item-pos)))))))
-
-;;; ========================================================================
 ;;; Handles internal references within an annotated bibliography, delimiters=[]
 ;;; ========================================================================
 
@@ -278,7 +265,7 @@ must have an attached file."
        (let ((chr (aref (buffer-name) 0)))
 	 (not (or (eq chr ?\ ) (eq chr ?*))))
        (not (or (derived-mode-p 'prog-mode)
-		(memq major-mode '(c-mode objc-mode c++-mode java-mode markdown-mode))))
+		(apply #'derived-mode-p '(c-mode objc-mode c++-mode java-mode markdown-mode org-mode))))
        (let* ((ref-and-pos (hbut:label-p t "[" "]" t))
 	      (ref (car ref-and-pos)))
 	 (and ref (eq ?w (char-syntax (aref ref 0)))
@@ -333,10 +320,11 @@ Returns t if jumps and nil otherwise."
 	     ;; Leave point on the link even if not activated
 	     ;; here, so that code elsewhere activates it.
 	     (if (and (markdown-link-p)
-		      (not (or (hpath:www-at-p) (hpath:at-p))))
-		 ;; In-file referents will be handled later by the
-		 ;; pathname implicit type, not here.
-		 (progn (hpath:display-buffer (current-buffer))
+		      (save-match-data (not (or (hpath:www-at-p) (hpath:at-p)))))
+		 ;; In-file referents are handled by the 'markdown-internal-link'
+		 ;; implicit button type, not here.
+		 (progn (ibut:label-set (match-string-no-properties 0) (match-beginning 0) (match-end 0))
+			(hpath:display-buffer (current-buffer))
 			(hact 'markdown-follow-link-at-point))))
     (goto-char opoint)
     nil))
@@ -352,6 +340,7 @@ Returns t if jumps and nil otherwise."
 		 ;; Follows a reference link or footnote to its referent.
 		 (if (markdown-follow-link-p)
 		     (when (/= opoint (point))
+		       (ibut:label-set (match-string-no-properties 0) (match-beginning 0) (match-end 0))
 		       (setq npoint (point))
 		       (goto-char opoint)
 		       (hact 'link-to-file buffer-file-name npoint))
@@ -361,6 +350,7 @@ Returns t if jumps and nil otherwise."
 	       ;; link itself and follow that.
 	       (error (markdown-follow-inline-link-p opoint))))
 	    ((markdown-wiki-link-p)
+	     (ibut:label-set (match-string-no-properties 0) (match-beginning 0) (match-end 0))
 	     (hpath:display-buffer (current-buffer))
 	     (hact 'markdown-follow-wiki-link-at-point))))))
 	     
@@ -631,14 +621,114 @@ Requires the Emacs builtin Tramp library for ftp file retrievals."
 	   (hact 'man topic)))))
 
 ;;; ========================================================================
-;;; Follows links to Hyperbole Koutliner cells.
+;;; Links to Hyperbole button types 
 ;;; ========================================================================
 
+
+(defconst elink:start "<elink:"
+  "String matching the start of a link to a Hyperbole explicit button.")
+(defconst elink:end   ">"
+  "String matching the end of a link to a Hyperbole explicit button.")
+
+(defib link-to-ebut ()
+  "At point, activates a link to an explicit button.
+The explicit button's action is executed in the context of the current buffer.
+
+Recognizes the format '<elink:' <button label> '>', e.g. <elink: project-list>."
+  (let* ((label-key-start-end (hbut:label-p nil elink:start elink:end t t))
+	 (ebut-key (nth 0 label-key-start-end))
+	 (lbl-key (and ebut-key (concat "elink_" (nth 0 label-key-start-end))))
+	 (start-pos (nth 1 label-key-start-end))
+	 (end-pos (nth 2 label-key-start-end)))
+    (when lbl-key
+      (ibut:label-set (ebut:key-to-label lbl-key) start-pos end-pos)
+      (hact 'link-to-ebut ebut-key))))
+
+(defconst glink:start "<glink:"
+  "String matching the start of a link to a Hyperbole global button.")
+(defconst glink:end   ">"
+  "String matching the end of a link to a Hyperbole global button.")
+
+(defib link-to-gbut ()
+  "At point, activates a link to a global button.
+The global button's action is executed in the context of the current buffer.
+
+Recognizes the format '<glink:' <button label> '>', e.g. <glink: open todos>."
+  (let* ((label-key-start-end (hbut:label-p nil glink:start glink:end t t))
+	 (gbut-key (nth 0 label-key-start-end))
+	 (lbl-key (and gbut-key (concat "glink_" (nth 0 label-key-start-end))))
+	 (start-pos (nth 1 label-key-start-end))
+	 (end-pos (nth 2 label-key-start-end)))
+    (when lbl-key
+      (ibut:label-set (ebut:key-to-label lbl-key) start-pos end-pos)
+      (hact 'link-to-gbut gbut-key))))
+
+(defconst ilink:start "<ilink:"
+  "String matching the start of a link to a Hyperbole implicit button.")
+(defconst ilink:end   ">"
+  "String matching the end of a link to a Hyperbole implicit button.")
+
+(defib link-to-ibut ()
+  "At point, activates a link to an implicit button.
+The implicit button's action is executed in the context of the current buffer.
+
+Recognizes the format '<ilink:' <button label> '>', e.g. <ilink: my sequence of keys>."
+  (let* ((label-key-start-end (ibut:label-p nil ilink:start ilink:end t t))
+	 (ibut-key (nth 0 label-key-start-end))
+	 (lbl-key (and ibut-key (concat "ilink_" (nth 0 label-key-start-end))))
+	 (start-pos (nth 1 label-key-start-end))
+	 (end-pos (nth 2 label-key-start-end)))
+    (when lbl-key
+      (ibut:label-set (ibut:key-to-label lbl-key) start-pos end-pos)
+      (hact 'link-to-ibut ibut-key))))
+
 ;;; ========================================================================
-;;; Jumps to source line associated with grep or compilation error messages.
-;;; Also supports ripgrep (rg command).
+;;; Jumps to source line associated with ipython, ripgreb, grep or
 ;;; With credit to Michael Lipp and Mike Williams for the idea.
 ;;; ========================================================================
+
+(defib ipython-stack-frame ()
+  "Jumps to line associated with an ipython stack frame line numbered msg.
+ipython outputs each pathname once followed by all matching lines in that pathname.
+Messages are recognized in any buffer (other than a helm completion
+buffer)."
+  ;; Locate and parse ipython stack trace messages found in any buffer other than a
+  ;; helm completion buffer.
+  ;;
+  ;; Sample ipython stack trace command output:
+  ;;
+  ;; ~/Dropbox/py/inview/inview_pr.py in ap(name_filter, value_filter, print_func)
+  ;; 1389     apc(name_filter, value_filter, print_func, defined_only=True)
+  ;; 1390     print('\n**** Modules/Packages ****')
+  ;; -> 1391     apm(name_filter, value_filter, print_func, defined_only=True)
+  ;; 1392
+  ;; 1393 def apa(name_filter=None, value_filter=None, print_func=pd1, defined_only=False):
+  (unless (eq major-mode 'helm-major-mode)
+    (save-excursion
+      (beginning-of-line)
+      (let ((line-num-regexp "\\( *\\|-+> \\)?\\([1-9][0-9]*\\) ")
+	    line-num
+	    file)
+	(when (looking-at line-num-regexp)
+	  ;; ipython stack trace matches and context lines (-A<num> option)
+	  (setq line-num (match-string-no-properties 2)
+		file nil)
+	  (while (and (= (forward-line -1) 0)
+		      (looking-at line-num-regexp)))
+	  (unless (or (looking-at line-num-regexp)
+		      (not (re-search-forward " in " nil (point-at-eol)))
+		      (and (setq file (buffer-substring-no-properties (point-at-bol) (match-beginning 0)))
+			   (string-empty-p (string-trim file))))
+	    (let* ((but-label (concat file ":" line-num))
+		   (source-loc (if (file-name-absolute-p file)
+				   nil
+				 (hbut:key-src t))))
+	      (if (stringp source-loc)
+		  (setq file (expand-file-name file (file-name-directory source-loc))))
+	      (when (file-readable-p file)
+		(setq line-num (string-to-number line-num))
+		(ibut:label-set but-label)
+		(hact 'link-to-file-line file line-num)))))))))
 
 (defib ripgrep-msg ()
   "Jumps to line associated with a ripgrep (rg) line numbered msg.
@@ -666,12 +756,14 @@ buffer)."
       (beginning-of-line)
       (when (looking-at "\\([1-9][0-9]*\\)[-:]")
 	;; Ripgrep matches and context lines (-A<num> option)
-	(let ((line-num (match-string-no-properties 1)))
+	(let ((line-num (match-string-no-properties 1))
+	      file)
 	  (while (and (= (forward-line -1) 0)
 		      (looking-at "[1-9][0-9]*[-:]\\|--$")))
-	  (unless (looking-at "[1-9][0-9]*[-:]\\|--$")
-	    (let* ((file (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
-		   (but-label (concat file ":" line-num))
+	  (unless (or (looking-at "[1-9][0-9]*[-:]\\|--$")
+		      (and (setq file (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+			   (string-empty-p (string-trim file))))
+	    (let* ((but-label (concat file ":" line-num))
 		   (source-loc (if (file-name-absolute-p file) nil
 				 (hbut:key-src t))))
 	      (if (stringp source-loc)
@@ -693,7 +785,7 @@ in grep and shell buffers."
       (beginning-of-line)
       (if (or
 	   ;; Grep matches, UNIX C compiler and Introl 68HC11 C compiler errors
-	   (looking-at "\\([^ \t\n\r:]+\\): ?\\([1-9][0-9]*\\)[ :]")
+	   (looking-at "\\([^ \t\n\r:]+\\)[:\^@] ?\\([1-9][0-9]*\\)[ :]")
 	   ;; HP C compiler errors
 	   (looking-at "[a-zA-Z0-9]+: \"\\([^\t\n\r\",]+\\)\", line \\([0-9]+\\):")
 	   ;; BSO/Tasking 68HC08 C compiler errors
@@ -738,13 +830,14 @@ This works with JavaScript and Python tracebacks, gdb, dbx, and xdb.  Such lines
   (save-excursion
     (beginning-of-line)
     (cond
-     ;; Python pdb
-     ((looking-at ".+ File \"\\([^\"\n\r]+\\)\", line \\([0-9]+\\)")
-      (let* ((file (match-string-no-properties 1))
-	     (line-num (match-string-no-properties 2))
+     ;; Python pdb or traceback, pytype error
+     ((or (looking-at "\\(^\\|.+ \\)File \"\\([^\"\n\r]+\\)\", line \\([0-9]+\\)")
+	  (looking-at ">?\\(\\s-+\\)\\([^\"()\n\r]+\\)(\\([0-9]+\\))\\S-"))
+      (let* ((file (match-string-no-properties 2))
+	     (line-num (match-string-no-properties 3))
 	     (but-label (concat file ":" line-num)))
 	(setq line-num (string-to-number line-num))
-	(ibut:label-set but-label (match-beginning 1) (match-end 1))
+	(ibut:label-set but-label (match-beginning 2) (match-end 2))
 	(hact 'link-to-file-line file line-num)))
 
      ;; JavaScript traceback
@@ -1015,8 +1108,11 @@ Activates only if point is within the first line of the Info-node name."
 			       (hbut:label-p t "``" "''" t t)
 			       ;; Regular open and close quotes
 			       (hbut:label-p t "`" "'" t t)))
-	 (node-ref (hpath:is-p (car node-ref-and-pos) nil t)))
-    (and node-ref (string-match "\\`([^\):]+)" node-ref)
+	 (ref (car node-ref-and-pos))
+	 (node-ref (and (stringp ref)
+			(string-match "\\`([^\):]+)" ref)
+			(hpath:is-p (car node-ref-and-pos) nil t))))
+    (and node-ref
 	 (ibut:label-set node-ref-and-pos)
 	 (hact 'link-to-Info-node node-ref))))
 

@@ -4,7 +4,7 @@
 ;;
 ;; Orig-Date:    6/30/93
 ;;
-;; Copyright (C) 1993-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1993-2019  Free Software Foundation, Inc.
 ;; See the "../HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -257,8 +257,10 @@ It provides the following keys:
   (set-syntax-table text-mode-syntax-table)
   ;; Turn off filladapt minor mode if on, so that it does not interfere with
   ;; the filling code in "kfill.el".
-  (and (bound-and-true-p 'filladapt-mode)
-       (fboundp 'filladapt-mode) (filladapt-mode 0))
+  ;; FIXME: Is it still needed now that they all use advice?
+  (and (fboundp 'filladapt-mode)
+       (bound-and-true-p 'filladapt-mode)
+       (filladapt-mode 0))
   ;; Ensure that outline structure data is saved when save-buffer is called
   ;; from save-some-buffers, {C-x s}.
   (add-hook (if (featurep 'xemacs)
@@ -325,7 +327,7 @@ It provides the following keys:
       (kvspec:activate))))
   ;; We have been converting a buffer from a foreign format to a koutline.
   ;; Now that it is converted, ensure that `kotl-previous-mode' is set to
-  ;; koutline now.
+  ;; koutline.
   (setq kotl-previous-mode 'kotl-mode)
   (add-hook 'change-major-mode-hook #'kotl-mode:show-all nil t)
   ;; Always run the mode-hook last.
@@ -392,10 +394,7 @@ Direction is determined from the value of `delete-key-deletes-forward' or
 whether the Backspace key exists on the keyboard.  If there is no Backspace
 key, the delete key should always delete backward one character."
   (interactive "*p")
-  (if (not (featurep 'xemacs))
-      (kotl-mode:delete-char (if normal-erase-is-backspace arg (- arg)) nil)
-    ;; XEmacs
-    (kotl-mode:delete-char (if (delete-forward-p) arg (- arg)) nil)))
+  (kotl-mode:delete-char (if normal-erase-is-backspace arg (- arg)) nil))
 
 (defun kotl-mode:center-line ()
   "Center the line point is on, within the width specified by `fill-column'.
@@ -848,15 +847,17 @@ too long."
 With arg N, insert N newlines."
   (interactive "*p")
   (let* ((bolp (and (kotl-mode:bolp) (not (kotl-mode:bocp))))
-	 (indent (kcell-view:indent)))
+	 (indent (kcell-view:indent))
+	 (add-prefix (and (stringp fill-prefix)
+			  (not (string-empty-p fill-prefix)))))
     (while (> arg 0)
       (save-excursion
         (insert ?\n)
-	(if (and (not bolp) fill-prefix)
+	(if (and (not bolp) add-prefix)
 	    (insert fill-prefix)
 	  (insert-char ?\  indent)))
       (setq arg (1- arg)))
-    (if (and bolp fill-prefix)
+    (if (and bolp add-prefix)
 	(progn (delete-horizontal-space)
 	       (insert fill-prefix)))))
 
@@ -1440,20 +1441,6 @@ doc string for `insert-for-yank-1', which see."
 
 (defalias 'kotl-mode:scroll-down-command 'kotl-mode:scroll-down)
 (defalias 'kotl-mode:scroll-up-command  'kotl-mode:scroll-up)
-
-;;; Cursor and keypad key functions aliases for XEmacs.
-(if (featurep 'xemacs)
-    (progn
-      (defalias 'kotl-mode:backward-char-command 'kotl-mode:backward-char)
-      (defalias 'kotl-mode:forward-char-command  'kotl-mode:forward-char)
-      (defalias 'kotl-mode:fkey-backward-char 'kotl-mode:backward-char)
-      (defalias 'kotl-mode:fkey-forward-char  'kotl-mode:forward-char)
-      (defalias 'kotl-mode:fkey-next-line     'kotl-mode:next-line)
-      (defalias 'kotl-mode:fkey-previous-line 'kotl-mode:previous-line)
-      (defalias 'kotl-mode:deprecated-scroll-down 'kotl-mode:scroll-down)
-      (defalias 'kotl-mode:deprecated-scroll-up 'kotl-mode:scroll-up)
-      (defalias 'kotl-mode:deprecated-bob     'kotl-mode:beginning-of-buffer)
-      (defalias 'kotl-mode:deprecated-eob     'kotl-mode:end-of-buffer)))
 
 (defun kotl-mode:back-to-indentation ()
   "Move point to the first non-read-only non-whitespace character on this line."
@@ -2145,7 +2132,7 @@ If key is pressed:
      otherwise hide it;
  (3) between cells or within the read-only indentation region to the left of
      a cell, then move point to prior location and begin creation of a
-     klink to some other outline cell; hit the Action Key twice to select the
+     klink to some other outline cell; press the Action Key twice to select the
      link referent cell;
  (4) anywhere else, invoke `action-key-eol-function', typically to scroll up
      a windowful."
@@ -2180,7 +2167,7 @@ If assist-key is pressed:
      each cell in tree beginning at point;
  (3) between cells or within the read-only indentation region to the left of
      a cell, then move point to prior location and prompt to move one tree to
-     a new location in the outline; hit the Action Key twice to select the
+     a new location in the outline; press the Action Key twice to select the
      tree to move and where to move it;
  (4) anywhere else, invoke `assist-key-eol-function', typically to scroll down
      a windowful."
@@ -2737,7 +2724,8 @@ With optional prefix ARG, toggle display of blank lines between cells."
 	     (kview:set-attr kview 'lines-to-show 0)
 	     (outline-flag-region (point-min) (point-max) nil)
 	     (if arg (kvspec:toggle-blank-lines))
-	     (kvspec:update t))))
+	     (if (called-interactively-p 'interactive)
+		 (kvspec:update t)))))
 
 ;;;###autoload
 (defun kotl-mode:top-cells (&optional arg)

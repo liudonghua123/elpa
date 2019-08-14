@@ -4,7 +4,7 @@
 ;;
 ;; Orig-Date:    04-Feb-89
 ;;
-;; Copyright (C) 1991-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1991-2018  Free Software Foundation, Inc.
 ;; See the "HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -243,10 +243,11 @@ Its default value is #'smart-scroll-down."
     ;;
     ;; Python files - ensure this comes before Imenu for more advanced
     ;; definition lookups
-    ((and (or (and (eq major-mode 'python-mode) buffer-file-name)
-	      (string-match "^Pydoc:\\|\\*?Python" (buffer-name)))
-	  (smart-python-at-tag-p)) .
-	  ((smart-python) . (smart-python nil 'next-tag)))
+    ((and (or (and (derived-mode-p 'python-mode) buffer-file-name)
+	      (let ((case-fold-search))
+		(string-match "\\`\\([ *]?Pydoc[: ]\\|\\*?Python\\)" (buffer-name))))
+	  (setq hkey-value (smart-python-at-tag-p))) .
+	  ((smart-python hkey-value) . (smart-python hkey-value 'next-tag)))
     ;;
     ;; Imenu listing in GNU Emacs
     ((smart-imenu-item-at-p)
@@ -271,8 +272,11 @@ Its default value is #'smart-scroll-down."
 	  buffer-file-name (smart-asm-at-tag-p)) .
 	  ((smart-asm) . (smart-asm nil 'next-tag)))
     ;;
-    ((and (smart-lisp-mode-p) (smart-lisp-at-tag-p)) .
-     ((smart-lisp) . (smart-lisp 'show-doc)))
+    ((or (and (smart-lisp-mode-p) (smart-lisp-at-tag-p))
+	 ;; Tightly limit Lisp matches in change-log-mode.
+	 (smart-lisp-at-change-log-tag-p)) .
+	 ((smart-lisp) . (smart-lisp 'show-doc)))
+    ;;
     ;;
     ((and (eq major-mode 'java-mode) buffer-file-name
 	  (or (smart-java-at-tag-p)
@@ -399,7 +403,7 @@ smart keyboard keys.")
 (require 'hmouse-key)
 
 ;; This next library adds drag actions to `hmouse-alist'.
-(load "hui-window")
+(require 'hui-window)
 
 ;;; ************************************************************************
 ;;; support code
@@ -599,7 +603,7 @@ If key is pressed:
 	((< (current-column) 5) (calendar-cursor-to-nearest-date)
 	 (scroll-calendar-right-three-months 1))
 	(t (calendar-cursor-to-nearest-date)
-	   (view-diary-entries 1))))
+	   (diary-view-entries 1))))
 
 (defun smart-calendar-assist ()
   "Uses a single assist-key or mouse assist-key to manipulate the scrolling calendar.
@@ -627,12 +631,12 @@ If assist-key is pressed:
 ;;; ************************************************************************
 
 ;; These functions are called from hkey-alist when keyboard Smart Keys
-;; are used but for mouse keys, they are bound to local keys in
+;; are used.  For mouse keys, they are bound to local keys in
 ;; company-mode's minor mode map.
 
 (defun smart-company-to-definition (event)
   "Action Key binding for company-mode completions popup to show item definition.
-Use left mouse key or RET key to select a completion and exit."
+Use left mouse key, RET or TAB key to select a completion and exit."
   (interactive "e")
   (when (mouse-event-p last-command-event)
     (company-select-mouse event))
@@ -735,9 +739,13 @@ If assist-key is pressed:
 	 (goto-char (point-max)))
 	((looking-at "~") (dired-flag-backup-files))
 	((looking-at "#") (dired-flag-auto-save-files))
-	(t (if (fboundp 'dired-flag-file-deletion)
-	       (dired-flag-file-deletion 1)
-	     (dired-flag-file-deleted 1)))))
+	(t 
+	 ;; Prevent any region selection from causing multiple files
+	 ;; to be marked for deletion; we want to mark only one.
+	 (deactivate-mark t)
+	 (if (fboundp 'dired-flag-file-deletion)
+	     (dired-flag-file-deletion 1)
+	   (dired-flag-file-deleted 1)))))
 
 ;;; ************************************************************************
 ;;; smart-gnus functions

@@ -4,7 +4,7 @@
 ;;
 ;; Orig-Date:    28-Mar-94 at 11:22:09
 ;;
-;; Copyright (C) 1994-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019  Free Software Foundation, Inc.
 ;; See the "../HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -197,16 +197,10 @@
   (cond ((fboundp 'popup-mode-menu)
          (defvar mode-popup-menu)
 	 (setq mode-popup-menu id-popup-kotl-menu))
-	((featurep 'xemacs)
-	 (define-key kotl-mode-map 'button3 'kotl-popup-menu))
-	(t ;; (not (featurep 'xemacs))
+	(t
 	 (define-key kotl-mode-map [C-down-mouse-3] 'kotl-popup-menu)
 	 (define-key kotl-mode-map [C-mouse-3] nil)))
-  (unless (cond ((not (featurep 'xemacs))
-		 (global-key-binding [menu-bar Koutline]))
-		((boundp 'current-menubar)
-		 (car (find-menu-item current-menubar '("Koutline")))))
-    (if (featurep 'xemacs) (set-buffer-menubar (copy-sequence current-menubar)))
+  (unless (global-key-binding [menu-bar Koutline])
     (easy-menu-define nil kotl-mode-map "Koutline Menubar Menu" id-popup-kotl-menu)
     ;; Force a menu-bar update.
     (force-mode-line-update)))

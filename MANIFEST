@@ -42,7 +42,6 @@ hui-mouse.el        - Use key or mouse key for many functions, e.g. GNU Hyperbol
 hui-select.el       - Select delimited or larger and larger syntax-driven regions in a buffer
 hui-treemacs.el     - Hyperbole Smart Key support for the Treemacs file manager package
 hui-window.el       - Smart Mouse Key window and modeline depress/release actions
-hui-xe-but.el       - XEmacs button highlighting and flashing support
 hui.el              - GNU Hyperbole button and hyperlink user interface
 
 --- APPLICATION PROGRAMMING INTERFACE ---
@@ -75,7 +74,6 @@ kotl/EXAMPLE.kotl   - Sample Koutline document explaining Koutliner features
 hgnus.el            - GNU Hyperbole buttons in news reader/poster: GNUS
 
 --- HYPERBOLE INTERNALS ---
-file-newer          - Perl script which returns 1 if file 1 is newer than file 2
 hactypes.el         - Default action types for GNU Hyperbole
 hbdata.el           - GNU Hyperbole button attribute accessor functions
 hibtypes.el         - GNU Hyperbole default implicit button types

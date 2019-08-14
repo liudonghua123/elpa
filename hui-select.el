@@ -1,10 +1,10 @@
-;;; hui-select.el ---  Select larger and larger syntax-driven regions in a buffer.
+;;; hui-select.el --- Select larger and larger syntax-driven regions in a buffer.
 ;;
 ;; Author:       Bob Weiner
 ;;
 ;; Orig-Date:    19-Oct-96 at 02:25:27
 ;;
-;; Copyright (C) 1996-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019  Free Software Foundation, Inc.
 ;; See the "HY-COPY" file for license information.
 ;;
 ;; This file is part of GNU Hyperbole.
@@ -247,14 +247,12 @@ Also, add language-specific syntax setups to aid in thing selection."
   (unless (boundp 'hyperbole-loading)
     (require 'hyperbole))
   (if hkey-init
-      (cond ((not (featurep 'xemacs))
-	     (transient-mark-mode 1)
-	     (hkey-global-set-key [double-down-mouse-1] nil)
-	     (hkey-global-set-key [double-mouse-1] 'hui-select-thing-with-mouse)
-	     (hkey-global-set-key [triple-down-mouse-1] nil)
-	     (hkey-global-set-key [triple-mouse-1] 'hui-select-thing-with-mouse))
-	    ((featurep 'xemacs)
-	     (add-hook 'mouse-track-click-hook #'hui-select-double-click-hook))))
+      (progn
+	(transient-mark-mode 1)
+	(hkey-global-set-key [double-down-mouse-1] nil)
+	(hkey-global-set-key [double-mouse-1] 'hui-select-thing-with-mouse)
+	(hkey-global-set-key [triple-down-mouse-1] nil)
+	(hkey-global-set-key [triple-mouse-1] 'hui-select-thing-with-mouse)))
   ;;
   ;; These hooks let you select C++ and Java methods and classes by
   ;; double-clicking on the first character of a definition or on its
@@ -310,6 +308,19 @@ Also, add language-specific syntax setups to aid in thing selection."
 			  (setq sentence-end "\\([^ \t\n\r>]<\\|>\\(<[^>]*>\\)*\\|[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)\\)[ \t\n]*")
 			  (define-key web-mode-map "\C-c." 'hui-select-goto-matching-tag))))
 
+(defun hui-select-get-region-boundaries ()
+  "Return the (START . END) boundaries of region for `hui-select-thing'."
+  (or (hui-select-boundaries (point))
+      (when (eq hui-select-previous 'punctuation)
+	(hui-select-word (point)))))
+
+;;;###autoload
+(defun hui-select-get-region ()
+  "Return the region that `hui-select-thing' would select."
+  (let ((region-bounds (hui-select-get-region-boundaries)))
+    (when region-bounds
+      (buffer-substring-no-properties (car region-bounds) (cdr region-bounds)))))
+
 ;;;###autoload
 (defun hui-select-thing ()
   "Select a region based on the syntax of the thing at point.
@@ -325,7 +336,7 @@ interactively, the type of selection is displayed in the minibuffer."
 	  ;; Reset selection based on the syntax of character at point.
 	  (hui-select-reset)
 	  nil)))
-  (let ((region (hui-select-boundaries (point))))
+  (let ((region (hui-select-get-region-boundaries)))
     (unless region
       (when (eq hui-select-previous 'punctuation)
 	(setq region (hui-select-word (point)))))
