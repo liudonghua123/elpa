@@ -125,6 +125,4 @@ See `face-shift-shifts' for more information"
 
 (provide 'face-shift)
 
-(provide 'face-shift)
-
 ;;; face-shift.el ends here
