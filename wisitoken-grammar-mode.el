@@ -362,8 +362,6 @@ Otherwise insert a plain new line."
   (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend
 	    nil ;; append
 	    t)
-  (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
-  (add-hook 'before-save-hook 'copyright-update nil t)
 
   (wisi-setup
    :indent-calculate nil
