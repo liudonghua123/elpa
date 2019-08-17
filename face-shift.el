@@ -120,9 +120,8 @@ See `face-shift-shifts' for more information"
       (progn
         (mapc #'face-shift-setup (buffer-list))
         (add-hook 'after-change-major-mode-hook #'face-shift-setup))
-    (progn
-      (mapc #'face-shift-clear (buffer-list))
-      (remove-hook 'after-change-major-mode-hook #'face-shift-setup))))
+    (mapc #'face-shift-clear (buffer-list))
+    (remove-hook 'after-change-major-mode-hook #'face-shift-setup)))
 
 (provide 'face-shift)
 
