@@ -6,10 +6,9 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;; Version: 1.0.0
-;; package-requires: ((wisi "2.1.1") (emacs "25.0") (mmm-mode "0.5.7"))
+;; package-requires: ((wisi "2.2.1") (emacs "25.0") (mmm-mode "0.5.7"))
 
-;; (Gnu ELPA requires single digits between dots in versions)
-;; no ’url’; just ELPA
+;; no upstream url; just ELPA
 
 ;; This file is part of GNU Emacs.
 
@@ -31,14 +30,11 @@
 ;;; Commentary:
 
 (require 'cl-lib)
+(require 'mmm-mode)
 (require 'xref)
 (require 'wisi)
 (require 'wisitoken_grammar_1-process)
 (require 'wisi-process-parse)
-
-(eval-and-compile
-  (when (locate-library "mmm-mode")
-    (require 'wisitoken-grammar-mmm)))
 
 (defgroup wisitoken-grammar nil
   "Major mode for editing Wisi grammar files in Emacs."
@@ -67,9 +63,6 @@
     (define-key map [S-return] 'wisitoken-grammar-new-line)
     map
   )  "Local keymap used for wisitoken-grammar mode.")
-
-(defvar-local wisitoken-grammar-action-mode nil
-  "Emacs major mode used for actions and code, inferred from ’%generate’ declaration or file local variable.")
 
 (cl-defstruct (wisitoken-grammar-parser (:include wisi-process--parser))
   ;; no new slots
@@ -254,31 +247,64 @@ Otherwise insert a plain new line."
 	 ))
       )))
 
-(defun wisitoken-grammar-set-action-mode ()
+;;; mmm (multi-major-mode) integration
+
+(defvar-local wisitoken-grammar-action-mode nil
+  "Emacs major mode used for grammar actions, from ’%generate’ declaration.")
+
+(defun wisitoken-grammar-mmm-action (_delim)
+  "for :match-submode"
+  wisitoken-grammar-action-mode)
+
+(defvar-local wisitoken-grammar-code-mode nil
+  "Emacs major mode used for code blocks, from ’%generate’ declaration.")
+
+(defun wisitoken-grammar-mmm-code (_delim)
+  "for :match-submode"
+  wisitoken-grammar-code-mode)
+
+(defun wisitoken-grammar-set-submodes ()
   (save-excursion
     (goto-char (point-min))
     (if (search-forward-regexp "%generate +\\([A-Za-z_0-9]+\\) *\\([A-Za-z_0-9]+\\)?" (point-max) t)
 	(cond
 	 ((string-equal (match-string 1) "None")
-	  ;; unit test
-	  (setq wisitoken-grammar-action-mode 'emacs-lisp-mode))
+	  (setq wisitoken-grammar-action-mode nil)
+	  (setq wisitoken-grammar-code-mode nil))
 
-	 ((or
-	   (string-equal (match-string 2) "Ada_Emacs")
-	   (string-equal (match-string 2) "Elisp")
-	   (string-equal (match-string 2) "elisp"))
-	  (setq wisitoken-grammar-action-mode 'emacs-lisp-mode))
+	 ((string-equal (match-string 2) "Ada_Emacs")
+	  (setq wisitoken-grammar-action-mode 'emacs-lisp-mode)
+	  (setq wisitoken-grammar-code-mode 'ada-mode))
 
 	 ((string-equal (match-string 2) "Ada")
-	  (setq wisitoken-grammar-action-mode 'ada-mode))
+	  (setq wisitoken-grammar-action-mode 'ada-mode)
+	  (setq wisitoken-grammar-code-mode 'ada-mode))
 
 	 (t
 	  (error "unrecognized output language %s" (match-string 2)))
 	 )
 
-      ;; We can still support the grammar statements, just not the actions.
+      ;; %generate not found; we can still support the grammar
+      ;; statements, just not the actions.
       (setq wisitoken-grammar-action-mode 'nil))))
 
+(mmm-add-classes
+ '((wisi-action
+    :match-submode wisitoken-grammar-mmm-action
+    :face mmm-code-submode-face
+    :front "%("
+    :back ")%"
+    :insert ((?a wisi-action nil @ "%(" @ "" _ "" @ ")%")))
+   (wisi-code
+    :match-submode wisitoken-grammar-mmm-code
+    :face mmm-code-submode-face
+    :front "%{"
+    :back "}%"
+    :insert ((?a wisi-code nil @ "%{" @ "" _ "" @ "}%")))
+   ))
+
+(add-to-list 'mmm-mode-ext-classes-alist '(wisitoken-grammar-mode nil wisi-action))
+(add-to-list 'mmm-mode-ext-classes-alist '(wisitoken-grammar-mode nil wisi-code))
 
 ;;; xref integration
 (defun wisitoken-grammar--xref-backend ()
@@ -331,7 +357,7 @@ Otherwise insert a plain new line."
   (set (make-local-variable 'add-log-current-defun-function)
        #'wisitoken-grammar-add-log-current-function)
 
-  (wisitoken-grammar-set-action-mode)
+  (wisitoken-grammar-set-submodes)
 
   (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend
 	    nil ;; append
@@ -350,8 +376,7 @@ Otherwise insert a plain new line."
 	     :face-table wisitoken_grammar_1-process-face-table
 	     :token-table wisitoken_grammar_1-process-token-table
 	     :language-action-table [wisitoken-grammar-check-parens]
-	     ))
-   :lexer nil)
+	     )))
 
   ;; Our wisi parser does not fontify comments and strings, so tell
   ;; font-lock to do that.
@@ -364,6 +389,7 @@ Otherwise insert a plain new line."
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.wy\\'" . wisitoken-grammar-mode))
 
+;; Tie the mode to the defcustoms above.
 (put 'wisitoken-grammar-mode 'custom-mode-group 'wisitoken-grammar)
 
 (provide 'wisitoken-grammar-mode)
