@@ -94,12 +94,13 @@ If BUFFER is nil, use current buffer."
       (when colour
         (dolist (face face-shift-faces)
           (dolist (prop '(:foreground :background))
-            (when-let* ((attr (face-attribute face prop))
-                        (rgb (color-name-to-rgb attr))
-                        (shift (cl-map 'list #'* col-rgb rgb))
-                        (new (apply #'color-rgb-to-hex shift)))
-              (push (face-remap-add-relative face `(,prop ,new))
-                    face-shift--cookies))))))))
+            (let* ((attr (face-attribute face prop))
+                   (rgb (and attr (color-name-to-rgb attr)))
+                   (shift (and rgb (cl-map 'list #'* col-rgb rgb)))
+                   (new (and shift (apply #'color-rgb-to-hex shift))))
+              (when new
+                (push (face-remap-add-relative face `(,prop ,new))
+                      face-shift--cookies)))))))))
 
 (defun face-shift-clear (buffer)
   "Undo colour shifts in BUFFER by `face-shift-setup'."
