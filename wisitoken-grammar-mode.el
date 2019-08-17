@@ -336,6 +336,8 @@ Otherwise insert a plain new line."
   (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend
 	    nil ;; append
 	    t)
+  ;; FIXME: What do these two have to do with wisi?
+  ;; They seem like a personal preference only.
   (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
   (add-hook 'before-save-hook 'copyright-update nil t)
 
