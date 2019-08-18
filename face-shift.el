@@ -84,7 +84,7 @@ information."
 (defvar-local face-shift--cookies nil
   "List of remapped faces in a single buffer.")
 
-(defcustom face-shift-intensity 0.9
+(defcustom face-shift-intensity 0.8
   "Relaxation factor when applying a colour-shift.
 
 Positive values between [0;1] will lighten up the resulting shift
