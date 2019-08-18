@@ -88,10 +88,10 @@ information."
   "Relaxation factor when applying a colour-shift.
 
 Positive values between [0;1] will lighten up the resulting shift
-more (where 0 is the lightest), while values between [-1;0] will
+more (where 0 is the lightest), while values between [-∞;0] will
 darken it (where 0 is the darkest).
 
-Values beyond [-1;1] are not supported.
+Values beyond [-∞;1] are not supported.
 
 See `face-shift--interpolate'."
   :type 'float)
