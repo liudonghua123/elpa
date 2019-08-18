@@ -4,12 +4,7 @@
 `bang` is a `shell-command` substitute that makes it easier to run
 commands on regions or whole buffers. This is done by potentially
 interpreting the first character differently, as the `bang` docstring
-explains:
-
-	When COMMAND starts with
-	  <  the output of COMMAND replaces the current selection
-	  >  COMMAND is run with the current selection as input
-	  |  the current selection is filtered through COMMAND
+explains.
 
 Bang has been based on a function of the same name by [Leah
 Neukirchen][leah].
