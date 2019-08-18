@@ -98,11 +98,11 @@ See `face-shift--interpolate'."
 
 (defun face-shift--interpolate (col-ref col-base)
   "Attempt to find median colour between `col-ref' and `col-base'."
-  (map 'list (lambda (ref base)
-               (if (> face-shift-intensity 0)
-                   (- 1 (* (- 1 (* ref base)) face-shift-intensity))
-                 (* (* ref base) (abs face-shift-intensity))))
-       col-ref col-base))
+  (cl-map 'list (lambda (ref base)
+                  (if (> face-shift-intensity 0)
+                      (- 1 (* (- 1 (* ref base)) face-shift-intensity))
+                    (* (* ref base) (abs face-shift-intensity))))
+          col-ref col-base))
 
 (defun face-shift-setup (&optional buffer)
   "Shift colours in BUFFER according to `face-shift-shifts'.
