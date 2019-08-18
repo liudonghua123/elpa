@@ -5,7 +5,7 @@
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
-;; Version: 1.0.2
+;; Version: 1.0.3
 ;; package-requires: ((wisi "2.2.1") (emacs "25.0") (mmm-mode "0.5.7"))
 
 ;; no upstream url; just ELPA
