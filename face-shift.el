@@ -84,6 +84,26 @@ information."
 (defvar-local face-shift--cookies nil
   "List of remapped faces in a single buffer.")
 
+(defcustom face-shift-intensity 0.9
+  "Relaxation factor when applying a colour-shift.
+
+Positive values between [0;1] will lighten up the resulting shift
+more (where 0 is the lightest), while values between [-1;0] will
+darken it (where 0 is the darkest).
+
+Values beyond [-1;1] are not supported.
+
+See `face-shift--interpolate'."
+  :type 'float)
+
+(defun face-shift--interpolate (col-ref col-base)
+  "Attempt to find median colour between `col-ref' and `col-base'."
+  (map 'list (lambda (ref base)
+               (if (> face-shift-intensity 0)
+                   (- 1 (* (- 1 (* ref base)) face-shift-intensity))
+                 (* (* ref base) (abs face-shift-intensity))))
+       col-ref col-base))
+
 (defun face-shift-setup (&optional buffer)
   "Shift colours in BUFFER according to `face-shift-shifts'.
 
@@ -96,7 +116,7 @@ If BUFFER is nil, use current buffer."
           (dolist (prop '(:foreground :background))
             (let* ((attr (face-attribute face prop))
                    (rgb (and attr (color-name-to-rgb attr)))
-                   (shift (and rgb (cl-map 'list #'* col-rgb rgb)))
+                   (shift (and rgb (face-shift--interpolate col-rgb rgb)))
                    (new (and shift (apply #'color-rgb-to-hex shift))))
               (when new
                 (push (face-remap-add-relative face `(,prop ,new))
@@ -113,7 +133,8 @@ If BUFFER is nil, use current buffer."
 (define-minor-mode face-shift-mode
   "Shift fore- and background colour towards a certain hue.
 
-See `face-shift-shifts' for more information"
+See `face-shift-shifts' and `face-shift-intensity' for more
+information"
   :group 'face-shift
   :global t
   (if face-shift-mode
