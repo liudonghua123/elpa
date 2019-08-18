@@ -41,7 +41,7 @@ Bugs
 - Due to Emacs' implementation of fringes, it's not possible to shift
   the colour of the fringe for just one buffer.
 
-Any further bugs or questions can be submitted to my [public inbox].
+Any further bugs or questions can be submitted to my [public inbox][mailing list].
 
 Copying
 -------
