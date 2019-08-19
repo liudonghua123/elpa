@@ -91,7 +91,7 @@ between BEG and END. Otherwise the whole buffer is processed."
                      (match-string-no-properties 5 command)
                      nil nil 1)
                   (error (match-string-no-properties 5 command)))))
-      (let ((default-directory (bang-expand-path path)))
+      (let ((default-directory (bang-expand-path (or path "."))))
         (cond (has-< (delete-region beg end)
                      (shell-command rest t shell-command-default-error-buffer)
                      (exchange-point-and-mark))
