@@ -32,6 +32,27 @@
 
 ;;; Code:
 
+(defconst bang--command-regexp
+  (rx bos (* space)
+      (? (group (or "." "/") (* (not space))) (+ space))
+      (or (group "<") (group ">") (group "|") "!" "")
+      (* space)
+      (group (* not-newline))
+      eos))
+
+(defun bang-expand-path (path)
+  "Expand any PATH into absolute path with additional tricks.
+
+Furthermore, replace each sequence with three or more `.'s with a
+proper upwards directory pointers. This means that '....' becomes
+'../../../..', and so on."
+  (expand-file-name
+   (replace-regexp-in-string
+    (rx (>= 2 "."))
+    (lambda (sub)
+      (mapconcat #'identity (make-list (1- (length sub)) "..") "/"))
+    path)))
+
 (defun bang (command beg end)
   "Intelligently execute string COMMAND in inferior shell.
 
@@ -39,9 +60,14 @@ When COMMAND starts with
   <  the output of COMMAND replaces the current selection
   >  COMMAND is run with the current selection as input
   |  the current selection is filtered through COMMAND
-  .  COMMAND executes in the relative path following the dot
+  !  COMMAND is simply executed (same as without any prefix)
 
 Without any argument, `bang' will behave like `shell-command'.
+
+Before these characters, one may also place a relative or
+absolute path, which will be the current working directory in
+which the command will be executed. See `bang-expand-path' for
+more details on this expansion.
 
 Inside COMMAND, % is replaced with the current file name. To
 insert a literal % quote it using a backslash.
@@ -52,18 +78,12 @@ between BEG and END. Otherwise the whole buffer is processed."
                      (if (use-region-p) (region-beginning) (point-min))
                      (if (use-region-p) (region-end) (point-max))))
   (save-match-data
-    (unless (string-match (rx bos (* space)
-                              (or (group "<") (group ">") (group "|")
-                                  (group "." (* (not space))) "")
-                              (* space)
-                              (group (* not-newline))
-                              eos)
-                          command)
+    (unless (string-match bang--command-regexp command)
       (error "Invalid command"))
-    (let ((has-< (match-string-no-properties 1 command))
-          (has-> (match-string-no-properties 2 command))
-          (has-| (match-string-no-properties 3 command))
-          (has-. (match-string-no-properties 4 command))
+    (let ((path (match-string-no-properties 1 command))
+          (has-< (match-string-no-properties 2 command))
+          (has-> (match-string-no-properties 3 command))
+          (has-| (match-string-no-properties 4 command))
           (rest (condition-case nil
                     (replace-regexp-in-string
                      (rx (* ?\\ ?\\) (or ?\\ (group "%")))
@@ -71,20 +91,18 @@ between BEG and END. Otherwise the whole buffer is processed."
                      (match-string-no-properties 5 command)
                      nil nil 1)
                   (error (match-string-no-properties 5 command)))))
-      (cond (has-< (delete-region beg end)
-                   (shell-command rest t shell-command-default-error-buffer)
-                   (exchange-point-and-mark))
-            (has-> (shell-command-on-region
-                    beg end rest nil nil
-                    shell-command-default-error-buffer t))
-            (has-| (shell-command-on-region
-                    beg end rest t t
-                    shell-command-default-error-buffer t))
-            (has-. (let ((default-directory (expand-file-name has-.)))
-                     (shell-command rest (if current-prefix-arg t nil)
-                                    shell-command-default-error-buffer)))
-            (t (shell-command command (if current-prefix-arg t nil)
-                              shell-command-default-error-buffer)))
+      (let ((default-directory (bang-expand-path path)))
+        (cond (has-< (delete-region beg end)
+                     (shell-command rest t shell-command-default-error-buffer)
+                     (exchange-point-and-mark))
+              (has-> (shell-command-on-region
+                      beg end rest nil nil
+                      shell-command-default-error-buffer t))
+              (has-| (shell-command-on-region
+                      beg end rest t t
+                      shell-command-default-error-buffer t))
+              (t (shell-command command (if current-prefix-arg t nil)
+                                shell-command-default-error-buffer))))
       (when has->
         (with-current-buffer "*Shell Command Output*"
           (delete-region (point-min) (point-max)))))))
