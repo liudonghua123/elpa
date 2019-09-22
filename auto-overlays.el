@@ -1620,7 +1620,7 @@ overlays were saved."
       (save-excursion
 	(goto-char point)
 	(insert " ")
-	(backward-delete-char 1)))))
+	(delete-char -1)))))
 
 
 
