@@ -2412,9 +2412,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (unwind-protect
 	      ;; FIXME: This fails on my QNAP server, see
 	      ;; /share/Web/owncloud/data/owncloud.log
-	      (unless (and (tramp--test-nextcloud-p)
-			   (or (not (file-remote-p source))
-			       (not (file-remote-p target))))
+	      (unless (tramp--test-nextcloud-p)
 		(make-directory source)
 		(should (file-directory-p source))
 		(write-region "foo" nil (expand-file-name "foo" source))
@@ -2437,8 +2435,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (unwind-protect
 	      ;; FIXME: This fails on my QNAP server, see
 	      ;; /share/Web/owncloud/data/owncloud.log
-	      (unless
-		  (and (tramp--test-nextcloud-p) (not (file-remote-p source)))
+	      (unless (tramp--test-nextcloud-p)
 		(make-directory source)
 		(should (file-directory-p source))
 		(write-region "foo" nil (expand-file-name "foo" source))
@@ -3479,7 +3476,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(setq tmp-name3 (concat (file-remote-p tmp-name3) tmp-name2)))))
 
 	;; Cleanup.
-	(ignore-errors (delete-directory tmp-name1 'recursive)))
+	(ignore-errors
+	  (delete-file tmp-name3)
+	  (delete-directory tmp-name1 'recursive)))
 
       ;; Detect cyclic symbolic links.
       (unwind-protect
@@ -4405,7 +4404,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      "foo"
 	      (funcall
 	       this-shell-command-to-string
-	       (format "echo -n ${%s:?bla}" envvar))))))
+	       (format "echo -n ${%s:-bla}" envvar))))))
 
       (unwind-protect
 	  ;; Set the empty value.
@@ -4417,7 +4416,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      "bla"
 	      (funcall
 	       this-shell-command-to-string
-	       (format "echo -n ${%s:?bla}" envvar))))
+	       (format "echo -n ${%s:-bla}" envvar))))
 	    ;; Variable is set.
 	    (should
 	     (string-match
@@ -4439,7 +4438,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      "foo"
 	      (funcall
 	       this-shell-command-to-string
-	       (format "echo -n ${%s:?bla}" envvar))))
+	       (format "echo -n ${%s:-bla}" envvar))))
 	    (let ((process-environment
 		   (cons envvar process-environment)))
 	      ;; Variable is unset.
@@ -4448,12 +4447,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		"bla"
 		(funcall
 		 this-shell-command-to-string
-		 (format "echo -n ${%s:?bla}" envvar))))
+		 (format "echo -n ${%s:-bla}" envvar))))
 	      ;; Variable is unset.
 	      (should-not
 	       (string-match
 		(regexp-quote envvar)
-		(funcall this-shell-command-to-string "env")))))))))
+		;; We must remove PS1, the output is truncated otherwise.
+		(funcall
+		 this-shell-command-to-string "printenv | grep -v PS1")))))))))
 
 ;; This test is inspired by Bug#27009.
 (ert-deftest tramp-test33-environment-variables-and-port-numbers ()
@@ -5085,6 +5086,15 @@ Several special characters do not work properly there."
       (file-truename tramp-test-temporary-file-directory) nil
     (string-match "^HP-UX" (tramp-get-connection-property v "uname" ""))))
 
+(defun tramp--test-ksh-p ()
+  "Check, whether the remote shell is ksh.
+ksh93 makes some strange conversions of non-latin characters into
+a $'' syntax."
+  ;; We must refill the cache.  `file-truename' does it.
+  (with-parsed-tramp-file-name
+      (file-truename tramp-test-temporary-file-directory) nil
+    (string-match "ksh$" (tramp-get-connection-property v "remote-shell" ""))))
+
 (defun tramp--test-mock-p ()
   "Check, whether the mock method is used.
 This does not support external Emacs calls."
@@ -5153,7 +5163,8 @@ This requires restrictions of file name syntax."
 	   (tmp-name1 (tramp--test-make-temp-name nil quoted))
 	   (tmp-name2 (tramp--test-make-temp-name 'local quoted))
 	   (files (delq nil files))
-	   (process-environment process-environment))
+	   (process-environment process-environment)
+	   (sorted-files (sort (copy-sequence files) #'string-lessp)))
       (unwind-protect
 	  (progn
 	    (make-directory tmp-name1)
@@ -5200,10 +5211,20 @@ This requires restrictions of file name syntax."
 	    ;; Check file names.
 	    (should (equal (directory-files
 			    tmp-name1 nil directory-files-no-dot-files-regexp)
-			   (sort (copy-sequence files) #'string-lessp)))
+			   sorted-files))
 	    (should (equal (directory-files
 			    tmp-name2 nil directory-files-no-dot-files-regexp)
-			   (sort (copy-sequence files) #'string-lessp)))
+			   sorted-files))
+	    (should (equal (mapcar
+			    #'car
+			    (directory-files-and-attributes
+			     tmp-name1 nil directory-files-no-dot-files-regexp))
+			   sorted-files))
+	    (should (equal (mapcar
+			    #'car
+			    (directory-files-and-attributes
+			     tmp-name2 nil directory-files-no-dot-files-regexp))
+			   sorted-files))
 
 	    ;; `substitute-in-file-name' could return different
 	    ;; values.  For `adb', there could be strange file
@@ -5290,7 +5311,7 @@ This requires restrictions of file name syntax."
 		  ;; of process output.  So we unset it temporarily.
 		  (setenv "PS1")
 		  (with-temp-buffer
-		    (should (zerop (process-file "env" nil t nil)))
+		    (should (zerop (process-file "printenv" nil t nil)))
 		    (goto-char (point-min))
 		    (should
 		     (re-search-forward
@@ -5469,6 +5490,7 @@ Use the `ls' command."
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-windows-nt-and-batch)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-ksh-p)))
 
   (tramp--test-utf8))
 
@@ -5482,6 +5504,7 @@ Use the `stat' command."
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-windows-nt-and-batch)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-ksh-p)))
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-stat v)))
 
@@ -5502,6 +5525,7 @@ Use the `perl' command."
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-windows-nt-and-batch)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-ksh-p)))
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-perl v)))
 
@@ -5525,6 +5549,7 @@ Use the `ls' command."
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-windows-nt-and-batch)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-ksh-p)))
 
   (let ((tramp-connection-properties
 	 (append

@@ -21,10 +21,10 @@ END-INFO-DIR-ENTRY
 
 File: tramp.info,  Node: Top,  Next: Overview,  Prev: (dir),  Up: (dir)
 
-TRAMP 2.4.2.2 User Manual
+TRAMP 2.4.2.3 User Manual
 *************************
 
-This file documents TRAMP 2.4.2.2, a remote file editing package for
+This file documents TRAMP 2.4.2.3, a remote file editing package for
 Emacs.
 
    TRAMP stands for “Transparent Remote (file) Access, Multiple
@@ -598,7 +598,8 @@ the availability and usability of one of the commands defined in
 
      Works like ‘ssh’ but without the extra authentication prompts.
      ‘sshx’ uses ‘ssh -t -t HOST -l USER /bin/sh’ to open a connection
-     with a “standard” login shell.
+     with a “standard” login shell.  It supports changing the remote
+     login shell ‘/bin/sh’.
 
      *Note* that ‘sshx’ does not bypass authentication questions.  For
      example, if the host key of the remote host is not known, ‘sshx’
@@ -626,7 +627,8 @@ the availability and usability of one of the commands defined in
 
      ‘plink’ method is for MS Windows users with the PuTTY
      implementation of SSH.  It uses ‘plink -ssh’ to log in to the
-     remote host.
+     remote host.  It supports changing the remote login shell
+     ‘/bin/sh’.
 
      Check the ‘Share SSH connections if possible’ control for that
      session.
@@ -637,7 +639,8 @@ the availability and usability of one of the commands defined in
 
      Another method using PuTTY on MS Windows with session names instead
      of host names.  ‘plinkx’ calls ‘plink -load SESSION -t’.  User
-     names and port numbers must be defined in the session.
+     names and port numbers must be defined in the session.  It supports
+     changing the remote login shell ‘/bin/sh’.
 
      Check the ‘Share SSH connections if possible’ control for that
      session.
@@ -693,7 +696,8 @@ files smaller than ‘tramp-copy-size-limit’ still use inline methods.
 
      ‘scpx’ is useful to avoid login shell questions.  It is similar in
      performance to ‘scp’.  ‘scpx’ uses ‘ssh -t -t HOST -l USER /bin/sh’
-     to open a connection.
+     to open a connection.  It supports changing the remote login shell
+     ‘/bin/sh’.
 
      ‘scpx’ is useful for MS Windows users when ‘ssh’ triggers an error
      about allocating a pseudo tty.  This happens due to missing shell
@@ -708,6 +712,8 @@ files smaller than ‘tramp-copy-size-limit’ still use inline methods.
      ‘plink’ command to connect to the remote host, and they use ‘pscp’
      or ‘psftp’ for transferring the files.  These programs are part of
      PuTTY, an SSH implementation for MS Windows.
+
+     They support changing the remote login shell ‘/bin/sh’.
 
      Check the ‘Share SSH connections if possible’ control for that
      session.
@@ -1592,6 +1598,29 @@ File: tramp.info,  Node: Remote shell setup,  Next: Android shell setup,  Prev: 
 
 4.16 Remote shell setup hints
 =============================
+
+4.16.1 Changing the default remote shell
+----------------------------------------
+
+Per default, TRAMP uses the command ‘/bin/sh’ for starting a shell on
+the remote host.  This can be changed by setting the connection property
+‘remote-shell’, see *Note Predefined connection information::.  If you
+want, for example, use ‘/usr/bin/zsh’ on a remote host, you might apply
+
+     (add-to-list 'tramp-connection-properties
+                  (list (regexp-quote "/ssh:user@host:")
+                        "remote-shell" "/usr/bin/zsh"))
+
+   This works only for connection methods which allow to override the
+remote login shell, like ‘sshx’ or ‘plink’.  See *note Inline methods::
+and *note External methods:: for connection methods which support this.
+
+   This approach has also the advantage, that settings in
+‘tramp-sh-extra-args’ will be applied.  For zsh, the trouble with the
+shell prompt due to set zle options will be avoided.
+
+4.16.2 Other remote shell setup hints
+-------------------------------------
 
 TRAMP checks for the availability of standard programs in the usual
 locations.  Common tactics include successively trying ‘test -e’,
@@ -2749,6 +2778,10 @@ File: tramp.info,  Node: Frequently Asked Questions,  Next: Files directories an
           ‘"dumb"’, as value of the ‘TERM’ environment variable.  If you
           want to use another value for ‘TERM’, change
           ‘tramp-terminal-type’ and this line accordingly.
+
+          Alternatively, you could set the remote login shell
+          explicitly.  See *note Remote shell setup:: for discussion of
+          this technique,
 
           When using fish shell on remote hosts, disable fancy
           formatting by adding the following to
@@ -3924,34 +3957,34 @@ Variable Index
 * customize-package-emacs-version-alist: Obtaining TRAMP.     (line  20)
 * DISPLAY, environment variable:         Remote processes.    (line  93)
 * EDITOR, environment variable:          Frequently Asked Questions.
-                                                              (line 536)
+                                                              (line 540)
 * ENV, environment variable:             Remote processes.    (line  64)
-* ESHELL, environment variable:          Remote shell setup.  (line 155)
+* ESHELL, environment variable:          Remote shell setup.  (line 178)
 * HGPLAIN, environment variable:         Remote processes.    (line  82)
 * HISTFILE, environment variable:        Frequently Asked Questions.
-                                                              (line 277)
+                                                              (line 281)
 * HISTFILESIZE, environment variable:    Frequently Asked Questions.
-                                                              (line 277)
+                                                              (line 281)
 * HISTORY, environment variable:         Remote processes.    (line  52)
 * HISTSIZE, environment variable:        Frequently Asked Questions.
-                                                              (line 277)
-* INSIDE_EMACS, environment variable:    Remote shell setup.  (line  72)
-* INSIDE_EMACS, environment variable <1>: Remote shell setup. (line 155)
+                                                              (line 281)
+* INSIDE_EMACS, environment variable:    Remote shell setup.  (line  95)
+* INSIDE_EMACS, environment variable <1>: Remote shell setup. (line 178)
 * non-essential:                         External packages.   (line   9)
 * password-cache:                        Password handling.   (line  57)
 * password-cache-expiry:                 Password handling.   (line  52)
-* PATH, environment variable:            External methods.    (line 182)
+* PATH, environment variable:            External methods.    (line 185)
 * remote-file-name-inhibit-cache:        Frequently Asked Questions.
                                                               (line  40)
 * shell-command-switch:                  Remote processes.    (line 158)
 * shell-file-name:                       Remote processes.    (line 158)
-* SHELLNAME, environment variable:       Remote shell setup.  (line 155)
+* SHELLNAME, environment variable:       Remote shell setup.  (line 178)
 * SSH_AUTH_SOCK, environment variable:   Windows setup hints. (line  29)
-* TERM, environment variable:            Remote shell setup.  (line  58)
-* TERM, environment variable <1>:        Remote shell setup.  (line  72)
-* tramp-actions-before-shell:            Remote shell setup.  (line 102)
-* tramp-adb-connect-if-not-connected:    External methods.    (line 190)
-* tramp-adb-program:                     External methods.    (line 182)
+* TERM, environment variable:            Remote shell setup.  (line  81)
+* TERM, environment variable <1>:        Remote shell setup.  (line  95)
+* tramp-actions-before-shell:            Remote shell setup.  (line 125)
+* tramp-adb-connect-if-not-connected:    External methods.    (line 193)
+* tramp-adb-program:                     External methods.    (line 185)
 * tramp-archive-all-gvfs-methods:        Archive file names.  (line  91)
 * tramp-archive-compression-suffixes:    Archive file names.  (line  83)
 * tramp-archive-suffixes:                Archive file names.  (line  27)
@@ -3979,36 +4012,36 @@ Variable Index
                                                               (line  28)
 * tramp-gvfs-methods:                    GVFS-based methods.  (line  60)
 * tramp-histfile-override:               Frequently Asked Questions.
-                                                              (line 277)
+                                                              (line 281)
 * tramp-ignored-file-name-regexp:        Frequently Asked Questions.
-                                                              (line 580)
+                                                              (line 584)
 * tramp-inline-compress-commands:        Inline methods.      (line  25)
 * tramp-inline-compress-start-size:      Inline methods.      (line  25)
 * tramp-local-host-regexp:               Frequently Asked Questions.
-                                                              (line 161)
+                                                              (line 165)
 * tramp-methods:                         Customizing Methods. (line   6)
 * tramp-mode:                            Frequently Asked Questions.
-                                                              (line 574)
+                                                              (line 578)
 * tramp-own-remote-path:                 Remote programs.     (line  32)
-* tramp-password-prompt-regexp:          Remote shell setup.  (line  33)
+* tramp-password-prompt-regexp:          Remote shell setup.  (line  56)
 * tramp-persistency-file-name:           Connection caching.  (line   6)
-* tramp-rclone-program:                  External methods.    (line 212)
+* tramp-rclone-program:                  External methods.    (line 215)
 * tramp-remote-coding-commands:          Inline methods.      (line  16)
 * tramp-remote-path:                     Remote programs.     (line  15)
 * tramp-remote-process-environment:      Remote processes.    (line  38)
 * tramp-restricted-shell-hosts-alist:    Multi-hops.          (line  84)
 * tramp-save-ad-hoc-proxies:             Ad-hoc multi-hops.   (line  29)
-* tramp-shell-prompt-pattern:            Remote shell setup.  (line  25)
+* tramp-shell-prompt-pattern:            Remote shell setup.  (line  48)
 * tramp-ssh-controlmaster-options:       Frequently Asked Questions.
-                                                              (line 184)
-* tramp-terminal-type:                   Remote shell setup.  (line  58)
+                                                              (line 188)
+* tramp-terminal-type:                   Remote shell setup.  (line  81)
 * tramp-theme-face-remapping-alist:      Frequently Asked Questions.
-                                                              (line 257)
+                                                              (line 261)
 * tramp-use-ssh-controlmaster-options:   Frequently Asked Questions.
-                                                              (line 197)
+                                                              (line 201)
 * tramp-verbose:                         Traces and Profiles. (line   6)
 * tramp-version:                         Obtaining TRAMP.     (line   6)
-* tramp-wrong-passwd-regexp:             Remote shell setup.  (line  33)
+* tramp-wrong-passwd-regexp:             Remote shell setup.  (line  56)
 
 
 File: tramp.info,  Node: Concept Index,  Prev: Variable Index,  Up: Top
@@ -4019,17 +4052,17 @@ Concept Index
  [index ]
 * Menu:
 
-* .login file:                           Remote shell setup.  (line   6)
-* .profile file:                         Remote shell setup.  (line   6)
+* .login file:                           Remote shell setup.  (line  29)
+* .profile file:                         Remote shell setup.  (line  29)
 * 7z file archive suffix:                Archive file names.  (line  33)
 * adb method:                            Quick Start Guide.   (line 115)
-* adb method <1>:                        External methods.    (line 181)
+* adb method <1>:                        External methods.    (line 184)
 * afp method:                            Quick Start Guide.   (line  95)
 * afp method <1>:                        GVFS-based methods.  (line  16)
 * alternative file name syntax:          Change file name syntax.
                                                               (line   6)
 * android:                               Quick Start Guide.   (line 115)
-* android (with adb method):             External methods.    (line 181)
+* android (with adb method):             External methods.    (line 184)
 * android shell setup for ssh:           Android shell setup. (line   6)
 * apk file archive suffix:               Archive file names.  (line  35)
 * ar file archive suffix:                Archive file names.  (line  37)
@@ -4082,7 +4115,7 @@ Concept Index
 * fakecygpty and cygwin:                 Windows setup hints. (line  17)
 * FAQ:                                   Frequently Asked Questions.
                                                               (line   6)
-* fcp method:                            External methods.    (line  73)
+* fcp method:                            External methods.    (line  76)
 * file archive suffix 7z:                Archive file names.  (line  33)
 * file archive suffix apk:               Archive file names.  (line  35)
 * file archive suffix ar:                Archive file names.  (line  37)
@@ -4129,9 +4162,9 @@ Concept Index
 * file name syntax <1>:                  File name syntax.    (line   6)
 * frequently asked questions:            Frequently Asked Questions.
                                                               (line   6)
-* fsh (with fcp method):                 External methods.    (line  73)
-* fsh method:                            External methods.    (line  83)
-* ftp method:                            External methods.    (line 115)
+* fsh (with fcp method):                 External methods.    (line  76)
+* fsh method:                            External methods.    (line  86)
+* ftp method:                            External methods.    (line 118)
 * gdb:                                   Remote processes.    (line 208)
 * gdrive method:                         Quick Start Guide.   (line 104)
 * gdrive method <1>:                     GVFS-based methods.  (line  34)
@@ -4150,17 +4183,17 @@ Concept Index
 * inline methods:                        Inline methods.      (line   6)
 * iso file archive suffix:               Archive file names.  (line  49)
 * jar file archive suffix:               Archive file names.  (line  51)
-* kerberos (with krlogin method):        Inline methods.      (line 100)
-* kerberos (with ksu method):            Inline methods.      (line 105)
-* krlogin method:                        Inline methods.      (line 100)
-* ksu method:                            Inline methods.      (line 105)
+* kerberos (with krlogin method):        Inline methods.      (line 101)
+* kerberos (with ksu method):            Inline methods.      (line 106)
+* krlogin method:                        Inline methods.      (line 101)
+* ksu method:                            Inline methods.      (line 106)
 * kubectl method:                        Customizing Methods. (line  21)
 * lxc method:                            Customizing Methods. (line  27)
 * lxd method:                            Customizing Methods. (line  32)
 * lzh file archive suffix:               Archive file names.  (line  53)
 * LZH file archive suffix:               Archive file names.  (line  53)
 * method adb:                            Quick Start Guide.   (line 115)
-* method adb <1>:                        External methods.    (line 181)
+* method adb <1>:                        External methods.    (line 184)
 * method afp:                            Quick Start Guide.   (line  95)
 * method afp <1>:                        GVFS-based methods.  (line  16)
 * method archive:                        Archive file names.  (line   6)
@@ -4170,29 +4203,29 @@ Concept Index
 * method davs <1>:                       GVFS-based methods.  (line  24)
 * method doas:                           Inline methods.      (line  68)
 * method docker:                         Customizing Methods. (line  15)
-* method fcp:                            External methods.    (line  73)
-* method fsh:                            External methods.    (line  83)
-* method ftp:                            External methods.    (line 115)
+* method fcp:                            External methods.    (line  76)
+* method fsh:                            External methods.    (line  86)
+* method ftp:                            External methods.    (line 118)
 * method gdrive:                         Quick Start Guide.   (line 104)
 * method gdrive <1>:                     GVFS-based methods.  (line  34)
 * method git:                            Customizing Methods. (line  37)
 * method hdfs:                           Customizing Methods. (line  43)
-* method krlogin:                        Inline methods.      (line 100)
-* method ksu:                            Inline methods.      (line 105)
+* method krlogin:                        Inline methods.      (line 101)
+* method ksu:                            Inline methods.      (line 106)
 * method kubectl:                        Customizing Methods. (line  21)
 * method lxc:                            Customizing Methods. (line  27)
 * method lxd:                            Customizing Methods. (line  32)
-* method nc:                             External methods.    (line  88)
+* method nc:                             External methods.    (line  91)
 * method nextcloud:                      Quick Start Guide.   (line 104)
 * method nextcloud <1>:                  GVFS-based methods.  (line  47)
 * method plink:                          Quick Start Guide.   (line  44)
 * method plink <1>:                      Quick Start Guide.   (line  68)
-* method plink <2>:                      Inline methods.      (line 110)
-* method plinkx:                         Inline methods.      (line 121)
-* method pscp:                           External methods.    (line  61)
-* method psftp:                          External methods.    (line  61)
+* method plink <2>:                      Inline methods.      (line 111)
+* method plinkx:                         Inline methods.      (line 123)
+* method pscp:                           External methods.    (line  62)
+* method psftp:                          External methods.    (line  62)
 * method rclone:                         Quick Start Guide.   (line 122)
-* method rclone <1>:                     External methods.    (line 211)
+* method rclone <1>:                     External methods.    (line 214)
 * method rcp:                            External methods.    (line  17)
 * method rsh:                            Inline methods.      (line  32)
 * method rsync:                          External methods.    (line  37)
@@ -4204,7 +4237,7 @@ Concept Index
 * method sg:                             Quick Start Guide.   (line  56)
 * method sg <1>:                         Inline methods.      (line  74)
 * method smb:                            Quick Start Guide.   (line  87)
-* method smb <1>:                        External methods.    (line 121)
+* method smb <1>:                        External methods.    (line 124)
 * method ssh:                            Quick Start Guide.   (line  44)
 * method ssh <1>:                        Quick Start Guide.   (line  68)
 * method ssh <2>:                        Inline methods.      (line  37)
@@ -4217,7 +4250,7 @@ Concept Index
 * method sudo <1>:                       Quick Start Guide.   (line  68)
 * method sudo <2>:                       Inline methods.      (line  59)
 * method sudoedit:                       Quick Start Guide.   (line  78)
-* method sudoedit <1>:                   External methods.    (line  95)
+* method sudoedit <1>:                   External methods.    (line  98)
 * method telnet:                         Inline methods.      (line  47)
 * method vagrant:                        Customizing Methods. (line  48)
 * methods, external:                     External methods.    (line   6)
@@ -4225,14 +4258,14 @@ Concept Index
 * methods, gvfs <1>:                     GVFS-based methods.  (line   6)
 * methods, inline:                       Inline methods.      (line   6)
 * ms windows (with smb method):          Quick Start Guide.   (line  87)
-* ms windows (with smb method) <1>:      External methods.    (line 121)
+* ms windows (with smb method) <1>:      External methods.    (line 124)
 * msu file archive suffix:               Archive file names.  (line  55)
 * MSU file archive suffix:               Archive file names.  (line  55)
 * mtree file archive suffix:             Archive file names.  (line  57)
 * multi-hop:                             Multi-hops.          (line   6)
 * multi-hop, ad-hoc:                     Ad-hoc multi-hops.   (line   6)
-* nc method:                             External methods.    (line  88)
-* nc unix command:                       Remote shell setup.  (line 180)
+* nc method:                             External methods.    (line  91)
+* nc unix command:                       Remote shell setup.  (line 203)
 * nextcloud:                             Quick Start Guide.   (line 104)
 * nextcloud <1>:                         GVFS-based methods.  (line  47)
 * nextcloud method:                      Quick Start Guide.   (line 104)
@@ -4248,27 +4281,27 @@ Concept Index
 * passwords:                             Password handling.   (line   6)
 * pax file archive suffix:               Archive file names.  (line  62)
 * perldb:                                Remote processes.    (line 208)
-* plink (with pscp method):              External methods.    (line  61)
-* plink (with psftp method):             External methods.    (line  61)
+* plink (with pscp method):              External methods.    (line  62)
+* plink (with psftp method):             External methods.    (line  62)
 * plink method:                          Quick Start Guide.   (line  44)
 * plink method <1>:                      Quick Start Guide.   (line  68)
-* plink method <2>:                      Inline methods.      (line 110)
-* plinkx method:                         Inline methods.      (line 121)
+* plink method <2>:                      Inline methods.      (line 111)
+* plinkx method:                         Inline methods.      (line 123)
 * powershell:                            Remote processes.    (line 239)
 * proxy hosts:                           Multi-hops.          (line   6)
 * proxy hosts, ad-hoc:                   Ad-hoc multi-hops.   (line   6)
 * proxy hosts, http tunnel:              Firewalls.           (line   6)
-* pscp method:                           External methods.    (line  61)
-* psftp method:                          External methods.    (line  61)
-* putty (with pscp method):              External methods.    (line  61)
-* putty (with psftp method):             External methods.    (line  61)
+* pscp method:                           External methods.    (line  62)
+* psftp method:                          External methods.    (line  62)
+* putty (with pscp method):              External methods.    (line  62)
+* putty (with psftp method):             External methods.    (line  62)
 * quick start guide:                     Quick Start Guide.   (line   6)
 * rar file archive suffix:               Archive file names.  (line  64)
 * rclone method:                         Quick Start Guide.   (line 122)
-* rclone method <1>:                     External methods.    (line 211)
+* rclone method <1>:                     External methods.    (line 214)
 * rcp method:                            External methods.    (line  17)
 * recompile:                             Remote processes.    (line   6)
-* remote shell setup:                    Remote shell setup.  (line   6)
+* remote shell setup:                    Remote shell setup.  (line  29)
 * rpm file archive suffix:               Archive file names.  (line  66)
 * rsh (with rcp method):                 External methods.    (line  17)
 * rsh method:                            Inline methods.      (line  32)
@@ -4286,14 +4319,14 @@ Concept Index
 * sg method <1>:                         Inline methods.      (line  74)
 * shar file archive suffix:              Archive file names.  (line  68)
 * shell:                                 Remote processes.    (line 112)
-* shell init files:                      Remote shell setup.  (line   6)
+* shell init files:                      Remote shell setup.  (line  29)
 * shell-command:                         Remote processes.    (line 146)
 * simplified syntax:                     Change file name syntax.
                                                               (line  14)
 * smb method:                            Quick Start Guide.   (line  87)
-* smb method <1>:                        External methods.    (line 121)
+* smb method <1>:                        External methods.    (line 124)
 * smbclient:                             Quick Start Guide.   (line  87)
-* smbclient <1>:                         External methods.    (line 121)
+* smbclient <1>:                         External methods.    (line 124)
 * ssh (with rsync method):               External methods.    (line  37)
 * ssh (with scp method):                 External methods.    (line  25)
 * ssh (with scpx method):                External methods.    (line  48)
@@ -4310,21 +4343,21 @@ Concept Index
 * sudo method <1>:                       Quick Start Guide.   (line  68)
 * sudo method <2>:                       Inline methods.      (line  59)
 * sudoedit method:                       Quick Start Guide.   (line  78)
-* sudoedit method <1>:                   External methods.    (line  95)
+* sudoedit method <1>:                   External methods.    (line  98)
 * tar file archive suffix:               Archive file names.  (line  71)
 * tbz file archive suffix:               Archive file names.  (line  71)
-* telnet (with nc method):               External methods.    (line  88)
+* telnet (with nc method):               External methods.    (line  91)
 * telnet method:                         Inline methods.      (line  47)
 * tgz file archive suffix:               Archive file names.  (line  71)
 * tlz file archive suffix:               Archive file names.  (line  71)
 * TRAMP theme:                           Frequently Asked Questions.
-                                                              (line 257)
-* tset unix command:                     Remote shell setup.  (line  92)
+                                                              (line 261)
+* tset unix command:                     Remote shell setup.  (line 115)
 * txz file archive suffix:               Archive file names.  (line  71)
 * type-ahead:                            Usage.               (line  12)
 * tzst file archive suffix:              Archive file names.  (line  71)
-* unix command nc:                       Remote shell setup.  (line 180)
-* unix command tset:                     Remote shell setup.  (line  92)
+* unix command nc:                       Remote shell setup.  (line 203)
+* unix command tset:                     Remote shell setup.  (line 115)
 * using non-standard methods:            Customizing Methods. (line   6)
 * using TRAMP:                           Usage.               (line   6)
 * uu encoding:                           Inline methods.      (line  16)
@@ -4336,6 +4369,7 @@ Concept Index
 * xps file archive suffix:               Archive file names.  (line  79)
 * zip file archive suffix:               Archive file names.  (line  81)
 * ZIP file archive suffix:               Archive file names.  (line  81)
+* zsh setup:                             Remote shell setup.  (line   9)
 
 
 
@@ -4357,44 +4391,44 @@ Ref: Quick Start Guide: rclone method18576
 Node: Configuration18903
 Node: Connection types21375
 Node: Inline methods22789
-Node: External methods27556
-Node: GVFS-based methods38075
-Node: Default Method41344
-Node: Default User44361
-Node: Default Host45884
-Node: Multi-hops47016
-Node: Firewalls51208
-Node: Customizing Methods52665
-Node: Customizing Completion55005
-Node: Password handling58495
-Ref: Using an authentication file58965
-Ref: Caching passwords60467
-Node: Connection caching60985
-Node: Predefined connection information61915
-Node: Remote programs64260
-Node: Remote shell setup67181
-Node: Android shell setup75391
-Node: Auto-save and Backup77778
-Node: Windows setup hints80853
-Node: Usage82473
-Node: File name syntax83771
-Node: Change file name syntax85778
-Node: File name completion87209
-Node: Ad-hoc multi-hops90282
-Node: Remote processes92348
-Ref: Running a debugger on a remote host101106
-Node: Cleanup remote connections103076
-Node: Archive file names104610
-Node: Bug Reports108983
-Node: Frequently Asked Questions111365
-Node: Files directories and localnames133649
-Node: Localname deconstruction134085
-Node: External packages134738
-Node: Traces and Profiles136783
-Node: GNU Free Documentation License138752
-Node: Function Index164123
-Node: Variable Index166727
-Node: Concept Index173916
+Node: External methods27751
+Node: GVFS-based methods38401
+Node: Default Method41670
+Node: Default User44687
+Node: Default Host46210
+Node: Multi-hops47342
+Node: Firewalls51534
+Node: Customizing Methods52991
+Node: Customizing Completion55331
+Node: Password handling58821
+Ref: Using an authentication file59291
+Ref: Caching passwords60793
+Node: Connection caching61311
+Node: Predefined connection information62241
+Node: Remote programs64586
+Node: Remote shell setup67507
+Node: Android shell setup76746
+Node: Auto-save and Backup79133
+Node: Windows setup hints82208
+Node: Usage83828
+Node: File name syntax85126
+Node: Change file name syntax87133
+Node: File name completion88564
+Node: Ad-hoc multi-hops91637
+Node: Remote processes93703
+Ref: Running a debugger on a remote host102461
+Node: Cleanup remote connections104431
+Node: Archive file names105965
+Node: Bug Reports110338
+Node: Frequently Asked Questions112720
+Node: Files directories and localnames135165
+Node: Localname deconstruction135601
+Node: External packages136254
+Node: Traces and Profiles138299
+Node: GNU Free Documentation License140268
+Node: Function Index165639
+Node: Variable Index168243
+Node: Concept Index175432
 
 End Tag Table
 
