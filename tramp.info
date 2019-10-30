@@ -1,4 +1,4 @@
-This is tramp.info, produced by makeinfo version 6.5 from tramp.texi.
+This is tramp.info, produced by makeinfo version 6.6 from tramp.texi.
 
 Copyright © 1999–2019 Free Software Foundation, Inc.
 
@@ -21,10 +21,10 @@ END-INFO-DIR-ENTRY
 
 File: tramp.info,  Node: Top,  Next: Overview,  Prev: (dir),  Up: (dir)
 
-TRAMP 2.4.2.3 User Manual
+TRAMP 2.4.2.4 User Manual
 *************************
 
-This file documents TRAMP 2.4.2.3, a remote file editing package for
+This file documents TRAMP 2.4.2.4, a remote file editing package for
 Emacs.
 
    TRAMP stands for “Transparent Remote (file) Access, Multiple
@@ -883,8 +883,8 @@ files smaller than ‘tramp-copy-size-limit’ still use inline methods.
 
      Optional flags to the different ‘rclone’ operations could be passed
      as connection property, *Note Predefined connection information::.
-     Supported properties are ‘mount-args’, ‘copyto-args’ and
-     ‘moveto-args’.
+     Supported properties are "mount-args", "copyto-args" and
+     "moveto-args".
 
      Access via ‘rclone’ is slow.  If you have an alternative method for
      accessing the system storage, you shall prefer this.  *note
@@ -1491,7 +1491,7 @@ value.
 
    PROPERTY is any method specific parameter contained in
 ‘tramp-methods’.  The parameter key in ‘tramp-methods’ is a symbol name
-‘tramp-<foo>’.  To overwrite that property, use the string ‘<foo>’ for
+‘tramp-<foo>’.  To overwrite that property, use the string "<foo>" for
 PROPERTY.  For example, this changes the remote shell:
 
      (add-to-list 'tramp-connection-properties
@@ -1505,28 +1505,70 @@ PROPERTY.  For example, this changes the remote shell:
    The parameters ‘tramp-remote-shell’ and ‘tramp-remote-shell-login’ in
 ‘tramp-methods’ now have new values for the remote host.
 
-   A common use case is to override the session timeout of a connection,
-that is the time (in seconds) after a connection is disabled, and must
-be reestablished.  This can be set for any connection; for the ‘sudo’
-and ‘doas’ methods there exist predefined values.  A value of ‘nil’
-disables this feature.  For example:
-
-     (add-to-list 'tramp-connection-properties
-                  (list (regexp-quote "/sudo:root@system-name:")
-                        "session-timeout" 30))
-
-‘system-name’ stands here for the host returned by the function
-‘(system-name)’.
-
    PROPERTY could also be any property found in
 ‘tramp-persistency-file-name’.
 
-   To get around how restricted shells randomly drop connections, set
-the special property ‘busybox’.  For example:
+4.14.1 Relevant connection properties to override
+-------------------------------------------------
 
-     (add-to-list 'tramp-connection-properties
-                  (list (regexp-quote "/ssh:user@randomhost.your.domain:")
-                        "busybox" t))
+Not all connection properties need to be changed.  The most relevant
+properties are listed here:
+
+   • "login-program"
+
+     The property "login-program" keeps the program to be called in
+     order to connect the remote host.  Sometimes, the program might
+     have another name on your host, or it is located on another path.
+     In this case, you can overwrite the default value, which is special
+     for every connection method.  It is used in all connection methods
+     of ‘tramp-sh.el’.
+
+   • "login-args"
+
+     "login-args" specifies a list of lists of arguments to pass to
+     "login-program".  Read the docstring of ‘tramp-methods’ how to
+     construct these lists.
+
+   • "remote-shell"
+
+     This property tells Tramp which remote shell to apply on the remote
+     host.  It is used in all connection methods of ‘tramp-sh.el’.  The
+     default value is "/bin/sh".
+
+   • "remote-shell-login"
+
+     A property to be used in conjunction with "remote-shell".  It
+     specifies, which shell argument triggers a login shell.  Its
+     default value is "-l", but some shells, like ‘ksh’, prefer "-".
+
+   • "session-timeout"
+
+     All ‘tramp-sh.el’ based methods accept the property
+     "session-timeout".  This is the time (in seconds) after a
+     connection is disabled for security reasons, and must be
+     reestablished.  A value of ‘nil’ disables this feature.  Most of
+     the methods do not set this property except the ‘sudo’ and ‘doas’
+     methods, which use predefined values.
+
+   • "posix"
+
+     Connections using the ‘smb’ method check, whether the remote host
+     supports posix commands.  If the remote host runs Samba, it
+     confirms this capability.  However, some very old Samba versions
+     have errors in their implementation.  In order to suppress the
+     posix commands for those hosts, the property "posix" shall be set
+     to ‘nil’.
+
+     The default value of this property is ‘t’ (not specified in
+     ‘tramp-methods’).  If the remote host runs native MS Windows, there
+     is no effect of this property.
+
+   • "mount-args"
+     "copyto-args"
+     "moveto-args"
+
+     These properties keep optional flags to the different ‘rclone’
+     operations.  Their default value is ‘nil’.
 
 
 File: tramp.info,  Node: Remote programs,  Next: Remote shell setup,  Prev: Predefined connection information,  Up: Configuration
@@ -1599,12 +1641,12 @@ File: tramp.info,  Node: Remote shell setup,  Next: Android shell setup,  Prev: 
 4.16 Remote shell setup hints
 =============================
 
-4.16.1 Changing the default remote shell
-----------------------------------------
+4.16.1 Changing the default remote or local shell
+-------------------------------------------------
 
 Per default, TRAMP uses the command ‘/bin/sh’ for starting a shell on
 the remote host.  This can be changed by setting the connection property
-‘remote-shell’, see *Note Predefined connection information::.  If you
+"remote-shell", see *Note Predefined connection information::.  If you
 want, for example, use ‘/usr/bin/zsh’ on a remote host, you might apply
 
      (add-to-list 'tramp-connection-properties
@@ -1616,8 +1658,17 @@ remote login shell, like ‘sshx’ or ‘plink’.  See *note Inline methods::
 and *note External methods:: for connection methods which support this.
 
    This approach has also the advantage, that settings in
-‘tramp-sh-extra-args’ will be applied.  For zsh, the trouble with the
+‘tramp-sh-extra-args’ will be applied.  For ‘zsh’, the trouble with the
 shell prompt due to set zle options will be avoided.
+
+   Similar problems can happen with the local shell Tramp uses to create
+a process.  Per default, it uses the command ‘/bin/sh’ for this, which
+could also be a link to another shell.  In order to overwrite this, you
+might apply
+
+     (customize-set-variable 'tramp-encoding-shell "/usr/bin/zsh")
+
+   This uses also the settings in ‘tramp-sh-extra-args’.
 
 4.16.2 Other remote shell setup hints
 -------------------------------------
@@ -1677,7 +1728,7 @@ a few tweaks to address the most common ones.
 
      TRAMP uses the user option ‘tramp-terminal-type’ to set the remote
      environment variable ‘TERM’ for the shells it runs.  Per default,
-     it is ‘"dumb"’, but this could be changed.  A dumb terminal is best
+     it is "dumb", but this could be changed.  A dumb terminal is best
      suited to run the background sessions of TRAMP.  However, running
      interactive remote shells might require a different setting.  This
      could be achieved by tweaking the ‘TERM’ environment variable in
@@ -2103,8 +2154,9 @@ File: tramp.info,  Node: File name completion,  Next: Ad-hoc multi-hops,  Prev: 
 
 TRAMP can complete the following TRAMP file name components: method
 names, user names, host names, and file names located on remote hosts.
-Enable this by activating partial completion in ‘.emacs’.  *Note
-(emacs)Completion Options::.
+User name and host name completion is activated only, if file name
+completion has one of the styles ‘basic’, ‘emacs21’, or ‘emacs22’.
+*Note (emacs)Completion Styles::.
 
    For example, type ‘C-x C-f / s <TAB>’, TRAMP completion choices show
 up as
@@ -2774,10 +2826,10 @@ File: tramp.info,  Node: Frequently Asked Questions,  Next: Files directories an
 
                [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
 
-          This uses the default value of ‘tramp-terminal-type’,
-          ‘"dumb"’, as value of the ‘TERM’ environment variable.  If you
-          want to use another value for ‘TERM’, change
-          ‘tramp-terminal-type’ and this line accordingly.
+          This uses the default value of ‘tramp-terminal-type’, "dumb",
+          as value of the ‘TERM’ environment variable.  If you want to
+          use another value for ‘TERM’, change ‘tramp-terminal-type’ and
+          this line accordingly.
 
           Alternatively, you could set the remote login shell
           explicitly.  See *note Remote shell setup:: for discussion of
@@ -3959,7 +4011,7 @@ Variable Index
 * EDITOR, environment variable:          Frequently Asked Questions.
                                                               (line 540)
 * ENV, environment variable:             Remote processes.    (line  64)
-* ESHELL, environment variable:          Remote shell setup.  (line 178)
+* ESHELL, environment variable:          Remote shell setup.  (line 187)
 * HGPLAIN, environment variable:         Remote processes.    (line  82)
 * HISTFILE, environment variable:        Frequently Asked Questions.
                                                               (line 281)
@@ -3968,8 +4020,8 @@ Variable Index
 * HISTORY, environment variable:         Remote processes.    (line  52)
 * HISTSIZE, environment variable:        Frequently Asked Questions.
                                                               (line 281)
-* INSIDE_EMACS, environment variable:    Remote shell setup.  (line  95)
-* INSIDE_EMACS, environment variable <1>: Remote shell setup. (line 178)
+* INSIDE_EMACS, environment variable:    Remote shell setup.  (line 104)
+* INSIDE_EMACS, environment variable <1>: Remote shell setup. (line 187)
 * non-essential:                         External packages.   (line   9)
 * password-cache:                        Password handling.   (line  57)
 * password-cache-expiry:                 Password handling.   (line  52)
@@ -3978,11 +4030,11 @@ Variable Index
                                                               (line  40)
 * shell-command-switch:                  Remote processes.    (line 158)
 * shell-file-name:                       Remote processes.    (line 158)
-* SHELLNAME, environment variable:       Remote shell setup.  (line 178)
+* SHELLNAME, environment variable:       Remote shell setup.  (line 187)
 * SSH_AUTH_SOCK, environment variable:   Windows setup hints. (line  29)
-* TERM, environment variable:            Remote shell setup.  (line  81)
-* TERM, environment variable <1>:        Remote shell setup.  (line  95)
-* tramp-actions-before-shell:            Remote shell setup.  (line 125)
+* TERM, environment variable:            Remote shell setup.  (line  90)
+* TERM, environment variable <1>:        Remote shell setup.  (line 104)
+* tramp-actions-before-shell:            Remote shell setup.  (line 134)
 * tramp-adb-connect-if-not-connected:    External methods.    (line 193)
 * tramp-adb-program:                     External methods.    (line 185)
 * tramp-archive-all-gvfs-methods:        Archive file names.  (line  91)
@@ -3995,9 +4047,9 @@ Variable Index
 * tramp-completion-function-alist:       Customizing Completion.
                                                               (line   6)
 * tramp-completion-reread-directory-timeout: File name completion.
-                                                              (line  69)
+                                                              (line  70)
 * tramp-completion-use-auth-sources:     File name completion.
-                                                              (line  36)
+                                                              (line  37)
 * tramp-connection-properties:           Predefined connection information.
                                                               (line   9)
 * tramp-default-host:                    Default Host.        (line   6)
@@ -4008,6 +4060,7 @@ Variable Index
 * tramp-default-remote-path:             Remote programs.     (line  19)
 * tramp-default-user:                    Default User.        (line   6)
 * tramp-default-user-alist:              Default User.        (line  14)
+* tramp-encoding-shell:                  Remote shell setup.  (line  31)
 * tramp-file-name-regexp:                Change file name syntax.
                                                               (line  28)
 * tramp-gvfs-methods:                    GVFS-based methods.  (line  60)
@@ -4023,7 +4076,7 @@ Variable Index
 * tramp-mode:                            Frequently Asked Questions.
                                                               (line 578)
 * tramp-own-remote-path:                 Remote programs.     (line  32)
-* tramp-password-prompt-regexp:          Remote shell setup.  (line  56)
+* tramp-password-prompt-regexp:          Remote shell setup.  (line  65)
 * tramp-persistency-file-name:           Connection caching.  (line   6)
 * tramp-rclone-program:                  External methods.    (line 215)
 * tramp-remote-coding-commands:          Inline methods.      (line  16)
@@ -4031,17 +4084,18 @@ Variable Index
 * tramp-remote-process-environment:      Remote processes.    (line  38)
 * tramp-restricted-shell-hosts-alist:    Multi-hops.          (line  84)
 * tramp-save-ad-hoc-proxies:             Ad-hoc multi-hops.   (line  29)
-* tramp-shell-prompt-pattern:            Remote shell setup.  (line  48)
+* tramp-sh-extra-args:                   Remote shell setup.  (line  22)
+* tramp-shell-prompt-pattern:            Remote shell setup.  (line  57)
 * tramp-ssh-controlmaster-options:       Frequently Asked Questions.
                                                               (line 188)
-* tramp-terminal-type:                   Remote shell setup.  (line  81)
+* tramp-terminal-type:                   Remote shell setup.  (line  90)
 * tramp-theme-face-remapping-alist:      Frequently Asked Questions.
                                                               (line 261)
 * tramp-use-ssh-controlmaster-options:   Frequently Asked Questions.
                                                               (line 201)
 * tramp-verbose:                         Traces and Profiles. (line   6)
 * tramp-version:                         Obtaining TRAMP.     (line   6)
-* tramp-wrong-passwd-regexp:             Remote shell setup.  (line  56)
+* tramp-wrong-passwd-regexp:             Remote shell setup.  (line  65)
 
 
 File: tramp.info,  Node: Concept Index,  Prev: Variable Index,  Up: Top
@@ -4052,8 +4106,8 @@ Concept Index
  [index ]
 * Menu:
 
-* .login file:                           Remote shell setup.  (line  29)
-* .profile file:                         Remote shell setup.  (line  29)
+* .login file:                           Remote shell setup.  (line  38)
+* .profile file:                         Remote shell setup.  (line  38)
 * 7z file archive suffix:                Archive file names.  (line  33)
 * adb method:                            Quick Start Guide.   (line 115)
 * adb method <1>:                        External methods.    (line 184)
@@ -4265,7 +4319,7 @@ Concept Index
 * multi-hop:                             Multi-hops.          (line   6)
 * multi-hop, ad-hoc:                     Ad-hoc multi-hops.   (line   6)
 * nc method:                             External methods.    (line  91)
-* nc unix command:                       Remote shell setup.  (line 203)
+* nc unix command:                       Remote shell setup.  (line 212)
 * nextcloud:                             Quick Start Guide.   (line 104)
 * nextcloud <1>:                         GVFS-based methods.  (line  47)
 * nextcloud method:                      Quick Start Guide.   (line 104)
@@ -4301,7 +4355,7 @@ Concept Index
 * rclone method <1>:                     External methods.    (line 214)
 * rcp method:                            External methods.    (line  17)
 * recompile:                             Remote processes.    (line   6)
-* remote shell setup:                    Remote shell setup.  (line  29)
+* remote shell setup:                    Remote shell setup.  (line  38)
 * rpm file archive suffix:               Archive file names.  (line  66)
 * rsh (with rcp method):                 External methods.    (line  17)
 * rsh method:                            Inline methods.      (line  32)
@@ -4319,7 +4373,7 @@ Concept Index
 * sg method <1>:                         Inline methods.      (line  74)
 * shar file archive suffix:              Archive file names.  (line  68)
 * shell:                                 Remote processes.    (line 112)
-* shell init files:                      Remote shell setup.  (line  29)
+* shell init files:                      Remote shell setup.  (line  38)
 * shell-command:                         Remote processes.    (line 146)
 * simplified syntax:                     Change file name syntax.
                                                               (line  14)
@@ -4352,12 +4406,12 @@ Concept Index
 * tlz file archive suffix:               Archive file names.  (line  71)
 * TRAMP theme:                           Frequently Asked Questions.
                                                               (line 261)
-* tset unix command:                     Remote shell setup.  (line 115)
+* tset unix command:                     Remote shell setup.  (line 124)
 * txz file archive suffix:               Archive file names.  (line  71)
 * type-ahead:                            Usage.               (line  12)
 * tzst file archive suffix:              Archive file names.  (line  71)
-* unix command nc:                       Remote shell setup.  (line 203)
-* unix command tset:                     Remote shell setup.  (line 115)
+* unix command nc:                       Remote shell setup.  (line 212)
+* unix command tset:                     Remote shell setup.  (line 124)
 * using non-standard methods:            Customizing Methods. (line   6)
 * using TRAMP:                           Usage.               (line   6)
 * uu encoding:                           Inline methods.      (line  16)
@@ -4392,43 +4446,43 @@ Node: Configuration18903
 Node: Connection types21375
 Node: Inline methods22789
 Node: External methods27751
-Node: GVFS-based methods38401
-Node: Default Method41670
-Node: Default User44687
-Node: Default Host46210
-Node: Multi-hops47342
-Node: Firewalls51534
-Node: Customizing Methods52991
-Node: Customizing Completion55331
-Node: Password handling58821
-Ref: Using an authentication file59291
-Ref: Caching passwords60793
-Node: Connection caching61311
-Node: Predefined connection information62241
-Node: Remote programs64586
-Node: Remote shell setup67507
-Node: Android shell setup76746
-Node: Auto-save and Backup79133
-Node: Windows setup hints82208
-Node: Usage83828
-Node: File name syntax85126
-Node: Change file name syntax87133
-Node: File name completion88564
-Node: Ad-hoc multi-hops91637
-Node: Remote processes93703
-Ref: Running a debugger on a remote host102461
-Node: Cleanup remote connections104431
-Node: Archive file names105965
-Node: Bug Reports110338
-Node: Frequently Asked Questions112720
-Node: Files directories and localnames135165
-Node: Localname deconstruction135601
-Node: External packages136254
-Node: Traces and Profiles138299
-Node: GNU Free Documentation License140268
-Node: Function Index165639
-Node: Variable Index168243
-Node: Concept Index175432
+Node: GVFS-based methods38389
+Node: Default Method41658
+Node: Default User44675
+Node: Default Host46198
+Node: Multi-hops47330
+Node: Firewalls51522
+Node: Customizing Methods52979
+Node: Customizing Completion55319
+Node: Password handling58809
+Ref: Using an authentication file59279
+Ref: Caching passwords60781
+Node: Connection caching61299
+Node: Predefined connection information62229
+Node: Remote programs66103
+Node: Remote shell setup69024
+Node: Android shell setup78640
+Node: Auto-save and Backup81027
+Node: Windows setup hints84102
+Node: Usage85722
+Node: File name syntax87020
+Node: Change file name syntax89027
+Node: File name completion90458
+Node: Ad-hoc multi-hops93613
+Node: Remote processes95679
+Ref: Running a debugger on a remote host104437
+Node: Cleanup remote connections106407
+Node: Archive file names107941
+Node: Bug Reports112314
+Node: Frequently Asked Questions114696
+Node: Files directories and localnames137135
+Node: Localname deconstruction137571
+Node: External packages138224
+Node: Traces and Profiles140269
+Node: GNU Free Documentation License142238
+Node: Function Index167609
+Node: Variable Index170213
+Node: Concept Index177548
 
 End Tag Table
 

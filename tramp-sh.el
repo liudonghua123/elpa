@@ -279,11 +279,8 @@ The string is used in `tramp-methods'.")
                 ;; it could be interpreted as password prompt if the
                 ;; remote host echoes the command.
                 (tramp-login-args           (("-u" "%u") ("-s") ("-H")
-				             ("-p" "P\"\"a\"\"s\"\"s\"\"w\"\"o\"\"r\"\"d\"\":")))
-                ;; Local $SHELL could be a nasty one, like zsh or
-                ;; fish.  Let's override it.
-                (tramp-login-env            (("SHELL")
-					     (,tramp-default-remote-shell)))
+				             ("-p" "P\"\"a\"\"s\"\"s\"\"w\"\"o\"\"r\"\"d\"\":")
+                                             ("%l")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
@@ -537,7 +534,7 @@ based on the Tramp and Emacs versions, and should not be set here."
 ;;;###tramp-autoload
 (defcustom tramp-sh-extra-args
   '(("/bash\\'" . "-norc -noprofile")
-    ("/zsh\\'" . "-f +Z"))
+    ("/zsh\\'" . "-f +Z -V"))
   "Alist specifying extra arguments to pass to the remote shell.
 Entries are (REGEXP . ARGS) where REGEXP is a regular expression
 matching the shell file name and ARGS is a string specifying the
@@ -547,6 +544,7 @@ This variable is only used when Tramp needs to start up another shell
 for tilde expansion.  The extra arguments should typically prevent the
 shell from reading its init file."
   :group 'tramp
+  :version "27.1"
   :type '(alist :key-type regexp :value-type string))
 
 (defconst tramp-actions-before-shell
@@ -558,6 +556,7 @@ shell from reading its init file."
     (tramp-yesno-prompt-regexp tramp-action-yesno)
     (tramp-yn-prompt-regexp tramp-action-yn)
     (tramp-terminal-prompt-regexp tramp-action-terminal)
+    (tramp-antispoof-regexp tramp-action-confirm-message)
     (tramp-process-alive-regexp tramp-action-process-alive))
   "List of pattern/action pairs.
 Whenever a pattern matches, the corresponding action is performed.
@@ -4661,13 +4660,11 @@ Goes through the list `tramp-inline-compress-commands'."
 	     ;; Host.
 	     (string-match-p
 	      (or (eval (nth 0 item)) "")
-	      (or (tramp-file-name-host-port (car target-alist))
-		  ""))
+	      (or (tramp-file-name-host-port (car target-alist)) ""))
 	     ;; User.
 	     (string-match-p
 	      (or (eval (nth 1 item)) "")
-	      (or (tramp-file-name-user-domain (car target-alist))
-		  "")))
+	      (or (tramp-file-name-user-domain (car target-alist)) "")))
 	(if (null proxy)
 	    ;; No more hops needed.
 	    (setq choices nil)
@@ -4869,6 +4866,7 @@ connection if a previous connection has died for some reason."
 		     ;; W32 systems.
 		     (process-coding-system-alist nil)
 		     (coding-system-for-read nil)
+		     (extra-args (tramp-get-sh-extra-args tramp-encoding-shell))
 		     ;; This must be done in order to avoid our file
 		     ;; name handler.
 		     (p (let ((default-directory
@@ -4877,10 +4875,11 @@ connection if a previous connection has died for some reason."
 			   #'start-process
 			   (tramp-get-connection-name vec)
 			   (tramp-get-connection-buffer vec)
-			   (if tramp-encoding-command-interactive
-			       (list tramp-encoding-shell
-				     tramp-encoding-command-interactive)
-			     (list tramp-encoding-shell))))))
+			   (append
+			    (list tramp-encoding-shell)
+			    (and extra-args (split-string extra-args))
+			    (and tramp-encoding-command-interactive
+				 (list tramp-encoding-command-interactive)))))))
 
 		;; Set sentinel and query flag.  Initialize variables.
 		(set-process-sentinel p #'tramp-process-sentinel)
@@ -4911,8 +4910,6 @@ connection if a previous connection has died for some reason."
 			 (remote-shell
 			  (tramp-get-method-parameter hop 'tramp-remote-shell))
 			 (extra-args (tramp-get-sh-extra-args remote-shell))
-			 (login-env
-			  (tramp-get-method-parameter hop 'tramp-login-env))
 			 (async-args
 			  (tramp-get-method-parameter hop 'tramp-async-args))
 			 (connection-timeout
@@ -4961,24 +4958,6 @@ connection if a previous connection has died for some reason."
 		       p "session-timeout"
 		       (tramp-get-method-parameter
 			hop 'tramp-session-timeout)))
-
-		    ;; Add login environment.
-		    (when login-env
-		      (setq
-		       login-env
-		       (mapcar
-			(lambda (x)
-			  (setq x (mapcar (lambda (y) (format-spec y spec)) x))
-			  (unless (member "" x) (string-join x " ")))
-			login-env))
-		      (while login-env
-			(setq command
-			      (format
-			       "%s=%s %s"
-			       (pop login-env)
-			       (tramp-shell-quote-argument (pop login-env))
-			       command)))
-		      (setq command (concat "env " command)))
 
 		    ;; Replace `login-args' place holders.
 		    (setq
