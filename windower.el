@@ -28,10 +28,9 @@
 ;; This package provides the commands below.  The commands are most useful when
 ;; bound to accessible bindings, for instance:
 ;;
-;;   (global-set-key (kbd "C-x \\") 'windower-swap-windows)
-;;   (global-set-key (kbd "C-x C-\\") 'windower-toggle-split)
 ;;   (global-set-key (kbd "<s-tab>") 'windower-switch-to-last-buffer)
 ;;   (global-set-key (kbd "<s-o>") 'windower-toggle-single)
+;;   (global-set-key (kbd "s-\\") 'windower-toggle-split)
 ;;
 ;;   (global-set-key (kbd "<s-M-left>") 'windower-move-border-left)
 ;;   (global-set-key (kbd "<s-M-down>") 'windower-move-border-below)
