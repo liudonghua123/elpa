@@ -554,8 +554,9 @@ ignored).
 If keyword argument :all-overlays is non-nil, all overlays are
 returned, not just auto-overlays.
 
-Any remaining arguments specify property tests, each of which
-should be a list with one of the following forms:
+Any remaining arguments (which *must* come after any keyword
+arguments) specify property tests, each of which should be a list
+with one of the following forms:
 
   (FUNCTION PROPERTY)
 
@@ -640,8 +641,9 @@ ignored).
 If keyword argument :all-overlays is non-nil, all overlays are
 returned, not just auto-overlays.
 
-Any remaining arguments specify property tests, each of which
-should be a list with one of the following forms:
+Any remaining arguments (which *must* come after any keyword
+arguments) specify property tests, each of which should be a list
+with one of the following forms:
 
   (FUNCTION PROPERTY)
 
