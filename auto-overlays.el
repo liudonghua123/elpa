@@ -558,6 +558,8 @@ Any remaining arguments (which *must* come after any keyword
 arguments) specify property tests, each of which should be a list
 with one of the following forms:
 
+  PROPERTY
+
   (FUNCTION PROPERTY)
 
   (FUNCTION PROPERTY VALUE)
@@ -571,9 +573,13 @@ For each overlay between START and END, first the values
 corresponding to the property names are retrieved from the
 overlay, then FUNCTION is called with the properties values
 followed by the other values as its arguments. The test is
-satisfied if the result is non-nil, otherwise it fails. Tests are
-evaluated in order, but only up to the first failure. Only
-overlays that satisfy all property tests are returned."
+satisfied if the result is non-nil, otherwise it fails.
+
+A PROPERTY symbol on its own tests whether that property has a
+non-null value, equivalent to (identity PROPERTY).
+
+Tests are evaluated in order, but only up to the first failure.
+Only overlays that satisfy all property tests are returned."
 
   ;; remove any keyword arguments from PROP-TESTS
   (setq prop-tests
@@ -590,39 +596,39 @@ overlays that satisfy all property tests are returned."
   (let (overlay-list function prop-list value-list result)
     ;; check properties of each overlay in region
     (dolist (o (overlays-in start end))
-      ;; check overlay is entirely within region
-      (if (and within
-	       (or (< (overlay-start o) start) (> (overlay-end o) end)))
-	  (setq result nil)
+      (catch 'failed
+	;; check overlay is entirely within region
+	(when (and within
+		   (or (< (overlay-start o) start)
+		       (> (overlay-end o) end)))
+	  (throw 'failed nil))
 
-	;; if it is, or we don't care
-	(setq result t)
-	(catch 'failed
-	  ;; check if properties match
-	  (dolist (test prop-tests)
-	    ;; (Note: the whole thing would be neater with something like
-	    ;; (apply 'and (map ...)) but 'and is a special form, not a
-	    ;; function, so can't be applied)
+	;; check if properties match
+	;; Note: The whole thing would be neater with something like (apply
+	;;       #'and (map ...)) but `and' is a special form, not a function
+	(dolist (test prop-tests)
+	  ;; single property
+	  (if (symbolp test)
+	      (when (null (overlay-get o test)) (throw 'failed nil))
+	    ;; propery test
 	    (setq function (nth 0 test))
 	    (unless (listp (setq prop-list (nth 1 test)))
 	      (setq prop-list (list prop-list)))
 	    (setq value-list nil)
 	    (unless (or (< (length test) 3)
-			(and (setq value-list (nth 2 test))  ; nil isn't list
-			     (listp value-list)))
+			(and (setq value-list (nth 2 test))
+			     (listp value-list)))            ; nil isn't list
 	      (setq value-list (list value-list)))
-
 	    ;; apply the test
-	    (setq result
-		  (and result
-		       (apply function
-			      (append (mapcar (lambda (p) (overlay-get o p))
-					      prop-list)
-				      value-list))))
-	    (when (null result) (throw 'failed nil)))))
+	    (unless (apply function
+			   (append (mapcar (lambda (p) (overlay-get o p))
+					   prop-list)
+				   value-list))
+	      (throw 'failed nil))))
 
-      ;; add overlay to result list if its properties matched
-      (when result (push o overlay-list)))
+	;; add overlay to result list if its properties matched
+	(push o overlay-list)))
+
     ;; return result list
     (nreverse overlay-list)))
 
