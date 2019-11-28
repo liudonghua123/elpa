@@ -1087,22 +1087,22 @@ other. TO-BUFFER defaults to the current buffer."
 
 
 
-(defun auto-overlay-start (set-id &optional buffer save-file no-regexp-check)
+(defun auto-overlay-start (set-id &optional buffer overlay-file no-regexp-check)
   "Activate the set of auto-overlay regexps identified by SET-ID
 in BUFFER, or the current buffer if none is specified.
 
-If optional argument SAVE-FILE is nil, it will try to load the
-overlays from the default save file if it exists. If SAVE-FILE is
-a string, it specifies the location of the file (if only a
+If optional argument OVERLAY-FILE is nil, try to load the
+overlays from the default save file if it exists. If OVERLAY-FILE
+is a string, it specifies the location of the file (if only a
 directory is given, it will look for the default filename in that
 directory). Anything else will cause the save file to be ignored,
-and the buffer will be reparsed from scratch, as it will be if
-the save file does not exist.
+and the buffer will be reparsed from scratch, as if the save file
+did not exist.
 
 If the overlays are being loaded from a save file, but optional
 argument NO-REGEXP-CHECK is non-nil, the file of saved overlays
 will be used, but no check will be made to ensure regexp
-refinitions are the same as when the overlays were saved."
+definitions are the same as when the overlays were saved."
 
   (save-excursion
     (when buffer (set-buffer buffer))
@@ -1125,8 +1125,8 @@ refinitions are the same as when the overlays were saved."
       ;; for the regexp set
       (auto-o-enable-set set-id)
       ;; try to load overlays from file
-      (unless (and (or (null save-file) (stringp save-file))
-		   (auto-overlay-load-overlays set-id nil save-file
+      (unless (and (or (null overlay-file) (stringp overlay-file))
+		   (auto-overlay-load-overlays set-id nil overlay-file
 					       no-regexp-check))
 	;; if loading from file was unsuccessful, search for new auto overlays
 	(auto-o-parse-buffer set-id)))
@@ -1229,9 +1229,14 @@ The overlays can be loaded again later using
 
       ;; get sorted list of all match overlays in set SET-ID
       (setq overlay-list
-	    (auto-overlays-in (point-min) (point-max) :all-overlays t
-			      '(identity auto-overlay-match)
-			      `(eq set-id ,set-id)))
+	    (sort (auto-overlays-in (point-min) (point-max)
+				    :all-overlays t
+				    'auto-overlay-match
+				    `(eq set-id ,set-id))
+		  (lambda (a b)
+		    (or (< (overlay-start a) (overlay-start b))
+			(and (= (overlay-start a) (overlay-start b))
+			     (< (overlay-end a) (overlay-end b)))))))
 
       ;; write overlay data to temporary buffer
       (mapc (lambda (o)
@@ -1279,8 +1284,8 @@ overlays were saved."
     (when buffer (set-buffer buffer))
 
     ;; construct filename
-    (let ((path (or (and file (file-name-directory file)) ""))
-	  (filename (and file (file-name-nondirectory file))))
+    (let ((path     (or (and file (file-name-directory file))    ""))
+	  (filename (or (and file (file-name-nondirectory file)) "")))
       ;; use default filename if none supplied
       ;; FIXME: should we throw error if buffer not associated with file?
       (when (string= filename "")
@@ -1290,10 +1295,7 @@ overlays were saved."
 
 
     ;; return nil if file does not exist
-    (if (not (file-exists-p file))
-	nil
-
-      ;; otherwise...
+    (when (file-exists-p file)
       (let ((buff (find-file-noselect file t))
 	    md5-buff md5-regexp data o-match o-new lines
 	    (i 0))
