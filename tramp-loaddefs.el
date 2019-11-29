@@ -27,18 +27,18 @@ Regexp used as prompt in almquist shell.")
 
 (tramp--with-startup (add-to-list 'tramp-methods `(,tramp-adb-method (tramp-tmpdir "/data/local/tmp") (tramp-default-port 5555))) (add-to-list 'tramp-default-host-alist `(,tramp-adb-method nil "")) (tramp-set-completion-function tramp-adb-method '((tramp-adb-parse-device-names ""))))
 
-(defconst tramp-adb-file-name-handler-alist '((access-file . tramp-handle-access-file) (add-name-to-file . tramp-handle-add-name-to-file) (copy-file . tramp-adb-handle-copy-file) (delete-directory . tramp-adb-handle-delete-directory) (delete-file . tramp-adb-handle-delete-file) (directory-file-name . tramp-handle-directory-file-name) (directory-files . tramp-handle-directory-files) (directory-files-and-attributes . tramp-adb-handle-directory-files-and-attributes) (dired-compress-file . ignore) (dired-uncache . tramp-handle-dired-uncache) (exec-path . tramp-adb-handle-exec-path) (expand-file-name . tramp-handle-expand-file-name) (file-accessible-directory-p . tramp-handle-file-accessible-directory-p) (file-acl . ignore) (file-attributes . tramp-adb-handle-file-attributes) (file-directory-p . tramp-handle-file-directory-p) (file-equal-p . tramp-handle-file-equal-p) (file-executable-p . tramp-handle-file-exists-p) (file-exists-p . tramp-handle-file-exists-p) (file-in-directory-p . tramp-handle-file-in-directory-p) (file-local-copy . tramp-adb-handle-file-local-copy) (file-modes . tramp-handle-file-modes) (file-name-all-completions . tramp-adb-handle-file-name-all-completions) (file-name-as-directory . tramp-handle-file-name-as-directory) (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p) (file-name-completion . tramp-handle-file-name-completion) (file-name-directory . tramp-handle-file-name-directory) (file-name-nondirectory . tramp-handle-file-name-nondirectory) (file-newer-than-file-p . tramp-handle-file-newer-than-file-p) (file-notify-add-watch . tramp-handle-file-notify-add-watch) (file-notify-rm-watch . tramp-handle-file-notify-rm-watch) (file-notify-valid-p . tramp-handle-file-notify-valid-p) (file-ownership-preserved-p . ignore) (file-readable-p . tramp-handle-file-exists-p) (file-regular-p . tramp-handle-file-regular-p) (file-remote-p . tramp-handle-file-remote-p) (file-selinux-context . tramp-handle-file-selinux-context) (file-symlink-p . tramp-handle-file-symlink-p) (file-system-info . tramp-adb-handle-file-system-info) (file-truename . tramp-adb-handle-file-truename) (file-writable-p . tramp-adb-handle-file-writable-p) (find-backup-file-name . tramp-handle-find-backup-file-name) (insert-directory . tramp-handle-insert-directory) (insert-file-contents . tramp-handle-insert-file-contents) (load . tramp-handle-load) (make-auto-save-file-name . tramp-handle-make-auto-save-file-name) (make-directory . tramp-adb-handle-make-directory) (make-directory-internal . ignore) (make-nearby-temp-file . tramp-handle-make-nearby-temp-file) (make-process . tramp-adb-handle-make-process) (make-symbolic-link . tramp-handle-make-symbolic-link) (process-file . tramp-adb-handle-process-file) (rename-file . tramp-adb-handle-rename-file) (set-file-acl . ignore) (set-file-modes . tramp-adb-handle-set-file-modes) (set-file-selinux-context . ignore) (set-file-times . tramp-adb-handle-set-file-times) (set-visited-file-modtime . tramp-handle-set-visited-file-modtime) (shell-command . tramp-handle-shell-command) (start-file-process . tramp-handle-start-file-process) (substitute-in-file-name . tramp-handle-substitute-in-file-name) (temporary-file-directory . tramp-handle-temporary-file-directory) (tramp-set-file-uid-gid . ignore) (unhandled-file-name-directory . ignore) (vc-registered . ignore) (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime) (write-region . tramp-adb-handle-write-region)) "\
+(defconst tramp-adb-file-name-handler-alist '((access-file . tramp-handle-access-file) (add-name-to-file . tramp-handle-add-name-to-file) (copy-directory . tramp-handle-copy-directory) (copy-file . tramp-adb-handle-copy-file) (delete-directory . tramp-adb-handle-delete-directory) (delete-file . tramp-adb-handle-delete-file) (directory-file-name . tramp-handle-directory-file-name) (directory-files . tramp-handle-directory-files) (directory-files-and-attributes . tramp-adb-handle-directory-files-and-attributes) (dired-compress-file . ignore) (dired-uncache . tramp-handle-dired-uncache) (exec-path . tramp-adb-handle-exec-path) (expand-file-name . tramp-handle-expand-file-name) (file-accessible-directory-p . tramp-handle-file-accessible-directory-p) (file-acl . ignore) (file-attributes . tramp-adb-handle-file-attributes) (file-directory-p . tramp-handle-file-directory-p) (file-equal-p . tramp-handle-file-equal-p) (file-executable-p . tramp-handle-file-exists-p) (file-exists-p . tramp-handle-file-exists-p) (file-in-directory-p . tramp-handle-file-in-directory-p) (file-local-copy . tramp-adb-handle-file-local-copy) (file-modes . tramp-handle-file-modes) (file-name-all-completions . tramp-adb-handle-file-name-all-completions) (file-name-as-directory . tramp-handle-file-name-as-directory) (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p) (file-name-completion . tramp-handle-file-name-completion) (file-name-directory . tramp-handle-file-name-directory) (file-name-nondirectory . tramp-handle-file-name-nondirectory) (file-newer-than-file-p . tramp-handle-file-newer-than-file-p) (file-notify-add-watch . tramp-handle-file-notify-add-watch) (file-notify-rm-watch . tramp-handle-file-notify-rm-watch) (file-notify-valid-p . tramp-handle-file-notify-valid-p) (file-ownership-preserved-p . ignore) (file-readable-p . tramp-handle-file-exists-p) (file-regular-p . tramp-handle-file-regular-p) (file-remote-p . tramp-handle-file-remote-p) (file-selinux-context . tramp-handle-file-selinux-context) (file-symlink-p . tramp-handle-file-symlink-p) (file-system-info . tramp-adb-handle-file-system-info) (file-truename . tramp-adb-handle-file-truename) (file-writable-p . tramp-adb-handle-file-writable-p) (find-backup-file-name . tramp-handle-find-backup-file-name) (insert-directory . tramp-handle-insert-directory) (insert-file-contents . tramp-handle-insert-file-contents) (load . tramp-handle-load) (make-auto-save-file-name . tramp-handle-make-auto-save-file-name) (make-directory . tramp-adb-handle-make-directory) (make-directory-internal . ignore) (make-nearby-temp-file . tramp-handle-make-nearby-temp-file) (make-process . tramp-adb-handle-make-process) (make-symbolic-link . tramp-handle-make-symbolic-link) (process-file . tramp-adb-handle-process-file) (rename-file . tramp-adb-handle-rename-file) (set-file-acl . ignore) (set-file-modes . tramp-adb-handle-set-file-modes) (set-file-selinux-context . ignore) (set-file-times . tramp-adb-handle-set-file-times) (set-visited-file-modtime . tramp-handle-set-visited-file-modtime) (shell-command . tramp-handle-shell-command) (start-file-process . tramp-handle-start-file-process) (substitute-in-file-name . tramp-handle-substitute-in-file-name) (temporary-file-directory . tramp-handle-temporary-file-directory) (tramp-set-file-uid-gid . ignore) (unhandled-file-name-directory . ignore) (vc-registered . ignore) (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime) (write-region . tramp-adb-handle-write-region)) "\
 Alist of handler functions for Tramp ADB method.")
 
 (defsubst tramp-adb-file-name-p (filename) "\
-Check if it's a filename for ADB." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-adb-method)))
+Check if it's a FILENAME for ADB." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-adb-method)))
 
 (autoload 'tramp-adb-file-name-handler "tramp-adb" "\
 Invoke the ADB handler for OPERATION.
-First arg specifies the OPERATION, second arg is a list of arguments to
-pass to the OPERATION.
+First arg specifies the OPERATION, second arg is a list of
+ARGUMENTS to pass to the OPERATION.
 
-\(fn OPERATION &rest ARGS)" nil nil)
+\(fn OPERATION &rest ARGUMENTS)" nil nil)
 
 (tramp--with-startup (tramp-register-foreign-file-name-handler #'tramp-adb-file-name-p #'tramp-adb-file-name-handler))
 
@@ -64,8 +64,8 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 
 (autoload 'tramp-archive-file-name-handler "tramp-archive" "\
 Invoke the file archive related OPERATION.
-First arg specifies the OPERATION, second arg is a list of arguments to
-pass to the OPERATION.
+First arg specifies the OPERATION, second arg ARGS is a list of
+arguments to pass to the OPERATION.
 
 \(fn OPERATION &rest ARGS)" nil nil)
 
@@ -219,6 +219,79 @@ This includes password cache, file cache, connection cache, buffers." t nil)
 (autoload 'tramp-cleanup-all-buffers "tramp-cmds" "\
 Kill all remote buffers." t nil)
 
+(defvar tramp-default-rename-alist nil "\
+Default target for renaming remote buffer file names.
+This is an alist of cons cells (SOURCE . TARGET).  The first
+matching item specifies the target to be applied for renaming
+buffer file names from source via `tramp-rename-files'.  SOURCE
+is a regular expressions, which matches a remote file name.
+TARGET must be a directory name, which could be remote (including
+remote directories Tramp infers by default, such as
+\"/method:user@host:\").
+
+TARGET can contain the patterns %m, %u or %h, which are replaced
+by the method name, user name or host name of SOURCE when calling
+`tramp-rename-files'.
+
+SOURCE could also be a Lisp form, which will be evaluated.  The
+result must be a string or nil, which is interpreted as a regular
+expression which always matches.")
+
+(custom-autoload 'tramp-default-rename-alist "tramp-cmds" t)
+
+(defvar tramp-confirm-rename-file-names t "\
+Whether renaming a buffer file name must be confirmed.")
+
+(custom-autoload 'tramp-confirm-rename-file-names "tramp-cmds" t)
+
+(autoload 'tramp-rename-files "tramp-cmds" "\
+Replace in all buffers the visiting file name from SOURCE to TARGET.
+SOURCE is a remote directory name, which could contain also a
+localname part.  TARGET is the directory name SOURCE is replaced
+with.  Often, TARGET is a remote directory name on another host,
+but it can also be a local directory name.  If TARGET has no
+local part, the local part from SOURCE is used.
+
+If TARGET is nil, it is selected according to the first match in
+`tramp-default-rename-alist'.  If called interactively, this
+match is offered as initial value for selection.
+
+On all buffers, which have a `buffer-file-name' matching SOURCE,
+this name is modified by replacing SOURCE with TARGET.  This is
+applied by calling `set-visited-file-name'.  The new
+`buffer-file-name' is prompted for modification in the
+minibuffer.  The buffers are marked modified, and must be saved
+explicitly.
+
+If user option `tramp-confirm-rename-file-names' is nil, changing
+the file name happens without confirmation.  This requires a
+matching entry in `tramp-default-rename-alist'.
+
+Remote buffers related to the remote connection identified by
+SOURCE, which are not visiting files, or which are visiting files
+not matching SOURCE, are not modified.
+
+Interactively, TARGET is selected from `tramp-default-rename-alist'
+without confirmation if the prefix argument is non-nil.
+
+The remote connection identified by SOURCE is flushed by
+`tramp-cleanup-connection'.
+
+\(fn SOURCE TARGET)" t nil)
+
+(autoload 'tramp-rename-these-files "tramp-cmds" "\
+Replace visiting file names to TARGET.
+The current buffer must be related to a remote connection.  In
+all buffers, which are visiting a file with the same directory
+name, the buffer file name is changed.
+
+Interactively, TARGET is selected from `tramp-default-rename-alist'
+without confirmation if the prefix argument is non-nil.
+
+For details, see `tramp-rename-files'.
+
+\(fn TARGET)" t nil)
+
 (autoload 'tramp-version "tramp-cmds" "\
 Print version number of tramp.el in minibuffer or current buffer.
 
@@ -241,14 +314,14 @@ When this method name is used, forward all calls to Ange-FTP.")
 (tramp--with-startup (add-to-list 'tramp-methods (cons tramp-ftp-method nil)) (add-to-list 'tramp-default-method-alist (list "\\`ftp\\." nil tramp-ftp-method)) (add-to-list 'tramp-default-method-alist (list nil "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method)) (tramp-set-completion-function tramp-ftp-method '((tramp-parse-netrc "~/.netrc"))))
 
 (autoload 'tramp-ftp-file-name-handler "tramp-ftp" "\
-Invoke the Ange-FTP handler for OPERATION.
+Invoke the Ange-FTP handler for OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION.
 
 \(fn OPERATION &rest ARGS)" nil nil)
 
 (defsubst tramp-ftp-file-name-p (filename) "\
-Check if it's a filename that should be forwarded to Ange-FTP." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-ftp-method)))
+Check if it's a FILENAME that should be forwarded to Ange-FTP." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-ftp-method)))
 
 (tramp--with-startup (add-to-list 'tramp-foreign-file-name-handler-alist (cons #'tramp-ftp-file-name-p #'tramp-ftp-file-name-handler)))
 
@@ -274,15 +347,15 @@ Zeroconf domain to be used for discovering services, like host names.")
 (defconst tramp-goa-service "org.gnome.OnlineAccounts" "\
 The well known name of the GNOME Online Accounts service.")
 
-(defconst tramp-gvfs-file-name-handler-alist '((access-file . tramp-handle-access-file) (add-name-to-file . tramp-handle-add-name-to-file) (copy-file . tramp-gvfs-handle-copy-file) (delete-directory . tramp-gvfs-handle-delete-directory) (delete-file . tramp-gvfs-handle-delete-file) (directory-file-name . tramp-handle-directory-file-name) (directory-files . tramp-handle-directory-files) (directory-files-and-attributes . tramp-handle-directory-files-and-attributes) (dired-compress-file . ignore) (dired-uncache . tramp-handle-dired-uncache) (exec-path . ignore) (expand-file-name . tramp-gvfs-handle-expand-file-name) (file-accessible-directory-p . tramp-handle-file-accessible-directory-p) (file-acl . ignore) (file-attributes . tramp-gvfs-handle-file-attributes) (file-directory-p . tramp-handle-file-directory-p) (file-equal-p . tramp-handle-file-equal-p) (file-executable-p . tramp-gvfs-handle-file-executable-p) (file-exists-p . tramp-handle-file-exists-p) (file-in-directory-p . tramp-handle-file-in-directory-p) (file-local-copy . tramp-handle-file-local-copy) (file-modes . tramp-handle-file-modes) (file-name-all-completions . tramp-gvfs-handle-file-name-all-completions) (file-name-as-directory . tramp-handle-file-name-as-directory) (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p) (file-name-completion . tramp-handle-file-name-completion) (file-name-directory . tramp-handle-file-name-directory) (file-name-nondirectory . tramp-handle-file-name-nondirectory) (file-newer-than-file-p . tramp-handle-file-newer-than-file-p) (file-notify-add-watch . tramp-gvfs-handle-file-notify-add-watch) (file-notify-rm-watch . tramp-handle-file-notify-rm-watch) (file-notify-valid-p . tramp-handle-file-notify-valid-p) (file-ownership-preserved-p . ignore) (file-readable-p . tramp-gvfs-handle-file-readable-p) (file-regular-p . tramp-handle-file-regular-p) (file-remote-p . tramp-handle-file-remote-p) (file-selinux-context . tramp-handle-file-selinux-context) (file-symlink-p . tramp-handle-file-symlink-p) (file-system-info . tramp-gvfs-handle-file-system-info) (file-truename . tramp-handle-file-truename) (file-writable-p . tramp-handle-file-writable-p) (find-backup-file-name . tramp-handle-find-backup-file-name) (insert-directory . tramp-handle-insert-directory) (insert-file-contents . tramp-handle-insert-file-contents) (load . tramp-handle-load) (make-auto-save-file-name . tramp-handle-make-auto-save-file-name) (make-directory . tramp-gvfs-handle-make-directory) (make-directory-internal . ignore) (make-nearby-temp-file . tramp-handle-make-nearby-temp-file) (make-process . ignore) (make-symbolic-link . tramp-handle-make-symbolic-link) (process-file . ignore) (rename-file . tramp-gvfs-handle-rename-file) (set-file-acl . ignore) (set-file-modes . tramp-gvfs-handle-set-file-modes) (set-file-selinux-context . ignore) (set-file-times . tramp-gvfs-handle-set-file-times) (set-visited-file-modtime . tramp-handle-set-visited-file-modtime) (shell-command . ignore) (start-file-process . ignore) (substitute-in-file-name . tramp-handle-substitute-in-file-name) (temporary-file-directory . tramp-handle-temporary-file-directory) (tramp-set-file-uid-gid . tramp-gvfs-handle-set-file-uid-gid) (unhandled-file-name-directory . ignore) (vc-registered . ignore) (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime) (write-region . tramp-handle-write-region)) "\
+(defconst tramp-gvfs-file-name-handler-alist '((access-file . tramp-handle-access-file) (add-name-to-file . tramp-handle-add-name-to-file) (copy-directory . tramp-handle-copy-directory) (copy-file . tramp-gvfs-handle-copy-file) (delete-directory . tramp-gvfs-handle-delete-directory) (delete-file . tramp-gvfs-handle-delete-file) (directory-file-name . tramp-handle-directory-file-name) (directory-files . tramp-handle-directory-files) (directory-files-and-attributes . tramp-handle-directory-files-and-attributes) (dired-compress-file . ignore) (dired-uncache . tramp-handle-dired-uncache) (exec-path . ignore) (expand-file-name . tramp-gvfs-handle-expand-file-name) (file-accessible-directory-p . tramp-handle-file-accessible-directory-p) (file-acl . ignore) (file-attributes . tramp-gvfs-handle-file-attributes) (file-directory-p . tramp-handle-file-directory-p) (file-equal-p . tramp-handle-file-equal-p) (file-executable-p . tramp-gvfs-handle-file-executable-p) (file-exists-p . tramp-handle-file-exists-p) (file-in-directory-p . tramp-handle-file-in-directory-p) (file-local-copy . tramp-handle-file-local-copy) (file-modes . tramp-handle-file-modes) (file-name-all-completions . tramp-gvfs-handle-file-name-all-completions) (file-name-as-directory . tramp-handle-file-name-as-directory) (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p) (file-name-completion . tramp-handle-file-name-completion) (file-name-directory . tramp-handle-file-name-directory) (file-name-nondirectory . tramp-handle-file-name-nondirectory) (file-newer-than-file-p . tramp-handle-file-newer-than-file-p) (file-notify-add-watch . tramp-gvfs-handle-file-notify-add-watch) (file-notify-rm-watch . tramp-handle-file-notify-rm-watch) (file-notify-valid-p . tramp-handle-file-notify-valid-p) (file-ownership-preserved-p . ignore) (file-readable-p . tramp-gvfs-handle-file-readable-p) (file-regular-p . tramp-handle-file-regular-p) (file-remote-p . tramp-handle-file-remote-p) (file-selinux-context . tramp-handle-file-selinux-context) (file-symlink-p . tramp-handle-file-symlink-p) (file-system-info . tramp-gvfs-handle-file-system-info) (file-truename . tramp-handle-file-truename) (file-writable-p . tramp-handle-file-writable-p) (find-backup-file-name . tramp-handle-find-backup-file-name) (insert-directory . tramp-handle-insert-directory) (insert-file-contents . tramp-handle-insert-file-contents) (load . tramp-handle-load) (make-auto-save-file-name . tramp-handle-make-auto-save-file-name) (make-directory . tramp-gvfs-handle-make-directory) (make-directory-internal . ignore) (make-nearby-temp-file . tramp-handle-make-nearby-temp-file) (make-process . ignore) (make-symbolic-link . tramp-handle-make-symbolic-link) (process-file . ignore) (rename-file . tramp-gvfs-handle-rename-file) (set-file-acl . ignore) (set-file-modes . tramp-gvfs-handle-set-file-modes) (set-file-selinux-context . ignore) (set-file-times . tramp-gvfs-handle-set-file-times) (set-visited-file-modtime . tramp-handle-set-visited-file-modtime) (shell-command . ignore) (start-file-process . ignore) (substitute-in-file-name . tramp-handle-substitute-in-file-name) (temporary-file-directory . tramp-handle-temporary-file-directory) (tramp-set-file-uid-gid . tramp-gvfs-handle-set-file-uid-gid) (unhandled-file-name-directory . ignore) (vc-registered . ignore) (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime) (write-region . tramp-handle-write-region)) "\
 Alist of handler functions for Tramp GVFS method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
 (defsubst tramp-gvfs-file-name-p (filename) "\
-Check if it's a filename handled by the GVFS daemon." (and (tramp-tramp-file-p filename) (let ((method (tramp-file-name-method (tramp-dissect-file-name filename)))) (and (stringp method) (member method tramp-gvfs-methods)))))
+Check if it's a FILENAME handled by the GVFS daemon." (and (tramp-tramp-file-p filename) (let ((method (tramp-file-name-method (tramp-dissect-file-name filename)))) (and (stringp method) (member method tramp-gvfs-methods)))))
 
 (autoload 'tramp-gvfs-file-name-handler "tramp-gvfs" "\
-Invoke the GVFS related OPERATION.
+Invoke the GVFS related OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION.
 
@@ -305,15 +378,15 @@ Name of the rclone program.")
 
 (tramp--with-startup (add-to-list 'tramp-methods `(,tramp-rclone-method (tramp-mount-args nil) (tramp-copyto-args nil) (tramp-moveto-args nil) (tramp-about-args ("--full")))) (add-to-list 'tramp-default-host-alist `(,tramp-rclone-method nil "")) (tramp-set-completion-function tramp-rclone-method '((tramp-rclone-parse-device-names ""))))
 
-(defconst tramp-rclone-file-name-handler-alist '((access-file . tramp-handle-access-file) (add-name-to-file . tramp-handle-add-name-to-file) (copy-file . tramp-rclone-handle-copy-file) (delete-directory . tramp-rclone-handle-delete-directory) (delete-file . tramp-rclone-handle-delete-file) (directory-file-name . tramp-handle-directory-file-name) (directory-files . tramp-rclone-handle-directory-files) (directory-files-and-attributes . tramp-handle-directory-files-and-attributes) (dired-compress-file . ignore) (dired-uncache . tramp-handle-dired-uncache) (exec-path . ignore) (expand-file-name . tramp-handle-expand-file-name) (file-accessible-directory-p . tramp-handle-file-accessible-directory-p) (file-acl . ignore) (file-attributes . tramp-rclone-handle-file-attributes) (file-directory-p . tramp-handle-file-directory-p) (file-equal-p . tramp-handle-file-equal-p) (file-executable-p . tramp-rclone-handle-file-executable-p) (file-exists-p . tramp-handle-file-exists-p) (file-in-directory-p . tramp-handle-file-in-directory-p) (file-local-copy . tramp-handle-file-local-copy) (file-modes . tramp-handle-file-modes) (file-name-all-completions . tramp-rclone-handle-file-name-all-completions) (file-name-as-directory . tramp-handle-file-name-as-directory) (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p) (file-name-completion . tramp-handle-file-name-completion) (file-name-directory . tramp-handle-file-name-directory) (file-name-nondirectory . tramp-handle-file-name-nondirectory) (file-newer-than-file-p . tramp-handle-file-newer-than-file-p) (file-notify-add-watch . ignore) (file-notify-rm-watch . ignore) (file-notify-valid-p . ignore) (file-ownership-preserved-p . ignore) (file-readable-p . tramp-rclone-handle-file-readable-p) (file-regular-p . tramp-handle-file-regular-p) (file-remote-p . tramp-handle-file-remote-p) (file-selinux-context . tramp-handle-file-selinux-context) (file-symlink-p . tramp-handle-file-symlink-p) (file-system-info . tramp-rclone-handle-file-system-info) (file-truename . tramp-handle-file-truename) (file-writable-p . tramp-handle-file-writable-p) (find-backup-file-name . tramp-handle-find-backup-file-name) (insert-directory . tramp-handle-insert-directory) (insert-file-contents . tramp-handle-insert-file-contents) (load . tramp-handle-load) (make-auto-save-file-name . tramp-handle-make-auto-save-file-name) (make-directory . tramp-rclone-handle-make-directory) (make-directory-internal . ignore) (make-nearby-temp-file . tramp-handle-make-nearby-temp-file) (make-process . ignore) (make-symbolic-link . tramp-handle-make-symbolic-link) (process-file . ignore) (rename-file . tramp-rclone-handle-rename-file) (set-file-acl . ignore) (set-file-modes . ignore) (set-file-selinux-context . ignore) (set-file-times . ignore) (set-visited-file-modtime . tramp-handle-set-visited-file-modtime) (shell-command . ignore) (start-file-process . ignore) (substitute-in-file-name . tramp-handle-substitute-in-file-name) (temporary-file-directory . tramp-handle-temporary-file-directory) (tramp-set-file-uid-gid . ignore) (unhandled-file-name-directory . ignore) (vc-registered . ignore) (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime) (write-region . tramp-handle-write-region)) "\
+(defconst tramp-rclone-file-name-handler-alist '((access-file . tramp-handle-access-file) (add-name-to-file . tramp-handle-add-name-to-file) (copy-directory . tramp-handle-copy-directory) (copy-file . tramp-rclone-handle-copy-file) (delete-directory . tramp-rclone-handle-delete-directory) (delete-file . tramp-rclone-handle-delete-file) (directory-file-name . tramp-handle-directory-file-name) (directory-files . tramp-rclone-handle-directory-files) (directory-files-and-attributes . tramp-handle-directory-files-and-attributes) (dired-compress-file . ignore) (dired-uncache . tramp-handle-dired-uncache) (exec-path . ignore) (expand-file-name . tramp-handle-expand-file-name) (file-accessible-directory-p . tramp-handle-file-accessible-directory-p) (file-acl . ignore) (file-attributes . tramp-rclone-handle-file-attributes) (file-directory-p . tramp-handle-file-directory-p) (file-equal-p . tramp-handle-file-equal-p) (file-executable-p . tramp-rclone-handle-file-executable-p) (file-exists-p . tramp-handle-file-exists-p) (file-in-directory-p . tramp-handle-file-in-directory-p) (file-local-copy . tramp-handle-file-local-copy) (file-modes . tramp-handle-file-modes) (file-name-all-completions . tramp-rclone-handle-file-name-all-completions) (file-name-as-directory . tramp-handle-file-name-as-directory) (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p) (file-name-completion . tramp-handle-file-name-completion) (file-name-directory . tramp-handle-file-name-directory) (file-name-nondirectory . tramp-handle-file-name-nondirectory) (file-newer-than-file-p . tramp-handle-file-newer-than-file-p) (file-notify-add-watch . ignore) (file-notify-rm-watch . ignore) (file-notify-valid-p . ignore) (file-ownership-preserved-p . ignore) (file-readable-p . tramp-rclone-handle-file-readable-p) (file-regular-p . tramp-handle-file-regular-p) (file-remote-p . tramp-handle-file-remote-p) (file-selinux-context . tramp-handle-file-selinux-context) (file-symlink-p . tramp-handle-file-symlink-p) (file-system-info . tramp-rclone-handle-file-system-info) (file-truename . tramp-handle-file-truename) (file-writable-p . tramp-handle-file-writable-p) (find-backup-file-name . tramp-handle-find-backup-file-name) (insert-directory . tramp-handle-insert-directory) (insert-file-contents . tramp-handle-insert-file-contents) (load . tramp-handle-load) (make-auto-save-file-name . tramp-handle-make-auto-save-file-name) (make-directory . tramp-rclone-handle-make-directory) (make-directory-internal . ignore) (make-nearby-temp-file . tramp-handle-make-nearby-temp-file) (make-process . ignore) (make-symbolic-link . tramp-handle-make-symbolic-link) (process-file . ignore) (rename-file . tramp-rclone-handle-rename-file) (set-file-acl . ignore) (set-file-modes . ignore) (set-file-selinux-context . ignore) (set-file-times . ignore) (set-visited-file-modtime . tramp-handle-set-visited-file-modtime) (shell-command . ignore) (start-file-process . ignore) (substitute-in-file-name . tramp-handle-substitute-in-file-name) (temporary-file-directory . tramp-handle-temporary-file-directory) (tramp-set-file-uid-gid . ignore) (unhandled-file-name-directory . ignore) (vc-registered . ignore) (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime) (write-region . tramp-handle-write-region)) "\
 Alist of handler functions for Tramp RCLONE method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
 (defsubst tramp-rclone-file-name-p (filename) "\
-Check if it's a filename for rclone." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-rclone-method)))
+Check if it's a FILENAME for rclone." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-rclone-method)))
 
 (autoload 'tramp-rclone-file-name-handler "tramp-rclone" "\
-Invoke the rclone handler for OPERATION.
+Invoke the rclone handler for OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION.
 
@@ -528,10 +601,10 @@ This can be used to disable echo etc.")
 (custom-autoload 'tramp-smb-winexe-shell-command-switch "tramp-smb" t)
 
 (defsubst tramp-smb-file-name-p (filename) "\
-Check if it's a filename for SMB servers." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-smb-method)))
+Check if it's a FILENAME for SMB servers." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-smb-method)))
 
 (autoload 'tramp-smb-file-name-handler "tramp-smb" "\
-Invoke the SMB related OPERATION.
+Invoke the SMB related OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION.
 
@@ -550,14 +623,14 @@ When this method name is used, call sudoedit for editing a file.")
 
 (tramp--with-startup (add-to-list 'tramp-methods `(,tramp-sudoedit-method (tramp-sudo-login (("sudo") ("-u" "%u") ("-S") ("-H") ("-p" "Password:") ("--"))))) (add-to-list 'tramp-default-user-alist '("\\`sudoedit\\'" nil "root")) (tramp-set-completion-function tramp-sudoedit-method tramp-completion-function-alist-su))
 
-(defconst tramp-sudoedit-file-name-handler-alist '((access-file . tramp-handle-access-file) (add-name-to-file . tramp-sudoedit-handle-add-name-to-file) (byte-compiler-base-file-name . ignore) (copy-file . tramp-sudoedit-handle-copy-file) (delete-directory . tramp-sudoedit-handle-delete-directory) (delete-file . tramp-sudoedit-handle-delete-file) (diff-latest-backup-file . ignore) (directory-files . tramp-handle-directory-files) (directory-files-and-attributes . tramp-handle-directory-files-and-attributes) (dired-compress-file . ignore) (dired-uncache . tramp-handle-dired-uncache) (exec-path . ignore) (expand-file-name . tramp-sudoedit-handle-expand-file-name) (file-accessible-directory-p . tramp-handle-file-accessible-directory-p) (file-acl . tramp-sudoedit-handle-file-acl) (file-attributes . tramp-sudoedit-handle-file-attributes) (file-directory-p . tramp-handle-file-directory-p) (file-equal-p . tramp-handle-file-equal-p) (file-executable-p . tramp-sudoedit-handle-file-executable-p) (file-exists-p . tramp-sudoedit-handle-file-exists-p) (file-in-directory-p . tramp-handle-file-in-directory-p) (file-local-copy . tramp-handle-file-local-copy) (file-modes . tramp-handle-file-modes) (file-name-all-completions . tramp-sudoedit-handle-file-name-all-completions) (file-name-as-directory . tramp-handle-file-name-as-directory) (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p) (file-name-completion . tramp-handle-file-name-completion) (file-name-directory . tramp-handle-file-name-directory) (file-name-nondirectory . tramp-handle-file-name-nondirectory) (file-newer-than-file-p . tramp-handle-file-newer-than-file-p) (file-notify-add-watch . ignore) (file-notify-rm-watch . ignore) (file-notify-valid-p . ignore) (file-ownership-preserved-p . ignore) (file-readable-p . tramp-sudoedit-handle-file-readable-p) (file-regular-p . tramp-handle-file-regular-p) (file-remote-p . tramp-handle-file-remote-p) (file-selinux-context . tramp-sudoedit-handle-file-selinux-context) (file-symlink-p . tramp-handle-file-symlink-p) (file-system-info . tramp-sudoedit-handle-file-system-info) (file-truename . tramp-sudoedit-handle-file-truename) (file-writable-p . tramp-sudoedit-handle-file-writable-p) (find-backup-file-name . tramp-handle-find-backup-file-name) (insert-directory . tramp-handle-insert-directory) (insert-file-contents . tramp-handle-insert-file-contents) (load . tramp-handle-load) (make-auto-save-file-name . tramp-handle-make-auto-save-file-name) (make-directory . tramp-sudoedit-handle-make-directory) (make-directory-internal . ignore) (make-nearby-temp-file . tramp-handle-make-nearby-temp-file) (make-process . ignore) (make-symbolic-link . tramp-sudoedit-handle-make-symbolic-link) (process-file . ignore) (rename-file . tramp-sudoedit-handle-rename-file) (set-file-acl . tramp-sudoedit-handle-set-file-acl) (set-file-modes . tramp-sudoedit-handle-set-file-modes) (set-file-selinux-context . tramp-sudoedit-handle-set-file-selinux-context) (set-file-times . tramp-sudoedit-handle-set-file-times) (set-visited-file-modtime . tramp-handle-set-visited-file-modtime) (shell-command . ignore) (start-file-process . ignore) (substitute-in-file-name . tramp-handle-substitute-in-file-name) (temporary-file-directory . tramp-handle-temporary-file-directory) (tramp-set-file-uid-gid . tramp-sudoedit-handle-set-file-uid-gid) (unhandled-file-name-directory . ignore) (vc-registered . ignore) (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime) (write-region . tramp-sudoedit-handle-write-region)) "\
+(defconst tramp-sudoedit-file-name-handler-alist '((access-file . tramp-handle-access-file) (add-name-to-file . tramp-sudoedit-handle-add-name-to-file) (byte-compiler-base-file-name . ignore) (copy-directory . tramp-handle-copy-directory) (copy-file . tramp-sudoedit-handle-copy-file) (delete-directory . tramp-sudoedit-handle-delete-directory) (delete-file . tramp-sudoedit-handle-delete-file) (diff-latest-backup-file . ignore) (directory-files . tramp-handle-directory-files) (directory-files-and-attributes . tramp-handle-directory-files-and-attributes) (dired-compress-file . ignore) (dired-uncache . tramp-handle-dired-uncache) (exec-path . ignore) (expand-file-name . tramp-sudoedit-handle-expand-file-name) (file-accessible-directory-p . tramp-handle-file-accessible-directory-p) (file-acl . tramp-sudoedit-handle-file-acl) (file-attributes . tramp-sudoedit-handle-file-attributes) (file-directory-p . tramp-handle-file-directory-p) (file-equal-p . tramp-handle-file-equal-p) (file-executable-p . tramp-sudoedit-handle-file-executable-p) (file-exists-p . tramp-sudoedit-handle-file-exists-p) (file-in-directory-p . tramp-handle-file-in-directory-p) (file-local-copy . tramp-handle-file-local-copy) (file-modes . tramp-handle-file-modes) (file-name-all-completions . tramp-sudoedit-handle-file-name-all-completions) (file-name-as-directory . tramp-handle-file-name-as-directory) (file-name-case-insensitive-p . tramp-handle-file-name-case-insensitive-p) (file-name-completion . tramp-handle-file-name-completion) (file-name-directory . tramp-handle-file-name-directory) (file-name-nondirectory . tramp-handle-file-name-nondirectory) (file-newer-than-file-p . tramp-handle-file-newer-than-file-p) (file-notify-add-watch . ignore) (file-notify-rm-watch . ignore) (file-notify-valid-p . ignore) (file-ownership-preserved-p . ignore) (file-readable-p . tramp-sudoedit-handle-file-readable-p) (file-regular-p . tramp-handle-file-regular-p) (file-remote-p . tramp-handle-file-remote-p) (file-selinux-context . tramp-sudoedit-handle-file-selinux-context) (file-symlink-p . tramp-handle-file-symlink-p) (file-system-info . tramp-sudoedit-handle-file-system-info) (file-truename . tramp-sudoedit-handle-file-truename) (file-writable-p . tramp-sudoedit-handle-file-writable-p) (find-backup-file-name . tramp-handle-find-backup-file-name) (insert-directory . tramp-handle-insert-directory) (insert-file-contents . tramp-handle-insert-file-contents) (load . tramp-handle-load) (make-auto-save-file-name . tramp-handle-make-auto-save-file-name) (make-directory . tramp-sudoedit-handle-make-directory) (make-directory-internal . ignore) (make-nearby-temp-file . tramp-handle-make-nearby-temp-file) (make-process . ignore) (make-symbolic-link . tramp-sudoedit-handle-make-symbolic-link) (process-file . ignore) (rename-file . tramp-sudoedit-handle-rename-file) (set-file-acl . tramp-sudoedit-handle-set-file-acl) (set-file-modes . tramp-sudoedit-handle-set-file-modes) (set-file-selinux-context . tramp-sudoedit-handle-set-file-selinux-context) (set-file-times . tramp-sudoedit-handle-set-file-times) (set-visited-file-modtime . tramp-handle-set-visited-file-modtime) (shell-command . ignore) (start-file-process . ignore) (substitute-in-file-name . tramp-handle-substitute-in-file-name) (temporary-file-directory . tramp-handle-temporary-file-directory) (tramp-set-file-uid-gid . tramp-sudoedit-handle-set-file-uid-gid) (unhandled-file-name-directory . ignore) (vc-registered . ignore) (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime) (write-region . tramp-sudoedit-handle-write-region)) "\
 Alist of handler functions for Tramp SUDOEDIT method.")
 
 (defsubst tramp-sudoedit-file-name-p (filename) "\
-Check if it's a filename for SUDOEDIT." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-sudoedit-method)))
+Check if it's a FILENAME for SUDOEDIT." (and (tramp-tramp-file-p filename) (string= (tramp-file-name-method (tramp-dissect-file-name filename)) tramp-sudoedit-method)))
 
 (autoload 'tramp-sudoedit-file-name-handler "tramp-sudoedit" "\
-Invoke the SUDOEDIT handler for OPERATION.
+Invoke the SUDOEDIT handler for OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION.
 
@@ -580,7 +653,7 @@ UU-encode the region between BEG and END.
 ;;;### (autoloads nil "trampver" "trampver.el" (0 0 0 0))
 ;;; Generated autoloads from trampver.el
 
-(defconst tramp-version "2.4.2.4" "\
+(defconst tramp-version "2.4.2.5" "\
 This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org" "\

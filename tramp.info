@@ -21,10 +21,10 @@ END-INFO-DIR-ENTRY
 
 File: tramp.info,  Node: Top,  Next: Overview,  Prev: (dir),  Up: (dir)
 
-TRAMP 2.4.2.4 User Manual
+TRAMP 2.4.2.5 User Manual
 *************************
 
-This file documents TRAMP 2.4.2.4, a remote file editing package for
+This file documents TRAMP 2.4.2.5, a remote file editing package for
 Emacs.
 
    TRAMP stands for “Transparent Remote (file) Access, Multiple
@@ -113,6 +113,7 @@ Using TRAMP
 * Ad-hoc multi-hops::           Declaring multiple hops in the file name.
 * Remote processes::            Integration with other Emacs packages.
 * Cleanup remote connections::  Cleanup remote connections.
+* Renaming remote files::       Renaming remote files.
 * Archive file names::          Access to files in file archives.
 
 How file names, directories and localnames are mangled and managed
@@ -1069,7 +1070,7 @@ File: tramp.info,  Node: Default User,  Next: Default Host,  Prev: Default Metho
      A Caution: TRAMP will override any default user specified in the
      configuration files outside Emacs, such as ‘~/.ssh/config’.  To
      stop TRAMP from applying the default value, set the corresponding
-     alist entry to nil:
+     alist entry to ‘nil’:
 
           (add-to-list 'tramp-default-user-alist
                        '("ssh" "\\`here\\.somewhere\\.else\\'" nil))
@@ -2060,6 +2061,7 @@ Emacs that may cause missed prompts when using TRAMP.
 * Ad-hoc multi-hops::           Declaring multiple hops in the file name.
 * Remote processes::            Integration with other Emacs packages.
 * Cleanup remote connections::  Cleanup remote connections.
+* Renaming remote files::       Renaming remote files.
 * Archive file names::          Access to files in file archives.
 
 
@@ -2526,15 +2528,16 @@ To open ‘powershell’ as a remote shell, use this:
            explicit-powershell-args '("-file" "-"))
 
 
-File: tramp.info,  Node: Cleanup remote connections,  Next: Archive file names,  Prev: Remote processes,  Up: Usage
+File: tramp.info,  Node: Cleanup remote connections,  Next: Renaming remote files,  Prev: Remote processes,  Up: Usage
 
 5.6 Cleanup remote connections
 ==============================
 
 TRAMP provides several ways to flush remote connections.
 
- -- Command: tramp-cleanup-connection vec
-     This command flushes all connection related objects.  ‘vec’ is the
+ -- Command: tramp-cleanup-connection vec &optional keep-debug
+          keep-password
+     This command flushes all connection related objects.  VEC is the
      internal representation of a remote connection.  When called
      interactively, this command lists active remote connections in the
      minibuffer.  Each connection is of the format ‘/method:user@host:’.
@@ -2545,9 +2548,12 @@ TRAMP provides several ways to flush remote connections.
      Conveniences::).  It also deletes session timers (*note Predefined
      connection information::) and connection buffers.
 
+     If KEEP-DEBUG is non-‘nil’, the debug buffer is kept.  A non-‘nil’
+     KEEP-PASSWORD preserves the password cache.
+
  -- Command: tramp-cleanup-this-connection
-     Flushes only the current buffer’s remote connection objects, the
-     same as in ‘tramp-cleanup-connection’.
+     Flushes the current buffer’s remote connection objects, the same as
+     in ‘tramp-cleanup-connection’.
 
  -- Command: tramp-cleanup-all-connections
      Flushes all active remote connection objects, the same as in
@@ -2560,13 +2566,105 @@ TRAMP provides several ways to flush remote connections.
      all buffers related to remote connections.
 
 
-File: tramp.info,  Node: Archive file names,  Prev: Cleanup remote connections,  Up: Usage
+File: tramp.info,  Node: Renaming remote files,  Next: Archive file names,  Prev: Cleanup remote connections,  Up: Usage
 
-5.7 Archive file names
+5.7 Renaming remote files
+=========================
+
+Sometimes, it is desirable to safe file contents of buffers visiting a
+given remote host.  This could happen for example, if the local host
+changes its network integration, and the remote host is not reachable
+anymore.
+
+ -- Command: tramp-rename-files source target
+     Replace in all buffers the visiting file name from SOURCE to
+     TARGET.  SOURCE is a remote directory name, which could contain
+     also a localname part.  TARGET is the directory name SOURCE is
+     replaced with.  Often, TARGET is a remote directory name on another
+     host, but it can also be a local directory name.  If TARGET has no
+     local part, the local part from SOURCE is used.
+
+     If TARGET is ‘nil’, it is selected according to the first match in
+     ‘tramp-default-rename-alist’.  If called interactively, this match
+     is offered as initial value for selection.
+
+     On all buffers, which have a ‘buffer-file-name’ matching SOURCE,
+     this name is modified by replacing SOURCE with TARGET.  This is
+     applied by calling ‘set-visited-file-name’.  The new
+     ‘buffer-file-name’ is prompted for modification in the minibuffer.
+     The buffers are marked modified, and must be saved explicitly.
+
+     If user option ‘tramp-confirm-rename-file-names’ is nil, changing
+     the file name happens without confirmation.  This requires a
+     matching entry in ‘tramp-default-rename-alist’.
+
+     Remote buffers related to the remote connection identified by
+     SOURCE, which are not visiting files, or which are visiting files
+     not matching SOURCE, are not modified.
+
+     Interactively, TARGET is selected from ‘tramp-default-rename-alist’
+     without confirmation if the prefix argument is non-‘nil’.
+
+     The remote connection identified by SOURCE is flushed by
+     ‘tramp-cleanup-connection’.
+
+ -- Command: tramp-rename-these-files target
+     Replace visiting file names to TARGET.  The current buffer must be
+     related to a remote connection.  In all buffers, which are visiting
+     a file with the same directory name, the buffer file name is
+     changed.
+
+     Interactively, TARGET is selected from ‘tramp-default-rename-alist’
+     without confirmation if the prefix argument is non-‘nil’.
+
+ -- User Option: tramp-default-rename-alist
+     The default target for renaming remote buffer file names.  This is
+     an alist of cons cells ‘(source . target)’.  The first matching
+     item specifies the target to be applied for renaming buffer file
+     names from source via ‘tramp-rename-files’.  ‘source’ is a regular
+     expressions, which matches a remote file name.  ‘target’ must be a
+     directory name, which could be remote (including remote directories
+     Tramp infers by default, such as ‘/method:user@host:’).
+
+     ‘target’ can contain the patterns ‘%m’, ‘%u’ or ‘%h’, which are
+     replaced by the method name, user name or host name of ‘source’
+     when calling ‘tramp-rename-files’.
+
+     ‘source’ could also be a Lisp form, which will be evaluated.  The
+     result must be a string or nil, which is interpreted as a regular
+     expression which always matches.
+
+     Example entries:
+
+          ("/ssh:badhost:/path/to/dir/"
+           . "/ssh:goodhost:/path/to/another/dir/")
+
+     would trigger renaming of buffer file names on ‘badhost’ to
+     ‘goodhost’, including changing the directory name.
+
+          ("/ssh:.+\\.company\\.org:" . "/ssh:multi.hop|ssh:%h:")
+
+     routes all connections to a host in ‘company.org’ via
+     ‘/ssh:multi.hop:’, which might be useful when using Emacs outside
+     the company network.
+
+          (nil . "~/saved-files/%m:%u@%h/")
+
+     saves all remote files locally, with a directory name including
+     method name, user name and host name of the remote connection.
+
+ -- User Option: tramp-confirm-rename-file-names
+     Whether renaming a buffer file name by ‘tramp-rename-files’ or
+     ‘tramp-rename-these-files’ must be confirmed.
+
+
+File: tramp.info,  Node: Archive file names,  Prev: Renaming remote files,  Up: Usage
+
+5.8 Archive file names
 ======================
 
 TRAMP offers also transparent access to files inside file archives.
-This is possible only on machines which have installed GVFS (the GNOME
+This is possible only on hosts which have installed GVFS (the GNOME
 Virtual File System), *note GVFS-based methods::.  Internally, file
 archives are mounted via the GVFS ‘archive’ method.
 
@@ -3284,6 +3382,19 @@ File: tramp.info,  Node: Frequently Asked Questions,  Next: Files directories an
      buffer is remote.  See the optional arguments of ‘file-remote-p’
      for determining details of the remote connection.
 
+   • How to save files when a remote host isn’t reachable anymore?
+
+     If the local machine Emacs is running on changes its network
+     integration, remote hosts could become unreachable.  This happens
+     for example, if the local machine is moved between your office and
+     your home without restarting Emacs.
+
+     In such cases, the command ‘tramp-rename-files’ can be used to
+     alter remote buffers’ method, host, and/or directory names.  This
+     permits saving their contents in the same location via another
+     network path, or somewhere else entirely (including locally).
+     *note Renaming remote files::.
+
    • How to disable other packages from calling TRAMP?
 
      There are packages that call TRAMP without the user ever entering a
@@ -3957,13 +4068,13 @@ Function Index
 * tramp-change-syntax:                   Change file name syntax.
                                                                (line 10)
 * tramp-cleanup-all-buffers:             Cleanup remote connections.
-                                                               (line 29)
+                                                               (line 33)
 * tramp-cleanup-all-connections:         Cleanup remote connections.
-                                                               (line 24)
+                                                               (line 28)
 * tramp-cleanup-connection:              Cleanup remote connections.
                                                                (line  8)
 * tramp-cleanup-this-connection:         Cleanup remote connections.
-                                                               (line 20)
+                                                               (line 24)
 * tramp-get-completion-function:         Customizing Completion.
                                                                (line 16)
 * tramp-parse-etc-group:                 Customizing Completion.
@@ -3984,6 +4095,10 @@ Function Index
                                                                (line 46)
 * tramp-parse-sknownhosts:               Customizing Completion.
                                                                (line 63)
+* tramp-rename-files:                    Renaming remote files.
+                                                               (line 11)
+* tramp-rename-these-files:              Renaming remote files.
+                                                               (line 43)
 * tramp-set-completion-function:         Customizing Completion.
                                                                (line 25)
 
@@ -4050,6 +4165,8 @@ Variable Index
                                                               (line  70)
 * tramp-completion-use-auth-sources:     File name completion.
                                                               (line  37)
+* tramp-confirm-rename-file-names:       Renaming remote files.
+                                                              (line  88)
 * tramp-connection-properties:           Predefined connection information.
                                                               (line   9)
 * tramp-default-host:                    Default Host.        (line   6)
@@ -4058,6 +4175,8 @@ Variable Index
 * tramp-default-method-alist:            Default Method.      (line  17)
 * tramp-default-proxies-alist:           Multi-hops.          (line  13)
 * tramp-default-remote-path:             Remote programs.     (line  19)
+* tramp-default-rename-alist:            Renaming remote files.
+                                                              (line  52)
 * tramp-default-user:                    Default User.        (line   6)
 * tramp-default-user-alist:              Default User.        (line  14)
 * tramp-encoding-shell:                  Remote shell setup.  (line  31)
@@ -4067,14 +4186,14 @@ Variable Index
 * tramp-histfile-override:               Frequently Asked Questions.
                                                               (line 281)
 * tramp-ignored-file-name-regexp:        Frequently Asked Questions.
-                                                              (line 584)
+                                                              (line 597)
 * tramp-inline-compress-commands:        Inline methods.      (line  25)
 * tramp-inline-compress-start-size:      Inline methods.      (line  25)
 * tramp-local-host-regexp:               Frequently Asked Questions.
                                                               (line 165)
 * tramp-methods:                         Customizing Methods. (line   6)
 * tramp-mode:                            Frequently Asked Questions.
-                                                              (line 578)
+                                                              (line 591)
 * tramp-own-remote-path:                 Remote programs.     (line  32)
 * tramp-password-prompt-regexp:          Remote shell setup.  (line  65)
 * tramp-persistency-file-name:           Connection caching.  (line   6)
@@ -4360,6 +4479,8 @@ Concept Index
 * rsh (with rcp method):                 External methods.    (line  17)
 * rsh method:                            Inline methods.      (line  32)
 * rsync method:                          External methods.    (line  37)
+* save remote files:                     Renaming remote files.
+                                                              (line   6)
 * scp method:                            External methods.    (line  25)
 * scpx method:                           External methods.    (line  48)
 * scpx method with cygwin:               Windows setup hints. (line  21)
@@ -4429,60 +4550,61 @@ Concept Index
 
 Tag Table:
 Node: Top933
-Node: Overview5366
-Node: Obtaining TRAMP10700
-Node: Quick Start Guide13147
-Ref: Quick Start Guide: File name syntax13924
-Ref: Quick Start Guide: ssh and plink methods15026
-Ref: Quick Start Guide: su, sudo and sg methods15570
-Ref: Quick Start Guide: ssh, plink, su, sudo and sg methods16134
-Ref: Quick Start Guide: sudoedit method16664
-Ref: Quick Start Guide: smb method17075
-Ref: Quick Start Guide: GVFS-based methods17406
-Ref: Quick Start Guide: GNOME Online Accounts based methods17802
-Ref: Quick Start Guide: Android18344
-Ref: Quick Start Guide: rclone method18576
-Node: Configuration18903
-Node: Connection types21375
-Node: Inline methods22789
-Node: External methods27751
-Node: GVFS-based methods38389
-Node: Default Method41658
-Node: Default User44675
-Node: Default Host46198
-Node: Multi-hops47330
-Node: Firewalls51522
-Node: Customizing Methods52979
-Node: Customizing Completion55319
-Node: Password handling58809
-Ref: Using an authentication file59279
-Ref: Caching passwords60781
-Node: Connection caching61299
-Node: Predefined connection information62229
-Node: Remote programs66103
-Node: Remote shell setup69024
-Node: Android shell setup78640
-Node: Auto-save and Backup81027
-Node: Windows setup hints84102
-Node: Usage85722
-Node: File name syntax87020
-Node: Change file name syntax89027
-Node: File name completion90458
-Node: Ad-hoc multi-hops93613
-Node: Remote processes95679
-Ref: Running a debugger on a remote host104437
-Node: Cleanup remote connections106407
-Node: Archive file names107941
-Node: Bug Reports112314
-Node: Frequently Asked Questions114696
-Node: Files directories and localnames137135
-Node: Localname deconstruction137571
-Node: External packages138224
-Node: Traces and Profiles140269
-Node: GNU Free Documentation License142238
-Node: Function Index167609
-Node: Variable Index170213
-Node: Concept Index177548
+Node: Overview5421
+Node: Obtaining TRAMP10755
+Node: Quick Start Guide13202
+Ref: Quick Start Guide: File name syntax13979
+Ref: Quick Start Guide: ssh and plink methods15081
+Ref: Quick Start Guide: su, sudo and sg methods15625
+Ref: Quick Start Guide: ssh, plink, su, sudo and sg methods16189
+Ref: Quick Start Guide: sudoedit method16719
+Ref: Quick Start Guide: smb method17130
+Ref: Quick Start Guide: GVFS-based methods17461
+Ref: Quick Start Guide: GNOME Online Accounts based methods17857
+Ref: Quick Start Guide: Android18399
+Ref: Quick Start Guide: rclone method18631
+Node: Configuration18958
+Node: Connection types21430
+Node: Inline methods22844
+Node: External methods27806
+Node: GVFS-based methods38444
+Node: Default Method41713
+Node: Default User44730
+Node: Default Host46259
+Node: Multi-hops47391
+Node: Firewalls51583
+Node: Customizing Methods53040
+Node: Customizing Completion55380
+Node: Password handling58870
+Ref: Using an authentication file59340
+Ref: Caching passwords60842
+Node: Connection caching61360
+Node: Predefined connection information62290
+Node: Remote programs66164
+Node: Remote shell setup69085
+Node: Android shell setup78701
+Node: Auto-save and Backup81088
+Node: Windows setup hints84163
+Node: Usage85783
+Node: File name syntax87136
+Node: Change file name syntax89143
+Node: File name completion90574
+Node: Ad-hoc multi-hops93729
+Node: Remote processes95795
+Ref: Running a debugger on a remote host104553
+Node: Cleanup remote connections106523
+Node: Renaming remote files108224
+Node: Archive file names112443
+Node: Bug Reports116808
+Node: Frequently Asked Questions119190
+Node: Files directories and localnames142269
+Node: Localname deconstruction142705
+Node: External packages143358
+Node: Traces and Profiles145403
+Node: GNU Free Documentation License147372
+Node: Function Index172743
+Node: Variable Index175621
+Node: Concept Index183230
 
 End Tag Table
 

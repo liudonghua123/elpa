@@ -94,7 +94,7 @@ It is used for TCP/IP devices."
   '((access-file . tramp-handle-access-file)
     (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
-    ;; `copy-directory' performed by default handler.
+    (copy-directory . tramp-handle-copy-directory)
     (copy-file . tramp-adb-handle-copy-file)
     (delete-directory . tramp-adb-handle-delete-directory)
     (delete-file . tramp-adb-handle-delete-file)
@@ -171,20 +171,20 @@ It is used for TCP/IP devices."
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
 (defsubst tramp-adb-file-name-p (filename)
-  "Check if it's a filename for ADB."
+  "Check if it's a FILENAME for ADB."
   (and (tramp-tramp-file-p filename)
        (string= (tramp-file-name-method (tramp-dissect-file-name filename))
 		tramp-adb-method)))
 
 ;;;###tramp-autoload
-(defun tramp-adb-file-name-handler (operation &rest args)
+(defun tramp-adb-file-name-handler (operation &rest arguments)
   "Invoke the ADB handler for OPERATION.
-First arg specifies the OPERATION, second arg is a list of arguments to
-pass to the OPERATION."
+First arg specifies the OPERATION, second arg is a list of
+ARGUMENTS to pass to the OPERATION."
   (let ((fn (assoc operation tramp-adb-file-name-handler-alist)))
     (if fn
-	(save-match-data (apply (cdr fn) args))
-      (tramp-run-real-handler operation args))))
+	(save-match-data (apply (cdr fn) arguments))
+      (tramp-run-real-handler operation arguments))))
 
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -383,6 +383,10 @@ pass to the OPERATION."
 (defun tramp-adb-handle-directory-files-and-attributes
   (directory &optional full match nosort id-format)
   "Like `directory-files-and-attributes' for Tramp files."
+  (unless (file-exists-p directory)
+    (tramp-error
+     (tramp-dissect-file-name directory) tramp-file-missing
+     "No such file or directory" directory))
   (when (file-directory-p directory)
     (with-parsed-tramp-file-name (expand-file-name directory) nil
       (copy-tree
@@ -462,7 +466,7 @@ Convert (\"-al\") to (\"-a\" \"-l\").  Remove arguments like \"--dired\"."
 
 (defun tramp-adb-sh-fix-ls-output (&optional sort-by-time)
   "Insert dummy 0 in empty size columns.
-Androids \"ls\" command doesn't insert size column for directories:
+Android's \"ls\" command doesn't insert size column for directories:
 Emacs dired can't find files."
   (save-excursion
     ;; Insert missing size.
@@ -510,6 +514,8 @@ Emacs dired can't find files."
   "Like `make-directory' for Tramp files."
   (setq dir (expand-file-name dir))
   (with-parsed-tramp-file-name dir nil
+    (when (and (null parents) (file-exists-p dir))
+      (tramp-error v 'file-already-exists "Directory already exists %s" dir))
     (when parents
       (let ((par (expand-file-name ".." dir)))
 	(unless (file-directory-p par)
@@ -706,6 +712,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (let ((t1 (tramp-tramp-file-p filename))
 	  (t2 (tramp-tramp-file-p newname)))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
+	(unless (file-exists-p filename)
+	  (tramp-error
+	   v tramp-file-missing
+	   "Copying file" "No such file or directory" filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -784,6 +794,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (let ((t1 (tramp-tramp-file-p filename))
 	  (t2 (tramp-tramp-file-p newname)))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
+	(unless (file-exists-p filename)
+	  (tramp-error
+	   v tramp-file-missing
+	   "Renaming file" "No such file or directory" filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -1089,7 +1103,7 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 		 vec 'file-error "Could not find device %s" host)))))))
 
 (defun tramp-adb-execute-adb-command (vec &rest args)
-  "Returns nil on success error-output on failure."
+  "Return nil on success error-output on failure."
   (when (and (> (length (tramp-file-name-host vec)) 0)
 	     ;; The -s switch is only available for ADB device commands.
 	     (not (member (car args) '("connect" "disconnect"))))
@@ -1103,7 +1117,7 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
       (tramp-message vec 6 "%s" (buffer-string)))))
 
 (defun tramp-adb-find-test-command (vec)
-  "Checks, whether the ash has a builtin \"test\" command.
+  "Check whether the ash has a builtin \"test\" command.
 This happens for Android >= 4.0."
   (with-tramp-connection-property vec "test"
     (tramp-adb-send-command-and-check vec "type test")))
