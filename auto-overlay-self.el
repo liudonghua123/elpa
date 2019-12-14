@@ -303,10 +303,11 @@
 	  ;;       that end at start or start at end. This seems to give the
 	  ;;       same results as the old version of `auto-o-self-list'
 	  ;;       (above) in all circumstances.
-	  (auto-overlays-in
-	   (1- (overlay-get o-start 'delim-start)) (1+ end)
-	   `(eq set-id ,(overlay-get o-start 'set-id))
-	   `(eq definition-id ,(overlay-get o-start 'definition-id))))))
+	  (sort (auto-overlays-in
+		 (1- (overlay-get o-start 'delim-start)) (1+ end)
+		 `(eq set-id ,(overlay-get o-start 'set-id))
+		 `(eq definition-id ,(overlay-get o-start 'definition-id)))
+		#'auto-overlay-<))))
 
 
 ;;; auto-overlay-self.el ends here

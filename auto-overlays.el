@@ -684,7 +684,7 @@ overlays that satisfy all property tests are returned."
       (when (and (> (overlay-end o) point)
 		 (= (overlay-start o) point))
 	(push o overlay-list)))
-    (sort overlay-list #'auto-overlay-<)))
+    overlay-list))
 
 
 
@@ -1233,10 +1233,7 @@ The overlays can be loaded again later using
 				    :all-overlays t
 				    'auto-overlay-match
 				    `(eq set-id ,set-id))
-		  (lambda (a b)
-		    (or (< (overlay-start a) (overlay-start b))
-			(and (= (overlay-start a) (overlay-start b))
-			     (< (overlay-end a) (overlay-end b)))))))
+		  #'auto-overlay-<))
 
       ;; write overlay data to temporary buffer
       (mapc (lambda (o)
@@ -1758,8 +1755,7 @@ overlays were saved."
 	     ;; note: parentless overlays are possible if a suicide is in
 	     ;; progress, so need to check overlay has a parent first
 	     '(identity parent)
-	     (list (lambda (parent)
-		     (not (overlay-get parent 'inactive)))
+	     (list (lambda (parent) (not (overlay-get parent 'inactive)))
 		   'parent)
 	     (list (lambda (set-id definition-id regexp-id new-pri)
 		     (let ((pri (cdr (assq
