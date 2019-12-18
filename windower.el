@@ -1,6 +1,6 @@
 ;;; windower.el --- Helper functions for window manipulation. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Pierre Neidhardt <mail@ambrevar.xyz>
+;; Copyright (C) 2019  Free Software Foundation, Inc.
 ;;
 ;; Author: Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://gitlab.com/ambrevar/windower
@@ -189,8 +189,8 @@ It only works for frames with exactly two windows."
              (splitter
               (if (= (car this-win-edges)
                      (car (window-edges (next-window))))
-                  'split-window-horizontally
-                'split-window-vertically)))
+                  #'split-window-horizontally
+                #'split-window-vertically)))
         (delete-other-windows)
         (let ((first-win (selected-window)))
           (funcall splitter)
