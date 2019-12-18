@@ -1,0 +1,3 @@
+*.elc
+windower-autoloads.el
+windower-pkg.el
