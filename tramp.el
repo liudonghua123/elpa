@@ -7,8 +7,9 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.4.2.5
+;; Version: 2.4.3
 ;; Package-Requires: ((emacs "24.4"))
+;; Package-Type: multi
 ;; URL: https://savannah.gnu.org/projects/tramp
 
 ;; This file is part of GNU Emacs.
@@ -1019,7 +1020,7 @@ See also `tramp-file-name-regexp'.")
   (car tramp-file-name-structure))
 
 ;;;###autoload
-(defconst tramp-initial-file-name-regexp "\\`/.+:.*:"
+(defconst tramp-initial-file-name-regexp "\\`/[^/:]+:[^/:]*:"
   "Value for `tramp-file-name-regexp' for autoload.
 It must match the initial `tramp-syntax' settings.")
 
@@ -3292,10 +3293,16 @@ User is always nil."
 (defun tramp-handle-file-name-completion
   (filename directory &optional predicate)
   "Like `file-name-completion' for Tramp files."
-  (let (hits-ignored-extensions)
+  (let (hits-ignored-extensions fnac)
+    (setq fnac (file-name-all-completions filename directory))
+    ;; "." and ".." are never interesting as completions, and are
+    ;; actually in the way in a directory with only one file.  See
+    ;; file_name_completion() in dired.c.
+    (when (and (consp fnac) (= (length (delete "./" (delete "../" fnac))) 1))
+      (setq fnac (delete "./" (delete "../" fnac))))
     (or
      (try-completion
-      filename (file-name-all-completions filename directory)
+      filename fnac
       (lambda (x)
 	(when (funcall (or predicate #'identity) (expand-file-name x directory))
 	  (not
@@ -3708,7 +3715,9 @@ support symbolic links."
 
     (setq buffer (if (and (not asynchronous) error-buffer)
 		     (with-parsed-tramp-file-name default-directory nil
-		       (list output-buffer (tramp-make-tramp-temp-file v)))
+		       (list output-buffer
+			     (tramp-make-tramp-file-name
+			      v (tramp-make-tramp-temp-file v))))
 		   output-buffer))
 
     (if current-buffer-p
@@ -3762,7 +3771,7 @@ support symbolic links."
 
 (defun tramp-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files."
-  ;; `make-process' knows the `:file-error' argument since Emacs 27.1.
+  ;; `make-process' knows the `:file-handler' argument since Emacs 27.1 only.
   (tramp-file-name-handler
    'make-process
    :name name
@@ -4196,19 +4205,36 @@ for process communication also."
        (buffer-string))
       result)))
 
+(defun tramp-search-regexp (regexp)
+  "Search for REGEXP backwards, starting at point-max.
+If found, set point to the end of the occurrence found, and return point.
+Otherwise, return nil."
+  (goto-char (point-max))
+  ;; We restrict ourselves to the last 256 characters.  There were
+  ;; reports of a shell command "git ls-files -zco --exclude-standard"
+  ;; with 85k files involved, which has blocked Tramp forever.
+  (re-search-backward regexp (max (point-min) (- (point) 256)) 'noerror))
+
 (defun tramp-check-for-regexp (proc regexp)
   "Check, whether REGEXP is contained in process buffer of PROC.
 Erase echoed commands if exists."
   (with-current-buffer (process-buffer proc)
     (goto-char (point-min))
 
-    ;; Check whether we need to remove echo output.
+    ;; Check whether we need to remove echo output.  The max length of
+    ;; the echo mark regexp is taken for search.  We restrict the
+    ;; search for the second echo mark to PIPE_BUF characters.
     (when (and (tramp-get-connection-property proc "check-remote-echo" nil)
-	       (re-search-forward tramp-echoed-echo-mark-regexp nil t))
+	       (re-search-forward
+		tramp-echoed-echo-mark-regexp
+		(+ (point) (* 5 tramp-echo-mark-marker-length)) t))
       (let ((begin (match-beginning 0)))
-	(when (re-search-forward tramp-echoed-echo-mark-regexp nil t)
+	(when
+	    (re-search-forward
+	     tramp-echoed-echo-mark-regexp
+	     (+ (point) (tramp-get-connection-property proc "pipe-buf" 4096)) t)
 	  ;; Discard echo from remote output.
-	  (tramp-set-connection-property proc "check-remote-echo" nil)
+	  (tramp-flush-connection-property proc "check-remote-echo")
 	  (tramp-message proc 5 "echo-mark found")
 	  (forward-line 1)
 	  (delete-region begin (point))
@@ -4229,8 +4255,7 @@ Erase echoed commands if exists."
       ;; overflow in regexp matcher".  For example, //DIRED// lines of
       ;; directory listings with some thousand files.  Therefore, we
       ;; look from the end.
-      (goto-char (point-max))
-      (ignore-errors (re-search-backward regexp nil t)))))
+      (tramp-search-regexp regexp))))
 
 (defun tramp-wait-for-regexp (proc timeout regexp)
   "Wait for a REGEXP to appear from process PROC within TIMEOUT seconds.
@@ -4312,15 +4337,16 @@ the remote host use line-endings as defined in the variable
   "Flush file caches and remove shell prompt."
   (unless (process-live-p proc)
     (let ((vec (process-get proc 'vector))
+	  (buf (process-buffer proc))
 	  (prompt (tramp-get-connection-property proc "prompt" nil)))
       (when vec
 	(tramp-message vec 5 "Sentinel called: `%S' `%s'" proc event)
         (tramp-flush-connection-properties proc)
         (tramp-flush-directory-properties vec ""))
-      (with-current-buffer (process-buffer proc)
-        (goto-char (point-max))
-        (when (and prompt (re-search-backward (regexp-quote prompt) nil t))
-	  (delete-region (point) (point-max)))))))
+      (when (buffer-live-p buf)
+	(with-current-buffer buf
+          (when (and prompt (tramp-search-regexp (regexp-quote prompt)))
+	    (delete-region (point) (point-max))))))))
 
 (defun tramp-get-inode (vec)
   "Return the virtual inode number.
@@ -4987,12 +5013,14 @@ name of a process or buffer, or nil to default to the current buffer."
 ;; - Reset `file-name-handler-alist'
 ;; - Cleanup hooks where Tramp functions are in
 ;; - Cleanup autoloads
+;; We must autoload the function body.  Otherwise, Tramp would be
+;; loaded unconditionally if somebody calls `tramp-unload-tramp'.
 ;;;###autoload
-(defun tramp-unload-tramp ()
+(progn (defun tramp-unload-tramp ()
   "Discard Tramp from loading remote files."
   (interactive)
   ;; Maybe it's not loaded yet.
-  (ignore-errors (unload-feature 'tramp 'force)))
+  (ignore-errors (unload-feature 'tramp 'force))))
 
 (provide 'tramp)
 

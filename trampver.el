@@ -35,8 +35,11 @@
 ;; Emacs version check is defined in macro AC_EMACS_INFO of
 ;; aclocal.m4; should be changed only there.
 
+;; Needed for Emacs 24.
+(defvar inhibit-message)
+
 ;;;###tramp-autoload
-(defconst tramp-version "2.4.2.5"
+(defconst tramp-version "2.4.3"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -70,7 +73,7 @@
 ;; Check for Emacs version.
 (let ((x   (if (not (string-lessp emacs-version "24.4"))
       "ok"
-    (format "Tramp 2.4.2.5 is not fit for %s"
+    (format "Tramp 2.4.3 is not fit for %s"
             (replace-regexp-in-string "\n" "" (emacs-version))))))
   (unless (string-equal "ok" x) (error "%s" x)))
 
