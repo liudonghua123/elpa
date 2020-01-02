@@ -7,7 +7,7 @@
 ;; URL: https://git.sr.ht/~zge/bang
 
 ;; This file is NOT part of Emacs.
-;; 
+;;
 ;; This file is in the public domain, to the extent possible under law,
 ;; published under the CC0 1.0 Universal license.
 ;;
