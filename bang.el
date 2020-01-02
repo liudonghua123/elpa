@@ -28,7 +28,7 @@
 ;; The original version can be found here:
 ;; https://leahneukirchen.org/dotfiles/.emacs
 
-(require 'rx)
+(eval-when-compile (require 'rx))
 
 ;;; Code:
 
