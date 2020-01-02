@@ -37,7 +37,7 @@
       (? (group (or "." "/") (* (not space))) (+ space))
       (or (group "<") (group ">") (group "|") "!" "")
       (* space)
-      (group (* not-newline))
+      (group (+ not-newline))
       eos))
 
 (defun bang-expand-path (path)
