@@ -26,8 +26,9 @@
 
 ;;; Code:
 
-(require 'auto-overlays)
 (provide 'auto-overlay-self)
+(require 'auto-overlays)
+
 
 (defvar auto-o-pending-self-cascade nil)
 (make-variable-buffer-local 'auto-o-pending-self-cascade)

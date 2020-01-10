@@ -26,8 +26,8 @@
 
 ;;; Code:
 
-(require 'auto-overlays)
 (provide 'auto-overlay-line)
+(require 'auto-overlays)
 
 
 ;; set line overlay parsing and suicide funtions

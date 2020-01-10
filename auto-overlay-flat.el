@@ -26,8 +26,8 @@
 
 ;;; Code:
 
-(require 'auto-overlays)
 (provide 'auto-overlay-flat)
+(require 'auto-overlays)
 
 
 ;; set flat overlay parsing and suicide functions, and indicate class requires

@@ -26,8 +26,8 @@
 
 ;;; Code:
 
-(require 'auto-overlays)
 (provide 'auto-overlay-word)
+(require 'auto-overlays)
 
 
 ;; set word overlay parsing and suicide functions

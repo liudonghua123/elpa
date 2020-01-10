@@ -33,9 +33,7 @@
 (defvar auto-overlay-load-hook nil)
 (defvar auto-overlay-unload-hook nil)
 
-
 (eval-when-compile (require 'cl))
-(provide 'auto-overlays)
 
 
 ;; (defvar auto-overlay-list nil)
@@ -2115,6 +2113,16 @@ overlay changes."
 			    '(identity auto-overlay-match)
 			    `(eq set-id ,set-id)))
     nil))
+
+
+
+(provide 'auto-overlays)
+
+(require 'auto-overlay-word)
+(require 'auto-overlay-line)
+(require 'auto-overlay-self)
+(require 'auto-overlay-nested)
+(require 'auto-overlay-flat)
 
 
 ;;; auto-overlays.el ends here

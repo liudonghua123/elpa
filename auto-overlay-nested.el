@@ -26,8 +26,8 @@
 
 ;;; Code:
 
-(require 'auto-overlays)
 (provide 'auto-overlay-nested)
+(require 'auto-overlays)
 
 
 ;; set nested overlay parsing and suicide functions, and indicate class
