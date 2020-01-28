@@ -25,6 +25,7 @@ MAKEINFO	= makeinfo --no-warn --no-split
 TEXI_FILES	= $(wildcard *.texi)
 CLEAN_FILES	= .\\\#* \\\#* .*~ *~ *.aux *.cp *.cps *.diff *.fn *.fns \
 		  *.ky *.log *.pg *.tmp *.toc *.tp *.vr *.vrs
+SOURCE_DIR	= ~/src/tramp
 
 .PHONY: all clean sync
 
@@ -38,5 +39,5 @@ clean:
 
 # This target is for the maintainer only.
 sync:
-	cp -p ~/src/tramp/texi/tramp.texi tramp.texi
-	cp -p ~/src/tramp/texi/trampver.texi trampver.texi
+	cp -p $(SOURCE_DIR)/texi/tramp.texi tramp.texi
+	cp -p $(SOURCE_DIR)/texi/trampver.texi trampver.texi

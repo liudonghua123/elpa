@@ -18,6 +18,7 @@
 
 EMACS		= emacs -Q -batch -L .
 LISP_FILES	= $(wildcard *.el)
+SOURCE_DIR	= ~/src/tramp
 
 .PHONY: all autoloads check info sync test
 
@@ -41,20 +42,20 @@ check test: autoloads
 
 # This target is for the maintainer only.
 sync:
-	cp -p ~/src/tramp/lisp/tramp-adb.el tramp-adb.el
-	cp -p ~/src/tramp/lisp/tramp-archive.el tramp-archive.el
-	cp -p ~/src/tramp/lisp/tramp-cache.el tramp-cache.el
-	cp -p ~/src/tramp/lisp/tramp-cmds.el tramp-cmds.el
-	cp -p ~/src/tramp/lisp/tramp-compat.el tramp-compat.el
-	cp -p ~/src/tramp/lisp/tramp-ftp.el tramp-ftp.el
-	cp -p ~/src/tramp/lisp/tramp-gvfs.el tramp-gvfs.el
-	cp -p ~/src/tramp/lisp/tramp-integration.el tramp-integration.el
-	cp -p ~/src/tramp/lisp/tramp-rclone.el tramp-rclone.el
-	cp -p ~/src/tramp/lisp/tramp-sh.el tramp-sh.el
-	cp -p ~/src/tramp/lisp/tramp-smb.el tramp-smb.el
-	cp -p ~/src/tramp/lisp/tramp-sudoedit.el tramp-sudoedit.el
-	cp -p ~/src/tramp/lisp/tramp-uu.el tramp-uu.el
-	cp -p ~/src/tramp/lisp/tramp.el tramp.el
-	cp -p ~/src/tramp/lisp/trampver.el trampver.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-adb.el tramp-adb.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-archive.el tramp-archive.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-cache.el tramp-cache.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-cmds.el tramp-cmds.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-compat.el tramp-compat.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-ftp.el tramp-ftp.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-gvfs.el tramp-gvfs.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-integration.el tramp-integration.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-rclone.el tramp-rclone.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-sh.el tramp-sh.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-smb.el tramp-smb.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-sudoedit.el tramp-sudoedit.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-uu.el tramp-uu.el
+	cp -p $(SOURCE_DIR)/lisp/tramp.el tramp.el
+	cp -p $(SOURCE_DIR)/lisp/trampver.el trampver.el
 	$(MAKE) -C texi sync
 	$(MAKE) -C test sync

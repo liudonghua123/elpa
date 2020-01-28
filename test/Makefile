@@ -24,6 +24,7 @@
 EMACS		= emacs -Q -batch -L ../
 CLEAN_FILES	= .\\\#* \\\#* .*~ *~ *.elc *.log
 TESTS		= tramp-tests
+SOURCE_DIR	= ~/src/tramp
 
 TRAMP_TEST_ARGS ?=
 SELECTOR	?= (not (tag :unstable))
@@ -53,4 +54,4 @@ distclean: clean
 
 # This target is for the maintainer only.
 sync:
-	cp -p ~/src/tramp/test/tramp-tests.el tramp-tests.el
+	cp -p $(SOURCE_DIR)/test/tramp-tests.el tramp-tests.el

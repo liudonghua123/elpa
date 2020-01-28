@@ -1,3 +1,7 @@
+.dir-locals.el
+.elpaignore
+.git
+.gitignore
 Makefile
 texi/Makefile
 README-GIT
