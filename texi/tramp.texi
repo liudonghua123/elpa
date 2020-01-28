@@ -12,7 +12,7 @@
 @footnotestyle end
 
 @copying
-Copyright @copyright{} 1999--2019 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -3799,7 +3799,11 @@ help the development team find the best solution and avoid unrelated
 detours.
 
 To exclude cache-related problems, flush all caches before running the
-test, @ref{Cleanup remote connections}.
+test, @ref{Cleanup remote connections}.  Alternatively, and often
+better for analysis, reproduce the problem in a clean Emacs session
+started with @command{emacs -Q}.  Then, @value{tramp} does not load
+the persistency file (@pxref{Connection caching}), and it does not use
+passwords from @file{auth-source.el} (@pxref{Password handling}).
 
 When including @value{tramp}'s messages in the bug report, increase
 the verbosity level to 6 (@pxref{Traces and Profiles, Traces}) in the
@@ -3840,8 +3844,8 @@ Where is the latest @value{tramp}?
 @item
 Which systems does it work on?
 
-The package works successfully on Emacs 24, Emacs 25, Emacs 26, and
-Emacs 27.
+The package works successfully on Emacs 24, Emacs 25, Emacs 26, Emacs
+27, and Emacs 28.
 
 While Unix and Unix-like systems are the primary remote targets,
 @value{tramp} has equal success connecting to other platforms, such as

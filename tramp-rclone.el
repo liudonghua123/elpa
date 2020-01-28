@@ -1,6 +1,6 @@
 ;;; tramp-rclone.el --- Tramp access functions to cloud storages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -564,7 +564,7 @@ connection if a previous connection has died for some reason."
 		 ,(tramp-rclone-mount-point vec)
 		 ;; This could be nil.
 		 ,(tramp-get-method-parameter vec 'tramp-mount-args))))
-	(while (not (file-exists-p (tramp-make-tramp-file-name vec 'localname)))
+	(while (not (file-exists-p (tramp-make-tramp-file-name vec 'noloc)))
 	  (tramp-cleanup-connection vec 'keep-debug 'keep-password))
 
 	;; Mark it as connected.

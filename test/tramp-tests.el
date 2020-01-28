@@ -1,6 +1,6 @@
 ;;; tramp-tests.el --- Tests of remote file access  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -4248,7 +4248,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((default-directory tramp-test-temporary-file-directory)
-	  (tmp-name (tramp--test-make-temp-name nil quoted))
+	  (tmp-name1 (tramp--test-make-temp-name nil quoted))
+	  (tmp-name2 (tramp--test-make-temp-name 'local quoted))
 	  kill-buffer-query-functions proc)
       (with-no-warnings (should-not (make-process)))
 
@@ -4278,13 +4279,13 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
       ;; Simple process using a file.
       (unwind-protect
 	  (with-temp-buffer
-	    (write-region "foo" nil tmp-name)
-	    (should (file-exists-p tmp-name))
+	    (write-region "foo" nil tmp-name1)
+	    (should (file-exists-p tmp-name1))
 	    (setq proc
 		  (with-no-warnings
 		    (make-process
 		     :name "test2" :buffer (current-buffer)
-		     :command `("cat" ,(file-name-nondirectory tmp-name))
+		     :command `("cat" ,(file-name-nondirectory tmp-name1))
 		     :file-handler t)))
 	    (should (processp proc))
 	    ;; Read output.
@@ -4296,7 +4297,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors
 	  (delete-process proc)
-	  (delete-file tmp-name)))
+	  (delete-file tmp-name1)))
 
       ;; Process filter.
       (unwind-protect
@@ -4351,34 +4352,60 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
 
-      ;; Process with stderr.  tramp-adb.el doesn't support it (yet).
-      (unless (tramp--test-adb-p)
-	(let ((stderr (generate-new-buffer "*stderr*")))
-	  (unwind-protect
-	      (with-temp-buffer
-		(setq proc
-		      (with-no-warnings
-			(make-process
-			 :name "test5" :buffer (current-buffer)
-			 :command '("cat" "/")
-			 :stderr stderr
-			 :file-handler t)))
-		(should (processp proc))
-		;; Read stderr.
-		(with-current-buffer stderr
-		  (with-timeout (10 (tramp--test-timeout-handler))
-		    (while (= (point-min) (point-max))
-		      (while (accept-process-output proc 0 nil t))))
-		  (should
-		   (string-match "^cat:.* Is a directory" (buffer-string)))))
+      ;; Process with stderr buffer.
+      (let ((stderr (generate-new-buffer "*stderr*")))
+	(unwind-protect
+	    (with-temp-buffer
+	      (setq proc
+		    (with-no-warnings
+		      (make-process
+		       :name "test5" :buffer (current-buffer)
+		       :command '("cat" "/")
+		       :stderr stderr
+		       :file-handler t)))
+	      (should (processp proc))
+	      ;; Read stderr.
+	      (with-timeout (10 (tramp--test-timeout-handler))
+		(while (accept-process-output proc 0 nil t)))
+	      (delete-process proc)
+	      (with-current-buffer stderr
+		(should
+		 (string-match "cat:.* Is a directory" (buffer-string)))))
 
-	    ;; Cleanup.
-	    (ignore-errors (delete-process proc))
-	    (ignore-errors (kill-buffer stderr))))))))
+	  ;; Cleanup.
+	  (ignore-errors (delete-process proc))
+	  (ignore-errors (kill-buffer stderr))))
+
+      ;; Process with stderr file.
+      (dolist (tmpfile `(,tmp-name1 ,tmp-name2))
+	(unwind-protect
+	    (with-temp-buffer
+	      (setq proc
+		    (with-no-warnings
+		      (make-process
+		       :name "test6" :buffer (current-buffer)
+		       :command '("cat" "/")
+		       :stderr tmpfile
+		       :file-handler t)))
+	      (should (processp proc))
+	      ;; Read stderr.
+	      (with-timeout (10 (tramp--test-timeout-handler))
+		(while (accept-process-output proc nil nil t)))
+	      (delete-process proc)
+	      (with-temp-buffer
+		(insert-file-contents tmpfile)
+		(should
+		 (string-match "cat:.* Is a directory" (buffer-string)))))
+
+	  ;; Cleanup.
+	  (ignore-errors (delete-process proc))
+	  (ignore-errors (delete-file tmpfile)))))))
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
-  :tags '(:expensive-test)
+  ;; The test fails from time to time, w/o a reproducible pattern.  So
+  ;; we mark it as unstable.
+  :tags '(:expensive-test :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   ;; Since Emacs 26.1.
@@ -4388,6 +4415,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   ;; order to establish the connection prior running an asynchronous
   ;; process.
   (let ((default-directory (file-truename tramp-test-temporary-file-directory))
+	(delete-exited-processes t)
 	kill-buffer-query-functions proc)
     (unwind-protect
 	(with-temp-buffer
@@ -4399,7 +4427,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (interrupt-process proc))
 	  ;; Let the process accept the interrupt.
 	  (with-timeout (10 (tramp--test-timeout-handler))
-	    (while (accept-process-output proc nil nil 0)))
+	    (while (process-live-p proc)
+	      (while (accept-process-output proc 0 nil t))))
 	  (should-not (process-live-p proc))
 	  ;; An interrupted process cannot be interrupted, again.
 	  (should-error
@@ -4409,14 +4438,23 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
       ;; Cleanup.
       (ignore-errors (delete-process proc)))))
 
+(defun tramp--test-async-shell-command
+    (command output-buffer &optional error-buffer input)
+  "Like `async-shell-command', reading the output.
+INPUT, if non-nil, is a string sent to the process."
+  (let ((proc (async-shell-command command output-buffer error-buffer))
+	(delete-exited-processes t))
+    (when (stringp input)
+      (process-send-string proc input))
+    (with-timeout
+	((if (getenv "EMACS_EMBA_CI") 30 10) (tramp--test-timeout-handler))
+      (while (or (accept-process-output proc nil nil t) (process-live-p proc))))
+    (accept-process-output proc nil nil t)))
+
 (defun tramp--test-shell-command-to-string-asynchronously (command)
   "Like `shell-command-to-string', but for asynchronous processes."
   (with-temp-buffer
-    (async-shell-command command (current-buffer))
-    (with-timeout
-        ((if (getenv "EMACS_EMBA_CI") 30 10) (tramp--test-timeout-handler))
-      (while (accept-process-output
-	      (get-buffer-process (current-buffer)) nil nil t)))
+    (tramp--test-async-shell-command command (current-buffer))
     (buffer-substring-no-properties (point-min) (point-max))))
 
 (ert-deftest tramp-test32-shell-command ()
@@ -4435,89 +4473,67 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (inhibit-message t)
 	  kill-buffer-query-functions)
 
-      ;; Test ordinary `shell-command'.
-      (unwind-protect
-	  (with-temp-buffer
-	    (write-region "foo" nil tmp-name)
-	    (should (file-exists-p tmp-name))
-	    (shell-command
-	     (format "ls %s" (file-name-nondirectory tmp-name))
-	     (current-buffer))
-	    ;; `ls' could produce colorized output.
-	    (goto-char (point-min))
-	    (while
-		(re-search-forward tramp-display-escape-sequence-regexp nil t)
-	      (replace-match "" nil nil))
-	    (should
-	     (string-equal
-	      (format "%s\n" (file-name-nondirectory tmp-name))
-	      (buffer-string))))
+      (dolist (this-shell-command
+	       '(;; Synchronously.
+		 shell-command
+		 ;; Asynchronously.
+		 tramp--test-async-shell-command))
 
-	;; Cleanup.
-	(ignore-errors (delete-file tmp-name)))
-
-      ;; Test `shell-command' with error buffer.
-      (let ((stderr (generate-new-buffer "*stderr*")))
+	;; Test ordinary `{async-}shell-command'.
 	(unwind-protect
 	    (with-temp-buffer
-	      (shell-command "error" (current-buffer) stderr)
-	      (should (= (point-min) (point-max)))
+	      (write-region "foo" nil tmp-name)
+	      (should (file-exists-p tmp-name))
+	      (funcall
+	       this-shell-command
+	       (format "ls %s" (file-name-nondirectory tmp-name))
+	       (current-buffer))
+	      ;; `ls' could produce colorized output.
+	      (goto-char (point-min))
+	      (while
+		  (re-search-forward tramp-display-escape-sequence-regexp nil t)
+		(replace-match "" nil nil))
 	      (should
-	       (string-match
-		"error:.+not found"
-		(with-current-buffer stderr (buffer-string)))))
+	       (string-equal
+		(format "%s\n" (file-name-nondirectory tmp-name))
+		(buffer-string))))
 
 	  ;; Cleanup.
-	  (ignore-errors (kill-buffer stderr))))
+	  (ignore-errors (delete-file tmp-name)))
 
-      ;; Test ordinary `async-shell-command'.
-      (unwind-protect
-	  (with-temp-buffer
-	    (write-region "foo" nil tmp-name)
-	    (should (file-exists-p tmp-name))
-	    (async-shell-command
-	     (format "ls %s" (file-name-nondirectory tmp-name))
-	     (current-buffer))
-	    ;; Read output.
-	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (accept-process-output
-		      (get-buffer-process (current-buffer)) nil nil t)))
-	    ;; `ls' could produce colorized output.
-	    (goto-char (point-min))
-	    (while
-		(re-search-forward tramp-display-escape-sequence-regexp nil t)
-	      (replace-match "" nil nil))
-	    (should
-	     (string-equal
-	      (format "%s\n" (file-name-nondirectory tmp-name))
-	      (buffer-string))))
+	;; Test `{async-}shell-command' with error buffer.
+	(let ((stderr (generate-new-buffer "*stderr*")))
+	  (unwind-protect
+	      (with-temp-buffer
+		(funcall
+		 this-shell-command
+		 "echo foo >&2; echo bar" (current-buffer) stderr)
+		(should (string-equal "bar\n" (buffer-string)))
+		;; Check stderr.
+		(with-current-buffer stderr
+		  (should (string-equal "foo\n" (buffer-string)))))
 
-	;; Cleanup.
-	(ignore-errors (delete-file tmp-name)))
+	    ;; Cleanup.
+	    (ignore-errors (kill-buffer stderr)))))
 
       ;; Test sending string to `async-shell-command'.
       (unwind-protect
 	  (with-temp-buffer
 	    (write-region "foo" nil tmp-name)
 	    (should (file-exists-p tmp-name))
-	    (async-shell-command "read line; ls $line" (current-buffer))
-	    (process-send-string
-	     (get-buffer-process (current-buffer))
+	    (tramp--test-async-shell-command
+	     "read line; ls $line" (current-buffer) nil
+	     ;; String to be sent.
 	     (format "%s\n" (file-name-nondirectory tmp-name)))
-	    ;; Read output.
-	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (accept-process-output
-		      (get-buffer-process (current-buffer)) nil nil t)))
-	    ;; `ls' could produce colorized output.
-	    (goto-char (point-min))
-	    (while
-		(re-search-forward tramp-display-escape-sequence-regexp nil t)
-	      (replace-match "" nil nil))
-	    ;; We cannot use `string-equal', because tramp-adb.el
-	    ;; echoes also the sent string.
 	    (should
-	     (string-match
-	      (format "\\`%s" (regexp-quote (file-name-nondirectory tmp-name)))
+	     (string-equal
+	      ;; tramp-adb.el echoes, so we must add the string.
+	      (if (tramp--test-adb-p)
+		  (format
+		   "%s\n%s\n"
+		   (file-name-nondirectory tmp-name)
+		   (file-name-nondirectory tmp-name))
+		(format "%s\n" (file-name-nondirectory tmp-name)))
 	      (buffer-string))))
 
 	;; Cleanup.
@@ -6001,116 +6017,8 @@ process sentinels.  They shall not disturb each other."
         (ignore-errors (cancel-timer timer))
         (ignore-errors (delete-directory tmp-name 'recursive))))))
 
-(ert-deftest tramp-test44-threads ()
-  "Check that Tramp cooperates with threads."
-  (skip-unless (tramp--test-enabled))
-  (skip-unless (featurep 'threads))
-  (skip-unless (= (length (with-no-warnings (all-threads))) 1))
-  (skip-unless (not (with-no-warnings (thread-last-error))))
-  ;; We need the thread features introduced in Emacs 27.
-  (skip-unless (bound-and-true-p main-thread))
-  ;; For the time being it works only in the feature branch.
-  (skip-unless
-   (string-equal
-    (bound-and-true-p emacs-repository-branch) "feature/tramp-thread-safe"))
-
-  (tramp--test-instrument-test-case 0
-  (with-no-warnings
-    (with-timeout (60 (tramp--test-timeout-handler))
-      ;; We cannot bind the variables dynamically; they are used in the threads.
-      (defvar tmp-name1 (tramp--test-make-temp-name))
-      (defvar tmp-name2 (tramp--test-make-temp-name))
-      (defvar tmp-mutex (make-mutex "mutex"))
-      (defvar tmp-condvar1 (make-condition-variable tmp-mutex "condvar1"))
-      (defvar tmp-condvar2 (make-condition-variable tmp-mutex "condvar2"))
-
-      ;; Rename simple file.
-      (unwind-protect
-	  (let (tmp-thread1 tmp-thread2)
-	    (write-region "foo" nil tmp-name1)
-	    (should (file-exists-p tmp-name1))
-	    (should-not (file-exists-p tmp-name2))
-
-	    (should (mutexp tmp-mutex))
-	    (should (condition-variable-p tmp-condvar1))
-	    (should (condition-variable-p tmp-condvar2))
-
-	    ;; This thread renames `tmp-name1' to `tmp-name2' twice.
-	    (setq
-	     tmp-thread1
-	     (make-thread
-	      (lambda ()
-		;; Rename first time.
-		(rename-file tmp-name1 tmp-name2)
-		;; Notify thread2.
-		(with-mutex (condition-mutex tmp-condvar2)
-		  (condition-notify tmp-condvar2 t))
-		;; Rename second time, once we've got notification from thread2.
-		(with-mutex (condition-mutex tmp-condvar1)
-		  (condition-wait tmp-condvar1))
-		(rename-file tmp-name1 tmp-name2))
-	      "thread1"))
-
-	    (should (threadp tmp-thread1))
-	    (should (thread-live-p tmp-thread1))
-
-	    ;; This thread renames `tmp-name2' to `tmp-name1' twice.
-	    (setq
-	     tmp-thread2
-	     (make-thread
-	      (lambda ()
-		;; Rename first time, once we've got notification from thread1.
-		(with-mutex (condition-mutex tmp-condvar2)
-		  (condition-wait tmp-condvar2))
-		(rename-file tmp-name2 tmp-name1)
-		;; Notify thread1.
-		(with-mutex (condition-mutex tmp-condvar1)
-		  (condition-notify tmp-condvar1 t))
-		;; Rename second time, once we've got notification from
-		;; the main thread.
-		(with-mutex (condition-mutex tmp-condvar2)
-		  (condition-wait tmp-condvar2))
-		(rename-file tmp-name2 tmp-name1))
-	      "thread2"))
-
-	    (should (threadp tmp-thread2))
-	    (should (thread-live-p tmp-thread2))
-	    (should (= (length (all-threads)) 3))
-
-	    ;; Wait for thread1.
-	    (thread-join tmp-thread1)
-	    ;; Checks.
-	    (should-not (thread-live-p tmp-thread1))
-	    (should (= (length (all-threads)) 2))
-	    (should-not (thread-last-error))
-	    (should (file-exists-p tmp-name2))
-	    (should-not (file-exists-p tmp-name1))
-
-	    ;; Notify thread2.
-	    (with-mutex (condition-mutex tmp-condvar2)
-	      (condition-notify tmp-condvar2 t))
-
-	    ;; Wait for thread2.
-	    (thread-join tmp-thread2)
-	    ;; Checks.
-	    (should-not (thread-live-p tmp-thread2))
-	    (should (= (length (all-threads)) 1))
-	    (should-not (thread-last-error))
-	    (should (file-exists-p tmp-name1))
-	    (should-not (file-exists-p tmp-name2)))
-
-	;; Cleanup.
-	(ignore-errors (delete-file tmp-name1))
-	(ignore-errors (delete-file tmp-name2))
-	;; We could have spurious threads still running; wait for them to die.
-	(while (cdr (all-threads))
-	  (thread-signal (cadr (all-threads)) 'error nil)
-	  (thread-yield))
-	;; Cleanup errors.
-	(ignore-errors (thread-last-error 'cleanup)))))))
-
 ;; This test is inspired by Bug#29163.
-(ert-deftest tramp-test45-auto-load ()
+(ert-deftest tramp-test44-auto-load ()
   "Check that Tramp autoloads properly."
   ;; If we use another syntax but `default', Tramp is already loaded
   ;; due to the `tramp-change-syntax' call.
@@ -6135,7 +6043,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test45-delay-load ()
+(ert-deftest tramp-test44-delay-load ()
   "Check that Tramp is loaded lazily, only when needed."
   ;; The autoloaded Tramp objects are different since Emacs 26.1.  We
   ;; cannot test older Emacsen, therefore.
@@ -6168,7 +6076,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument (format code tm)))))))))
 
-(ert-deftest tramp-test45-recursive-load ()
+(ert-deftest tramp-test44-recursive-load ()
   "Check that Tramp does not fail due to recursive load."
   (skip-unless (tramp--test-enabled))
 
@@ -6192,7 +6100,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument code))))))))
 
-(ert-deftest tramp-test45-remote-load-path ()
+(ert-deftest tramp-test44-remote-load-path ()
   "Check that Tramp autoloads its packages with remote `load-path'."
   ;; The autoloaded Tramp objects are different since Emacs 26.1.  We
   ;; cannot test older Emacsen, therefore.
@@ -6221,7 +6129,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test46-unload ()
+(ert-deftest tramp-test45-unload ()
   "Check that Tramp and its subpackages unload completely.
 Since it unloads Tramp, it shall be the last test to run."
   :tags '(:expensive-test)
@@ -6302,10 +6210,9 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;;   do not work properly for `nextcloud'.
 ;; * Fix `tramp-test29-start-file-process' and
 ;;   `tramp-test30-make-process' on MS Windows (`process-send-eof'?).
-;; * Implement `tramp-test31-interrupt-process' for `adb'.
+;; * Implement `tramp-test31-interrupt-process' for `adb'.  Fix `:unstable'.
 ;; * Fix Bug#16928 in `tramp-test43-asynchronous-requests'.  A remote
 ;;   file name operation cannot run in the timer.  Remove `:unstable' tag?
-;; * Fix `tramp-test44-threads'.
 
 (provide 'tramp-tests)
 ;;; tramp-tests.el ends here

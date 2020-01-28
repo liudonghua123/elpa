@@ -1,6 +1,6 @@
 This is tramp.info, produced by makeinfo version 6.6 from tramp.texi.
 
-Copyright © 1999–2019 Free Software Foundation, Inc.
+Copyright © 1999–2020 Free Software Foundation, Inc.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
@@ -21,10 +21,10 @@ END-INFO-DIR-ENTRY
 
 File: tramp.info,  Node: Top,  Next: Overview,  Prev: (dir),  Up: (dir)
 
-TRAMP 2.4.3 User Manual
-***********************
+TRAMP 2.4.3.1 User Manual
+*************************
 
-This file documents TRAMP 2.4.3, a remote file editing package for
+This file documents TRAMP 2.4.3.1, a remote file editing package for
 Emacs.
 
    TRAMP stands for “Transparent Remote (file) Access, Multiple
@@ -42,7 +42,7 @@ and ‘rcp’ or other work-alike programs, such as ‘ssh’/‘scp’.
 <tramp-devel@gnu.org>, and archived at the TRAMP Mail Archive
 (https://lists.gnu.org/r/tramp-devel/).
 
-   Copyright © 1999–2019 Free Software Foundation, Inc.
+   Copyright © 1999–2020 Free Software Foundation, Inc.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
@@ -2815,7 +2815,11 @@ help the development team find the best solution and avoid unrelated
 detours.
 
    To exclude cache-related problems, flush all caches before running
-the test, *note Cleanup remote connections::.
+the test, *note Cleanup remote connections::.  Alternatively, and often
+better for analysis, reproduce the problem in a clean Emacs session
+started with ‘emacs -Q’.  Then, TRAMP does not load the persistency file
+(*note Connection caching::), and it does not use passwords from
+‘auth-source.el’ (*note Password handling::).
 
    When including TRAMP’s messages in the bug report, increase the
 verbosity level to 6 (*note Traces: Traces and Profiles.) in the
@@ -2848,8 +2852,8 @@ File: tramp.info,  Node: Frequently Asked Questions,  Next: Files directories an
 
    • Which systems does it work on?
 
-     The package works successfully on Emacs 24, Emacs 25, Emacs 26, and
-     Emacs 27.
+     The package works successfully on Emacs 24, Emacs 25, Emacs 26,
+     Emacs 27, and Emacs 28.
 
      While Unix and Unix-like systems are the primary remote targets,
      TRAMP has equal success connecting to other platforms, such as MS
@@ -3603,7 +3607,7 @@ Appendix A GNU Free Documentation License
                      Version 1.3, 3 November 2008
 
      Copyright © 2000, 2001, 2002, 2007, 2008, 2009 Free Software Foundation, Inc.
-     <http://fsf.org/>
+     <https://fsf.org/>
 
      Everyone is permitted to copy and distribute verbatim copies
      of this license document, but changing it is not allowed.
@@ -4000,7 +4004,7 @@ Appendix A GNU Free Documentation License
      the GNU Free Documentation License from time to time.  Such new
      versions will be similar in spirit to the present version, but may
      differ in detail to address new problems or concerns.  See
-     <http://www.gnu.org/copyleft/>.
+     <https://www.gnu.org/licenses/>.
 
      Each version of the License is given a distinguishing version
      number.  If the Document specifies that a particular numbered
@@ -4573,61 +4577,61 @@ Concept Index
 
 Tag Table:
 Node: Top933
-Node: Overview5415
-Node: Obtaining TRAMP10749
-Node: Quick Start Guide13196
-Ref: Quick Start Guide: File name syntax13973
-Ref: Quick Start Guide: ssh and plink methods15075
-Ref: Quick Start Guide: su, sudo and sg methods15619
-Ref: Quick Start Guide: ssh, plink, su, sudo and sg methods16183
-Ref: Quick Start Guide: sudoedit method16713
-Ref: Quick Start Guide: smb method17124
-Ref: Quick Start Guide: GVFS-based methods17455
-Ref: Quick Start Guide: GNOME Online Accounts based methods17851
-Ref: Quick Start Guide: Android18393
-Ref: Quick Start Guide: rclone method18625
-Node: Configuration18952
-Node: Connection types21424
-Node: Inline methods22838
-Node: External methods27800
-Node: GVFS-based methods38438
-Node: Default Method41707
-Node: Default User44724
-Node: Default Host46253
-Node: Multi-hops47385
-Node: Firewalls51577
-Node: Customizing Methods53034
-Node: Customizing Completion55374
-Node: Password handling58864
-Ref: Using an authentication file59334
-Ref: Caching passwords60836
-Node: Connection caching61354
-Node: Predefined connection information62284
-Node: Remote programs66158
-Node: Remote shell setup69079
-Node: Android shell setup78695
-Node: Auto-save and Backup81082
-Node: Windows setup hints84157
-Node: Usage85777
-Node: File name syntax87130
-Node: Change file name syntax89137
-Node: File name completion90568
-Node: Ad-hoc multi-hops93723
-Node: Remote processes95789
-Ref: Running a debugger on a remote host104547
-Node: Cleanup remote connections106517
-Node: Renaming remote files108218
-Node: Archive file names112437
-Node: Bug Reports116802
-Node: Frequently Asked Questions119184
-Node: Files directories and localnames143070
-Node: Localname deconstruction143506
-Node: External packages144159
-Node: Traces and Profiles146204
-Node: GNU Free Documentation License148173
-Node: Function Index173544
-Node: Variable Index176422
-Node: Concept Index184031
+Node: Overview5421
+Node: Obtaining TRAMP10755
+Node: Quick Start Guide13202
+Ref: Quick Start Guide: File name syntax13979
+Ref: Quick Start Guide: ssh and plink methods15081
+Ref: Quick Start Guide: su, sudo and sg methods15625
+Ref: Quick Start Guide: ssh, plink, su, sudo and sg methods16189
+Ref: Quick Start Guide: sudoedit method16719
+Ref: Quick Start Guide: smb method17130
+Ref: Quick Start Guide: GVFS-based methods17461
+Ref: Quick Start Guide: GNOME Online Accounts based methods17857
+Ref: Quick Start Guide: Android18399
+Ref: Quick Start Guide: rclone method18631
+Node: Configuration18958
+Node: Connection types21430
+Node: Inline methods22844
+Node: External methods27806
+Node: GVFS-based methods38444
+Node: Default Method41713
+Node: Default User44730
+Node: Default Host46259
+Node: Multi-hops47391
+Node: Firewalls51583
+Node: Customizing Methods53040
+Node: Customizing Completion55380
+Node: Password handling58870
+Ref: Using an authentication file59340
+Ref: Caching passwords60842
+Node: Connection caching61360
+Node: Predefined connection information62290
+Node: Remote programs66164
+Node: Remote shell setup69085
+Node: Android shell setup78701
+Node: Auto-save and Backup81088
+Node: Windows setup hints84163
+Node: Usage85783
+Node: File name syntax87136
+Node: Change file name syntax89143
+Node: File name completion90574
+Node: Ad-hoc multi-hops93729
+Node: Remote processes95795
+Ref: Running a debugger on a remote host104553
+Node: Cleanup remote connections106523
+Node: Renaming remote files108224
+Node: Archive file names112443
+Node: Bug Reports116808
+Node: Frequently Asked Questions119476
+Node: Files directories and localnames143372
+Node: Localname deconstruction143808
+Node: External packages144461
+Node: Traces and Profiles146506
+Node: GNU Free Documentation License148475
+Node: Function Index173848
+Node: Variable Index176726
+Node: Concept Index184335
 
 End Tag Table
 

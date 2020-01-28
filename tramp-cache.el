@@ -1,6 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000, 2005-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2020 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -411,9 +411,7 @@ used to cache connection properties of the local machine."
 		       (prin1-to-string key))
 		     (if (hash-table-p value)
 			 (tramp-cache-print value)
-		       (if (or (bufferp value)
-			       ;; Mutexes have entered Emacs 26.1.
-			       (tramp-compat-funcall 'mutexp value))
+		       (if (bufferp value)
 			   (prin1-to-string (prin1-to-string value))
 			 (prin1-to-string value))))))
 	   (setq result (if result (concat result " " tmp) tmp))))
@@ -476,7 +474,7 @@ used to cache connection properties of the local machine."
 		  tramp-persistency-file-name))
 	     (error "\n"))
 	   ";; Tramp connection history.  Don't change this file.\n"
-	   ";; You can delete it, forcing Tramp to reapply the checks.\n\n"
+	   ";; Run `M-x tramp-cleanup-all-connections' instead.\n\n"
 	   (with-output-to-string
 	     (pp (read (format "(%s)" (tramp-cache-print cache)))))))))))
 
@@ -516,7 +514,7 @@ for all methods.  Resulting data are derived from connection history."
 	   tramp-cache-read-persistent-data)
   (condition-case err
       (with-temp-buffer
-	(insert-file-contents tramp-persistency-file-name)
+	(insert-file-contents-literally tramp-persistency-file-name)
 	(let ((list (read (current-buffer)))
 	      (tramp-verbose 0)
 	      element key item)
