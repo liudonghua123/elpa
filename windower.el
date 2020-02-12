@@ -152,7 +152,9 @@ If W2 is a window too, swap both."
 (defun windower-switch-to-last-buffer ()
   "Switch to last open buffer in current window."
   (interactive)
-  (switch-to-buffer (other-buffer (current-buffer) 1)))
+  (if (window-dedicated-p)
+      (message "Window is dedicated to its buffer")
+    (switch-to-buffer (other-buffer (current-buffer) 1))))
 
 ;;; TODO: Store window configurations in a buffer-name-indexed alist? Not
 ;;; sure that would ever be useful.
