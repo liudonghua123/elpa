@@ -50,6 +50,7 @@
 (require 'vc-hg)
 
 (declare-function tramp-find-executable "tramp-sh")
+(declare-function tramp-get-remote-gid "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
 (declare-function tramp-get-remote-perl "tramp-sh")
 (declare-function tramp-get-remote-stat "tramp-sh")
@@ -74,6 +75,8 @@
 (defvar connection-local-profile-alist)
 ;; Needed for Emacs 26.
 (defvar async-shell-command-width)
+;; Needed for Emacs 27.
+(defvar shell-command-dont-erase-buffer)
 
 ;; Beautify batch mode.
 (when noninteractive
@@ -2393,14 +2396,14 @@ This checks also `file-name-as-directory', `file-name-directory',
 			tramp--test-messages))))))))
 
 	    ;; Do not overwrite if excluded.
-	    (cl-letf (((symbol-function 'y-or-n-p) (lambda (_prompt) t))
+	    (cl-letf (((symbol-function #'y-or-n-p) (lambda (_prompt) t))
 		      ;; Ange-FTP.
 		      ((symbol-function 'yes-or-no-p) (lambda (_prompt) t)))
 	      (write-region "foo" nil tmp-name nil nil nil 'mustbenew))
 	    ;; `mustbenew' is passed to Tramp since Emacs 26.1.
 	    (when (tramp--test-emacs26-p)
 	      (should-error
-	       (cl-letf (((symbol-function 'y-or-n-p) 'ignore)
+	       (cl-letf (((symbol-function #'y-or-n-p) #'ignore)
 			 ;; Ange-FTP.
 			 ((symbol-function 'yes-or-no-p) 'ignore))
 		 (write-region "foo" nil tmp-name nil nil nil 'mustbenew))
@@ -3115,22 +3118,38 @@ This tests also `access-file', `file-readable-p',
 	     (file-remote-p tmp-name1)
 	     (replace-regexp-in-string
 	      "/" "//" (file-remote-p tmp-name1 'localname))))
+	   ;; `file-ownership-preserved-p' is implemented only in tramp-sh.el.
+	   (test-file-ownership-preserved-p (tramp--test-sh-p))
 	   attr)
       (unwind-protect
 	  (progn
+	    ;; A sticky bit could damage the `file-ownership-preserved-p' test.
+	    (when
+		(and test-file-ownership-preserved-p
+		     (zerop (logand
+			     #o1000
+			     (file-modes tramp-test-temporary-file-directory))))
+	      (write-region "foo" nil tmp-name1)
+	      (setq test-file-ownership-preserved-p
+		    (= (tramp-compat-file-attribute-group-id
+			(file-attributes tmp-name1))
+		       (tramp-get-remote-gid
+			(tramp-dissect-file-name tmp-name1) 'integer)))
+	      (delete-file tmp-name1))
+
 	    (should-error
 	     (access-file tmp-name1 "error")
 	     :type tramp-file-missing)
 	    ;; `file-ownership-preserved-p' should return t for
-	    ;; non-existing files.  It is implemented only in tramp-sh.el.
-	    (when (tramp--test-sh-p)
+	    ;; non-existing files.
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
 	    (should (file-readable-p tmp-name1))
 	    (should (file-regular-p tmp-name1))
 	    (should-not (access-file tmp-name1 "error"))
-	    (when (tramp--test-sh-p)
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 
 	    ;; We do not test inodes and device numbers.
@@ -3160,16 +3179,16 @@ This tests also `access-file', `file-readable-p',
 	    (should (stringp (tramp-compat-file-attribute-group-id attr)))
 
 	    (tramp--test-ignore-make-symbolic-link-error
-	     (should-error
-	      (access-file tmp-name2 "error")
-	      :type tramp-file-missing)
-	      (when (tramp--test-sh-p)
+	      (should-error
+	       (access-file tmp-name2 "error")
+	       :type tramp-file-missing)
+	      (when test-file-ownership-preserved-p
 		(should (file-ownership-preserved-p tmp-name2 'group)))
 	      (make-symbolic-link tmp-name1 tmp-name2)
 	      (should (file-exists-p tmp-name2))
 	      (should (file-symlink-p tmp-name2))
 	      (should-not (access-file tmp-name2 "error"))
-	      (when (tramp--test-sh-p)
+	      (when test-file-ownership-preserved-p
 		(should (file-ownership-preserved-p tmp-name2 'group)))
 	      (setq attr (file-attributes tmp-name2))
 	      (should
@@ -3200,7 +3219,7 @@ This tests also `access-file', `file-readable-p',
 		 (tramp-dissect-file-name tmp-name3))))
 	      (delete-file tmp-name2))
 
-	    (when (tramp--test-sh-p)
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (delete-file tmp-name1)
 	    (make-directory tmp-name1)
@@ -3208,7 +3227,7 @@ This tests also `access-file', `file-readable-p',
 	    (should (file-readable-p tmp-name1))
 	    (should-not (file-regular-p tmp-name1))
 	    (should-not (access-file tmp-name1 ""))
-	    (when (tramp--test-sh-p)
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (setq attr (file-attributes tmp-name1))
 	    (should (eq (tramp-compat-file-attribute-type attr) t)))
@@ -3420,11 +3439,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       :type 'file-already-exists))
 	    (when (tramp--test-expensive-test)
 	      ;; A number means interactive case.
-	      (cl-letf (((symbol-function 'yes-or-no-p) #'ignore))
+	      (cl-letf (((symbol-function #'yes-or-no-p) #'ignore))
 		(should-error
 		 (make-symbolic-link tmp-name1 tmp-name2 0)
 		 :type 'file-already-exists)))
-	    (cl-letf (((symbol-function 'yes-or-no-p) (lambda (_prompt) t)))
+	    (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_prompt) t)))
 	      (make-symbolic-link tmp-name1 tmp-name2 0)
 	      (should
 	       (string-equal
@@ -3496,11 +3515,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (add-name-to-file tmp-name1 tmp-name2)
 	      :type 'file-already-exists)
 	     ;; A number means interactive case.
-	     (cl-letf (((symbol-function 'yes-or-no-p) #'ignore))
+	     (cl-letf (((symbol-function #'yes-or-no-p) #'ignore))
 	       (should-error
 		(add-name-to-file tmp-name1 tmp-name2 0)
 		:type 'file-already-exists))
-	     (cl-letf (((symbol-function 'yes-or-no-p) (lambda (_prompt) t)))
+	     (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_prompt) t)))
 	       (add-name-to-file tmp-name1 tmp-name2 0)
 	       (should (file-regular-p tmp-name2)))
 	     (add-name-to-file tmp-name1 tmp-name2 'ok-if-already-exists)
@@ -4181,7 +4200,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (setq proc (start-file-process "test1" (current-buffer) "cat"))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
-	    (process-send-string proc "foo")
+	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
@@ -4224,7 +4243,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (set-process-filter
 	     proc
 	     (lambda (p s) (with-current-buffer (process-buffer p) (insert s))))
-	    (process-send-string proc "foo")
+	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
@@ -4263,7 +4282,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		     :file-handler t)))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
-	    (process-send-string proc "foo")
+	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
@@ -4312,7 +4331,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		     :file-handler t)))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
-	    (process-send-string proc "foo")
+	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
@@ -4338,7 +4357,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		     :file-handler t)))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
-	    (process-send-string proc "foo")
+	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    (delete-process proc)
 	    ;; Read output.
@@ -4346,8 +4365,13 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (while (accept-process-output proc 0 nil t)))
 	    ;; We cannot use `string-equal', because tramp-adb.el
 	    ;; echoes also the sent string.  And a remote macOS sends
-	    ;; a slightly modified string.
-	    (should (string-match "killed.*\n\\'" (buffer-string))))
+	    ;; a slightly modified string.  On MS Windows,
+	    ;; `delete-process' sends an unknown signal.
+	    (should
+	     (string-match
+	      (if (eq system-type 'windows-nt)
+		  "unknown signal\n\\'" "killed.*\n\\'")
+	      (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -4360,7 +4384,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (with-no-warnings
 		      (make-process
 		       :name "test5" :buffer (current-buffer)
-		       :command '("cat" "/")
+		       :command '("cat" "/does-not-exist")
 		       :stderr stderr
 		       :file-handler t)))
 	      (should (processp proc))
@@ -4370,7 +4394,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (delete-process proc)
 	      (with-current-buffer stderr
 		(should
-		 (string-match "cat:.* Is a directory" (buffer-string)))))
+		 (string-match
+		  "cat:.* No such file or directory" (buffer-string)))))
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
@@ -4384,7 +4409,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (with-no-warnings
 		      (make-process
 		       :name "test6" :buffer (current-buffer)
-		       :command '("cat" "/")
+		       :command '("cat" "/does-not-exist")
 		       :stderr tmpfile
 		       :file-handler t)))
 	      (should (processp proc))
@@ -4395,7 +4420,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (with-temp-buffer
 		(insert-file-contents tmpfile)
 		(should
-		 (string-match "cat:.* Is a directory" (buffer-string)))))
+		 (string-match
+		  "cat:.* No such file or directory" (buffer-string)))))
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
@@ -4403,9 +4429,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
-  ;; The test fails from time to time, w/o a reproducible pattern.  So
-  ;; we mark it as unstable.
-  :tags '(:expensive-test :unstable)
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   ;; Since Emacs 26.1.
@@ -4419,7 +4443,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	kill-buffer-query-functions proc)
     (unwind-protect
 	(with-temp-buffer
-	  (setq proc (start-file-process "test" (current-buffer) "sleep" "10"))
+	  (setq proc (start-file-process-shell-command
+		      "test" (current-buffer)
+		      "trap 'echo boom; exit 1' 2; sleep 100"))
 	  (should (processp proc))
 	  (should (process-live-p proc))
 	  (should (equal (process-status proc) 'run))
@@ -4442,7 +4468,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
     (command output-buffer &optional error-buffer input)
   "Like `async-shell-command', reading the output.
 INPUT, if non-nil, is a string sent to the process."
-  (let ((proc (async-shell-command command output-buffer error-buffer))
+  (async-shell-command command output-buffer error-buffer)
+  (let ((proc (get-buffer-process output-buffer))
 	(delete-exited-processes t))
     (when (stringp input)
       (process-send-string proc input))
@@ -4537,25 +4564,113 @@ INPUT, if non-nil, is a string sent to the process."
 	      (buffer-string))))
 
 	;; Cleanup.
-	(ignore-errors (delete-file tmp-name)))
+	(ignore-errors (delete-file tmp-name)))))
 
-      ;; Test `async-shell-command-width'.  Since Emacs 27.1.
-      (when (ignore-errors
-	      (and (boundp 'async-shell-command-width)
-		   (zerop (call-process "tput" nil nil nil "cols"))
-                   (zerop (process-file "tput" nil nil nil "cols"))))
-	(let (async-shell-command-width)
-	  (should
-	   (string-equal
-	    (format "%s\n" (car (process-lines "tput" "cols")))
-	    (tramp--test-shell-command-to-string-asynchronously
-	     "tput cols")))
-	  (setq async-shell-command-width 1024)
-	  (should
-	   (string-equal
-	    "1024\n"
-	    (tramp--test-shell-command-to-string-asynchronously
-	     "tput cols"))))))))
+  ;; Test `async-shell-command-width'.  It exists since Emacs 26.1,
+  ;; but seems to work since Emacs 27.1 only.
+  (when (and (tramp--test-sh-p) (tramp--test-emacs27-p))
+    (let* ((async-shell-command-width 1024)
+	   (default-directory tramp-test-temporary-file-directory)
+	   (cols (ignore-errors
+		   (read (tramp--test-shell-command-to-string-asynchronously
+			  "tput cols")))))
+      (when (natnump cols)
+	(should (= cols async-shell-command-width))))))
+
+;; This test is inspired by Bug#39067.
+(ert-deftest tramp-test32-shell-command-dont-erase-buffer ()
+  "Check `shell-command-dont-erase-buffer'."
+  :tags '(:expensive-test)
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
+  ;; Prior Emacs 27, `shell-command-dont-erase-buffer' wasn't working properly.
+  (skip-unless (tramp--test-emacs27-p))
+
+  ;; We check both the local and remote case, in order to guarantee
+  ;; that they behave similar.
+  (dolist (default-directory
+	    `(,temporary-file-directory ,tramp-test-temporary-file-directory))
+    (let ((buffer (generate-new-buffer "foo"))
+	  ;; Suppress nasty messages.
+	  (inhibit-message t)
+	  point kill-buffer-query-functions)
+      (unwind-protect
+	  (progn
+	    ;; Don't erase if buffer is the current one.  Point is not moved.
+	    (let (shell-command-dont-erase-buffer)
+	      (with-temp-buffer
+		(insert "bar")
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (point-max)))
+		(shell-command "echo baz" (current-buffer))
+		(should (string-equal "barbaz\n" (buffer-string)))
+		(should (= point (point)))))
+
+	    ;; Erase if the buffer is not current one.
+	    (let (shell-command-dont-erase-buffer)
+	      (with-current-buffer buffer
+		(erase-buffer)
+		(insert "bar")
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (point-max)))
+		(with-temp-buffer
+		  (shell-command "echo baz" buffer))
+		(should (string-equal "baz\n" (buffer-string)))
+		(should (= point (point)))))
+
+	    ;; Erase if buffer is the current one, but
+	    ;; `shell-command-dont-erase-buffer' is set to `erase'.
+	    (let ((shell-command-dont-erase-buffer 'erase))
+	      (with-temp-buffer
+		(insert "bar")
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (point-max)))
+		(shell-command "echo baz" (current-buffer))
+		(should (string-equal "baz\n" (buffer-string)))
+		(should (= (point) (point-max)))))
+
+	    ;; Don't erase if `shell-command-dont-erase-buffer' is set
+	    ;; to `beg-last-out'.  Check point.
+	    (let ((shell-command-dont-erase-buffer 'beg-last-out))
+	      (with-temp-buffer
+		(insert "bar")
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (point-max)))
+		(shell-command "echo baz" (current-buffer))
+		(should (string-equal "barbaz\n" (buffer-string)))
+		(should (= point (point)))))
+
+	    ;; Don't erase if `shell-command-dont-erase-buffer' is set
+	    ;; to `end-last-out'.  Check point.
+	    (let ((shell-command-dont-erase-buffer 'end-last-out))
+	      (with-temp-buffer
+		(insert "bar")
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (point-max)))
+		(shell-command "echo baz" (current-buffer))
+		(should (string-equal "barbaz\n" (buffer-string)))
+		(should (= (point) (point-max)))))
+
+	    ;; Don't erase if `shell-command-dont-erase-buffer' is set
+	    ;; to `save-point'.  Check point.
+	    (let ((shell-command-dont-erase-buffer 'save-point))
+	      (with-temp-buffer
+		(insert "bar")
+		(goto-char (1- (point-max)))
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (1- (point-max))))
+		(shell-command "echo baz" (current-buffer))
+		(should (string-equal "barbaz\n" (buffer-string)))
+		(should (= point (point))))))
+
+	;; Cleanup.
+	(ignore-errors (kill-buffer buffer))))))
 
 ;; This test is inspired by Bug#23952.
 (ert-deftest tramp-test33-environment-variables ()
@@ -5769,7 +5884,7 @@ Use the `ls' command."
   ;; Since Emacs 27.1.
   (skip-unless (fboundp 'file-system-info))
 
-  ;; `file-system-info' exists since Emacs 27.  We don't want to see
+  ;; `file-system-info' exists since Emacs 27.1.  We don't want to see
   ;; compiler warnings for older Emacsen.
   (let ((fsi (with-no-warnings
 	       (file-system-info tramp-test-temporary-file-directory))))
@@ -6208,9 +6323,7 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Fix `tramp-test06-directory-file-name' for `ftp'.
 ;; * Investigate, why `tramp-test11-copy-file' and `tramp-test12-rename-file'
 ;;   do not work properly for `nextcloud'.
-;; * Fix `tramp-test29-start-file-process' and
-;;   `tramp-test30-make-process' on MS Windows (`process-send-eof'?).
-;; * Implement `tramp-test31-interrupt-process' for `adb'.  Fix `:unstable'.
+;; * Implement `tramp-test31-interrupt-process' for `adb'.
 ;; * Fix Bug#16928 in `tramp-test43-asynchronous-requests'.  A remote
 ;;   file name operation cannot run in the timer.  Remove `:unstable' tag?
 

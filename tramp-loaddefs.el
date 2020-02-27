@@ -517,11 +517,12 @@ based on the Tramp and Emacs versions, and should not be set here.")
 
 (custom-autoload 'tramp-remote-process-environment "tramp-sh" t)
 
-(defvar tramp-sh-extra-args '(("/bash\\'" . "-norc -noprofile") ("/zsh\\'" . "-f +Z -V")) "\
+(defvar tramp-sh-extra-args '(("/bash\\'" . "-noediting -norc -noprofile") ("/zsh\\'" . "-f +Z -V")) "\
 Alist specifying extra arguments to pass to the remote shell.
 Entries are (REGEXP . ARGS) where REGEXP is a regular expression
 matching the shell file name and ARGS is a string specifying the
-arguments.
+arguments.  These arguments shall disable line editing, see
+`tramp-open-shell'.
 
 This variable is only used when Tramp needs to start up another shell
 for tilde expansion.  The extra arguments should typically prevent the
@@ -653,7 +654,7 @@ UU-encode the region between BEG and END.
 ;;;### (autoloads nil "trampver" "trampver.el" (0 0 0 0))
 ;;; Generated autoloads from trampver.el
 
-(defconst tramp-version "2.4.3.1" "\
+(defconst tramp-version "2.4.3.2" "\
 This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org" "\

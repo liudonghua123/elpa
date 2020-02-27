@@ -1301,10 +1301,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	   (size (cdr (assoc "filesystem::size" attr)))
 	   (used (cdr (assoc "filesystem::used" attr)))
 	   (free (cdr (assoc "filesystem::free" attr))))
-      (when (and (stringp size) (stringp used) (stringp free))
-	(list (string-to-number size)
-	      (- (string-to-number size) (string-to-number used))
-	      (string-to-number free))))))
+      (when (or size used free)
+	(list (string-to-number (or size "0"))
+	      (string-to-number (or free "0"))
+	      (- (string-to-number (or size "0"))
+		 (string-to-number (or used "0"))))))))
 
 (defun tramp-gvfs-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -1341,7 +1342,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (tramp-run-real-handler
      #'rename-file (list filename newname ok-if-already-exists))))
 
-(defun tramp-gvfs-handle-set-file-modes (filename mode)
+(defun tramp-gvfs-handle-set-file-modes (filename mode &optional _flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
@@ -1350,7 +1351,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
      (tramp-gvfs-url-file-name (tramp-make-tramp-file-name v))
      "unix::mode" (number-to-string mode))))
 
-(defun tramp-gvfs-handle-set-file-times (filename &optional time)
+(defun tramp-gvfs-handle-set-file-times (filename &optional time _flag)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)

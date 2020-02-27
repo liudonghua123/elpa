@@ -464,7 +464,7 @@ the result will be a local, non-Tramp, file name."
       (tramp-sudoedit-send-command
        v "test" "-r" (tramp-compat-file-name-unquote localname)))))
 
-(defun tramp-sudoedit-handle-set-file-modes (filename mode)
+(defun tramp-sudoedit-handle-set-file-modes (filename mode &optional _flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
@@ -522,7 +522,7 @@ the result will be a local, non-Tramp, file name."
 		     (string-to-number (match-string 2)))
 		  (string-to-number (match-string 3)))))))))
 
-(defun tramp-sudoedit-handle-set-file-times (filename &optional time)
+(defun tramp-sudoedit-handle-set-file-times (filename &optional time _flag)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)

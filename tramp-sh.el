@@ -537,12 +537,13 @@ based on the Tramp and Emacs versions, and should not be set here."
 
 ;;;###tramp-autoload
 (defcustom tramp-sh-extra-args
-  '(("/bash\\'" . "-norc -noprofile")
+  '(("/bash\\'" . "-noediting -norc -noprofile")
     ("/zsh\\'" . "-f +Z -V"))
   "Alist specifying extra arguments to pass to the remote shell.
 Entries are (REGEXP . ARGS) where REGEXP is a regular expression
 matching the shell file name and ARGS is a string specifying the
-arguments.
+arguments.  These arguments shall disable line editing, see
+`tramp-open-shell'.
 
 This variable is only used when Tramp needs to start up another shell
 for tilde expansion.  The extra arguments should typically prevent the
@@ -1273,8 +1274,8 @@ component is used as the target of the symlink."
 (defun tramp-do-file-attributes-with-ls (vec localname &optional id-format)
   "Implement `file-attributes' for Tramp files using the ls(1) command."
   (let (symlinkp dirp
-		 res-inode res-filemodes res-numlinks
-		 res-uid res-gid res-size res-symlink-target)
+	res-inode res-filemodes res-numlinks
+	res-uid res-gid res-size res-symlink-target)
     (tramp-message vec 5 "file attributes with ls: %s" localname)
     ;; We cannot send all three commands combined, it could exceed
     ;; NAME_MAX or PATH_MAX.  Happened on macOS, for example.
@@ -1478,7 +1479,7 @@ of."
 	     ;; only if that agrees with the buffer's record.
 	     (t (tramp-compat-time-equal-p mt tramp-time-doesnt-exist)))))))))
 
-(defun tramp-sh-handle-set-file-modes (filename mode)
+(defun tramp-sh-handle-set-file-modes (filename mode &optional _flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
@@ -1488,7 +1489,7 @@ of."
      (format "chmod %o %s" mode (tramp-shell-quote-argument localname))
      "Error while changing file's mode %s" filename)))
 
-(defun tramp-sh-handle-set-file-times (filename &optional time)
+(defun tramp-sh-handle-set-file-times (filename &optional time _flag)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (when (tramp-get-remote-touch v)
@@ -4106,7 +4107,28 @@ file exists and nonzero exit status otherwise."
   (with-tramp-progress-reporter
       vec 5 (format-message "Opening remote shell `%s'" shell)
     ;; Find arguments for this shell.
-    (let ((extra-args (tramp-get-sh-extra-args shell)))
+    (let ((extra-args (tramp-get-sh-extra-args shell))
+	  (p (tramp-get-connection-process vec)))
+      ;; The readline library can disturb Tramp.  For example, the
+      ;; very recent version of libedit, the *BSD implementation of
+      ;; readline, confuses Tramp.  So we disable line editing.  Since
+      ;; $EDITRC is not supported on all target systems, we must move
+      ;; ~/.editrc temporarily somewhere else.  For bash and zsh we
+      ;; have disabled this already during shell invocation, see
+      ;; `tramp-sh-extra-args' (Bug#39399).
+      ;; The shell prompt might not be set yet, so we must read any
+      ;; prompt via `tramp-barf-if-no-shell-prompt'.
+      (unless extra-args
+	(tramp-send-command vec "rm -f ~/.editrc.tramp" t t)
+	(tramp-barf-if-no-shell-prompt p 10 "Couldn't find remote shell prompt")
+	(tramp-send-command
+	 vec "test -e ~/.editrc && mv -f ~/.editrc ~/.editrc.tramp" t t)
+	(tramp-barf-if-no-shell-prompt p 10 "Couldn't find remote shell prompt")
+	(tramp-send-command vec "echo 'edit off' >~/.editrc" t t)
+	(tramp-barf-if-no-shell-prompt
+	 p 10 "Couldn't find remote shell prompt"))
+      ;; It is useful to set the prompt in the following command
+      ;; because some people have a setting for $PS1 which /bin/sh
       ;; doesn't know about and thus /bin/sh will display a strange
       ;; prompt.  For example, if $PS1 has "${CWD}" in the value, then
       ;; ksh will display the current working directory but /bin/sh
@@ -4140,6 +4162,11 @@ file exists and nonzero exit status otherwise."
 	    (tramp-shell-quote-argument tramp-end-of-output)
 	    shell (or extra-args ""))
        t)
+      ;; Reset ~/.editrc.
+      (unless extra-args
+	(tramp-send-command vec "rm -f ~/.editrc" t)
+	(tramp-send-command
+	 vec "test -e ~/.editrc.tramp && mv -f ~/.editrc.tramp ~/.editrc" t))
       ;; Check proper HISTFILE setting.  We give up when not working.
       (when (and (stringp tramp-histfile-override)
 		 (file-name-directory tramp-histfile-override))
