@@ -1,4 +1,4 @@
-;;; $Id: openpgp.el,v 1.1 2020/03/04 14:36:51 oj14ozun Exp oj14ozun $
+;;; $Id: openpgp.el,v 1.2 2020/03/04 14:40:53 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
 
@@ -7,6 +7,8 @@
 
 NOTE: currently the default value is the only working keyserver,
 as federation hasn't been implemented yet.")
+
+ ;; FETCHING KEYS
 
 (defsubst openpgp--api-url (endpoint &optional arg)
   "Construct VKS request querying ENDPOINT.
@@ -42,6 +44,8 @@ URL, if non-nil."
   "Query key via EMAIL and add to keychain."
   (url-retrieve (openpgp--api-url "by-email" email)
 		#'openpgp--process-key))
+
+ ;; UPLOADING KEYS
 
 (defun openpgp--verify-callback (status)
   (when (plist-get status :error)
@@ -95,3 +99,29 @@ key."
   (with-temp-buffer
     (insert-file-contents key-file)
     (openpgp-upload-key email (buffer-string))))
+
+ ;; MAIL CLIENT SUPPORT
+
+(with-eval-after-load 'rmail
+  (defun openpgp-rmail-fetch-key ()
+    "Fetch key for the sender of the current message."
+    (interactive)
+    (when (or (null rmail-current-message)
+	      (zerop rmail-current-message))
+      (error "There is no message to fetch a key for"))
+    (let ((email (or (mail-fetch-field "mail-reply-to" nil t)
+		     (mail-fetch-field "reply-to" nil t)
+		     (mail-fetch-field "from"))))
+      (when (yes-or-no-p (format "Attempt to fetch key for %s? " email))
+	(openpgp-fetch-key-by-email email)))))
+
+(with-eval-after-load 'mu4
+  (defun openpgp-mu4e-fetch-key ()
+    "Fetch key for the sender of the current message."
+    (interactive)
+    (when (mu4e-message-at-point 'noerror)
+      (error "There is no message to fetch a key for"))
+    (let ((email (or (mu4e-message-field msg :reply-to)
+		     (mu4e-message-field msg :from))))
+      (when (yes-or-no-p (format "Attempt to fetch key for %s? " email))
+	(openpgp-fetch-key-by-email email)))))
