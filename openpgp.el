@@ -1,4 +1,4 @@
-;;; $Id: openpgp.el,v 1.2 2020/03/04 14:40:53 oj14ozun Exp oj14ozun $
+;;; $Id: openpgp.el,v 1.3 2020/03/04 15:40:02 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
 
@@ -42,7 +42,7 @@ URL, if non-nil."
 
 (defun openpgp-fetch-key-by-email (email)
   "Query key via EMAIL and add to keychain."
-  (url-retrieve (openpgp--api-url "by-email" email)
+  (url-retrieve (openpgp--api-url "by-email" (url-hexify-string email))
 		#'openpgp--process-key))
 
  ;; UPLOADING KEYS
