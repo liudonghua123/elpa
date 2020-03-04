@@ -1,4 +1,4 @@
-;;; $Id$
+;;; $Id: openpgp.el,v 1.1 2020/03/04 14:36:51 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
 
@@ -49,7 +49,7 @@ URL, if non-nil."
 	   (caddr (assq (caddr (plist-get status :error))
 			url-http-codes))))
   (forward-paragraph)
-  (let ((data (json-parse-buffer)))
+  (let ((data (json-parse-buffer :object-type 'alist)))
     (when (assq 'error data)
       (error "Error in response: %s" (cdr (assq 'error data))))
     (message "Verification successfully requested.")))
