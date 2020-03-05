@@ -1,8 +1,6 @@
-;;; $Id: openpgp.el,v 1.8 2020/03/05 12:44:28 oj14ozun Exp oj14ozun $
+;;; $Id: openpgp.el,v 1.9 2020/03/05 12:49:49 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
-;;;
-;;; Requires Emacs 27
 
 (defcustom openpgp-keyserver "keys.openpgp.org"
   "Domain of keyserver to use.
@@ -55,7 +53,8 @@ URL, if non-nil."
 	   (caddr (assq (caddr (plist-get status :error))
 			url-http-codes))))
   (forward-paragraph)
-  (let ((data (json-parse-buffer)))
+  (let* ((json-object-type 'hash-table)
+	 (data (json-read)))
     (when (gethash "error" data)
       (error "Error in response: %s" (gethash "error" data)))
     (let ((resp (gethash email (gethash "status" data))))
@@ -88,7 +87,7 @@ TOKEN should be supplied by a previous \"upload-key\" request."
 	   (caddr (assq (caddr (plist-get status :error))
 			url-http-codes))))
   (forward-paragraph)
-  (let ((data (json-parse-buffer :object-type 'alist)))
+  (let ((data (json-read)))
     (when (assq 'error data)
       (error "Error in response: %s" (cdr (assq 'error data))))
     (openpgp-request-verify email (cdr (assq 'token data)))))
