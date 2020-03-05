@@ -1,4 +1,4 @@
-;;; $Id: openpgp.el,v 1.13 2020/03/05 13:30:16 oj14ozun Exp oj14ozun $
+;;; $Id: openpgp.el,v 1.14 2020/03/05 13:37:00 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
 
@@ -164,9 +164,9 @@ key."
   (defun openpgp-mu4e-fetch-key ()
     "Fetch key for the sender of the current message."
     (interactive)
-	(let ((msg (mu4e-message-at-point 'noerror)))
-     (unless msg
-       (error "There is no message to fetch a key for")))
+    (let ((msg (mu4e-message-at-point 'noerror)))
+      (unless msg
+	(error "There is no message to fetch a key for")))
     (let ((email (or (mu4e-message-field msg :reply-to)
 		     (mu4e-message-field msg :from))))
       (when (yes-or-no-p (format "Attempt to fetch key for %s? " email))
