@@ -1,10 +1,11 @@
-;;; $Id: openpgp.el,v 1.10 2020/03/05 13:01:25 oj14ozun Exp oj14ozun $
+;;; $Id: openpgp.el,v 1.11 2020/03/05 13:04:20 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
 
 (require 'json)
 (require 'url)
 (require 'url-http)
+(require 'epg)
 
 (defcustom openpgp-keyserver "keys.openpgp.org"
   "Domain of keyserver to use.
@@ -50,6 +51,13 @@ URL, if non-nil."
 		#'openpgp--process-key))
 
  ;; UPLOADING KEYS
+
+(defun openpgp--key-ids ()
+  (let* ((keys (epg-list-keys (epg-make-context)))
+	 (uids (mapcan #'epg-key-user-id-list keys))
+	 (ids (mapcar #'epg-user-id-string uids))
+	 (addr (mapcar #'mail-extract-address-components ids)))
+    (mapcan (lambda (addr) (and (car addr) (cdr addr))) addr)))
 
 (defun openpgp--verify-callback (status email)
   (when (plist-get status :error)
@@ -118,9 +126,8 @@ key."
 
 (defun openpgp-upload-key (email)
   "Upload public key for address EMAIL using gpg."
-  (interactive (list (read-string (format "Email (default: %s): "
-					  user-mail-address)
-				  nil nil user-mail-address)))
+  (interactive (list (completing-read "Email: " (openpgp--key-ids)
+				      nil nil nil nil user-mail-address)))
   (let* ((addr (shell-quote-argument email))
 	 (cmd (format "gpg --armor --export %s" addr))
 	 (out (shell-command-to-string cmd)))
