@@ -1,4 +1,4 @@
-;;; $Id: openpgp.el,v 1.11 2020/03/05 13:04:20 oj14ozun Exp oj14ozun $
+;;; $Id: openpgp.el,v 1.12 2020/03/05 13:28:41 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
 
@@ -118,7 +118,8 @@ key."
 
 (defun openpgp-upload-key-file (email key-file)
   "Upload key from KEY-FILE for address EMAIL."
-  (interactive (list (read-string "Email: " nil nil user-mail-address)
+  (interactive (list (completing-read "Email: " (openpgp--key-ids)
+				      nil nil nil nil user-mail-address)
 		     (read-file-name "Key file: ")))
   (with-temp-buffer
     (insert-file-contents key-file)
