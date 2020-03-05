@@ -1,4 +1,4 @@
-;;; $Id: openpgp.el,v 1.5 2020/03/04 15:42:07 oj14ozun Exp oj14ozun $
+;;; $Id: openpgp.el,v 1.6 2020/03/04 18:01:30 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
 
@@ -84,7 +84,7 @@ TOKEN should be supplied by a previous \"upload-key\" request."
       (error "Error in response: %s" (cdr (assq 'error data))))
     (openpgp-request-verify email (cdr (assq 'token data)))))
 
-(defun openpgp-upload-key (email key)
+(defun openpgp-upload-key-string (email key)
   "Upload KEY for address EMAIL to keyserver.
 
 The KEY should be a string, containing a ASCII armoured public
@@ -98,11 +98,21 @@ key."
 
 (defun openpgp-upload-key-file (email key-file)
   "Upload key from KEY-FILE for address EMAIL."
-  (interactive (list (read-string "Email: ")
+  (interactive (list (read-string "Email: " nil nil user-mail-address)
 		     (read-file-name "Key file: ")))
   (with-temp-buffer
     (insert-file-contents key-file)
-    (openpgp-upload-key email (buffer-string))))
+    (openpgp-upload-key-string email (buffer-string))))
+
+(defun openpgp-upload-key (email)
+  "Upload public key for address EMAIL using gpg."
+  (interactive (list (read-string (format "Email (default: %s): "
+					  user-mail-address)
+				  nil nil user-mail-address)))
+  (let* ((addr (shell-quote-argument email))
+	 (cmd (format "gpg --armor --export %s" addr))
+	 (out (shell-command-to-string cmd)))
+    (openpgp-upload-key-string email out)))
 
  ;; MAIL CLIENT SUPPORT
 
