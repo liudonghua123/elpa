@@ -1,4 +1,4 @@
-;;; $Id: openpgp.el,v 1.6 2020/03/04 18:01:30 oj14ozun Exp oj14ozun $
+;;; $Id: openpgp.el,v 1.7 2020/03/05 12:31:50 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
 
@@ -51,16 +51,26 @@ URL, if non-nil."
 
  ;; UPLOADING KEYS
 
-(defun openpgp--verify-callback (status)
+(defun openpgp--verify-callback (status email)
   (when (plist-get status :error)
     (error "Request failed: %s"
 	   (caddr (assq (caddr (plist-get status :error))
 			url-http-codes))))
   (forward-paragraph)
-  (let ((data (json-parse-buffer :object-type 'alist)))
-    (when (assq 'error data)
-      (error "Error in response: %s" (cdr (assq 'error data))))
-    (message "Verification successfully requested.")))
+  (let ((data (json-parse-buffer)))
+    (when (gethash "error" data)
+      (error "Error in response: %s" (gethash "error" data)))
+    (let ((resp (gethash email (gethash "status" data))))
+      (cond ((null resp)
+	     (message "Verification request might have failed. Are you using the correct address?"))
+	    ((string= resp "unpublished")
+	     (message "Verification request might have failed. Are you using the correct key?"))
+	    ((string= resp "published")
+	     (message "Verification request succeeded, but key has already been published."))
+	    ((string= resp "revoked")
+	     (message "Verification request succeeded, but key has been revoked."))
+	    ((string= resp " pending")
+	     (message "Verification request succeeded, a email should arrive soon."))))))
 
 (defun openpgp-request-verify (email token)
   "Request verification email for address EMAIL.
@@ -71,7 +81,8 @@ TOKEN should be supplied by a previous \"upload-key\" request."
 	(url-request-data (json-encode `(("token" . ,token)
 					 ("addresses" . (,email))))))
     (url-retrieve (openpgp--api-url "request-verify")
-		  #'openpgp--verify-callback)))
+		  #'openpgp--verify-callback
+		  (list email))))
 
 (defun openpgp--upload-callback (status email)
   (when (plist-get status :error)
