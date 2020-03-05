@@ -1,4 +1,4 @@
-;;; $Id: openpgp.el,v 1.12 2020/03/05 13:28:41 oj14ozun Exp oj14ozun $
+;;; $Id: openpgp.el,v 1.13 2020/03/05 13:30:16 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
 
@@ -99,10 +99,21 @@ TOKEN should be supplied by a previous \"upload-key\" request."
 	   (caddr (assq (caddr (plist-get status :error))
 			url-http-codes))))
   (forward-paragraph)
-  (let ((data (json-read)))
-    (when (assq 'error data)
-      (error "Error in response: %s" (cdr (assq 'error data))))
-    (openpgp-request-verify email (cdr (assq 'token data)))))
+  (let* ((json-object-type 'hash-table)
+	 (data (json-read)))
+    (when (gethash "error" data)
+      (error "Error in response: %s" (gethash "error" data)))
+    (let ((resp (gethash email (gethash "status" data))))
+      (when (cond ((null resp)
+		   (yes-or-no-p "Your address hasn't been recognised by the server, are you sure you want to proceed?"))
+		  ((string= resp "published")
+		   (yes-or-no-p "Key has already been published, are you sure you want to proceed?"))
+		  ((string= resp "revoked")
+		   (yes-or-no-p "Key has been revoked, are you sure you want to proceed?"))
+		  ((string= resp " pending")
+		   (yes-or-no-p "Key is already pending, are you sure you want to proceed?"))
+		  (t t))
+	(openpgp-request-verify email (cdr (assq 'token data)))))))
 
 (defun openpgp-upload-key-string (email key)
   "Upload KEY for address EMAIL to keyserver.
