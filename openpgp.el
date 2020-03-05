@@ -1,6 +1,10 @@
-;;; $Id: openpgp.el,v 1.9 2020/03/05 12:49:49 oj14ozun Exp oj14ozun $
+;;; $Id: openpgp.el,v 1.10 2020/03/05 13:01:25 oj14ozun Exp oj14ozun $
 ;;; Implementation of the keys.openpgp.org protocol as specified by
 ;;; https://keys.openpgp.org/about/api
+
+(require 'json)
+(require 'url)
+(require 'url-http)
 
 (defcustom openpgp-keyserver "keys.openpgp.org"
   "Domain of keyserver to use.
