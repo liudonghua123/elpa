@@ -1,7 +1,6 @@
 ;;; auto-overlay-flat.el --- flat start/end-delimited automatic overlays    -*- lexical-binding: t; -*-
 
-
-;; Copyright (C) 2005-2015  Free Software Foundation, Inc
+;; Copyright (C) 2005-2020  Free Software Foundation, Inc
 
 ;; Author: Toby Cubitt <toby-predictive@dr-qubit.org>
 ;; Maintainer: Toby Cubitt <toby-predictive@dr-qubit.org>
@@ -32,8 +31,8 @@
 
 ;; set flat overlay parsing and suicide functions, and indicate class requires
 ;; separate start and end regexps
-(put 'flat 'auto-overlay-parse-function 'auto-o-parse-flat-match)
-(put 'flat 'auto-overlay-suicide-function 'auto-o-flat-suicide)
+(put 'flat 'auto-overlay-parse-function #'auto-o-parse-flat-match)
+(put 'flat 'auto-overlay-suicide-function #'auto-o-flat-suicide)
 (put 'flat 'auto-overlay-complex-class t)
 
 

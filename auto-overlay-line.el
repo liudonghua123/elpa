@@ -1,7 +1,6 @@
 ;;; auto-overlay-line.el --- automatic overlays for single lines    -*- lexical-binding: t; -*-
 
-
-;; Copyright (C) 2005-2015  Free Software Foundation, Inc
+;; Copyright (C) 2005-2020  Free Software Foundation, Inc
 
 ;; Author: Toby Cubitt <toby-predictive@dr-qubit.org>
 ;; Maintainer: Toby Cubitt <toby-predictive@dr-qubit.org>
@@ -31,7 +30,7 @@
 
 
 ;; set line overlay parsing and suicide funtions
-(put 'line 'auto-overlay-parse-function 'auto-o-parse-line-match)
+(put 'line 'auto-overlay-parse-function #'auto-o-parse-line-match)
 (put 'line 'auto-overlay-suicide-function
      (lambda (o) (auto-o-delete-overlay (overlay-get o 'parent))))
 

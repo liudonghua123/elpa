@@ -1,6 +1,6 @@
 ;;; auto-overlays.el --- Automatic regexp-delimited overlays    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2017  Free Software Foundation, Inc
+;; Copyright (C) 2005-2020  Free Software Foundation, Inc
 
 ;; Version: 0.10.9
 ;; Author: Toby Cubitt <toby-predictive@dr-qubit.org>
@@ -859,7 +859,7 @@ identifies REGEXP within DEFINITION (see
 	  ;; if DEFINITION-ID is not specified, create a unique numeric
 	  ;; DEFINITION-ID
 	  (setq definition-id
-		(1+ (apply 'max -1
+		(1+ (apply #'max -1
 			   (mapcar (lambda (elt)
 				     (if (integerp (car elt))
 					 (car elt) -1))
@@ -937,7 +937,7 @@ uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
 	  (setq regexp (auto-o--plist-delete regexp :id)))
       ;; if no id is specified, create a unique numeric ID
       (setq regexp-id
-	    (1+ (apply 'max -1
+	    (1+ (apply #'max -1
 		       (mapcar (lambda (elt)
 				 (if (integerp (car elt)) (car elt) -1))
 			       (cddr defs))))))
@@ -947,9 +947,7 @@ uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
     (cond
      ;; adding at end
      ((or (null pos) (and (integerp pos) (>= pos (length (cddr defs)))))
-      (if (= (length (cddr defs)) 0)
-	  (setcdr (cdr defs) (list regexp))
-	(nconc (cddr defs) (list regexp))))
+      (nconc defs (list regexp)))
      ;; adding at start
      ((or (eq pos t) (and (integerp pos) (<= pos 0)))
       (setcdr (cdr defs) (nconc (list regexp) (cddr defs))))
@@ -1106,14 +1104,14 @@ definitions are the same as when the overlays were saved."
     (run-hooks 'auto-overlay-load-hook)
     ;; add hook to run all the various functions scheduled be run after a
     ;; buffer modification
-    (add-hook 'after-change-functions 'auto-o-run-after-change-functions
+    (add-hook 'after-change-functions #'auto-o-run-after-change-functions
 	      nil t)
     ;; add hook to schedule an update after a buffer modification
-    (add-hook 'after-change-functions 'auto-o-schedule-update nil t)
+    (add-hook 'after-change-functions #'auto-o-schedule-update nil t)
     ;; add hook to simulate missing `delete-in-front-hooks' and
     ;; `delete-behind-hooks' overlay properties
     (add-hook 'after-change-functions
-	      'auto-o-schedule-delete-in-front-or-behind-suicide
+	      #'auto-o-schedule-delete-in-front-or-behind-suicide
 	      nil t)
 
     (unless (auto-o-enabled-p set-id)
@@ -1159,7 +1157,7 @@ is about to be killed in which case it speeds things up a bit\)."
 
     ;; delete overlays unless told not to bother
     (unless leave-overlays
-      (mapc 'delete-overlay
+      (mapc #'delete-overlay
       	    (auto-overlays-in
       	     (point-min) (point-max) :all-overlays t :inactive t
 	     (list (lambda (overlay match) (or overlay match))
@@ -1175,9 +1173,9 @@ is about to be killed in which case it speeds things up a bit\)."
       ;; run clear hooks
       (run-hooks 'auto-overlay-unload-hook)
       ;; reset variables
-      (remove-hook 'after-change-functions 'auto-o-schedule-update t)
+      (remove-hook 'after-change-functions #'auto-o-schedule-update t)
       (remove-hook 'after-change-functions
-		   'auto-o-run-after-change-functions t)
+		   #'auto-o-run-after-change-functions t)
       (setq auto-o-pending-suicides nil
 	    auto-o-pending-updates nil
 	    auto-o-pending-post-suicide nil))))
@@ -1353,7 +1351,7 @@ overlays were saved."
 ;;;               Update and change-hook functions
 
 (defun auto-o-run-after-change-functions (beg end len)
-  ;; Assigned to the `after-change-functions' hook. Run all the various
+  ;; Assigned to the `after-change-functions' hook.  Run all the various
   ;; functions that should run after a change to the buffer, in the correct
   ;; order.
 
@@ -1369,7 +1367,7 @@ overlays were saved."
 	       auto-o-pending-post-update)
       ;; run pending pre-suicide functions
       (when auto-o-pending-pre-suicide
-	(mapc (lambda (f) (apply (car f) (cdr f)))
+	(mapc (lambda (f) (apply (car f) (cdr f))) ;Just #'apply in Emacs≥24.3
 	      auto-o-pending-pre-suicide)
 	(setq auto-o-pending-pre-suicide nil))
       ;; run pending suicides
@@ -1378,7 +1376,7 @@ overlays were saved."
 	(setq auto-o-pending-suicides nil))
       ;; run pending post-suicide functions
       (when auto-o-pending-post-suicide
-	(mapc (lambda (f) (apply (car f) (cdr f)))
+	(mapc (lambda (f) (apply (car f) (cdr f))) ;Just #'apply in Emacs≥24.3
 	      auto-o-pending-post-suicide)
 	(setq auto-o-pending-post-suicide nil))
       ;; run updates
@@ -1388,7 +1386,7 @@ overlays were saved."
 	(setq auto-o-pending-updates nil))
       ;; run pending post-update functions
       (when auto-o-pending-post-update
-	(mapc (lambda (f) (apply (car f) (cdr f)))
+	(mapc (lambda (f) (apply (car f) (cdr f))) ;Just #'apply in Emacs≥24.3
 	      auto-o-pending-post-update)
 	(setq auto-o-pending-post-update nil))
       ))
@@ -1547,8 +1545,8 @@ overlays were saved."
 		      (while (let ((case-fold-search nil))
 			       (re-search-forward regexp (line-end-position) t))
 			;; sanity check regexp definition against match
-			(when (or (null (setq beg (match-beginning group)))
-				  (null (setq end (match-end group))))
+			(unless (and (setq beg (match-beginning group))
+			             (setq end (match-end group)))
 			  (error "Match for regexp \"%s\" has no group %d"
 				 regexp group))
 
@@ -1939,10 +1937,10 @@ properties)."
 	 (t  ;; otherwise, use properties of whichever match takes precedence
 	  (let ((o-start (overlay-get overlay 'start))
 		(o-end (overlay-get overlay 'end)))
-	    (if (<= (auto-o-rank o-start)
-		    (auto-o-rank o-end))
-		(setq props (auto-o-props o-start))
-	      (setq props (auto-o-props o-end))))))
+	    (setq props (auto-o-props (if (<= (auto-o-rank o-start)
+		                              (auto-o-rank o-end))
+		                          o-start
+		                        o-end))))))
 	;; bundle properties inside a list if not already, then update them
 	(when (symbolp (car props)) (setq props (list props)))
 	(dolist (p props) (overlay-put overlay (car p) (cdr p)))))
