@@ -1,0 +1,87 @@
+As of early 2020, RT is under GPLv2. GPLv3 is incompatible with
+GPLv2. So you might ask the question: Why and how is rt-liberation
+under GPLv3?
+
+It's because I emailed Best Practical (the people behind RT) and got
+their excplicit permission to do so. Included below is the complete
+email correspondence:
+
+----------------------------------------------------------------------
+
+From: "Jim Brandt via RT" <sales@bestpractical.com>
+Subject: [bestpractical.com #225843] licensing question
+To: yoni@rabkins.net
+Date: Mon, 16 Mar 2020 08:52:08 -0400 (11 hours, 9 minutes, 18 seconds ago)
+Reply-To: sales@bestpractical.com
+
+On Tue, Mar 10, 2020 3:21:16 PM, yoni@rabkins.net wrote:
+> 
+> Hello,
+> 
+> I'm the author of rt-liberation, which is an interface to RT from
+> GNU/Emacs. It is available at: http://www.nongnu.org/rtliber/
+> 
+> rt-liberation uses the REST API to communicate with RT.
+> 
+> rt-liberation is licensed under GPLv2 in order to be compatible with
+> the license of RT.
+> 
+> However, I've been asked to add rt-liberation to Emacs proper (via the
+> GNU ELPA). This is great news, since it will make using RT a built-in
+> property of GNU/Emacs.
+> 
+> But GNU/Emacs is licensed under GPLv3, which is mutually incompatible
+> with GPLv2. I would need to upgrade my work, rt-liberation, to GPLv3 in
+> order to be accepted into Emacs.
+> 
+> My question is therefore: may I upgrade rt-liberation to GPLv3? Are you
+> OK with a GPLv3-licensed work communicating with RT via the REST API?
+> Another way of putting it: do you consider communication via the REST
+> API to RT to be creating a derivative work under the terms of GPLv2.
+> 
+> Thank you for your consideration.
+
+Hi Yoni,
+
+I agree it would be really cool to have an RT interface built into
+emacs, thanks for your work.
+
+Regarding the license, if you wrote the code that interfaces with RT
+only via the REST API, you can change the license for your code as you
+see fit. Using the REST API doesn't require pulling in any of RT's
+code and i don't think we would seek to release any of your code as
+part of RT. There are many different systems, open source and
+proprietary, that interface with RT via the REST API and each of those
+systems retains its own license.
+
+There are various projects that provide wrappers on the RT REST API to
+make it easier to use from different languages (Python, Ruby, etc.)
+and if you used an existing project or library to access the REST API,
+you may need to consider the license for that project. But it looks
+like you wrote the REST code yourself when you converted from using
+the RT CLI, so it should be an issue.
+
+Thanks and good luck,
+Jim
+
+----
+
+From: "Jim Brandt via RT" <sales@bestpractical.com>
+Subject: [bestpractical.com #225843] licensing question
+To: yoni@rabkins.net
+Date: Mon, 16 Mar 2020 13:55:49 -0400 (6 hours, 5 minutes, 44 seconds ago)
+Reply-To: sales@bestpractical.com
+
+> > But it looks
+> > like you wrote the REST code yourself when you converted from using
+> > the RT CLI, so it should be an issue.
+> 
+> Yes, I wrote all of it myself so that it is self-contained. I'm going to
+> assume this is a typo and you meant to write "shouldn't".
+
+Correct, that should have said "so it shouldn't be an issue". Sorry about that!
+
+Thanks,
+Jim
+
+
