@@ -128,7 +128,7 @@ refereed to by the property (see `autocrypt-mua-call').
 
 Valid properties and their associated messages are:
 
-:install - called when `autocrypt-mode' is activated in the
+:install - called when autocrypt minor mode is activated in the
 current buffer. Should only install hooks.
 
 :uninstall - inverse of :install, and should reverse it's
@@ -266,7 +266,9 @@ well-formed, otherwise returns just nil."
 
 ;;; https://autocrypt.org/level1.html#updating-autocrypt-peer-state-from-key-gossip
 (defun autocrypt-process-gossip (date)
-  "Update internal autocrypt gossip state."
+  "Update internal autocrypt gossip state.
+
+Argument DATE contains the time value of the \"From\" tag."
   (let ((recip (autocrypt-list-recipients))
         (root (autocrypt-mua-call :part 0))
         (re (rx bol "Autocrypt-Gossip:" (* space)
@@ -367,7 +369,9 @@ well-formed, otherwise returns just nil."
 
 If ADDR is a local account, it's key will be used. Otherwise it
 attempts to look up ADDR in the peer data. If nothing was found
-OR the header is too large, return nil."
+OR the header is too large, return nil. If GOSSIP-P is non-nil,
+the function will not add an encryption
+preference (\"prefer-encrypt\")."
   (let (acc peer pref keydata)
     (cond
      ((setq acc (assoc addr autocrypt-accounts))
@@ -394,15 +398,16 @@ OR the header is too large, return nil."
         (and (< (buffer-size) (* 10 1024))
              (buffer-string))))))
 
-(defun autocrypt-create-account (name email expire pass)
+(defun autocrypt-create-account ()
   "Create a GPG key for Autocrypt."
-  (interactive (list (read-string "Name: " user-full-name)
-                     (read-string "Email: " user-mail-address)
-                     (read-string "Expire Date (date or <n>{d,w,m,y}): ")
-                     (let ((prompt "Passphrase (must be non-empty): ") pass)
-                       (while (eq (setq pass (read-passwd prompt t t)) t))
-                       pass)))
-  (let ((ctx (epg-make-context)))
+  (interactive)
+  (let ((ctx (epg-make-context))
+        (name (read-string "Name: " user-full-name))
+        (email (read-string "Email: " user-mail-address))
+        (expire (read-string "Expire Date (date or <n>{d,w,m,y}): "))
+        (pass (let ((prompt "Passphrase (must be non-empty): ") pass)
+                (while (eq (setq pass (read-passwd prompt t t)) t))
+                pass)))
     (epg-generate-key-from-string
      ctx
      (with-temp-buffer
