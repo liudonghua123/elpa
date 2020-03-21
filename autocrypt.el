@@ -29,7 +29,8 @@
 (require 'cl-lib)
 (require 'rx)
 
- ;; CUSTOMIZABLES
+
+;;; CUSTOMIZABLES
 
 (defgroup autocrypt nil
   "Autocrypt protocol implementation for Emacs MUAs"
@@ -75,7 +76,8 @@ process \"Autocrypt-Gossip\" headers when received."
   "File where Autocrypt peer data should be saved."
   :type '(file :must-match t))
 
- ;; DATA STRUCTURES
+
+;;; DATA STRUCTURES
 
 ;; https://autocrypt.org/level1.html#communication-peers
 (cl-defstruct autocrypt-peer
@@ -87,7 +89,8 @@ process \"Autocrypt-Gossip\" headers when received."
   gossip-key
   deactivated)
 
- ;; INTERNAL STATE
+
+;;; INTERNAL STATE
 
 (defvar autocrypt-peers nil
   "List of known autocrypt peers.
@@ -98,7 +101,8 @@ Every member of this list has to be an instance of the
 (defconst autocrypt-save-variables '(autocrypt-peers)
   "List of variables to save to `autocrypt-save-data'.")
 
- ;; MUA TRANSLATION LAYER
+
+;;; MUA TRANSLATION LAYER
 
 (defconst autocrypt-mua-func-alist
   '((gnus
@@ -165,7 +169,8 @@ The key should identify a record in the
   (let ((func (autocrypt-mua-func msg)))
     (and func (apply func args))))
 
- ;; INTERNAL FUNCTIONS
+
+;;; INTERNAL FUNCTIONS
 
 ;; https://autocrypt.org/level1.html#e-mail-address-canonicalization
 (defsubst autocrypt-canonicalise (addr)
@@ -427,7 +432,8 @@ OR the header is too large, return nil."
     (message "Successfully generated key for %s, and added to key chain."
              email)))
 
- ;; GNUS SUPPORT
+
+;;; GNUS SUPPORT
 
 (with-eval-after-load 'gnus
   ;; setup with (add-hook 'gnus-load-hook #'autocrypt-mode)
@@ -444,7 +450,8 @@ OR the header is too large, return nil."
     "Ask Gnus to return header FIELD."
     (gnus-fetch-original-field field)))
 
- ;; RMAIL SUPPORT
+
+;;; RMAIL SUPPORT
 
 (with-eval-after-load 'rmail
   ;; setup with (add-hook 'rmail-mode-hook #'autocrypt-mode)
@@ -463,7 +470,8 @@ OR the header is too large, return nil."
      rmail-current-message
      (lambda () (mail-fetch-field field)))))
 
- ;; MU4E SUPPORT
+
+;;; MU4E SUPPORT
 
 (with-eval-after-load 'mu4e
   ;; setup with (advice-add 'mu4e :after (lambda (&rest _) (autocrypt-mode)))
@@ -483,7 +491,8 @@ OR the header is too large, return nil."
         (prog1 (mail-fetch-field field)
           (kill-buffer (current-buffer)))))))
 
- ;; MESSAGE SUPPORT
+
+;;; MESSAGE SUPPORT
 
 (with-eval-after-load 'message
   ;; setup with (add-hook 'message-mode-hook #'autocrypt-mode)
@@ -572,7 +581,8 @@ Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
         (when header
           (message-add-header (concat "Autocrypt: " header)))))))
 
- ;; MINOR MODES
+
+;;; MINOR MODES
 
 ;;;###autoload
 (define-minor-mode autocrypt-mode
