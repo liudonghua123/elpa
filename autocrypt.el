@@ -3,7 +3,7 @@
 ;; Author: Philip K. <philip@warpmail.net>
 ;; Version: 0.4.0
 ;; Keywords: comm
-;; Package-Requires: ((emacs "24.1"))
+;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://git.sr.ht/~zge/autocrypt
 
 ;; This file is NOT part of Emacs.
