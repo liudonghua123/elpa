@@ -119,7 +119,8 @@ Every member of this list has to be an instance of the
      :header autocrypt-mu4e-header)
     (message
      :install autocrypt-message-install
-     :uninstall autocrypt-message-uninstall))
+     :uninstall autocrypt-message-uninstall
+     :header message-fetch-field))
   "Alist for all MUA specific functions.
 
 The value of each record is a plist. The value of each property
@@ -263,6 +264,15 @@ well-formed, otherwise returns just nil."
            (t (error "Unsupported Autocrypt key")))
           (goto-char (match-end 0))))
       (and addr keydata (list addr pref keydata)))))
+
+(defun autocrypt-list-recipients ()
+    "Return a list of all recipients to this message."
+    (let (recipients)
+      (dolist (hdr '("To" "Cc" "Reply-To"))
+        (let* ((f (autocrypt-mua-call :header hdr))
+               (r (and f (mail-extract-address-components f t))))
+          (setq recipients (nconc (mapcar #'cadr r) recipients))))
+      (delete-dups recipients)))
 
 ;;; https://autocrypt.org/level1.html#updating-autocrypt-peer-state-from-key-gossip
 (defun autocrypt-process-gossip (date)
@@ -479,7 +489,7 @@ preference (\"prefer-encrypt\")."
 ;;; MU4E SUPPORT
 
 (with-eval-after-load 'mu4e
-  ;; setup with (advice-add 'mu4e :after (lambda (&rest _) (autocrypt-mode)))
+  ;; setup with (add-hook 'mu4e-main-mode-hook #'autocrypt-mode)
 
   (defun autocrypt-mu4e-install ()
     "Install autocrypt hooks for mu4e."
@@ -514,15 +524,6 @@ preference (\"prefer-encrypt\")."
     (remove-hook 'message-send-hook #'autocrypt-message-pre-send)
     (define-key message-mode-map (kbd "C-c RET C-a") nil))
 
-  (defun autocrypt-message-list-recipients ()
-    "Return a list of all recipients to this message."
-    (let (recipients)
-      (dolist (hdr '("To" "Cc" "Reply-To"))
-        (let* ((f (message-field-value hdr))
-               (r (and f (mail-extract-address-components f t))))
-          (setq recipients (nconc (mapcar #'cadr r) recipients))))
-      (delete-dups recipients)))
-
   ;; https://autocrypt.org/level1.html#key-gossip-injection-in-outbound-messages
   (defun autocrypt-message-gossip-p (recipients)
     "Find out if the current message should have gossip headers."
@@ -537,7 +538,7 @@ preference (\"prefer-encrypt\")."
   (defun autocrypt-message-setup ()
     "Check if Autocrypt is possible, and add pseudo headers."
     (interactive)
-    (let ((recs (autocrypt-message-list-recipients))
+    (let ((recs (autocrypt-list-recipients))
           (from (autocrypt-canonicalise (message-field-value "from"))))
       ;; encrypt message if applicable
       (save-excursion
@@ -551,7 +552,7 @@ preference (\"prefer-encrypt\")."
     "Insert Autocrypt headers before sending a message.
 
 Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
-    (let* ((recs (autocrypt-message-list-recipients))
+    (let* ((recs (autocrypt-list-recipients))
            (from (autocrypt-canonicalise (message-field-value "from"))))
       ;; encrypt message if applicable
       (when (eq (autocrypt-recommendation from recs) 'encrypt)
