@@ -25,7 +25,6 @@
 
 ;;; Code:
 
-(require 'message)
 (require 'cl-lib)
 (require 'rx)
 
@@ -72,7 +71,7 @@ process \"Autocrypt-Gossip\" headers when received."
                  (const :tag "Disable Gossip" nil)))
 
 (defcustom autocrypt-save-file
-  (expand-file-name "autocrypt-data.el" user-emacs-directory)
+  (locate-user-emacs-file "autocrypt-data.el")
   "File where Autocrypt peer data should be saved."
   :type '(file :must-match t))
 
@@ -103,6 +102,22 @@ Every member of this list has to be an instance of the
 
 
 ;;; MUA TRANSLATION LAYER
+
+(autoload 'autocrypt-gnus-install "autocrypt-gnus")
+(autoload 'autocrypt-gnus-uninstall "autocrypt-gnus")
+(autoload 'autocrypt-gnus-header "autocrypt-gnus")
+
+(autoload 'autocrypt-rmail-install "autocrypt-rmail")
+(autoload 'autocrypt-rmail-uninstall "autocrypt-rmail")
+(autoload 'autocrypt-rmail-header "autocrypt-rmail")
+
+(autoload 'autocrypt-mu4e-install "autocrypt-mu4e")
+(autoload 'autocrypt-mu4e-uninstall "autocrypt-mu4e")
+(autoload 'autocrypt-mu4e-header "autocrypt-mu4e")
+
+(autoload 'autocrypt-message-install "autocrypt-message")
+(autoload 'autocrypt-message-uninstall "autocrypt-message")
+(autoload 'autocrypt-message-header "autocrypt-message")
 
 (defconst autocrypt-mua-func-alist
   '((gnus
@@ -446,146 +461,6 @@ preference (\"prefer-encrypt\")."
        "Customized by autocrypt.el"))
     (message "Successfully generated key for %s, and added to key chain."
              email)))
-
-
-;;; GNUS SUPPORT
-
-(with-eval-after-load 'gnus
-  ;; setup with (add-hook 'gnus-load-hook #'autocrypt-mode)
-
-  (defun autocrypt-gnus-install ()
-    "Install autocrypt hooks for Gnus."
-    (add-hook 'gnus-view-mode-hook #'autocrypt-process-header))
-
-  (defun autocrypt-gnus-uninstall ()
-    "Remove autocrypt hooks for Gnus."
-    (remove-hook 'gnus-view-mode-hook #'autocrypt-process-header))
-
-  (defun autocrypt-gnus-header (field)
-    "Ask Gnus to return header FIELD."
-    (gnus-fetch-original-field field)))
-
-
-;;; RMAIL SUPPORT
-
-(with-eval-after-load 'rmail
-  ;; setup with (add-hook 'rmail-mode-hook #'autocrypt-mode)
-
-  (defun autocrypt-rmail-install ()
-    "Install autocrypt hooks for Rmail."
-    (add-hook 'rmail-show-message-hook #'autocrypt-process-header))
-
-  (defun autocrypt-rmail-uninstall ()
-    "Remove autocrypt hooks for Rmail."
-    (remove-hook 'rmail-show-message-hook #'autocrypt-process-header))
-
-  (defun autocrypt-rmail-header (field)
-    "Ask Rmail to return header field."
-    (rmail-apply-in-message
-     rmail-current-message
-     (lambda () (mail-fetch-field field)))))
-
-
-;;; MU4E SUPPORT
-
-(with-eval-after-load 'mu4e
-  ;; setup with (add-hook 'mu4e-main-mode-hook #'autocrypt-mode)
-
-  (defun autocrypt-mu4e-install ()
-    "Install autocrypt hooks for mu4e."
-    (add-hook 'mu4e-view-mode-hook #'autocrypt-process-header))
-
-  (defun autocrypt-mu4e-uninstall ()
-    "Remove autocrypt hooks for mu4e."
-    (remove-hook 'mu4e-view-mode-hook #'autocrypt-process-header))
-
-  (defun autocrypt-mu4e-header (field)
-    "Ask mu4e to return header field."
-    (save-window-excursion
-      (with-current-buffer (mu4e-view-raw-message)
-        (prog1 (mail-fetch-field field)
-          (kill-buffer (current-buffer)))))))
-
-
-;;; MESSAGE SUPPORT
-
-(with-eval-after-load 'message
-  ;; setup with (add-hook 'message-mode-hook #'autocrypt-mode)
-
-  (defun autocrypt-message-install ()
-    "Install autocrypt hooks for message-mode."
-    (add-hook 'message-setup-hook #'autocrypt-message-setup)
-    (add-hook 'message-send-hook #'autocrypt-message-pre-send)
-    (define-key message-mode-map (kbd "C-c RET C-a") #'autocrypt-message-setup))
-
-  (defun autocrypt-message-uninstall ()
-    "Remove autocrypt hooks for message-mode."
-    (remove-hook 'message-setup-hook #'autocrypt-message-setup)
-    (remove-hook 'message-send-hook #'autocrypt-message-pre-send)
-    (define-key message-mode-map (kbd "C-c RET C-a") nil))
-
-  ;; https://autocrypt.org/level1.html#key-gossip-injection-in-outbound-messages
-  (defun autocrypt-message-gossip-p (recipients)
-    "Find out if the current message should have gossip headers."
-    (and (mml-secure-is-encrypted-p)
-         (< 1 (length recipients))
-         (cl-every
-          (lambda (rec)
-            (let ((peer (cdr (assoc rec autocrypt-peers))))
-              (and peer (not (autocrypt-peer-deactivated peer)))))
-          recipients)))
-
-  (defun autocrypt-message-setup ()
-    "Check if Autocrypt is possible, and add pseudo headers."
-    (interactive)
-    (let ((recs (autocrypt-list-recipients))
-          (from (autocrypt-canonicalise (message-field-value "from"))))
-      ;; encrypt message if applicable
-      (save-excursion
-        (cl-case (autocrypt-recommendation from recs)
-          (available
-           (message-add-header "Do-Autocrypt: no"))
-          (discourage
-           (message-add-header "Do-Discouraged-Autocrypt: no"))))))
-
-  (defun autocrypt-message-pre-send ()
-    "Insert Autocrypt headers before sending a message.
-
-Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
-    (let* ((recs (autocrypt-list-recipients))
-           (from (autocrypt-canonicalise (message-field-value "from"))))
-      ;; encrypt message if applicable
-      (when (eq (autocrypt-recommendation from recs) 'encrypt)
-        (mml-secure-message-sign-encrypt "pgpmime"))
-      ;; check for manual autocrypt confirmations
-      (let ((do-autocrypt (message-fetch-field "Do-Autocrypt"))
-            (ddo-autocrypt (message-fetch-field "Do-Discouraged-Autocrypt"))
-            (query "Are you sure you want to use Autocrypt, even though it is discouraged?"))
-        (when (and (not (mml-secure-is-encrypted-p))
-                   (or (and do-autocrypt
-                            (string= (downcase do-autocrypt) "yes"))
-                       (and ddo-autocrypt
-                            (string= (downcase ddo-autocrypt) "yes")
-                            (yes-or-no-p query))))
-          (mml-secure-message-sign-encrypt "pgpmime")))
-      (message-remove-header "Do-Autocrypt")
-      (message-remove-header "Do-Discouraged-Autocrypt")
-      ;; insert gossip data
-      (when (autocrypt-message-gossip-p recs)
-        (let ((buf (generate-new-buffer " *autocrypt gossip*")))
-          (with-current-buffer buf
-            (dolist (addr (autocrypt-message-list-recipients))
-              (let ((header (autocrypt-generate-header addr t)))
-                (insert "Autocrypt-Gossip: " header "\n"))))
-          (mml-attach-buffer buf)
-          (mml-secure-part "pgpmime")
-          (add-hook 'message-send-hook
-                    (lambda () (kill-buffer buf))
-                    nil t)))
-      ;; insert autocrypt header
-      (let ((header (and from (autocrypt-generate-header from))))
-        (when header
-          (message-add-header (concat "Autocrypt: " header)))))))
 
 
 ;;; MINOR MODES
