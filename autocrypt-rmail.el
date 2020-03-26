@@ -37,4 +37,4 @@
   "Ask Rmail to return header field."
   (rmail-apply-in-message
    rmail-current-message
-   (lambda () (mail-fetch-field field)))))
+   (lambda () (mail-fetch-field field))))

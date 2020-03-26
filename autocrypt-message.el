@@ -87,7 +87,7 @@ Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
     (when (autocrypt-message-gossip-p recs)
       (let ((buf (generate-new-buffer " *autocrypt gossip*")))
         (with-current-buffer buf
-          (dolist (addr (autocrypt-message-list-recipients))
+          (dolist (addr (autocrypt-list-recipients))
             (let ((header (autocrypt-generate-header addr t)))
               (insert "Autocrypt-Gossip: " header "\n"))))
         (mml-attach-buffer buf)
