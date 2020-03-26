@@ -22,7 +22,7 @@
 
 ;;; Code:
 
-(require 'autocrypt)
+(require 'autocrypt "autocrypt")
 (require 'message)
 
 ;;;###autoload

@@ -22,7 +22,6 @@
 
 ;;; Code:
 
-(require 'autocrypt)
 (require 'gnus)
 
 ;;;###autoload
