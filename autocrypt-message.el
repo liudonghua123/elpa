@@ -99,3 +99,7 @@ Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
     (let ((header (and from (autocrypt-generate-header from))))
       (when header
         (message-add-header (concat "Autocrypt: " header))))))
+
+(provide 'autocrypt-message)
+
+;;; autocrypt-message.el ends here

@@ -36,3 +36,7 @@
 (defun autocrypt-gnus-header (field)
   "Ask Gnus to return header FIELD."
   (gnus-fetch-original-field field))
+
+(provide 'autocrypt-gnus)
+
+;;; autocrypt-gnus.el ends here

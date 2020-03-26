@@ -1,4 +1,4 @@
-;;; autocrypt-gnus.el --- Autocrypt for Rmail -*- lexical-binding:t -*-
+;;; autocrypt-rmail.el --- Autocrypt for Rmail -*- lexical-binding:t -*-
 
 ;; Author: Philip K. <philip@warpmail.net>
 ;; Version: 0.4.0
@@ -38,3 +38,7 @@
   (rmail-apply-in-message
    rmail-current-message
    (lambda () (mail-fetch-field field))))
+
+(provide 'autocrypt-rmail)
+
+;;; autocrypt-rmail.el ends hereb

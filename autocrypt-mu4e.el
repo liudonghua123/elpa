@@ -39,3 +39,7 @@
     (with-current-buffer (mu4e-view-raw-message)
       (prog1 (mail-fetch-field field)
         (kill-buffer (current-buffer))))))
+
+(provide 'autocrypt-mu4e)
+
+;;; autocrypt-mu4e.el ends here
