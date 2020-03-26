@@ -27,6 +27,8 @@
 
 (require 'cl-lib)
 (require 'rx)
+(require 'epg)
+(require 'ietf-drums)
 
 
 ;;; CUSTOMIZABLES
@@ -341,7 +343,7 @@ Argument DATE contains the time value of the \"From\" tag."
 (defun autocrypt-process-header ()
   "Update internal autocrypt state."
   (let* ((from (autocrypt-canonicalise (autocrypt-mua-call :header "From")))
-         (date (mail-header-parse-date (autocrypt-mua-call :header "Date")))
+         (date (ietf-drums-parse-date (autocrypt-mua-call :header "Date")))
          (header (autocrypt-mua-call :header "Autocrypt"))
          parse addr preference keydata peer)
     (when header
