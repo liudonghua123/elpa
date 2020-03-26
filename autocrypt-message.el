@@ -26,20 +26,22 @@
 (require 'message)
 
 (defun autocrypt-message-install ()
-  "Install autocrypt hooks for message-mode."
+  "Install autocrypt hooks for message mode."
   (add-hook 'message-setup-hook #'autocrypt-message-setup)
   (add-hook 'message-send-hook #'autocrypt-message-pre-send)
   (define-key message-mode-map (kbd "C-c RET C-a") #'autocrypt-message-setup))
 
 (defun autocrypt-message-uninstall ()
-  "Remove autocrypt hooks for message-mode."
+  "Remove autocrypt hooks for message mode."
   (remove-hook 'message-setup-hook #'autocrypt-message-setup)
   (remove-hook 'message-send-hook #'autocrypt-message-pre-send)
   (define-key message-mode-map (kbd "C-c RET C-a") nil))
 
 ;; https://autocrypt.org/level1.html#key-gossip-injection-in-outbound-messages
 (defun autocrypt-message-gossip-p (recipients)
-  "Find out if the current message should have gossip headers."
+  "Find out if the current message should have gossip headers.
+Argument RECIPIENTS is a list of addresses this message is
+addressed to."
   (and (mml-secure-is-encrypted-p)
        (< 1 (length recipients))
        (cl-every

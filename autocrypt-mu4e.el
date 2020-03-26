@@ -25,6 +25,7 @@
 (require 'autocrypt)
 (require 'mu4e)
 
+;;;###autoload
 (defun autocrypt-mu4e-install ()
   "Install autocrypt hooks for mu4e."
   (add-hook 'mu4e-view-mode-hook #'autocrypt-process-header))
@@ -34,7 +35,7 @@
   (remove-hook 'mu4e-view-mode-hook #'autocrypt-process-header))
 
 (defun autocrypt-mu4e-header (field)
-  "Ask mu4e to return header field."
+  "Ask mu4e to return header FIELD."
   (save-window-excursion
     (with-current-buffer (mu4e-view-raw-message)
       (prog1 (mail-fetch-field field)

@@ -34,11 +34,11 @@
   (remove-hook 'rmail-show-message-hook #'autocrypt-process-header))
 
 (defun autocrypt-rmail-header (field)
-  "Ask Rmail to return header field."
+  "Ask Rmail to return header FIELD."
   (rmail-apply-in-message
    rmail-current-message
    (lambda () (mail-fetch-field field))))
 
 (provide 'autocrypt-rmail)
 
-;;; autocrypt-rmail.el ends hereb
+;;; autocrypt-rmail.el ends here
