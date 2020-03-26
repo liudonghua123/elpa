@@ -105,22 +105,6 @@ Every member of this list has to be an instance of the
 
 ;;; MUA TRANSLATION LAYER
 
-(autoload 'autocrypt-gnus-install "autocrypt-gnus")
-(autoload 'autocrypt-gnus-uninstall "autocrypt-gnus")
-(autoload 'autocrypt-gnus-header "autocrypt-gnus")
-
-(autoload 'autocrypt-rmail-install "autocrypt-rmail")
-(autoload 'autocrypt-rmail-uninstall "autocrypt-rmail")
-(autoload 'autocrypt-rmail-header "autocrypt-rmail")
-
-(autoload 'autocrypt-mu4e-install "autocrypt-mu4e")
-(autoload 'autocrypt-mu4e-uninstall "autocrypt-mu4e")
-(autoload 'autocrypt-mu4e-header "autocrypt-mu4e")
-
-(autoload 'autocrypt-message-install "autocrypt-message")
-(autoload 'autocrypt-message-uninstall "autocrypt-message")
-(autoload 'autocrypt-message-header "autocrypt-message")
-
 (defconst autocrypt-mua-func-alist
   '((gnus
      :install autocrypt-gnus-install

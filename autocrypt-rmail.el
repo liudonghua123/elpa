@@ -25,6 +25,7 @@
 (require 'autocrypt)
 (require 'rmail)
 
+;;;###autoload
 (defun autocrypt-rmail-install ()
   "Install autocrypt hooks for Rmail."
   (add-hook 'rmail-show-message-hook #'autocrypt-process-header))

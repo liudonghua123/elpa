@@ -25,6 +25,7 @@
 (require 'autocrypt)
 (require 'gnus)
 
+;;;###autoload
 (defun autocrypt-gnus-install ()
   "Install autocrypt hooks for Gnus."
   (add-hook 'gnus-view-mode-hook #'autocrypt-process-header))

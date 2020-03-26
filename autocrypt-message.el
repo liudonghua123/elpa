@@ -25,6 +25,7 @@
 (require 'autocrypt)
 (require 'message)
 
+;;;###autoload
 (defun autocrypt-message-install ()
   "Install autocrypt hooks for message mode."
   (add-hook 'message-setup-hook #'autocrypt-message-setup)
