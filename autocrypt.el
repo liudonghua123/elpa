@@ -267,13 +267,13 @@ well-formed, otherwise returns just nil."
       (and addr keydata (list addr pref keydata)))))
 
 (defun autocrypt-list-recipients ()
-    "Return a list of all recipients to this message."
-    (let (recipients)
-      (dolist (hdr '("To" "Cc" "Reply-To"))
-        (let* ((f (autocrypt-mua-call :header hdr))
-               (r (and f (mail-extract-address-components f t))))
-          (setq recipients (nconc (mapcar #'cadr r) recipients))))
-      (delete-dups recipients)))
+  "Return a list of all recipients to this message."
+  (let (recipients)
+    (dolist (hdr '("To" "Cc" "Reply-To"))
+      (let* ((f (autocrypt-mua-call :header hdr))
+             (r (and f (mail-extract-address-components f t))))
+        (setq recipients (nconc (mapcar #'cadr r) recipients))))
+    (delete-dups recipients)))
 
 ;;; https://autocrypt.org/level1.html#updating-autocrypt-peer-state-from-key-gossip
 (defun autocrypt-process-gossip (date)
