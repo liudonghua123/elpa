@@ -440,7 +440,7 @@ preference (\"prefer-encrypt\")."
     (let ((res (epg-context-result-for ctx 'generate-key)))
       (unless res
         (error "Could not determine fingerprint"))
-      (customize-set-variable
+      (customize-save-variable
        'autocrypt-accounts
        (cons (list email (cdr (assq 'fingerprint (car res))) 'none)
              autocrypt-accounts)
