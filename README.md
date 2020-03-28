@@ -26,11 +26,11 @@ integration is welcomed.
 How to use
 ----------
 
-Using `use-package`, one might configure `autocrypt.el` to read
-headers using Rmail and inject headers using `message-mode` as
-follows:
+This package is published on [MELPA]. Using `use-package`, one might
+configure `autocrypt.el` to read headers using Rmail and inject
+headers using `message-mode` as follows:
 
-	(use-package 0x0
+	(use-package autocrypt
 	  :hook ((rmail-mode . autocrypt-mode)
 	         (message-mode . autocrypt-mode)))
 
@@ -50,4 +50,5 @@ Public Domain Dedication][cc0] license.
 
 [autocrypt]: https://autocrypt.org/
 [public inbox]: https://lists.sr.ht/~zge/public-inbox
+[MELPA]: https://melpa.org/#/autocrypt
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
