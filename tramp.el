@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.4.3.2
+;; Version: 2.4.3.3
 ;; Package-Requires: ((emacs "24.4"))
 ;; Package-Type: multi
 ;; URL: https://savannah.gnu.org/projects/tramp
@@ -37,7 +37,7 @@
 ;; For more detailed instructions, please see the info file.
 ;;
 ;; Notes:
-;; -----
+;; ------
 ;;
 ;; Also see the todo list at the bottom of this file.
 ;;
@@ -46,6 +46,7 @@
 ;;
 ;; There's a mailing list for this, as well.  Its name is:
 ;;            tramp-devel@gnu.org
+
 ;; You can use the Web to subscribe, under the following URL:
 ;;            https://lists.gnu.org/mailman/listinfo/tramp-devel
 ;;

@@ -21,10 +21,10 @@ END-INFO-DIR-ENTRY
 
 File: tramp.info,  Node: Top,  Next: Overview,  Prev: (dir),  Up: (dir)
 
-TRAMP 2.4.3.2 User Manual
+TRAMP 2.4.3.3 User Manual
 *************************
 
-This file documents TRAMP 2.4.3.2, a remote file editing package for
+This file documents TRAMP 2.4.3.3, a remote file editing package for
 Emacs.
 
    TRAMP stands for “Transparent Remote (file) Access, Multiple
@@ -2774,6 +2774,11 @@ allows complex file operations like
        (find-file
         "http://ftp.debian.org/debian/pool/main/c/coreutils/coreutils_8.28-1_amd64.deb/control.tar.gz/control"))
 
+   In order to disable file archives, you could add the following form
+to your init file:
+
+     (customize-set-variable 'tramp-archive-enabled nil)
+
 
 File: tramp.info,  Node: Bug Reports,  Next: Frequently Asked Questions,  Prev: Usage,  Up: Top
 
@@ -4181,6 +4186,7 @@ Variable Index
 * tramp-adb-program:                     External methods.    (line 185)
 * tramp-archive-all-gvfs-methods:        Archive file names.  (line  91)
 * tramp-archive-compression-suffixes:    Archive file names.  (line  83)
+* tramp-archive-enabled:                 Archive file names.  (line 117)
 * tramp-archive-suffixes:                Archive file names.  (line  27)
 * tramp-auto-save-directory:             Auto-save and Backup.
                                                               (line  68)
@@ -4622,16 +4628,16 @@ Ref: Running a debugger on a remote host104553
 Node: Cleanup remote connections106523
 Node: Renaming remote files108224
 Node: Archive file names112443
-Node: Bug Reports116808
-Node: Frequently Asked Questions119476
-Node: Files directories and localnames143372
-Node: Localname deconstruction143808
-Node: External packages144461
-Node: Traces and Profiles146506
-Node: GNU Free Documentation License148475
-Node: Function Index173848
-Node: Variable Index176726
-Node: Concept Index184335
+Node: Bug Reports116957
+Node: Frequently Asked Questions119625
+Node: Files directories and localnames143521
+Node: Localname deconstruction143957
+Node: External packages144610
+Node: Traces and Profiles146655
+Node: GNU Free Documentation License148624
+Node: Function Index173997
+Node: Variable Index176875
+Node: Concept Index184557
 
 End Tag Table
 
