@@ -59,6 +59,8 @@ addressed to."
     ;; encrypt message if applicable
     (save-excursion
       (cl-case (autocrypt-recommendation from recs)
+        (encrypt
+         (mml-secure-message-sign-encrypt "pgpmime"))
         (available
          (message-add-header "Do-Autocrypt: no"))
         (discourage
