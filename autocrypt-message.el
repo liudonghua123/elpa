@@ -31,14 +31,14 @@
   (add-hook 'message-setup-hook #'autocrypt-compose-setup)
   (add-hook 'message-send-hook #'autocrypt-compose-pre-send)
   (unless (lookup-key message-mode-map (kbd "C-c RET C-a"))
-    (define-key message-mode-map (kbd "C-c RET C-a") #'autocrypt-message-setup)))
+    (define-key message-mode-map (kbd "C-c RET C-a") #'autocrypt-compose-setup)))
 
 (defun autocrypt-message-uninstall ()
   "Remove autocrypt hooks for message mode."
   (remove-hook 'message-setup-hook #'autocrypt-compose-setup)
   (remove-hook 'message-send-hook #'autocrypt-compose-pre-send)
   (when (eq (lookup-key message-mode-map (kbd "C-c RET C-a"))
-            #'autocrypt-message-setup)
+            #'autocrypt-compose-setup)
     (define-key message-mode-map (kbd "C-c RET C-a") nil)))
 
 (defun autocrypt-message-add-header (key val)
