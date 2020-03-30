@@ -387,7 +387,7 @@ preference (\"prefer-encrypt\")."
     (cond
      ((setq acc (assoc addr autocrypt-accounts))
       (setq keydata (autocrypt-get-keydata acc)
-            pref (cadr acc)))
+            pref (caddr acc)))
      ((setq peer (assoc addr autocrypt-peers))
       (setq keydata (autocrypt-peer-pubkey peer)
             pref (autocrypt-peer-preference peer))))
