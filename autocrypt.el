@@ -404,7 +404,7 @@ preference (\"prefer-encrypt\")."
           (insert "prefer-encrypt=nopreference; "))
          ((eq pref 'mutual)
           (insert "prefer-encrypt=mutual; ")))
-        (insert "keydata=")
+        (insert "keydata=\n")
         (autocrypt-insert-keydata keydata)
         (and (< (buffer-size) (* 10 1024))
              (buffer-string))))))
