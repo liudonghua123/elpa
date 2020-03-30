@@ -121,7 +121,12 @@ Every member of this list has to be an instance of the
     (message
      :install autocrypt-message-install
      :uninstall autocrypt-message-uninstall
-     :header message-fetch-field))
+     :header message-fetch-field
+     :add-header autocrypt-message-add-header
+     :remove-header message-remove-header
+     :sign-encrypt autocrypt-message-sign-encrypt
+     :secure-attach autocrypt-message-secure-attach
+     :encrypted-p mml-secure-is-encrypted-p))
   "Alist for all MUA specific functions.
 
 The value of each record is a plist. The value of each property
@@ -408,6 +413,71 @@ preference (\"prefer-encrypt\")."
         (autocrypt-insert-keydata keydata)
         (and (< (buffer-size) (* 10 1024))
              (buffer-string))))))
+
+(defun autocrypt-gossip-p (recipients)
+  "Find out if the current message should have gossip headers.
+Argument RECIPIENTS is a list of addresses this message is
+addressed to."
+  (and (autocrypt-mua-call :encrypted-p)
+       (< 1 (length recipients))
+       (cl-every
+        (lambda (rec)
+          (let ((peer (cdr (assoc rec autocrypt-peers))))
+            (and peer (not (autocrypt-peer-deactivated peer)))))
+        recipients)))
+
+(defun autocrypt-compose-setup ()
+  "Check if Autocrypt is possible, and add pseudo headers."
+  (interactive)
+  (let ((recs (autocrypt-list-recipients))
+        (can-remove (autocrypt-mua-func :remove-header))
+        (from (autocrypt-canonicalise (autocrypt-mua-call :header "From"))))
+    ;; encrypt message if applicable
+    (save-excursion
+      (cl-case (autocrypt-recommendation from recs)
+        (encrypt
+         (autocrypt-mua-call :sign-encrypt))
+        (available
+         (when can-remove
+           (autocrypt-mua-call :add-header "Do-Autocrypt" "no")))
+        (discourage
+         (when can-remove
+           (autocrypt-mua-call :add-header "Do-Discouraged-Autocrypt" "no")))))))
+
+(defun autocrypt-compose-pre-send ()
+  "Insert Autocrypt headers before sending a message.
+
+Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
+  (let* ((recs (autocrypt-list-recipients))
+         (from (autocrypt-canonicalise (autocrypt-mua-call :header "From"))))
+    ;; encrypt message if applicable
+    (when (eq (autocrypt-recommendation from recs) 'encrypt)
+      (autocrypt-mua-call :sign-encrypt))
+    ;; check for manual autocrypt confirmations
+    (let ((do-autocrypt (autocrypt-mua-call :header "Do-Autocrypt"))
+          (ddo-autocrypt (autocrypt-mua-call :header "Do-Discouraged-Autocrypt"))
+          (query "Are you sure you want to use Autocrypt, even though it is discouraged?"))
+      (when (and (not (autocrypt-mua-call :encrypted-p))
+                 (or (and do-autocrypt
+                          (string= (downcase do-autocrypt) "yes"))
+                     (and ddo-autocrypt
+                          (string= (downcase ddo-autocrypt) "yes")
+                          (yes-or-no-p query))))
+        (autocrypt-mua-call :sign-encrypt)))
+    (autocrypt-mua-call :remove-header "Do-Autocrypt")
+    (autocrypt-mua-call :remove-header "Do-Discouraged-Autocrypt")
+    ;; insert gossip data
+    (when (autocrypt-gossip-p recs)
+      (let ((payload (generate-new-buffer " *autocrypt gossip*")))
+        (with-current-buffer payload
+          (dolist (addr (autocrypt-list-recipients))
+            (let ((header (autocrypt-generate-header addr t)))
+              (insert "Autocrypt-Gossip: " header "\n"))))
+        (autocrypt-mua-call :secure-attach payload)))
+    ;; insert autocrypt header
+    (let ((header (and from (autocrypt-generate-header from))))
+      (when header
+        (autocrypt-mua-call :add-header "Autocrypt" header)))))
 
 (defun autocrypt-create-account ()
   "Create a GPG key for Autocrypt."
