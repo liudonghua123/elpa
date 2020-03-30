@@ -38,7 +38,6 @@
   :tag "Autocrypt"
   :group 'mail
   :link '(url-link "https://autocrypt.org/")
-  :version "28.1"
   :prefix "autocrypt-")
 
 (defcustom autocrypt-accounts nil
