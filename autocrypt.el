@@ -417,7 +417,8 @@ preference (\"prefer-encrypt\")."
   "Find out if the current message should have gossip headers.
 Argument RECIPIENTS is a list of addresses this message is
 addressed to."
-  (and (autocrypt-mua-call :encrypted-p)
+  (and autocrypt-do-gossip
+       (autocrypt-mua-call :encrypted-p)
        (< 1 (length recipients))
        (cl-every
         (lambda (rec)
