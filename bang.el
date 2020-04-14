@@ -1,7 +1,7 @@
 ;;; bang.el --- A more intelligent shell-command -*- lexical-binding: t -*-
 
 ;; Author: Philip K. <philip@warpmail.net>
-;; Version: 1.0.1
+;; Version: 1.0.2
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://git.sr.ht/~zge/bang
