@@ -74,7 +74,7 @@ insert a literal % quote it using a backslash.
 
 In case a region is active, bang will only work with the region
 between BEG and END. Otherwise the whole buffer is processed."
-  (interactive (list (read-shell-command "Bang command: ")
+  (interactive (list (read-shell-command "Shell command: ")
                      (if (use-region-p) (region-beginning) (point-min))
                      (if (use-region-p) (region-end) (point-max))))
   (save-match-data
