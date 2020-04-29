@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.4.3.3
+;; Version: 2.4.3.4
 ;; Package-Requires: ((emacs "24.4"))
 ;; Package-Type: multi
 ;; URL: https://savannah.gnu.org/projects/tramp
@@ -2464,7 +2464,7 @@ remote file names."
 	   (regexp-opt
 	    (mapcar
 	     #'file-name-sans-extension
-	     (directory-files dir nil "^tramp.+\\.elc?$"))
+	     (directory-files dir nil "\\`tramp.+\\.elc?\\'"))
 	    'paren))))
     (mapatoms
      (lambda (atom)
@@ -4090,6 +4090,8 @@ The terminal type can be configured with `tramp-terminal-type'."
 (defun tramp-action-process-alive (proc _vec)
   "Check, whether a process has finished."
   (unless (process-live-p proc)
+    ;; There might be pending output.
+    (while (tramp-accept-process-output proc 0))
     (throw 'tramp-action 'process-died)))
 
 (defun tramp-action-out-of-band (proc vec)

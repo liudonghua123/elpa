@@ -1,4 +1,4 @@
-This is tramp.info, produced by makeinfo version 6.6 from tramp.texi.
+This is tramp.info, produced by makeinfo version 6.7 from tramp.texi.
 
 Copyright © 1999–2020 Free Software Foundation, Inc.
 
@@ -21,10 +21,10 @@ END-INFO-DIR-ENTRY
 
 File: tramp.info,  Node: Top,  Next: Overview,  Prev: (dir),  Up: (dir)
 
-TRAMP 2.4.3.3 User Manual
+TRAMP 2.4.3.4 User Manual
 *************************
 
-This file documents TRAMP 2.4.3.3, a remote file editing package for
+This file documents TRAMP 2.4.3.4, a remote file editing package for
 Emacs.
 
    TRAMP stands for “Transparent Remote (file) Access, Multiple
@@ -2832,7 +2832,8 @@ verbosity level to 6 (*note Traces: Traces and Profiles.) in the
 of the ‘*tramp/foo*’ and ‘*debug tramp/foo*’ buffers with the bug
 report.  Both buffers could contain non-ASCII characters which are
 relevant for analysis, append the buffers as attachments to the bug
-report.
+report.  This is also needed in order to avoid line breaks during mail
+transfer.
 
    *Note* that a verbosity level greater than 6 is not necessary at this
 stage.  Also note that a verbosity level of 6 or greater, the contents
@@ -3063,6 +3064,18 @@ File: tramp.info,  Node: Frequently Asked Questions,  Next: Files directories an
 
      Check ‘man ssh_config’ whether these options are supported on your
      proxy host.
+
+   • TRAMP does not connect to Samba or MS Windows hosts running SMB1
+     connection protocol.
+
+     Recent versions of ‘smbclient’ do not support old connection
+     protocols by default.  In order to connect to such a host, add a
+     respective option:
+
+          (add-to-list 'tramp-smb-options "client min protocol=NT1")
+
+     *Note* that using a deprecated connection protocol raises security
+     problems, you should do it only if absolutely necessary.
 
    • File name completion does not work with TRAMP
 
@@ -4156,17 +4169,17 @@ Variable Index
 * customize-package-emacs-version-alist: Obtaining TRAMP.     (line  20)
 * DISPLAY, environment variable:         Remote processes.    (line  93)
 * EDITOR, environment variable:          Frequently Asked Questions.
-                                                              (line 558)
+                                                              (line 570)
 * ENV, environment variable:             Remote processes.    (line  64)
 * ESHELL, environment variable:          Remote shell setup.  (line 187)
 * HGPLAIN, environment variable:         Remote processes.    (line  82)
 * HISTFILE, environment variable:        Frequently Asked Questions.
-                                                              (line 299)
+                                                              (line 311)
 * HISTFILESIZE, environment variable:    Frequently Asked Questions.
-                                                              (line 299)
+                                                              (line 311)
 * HISTORY, environment variable:         Remote processes.    (line  52)
 * HISTSIZE, environment variable:        Frequently Asked Questions.
-                                                              (line 299)
+                                                              (line 311)
 * INSIDE_EMACS, environment variable:    Remote shell setup.  (line 104)
 * INSIDE_EMACS, environment variable <1>: Remote shell setup. (line 187)
 * non-essential:                         External packages.   (line   9)
@@ -4217,16 +4230,16 @@ Variable Index
                                                               (line  28)
 * tramp-gvfs-methods:                    GVFS-based methods.  (line  60)
 * tramp-histfile-override:               Frequently Asked Questions.
-                                                              (line 299)
+                                                              (line 311)
 * tramp-ignored-file-name-regexp:        Frequently Asked Questions.
-                                                              (line 620)
+                                                              (line 632)
 * tramp-inline-compress-commands:        Inline methods.      (line  25)
 * tramp-inline-compress-start-size:      Inline methods.      (line  25)
 * tramp-local-host-regexp:               Frequently Asked Questions.
                                                               (line 165)
 * tramp-methods:                         Customizing Methods. (line   6)
 * tramp-mode:                            Frequently Asked Questions.
-                                                              (line 614)
+                                                              (line 626)
 * tramp-own-remote-path:                 Remote programs.     (line  32)
 * tramp-password-prompt-regexp:          Remote shell setup.  (line  65)
 * tramp-persistency-file-name:           Connection caching.  (line   6)
@@ -4238,11 +4251,13 @@ Variable Index
 * tramp-save-ad-hoc-proxies:             Ad-hoc multi-hops.   (line  29)
 * tramp-sh-extra-args:                   Remote shell setup.  (line  22)
 * tramp-shell-prompt-pattern:            Remote shell setup.  (line  57)
+* tramp-smb-options:                     Frequently Asked Questions.
+                                                              (line 228)
 * tramp-ssh-controlmaster-options:       Frequently Asked Questions.
                                                               (line 188)
 * tramp-terminal-type:                   Remote shell setup.  (line  90)
 * tramp-theme-face-remapping-alist:      Frequently Asked Questions.
-                                                              (line 279)
+                                                              (line 291)
 * tramp-use-ssh-controlmaster-options:   Frequently Asked Questions.
                                                               (line 201)
 * tramp-verbose:                         Traces and Profiles. (line   6)
@@ -4559,7 +4574,7 @@ Concept Index
 * tgz file archive suffix:               Archive file names.  (line  71)
 * tlz file archive suffix:               Archive file names.  (line  71)
 * TRAMP theme:                           Frequently Asked Questions.
-                                                              (line 279)
+                                                              (line 291)
 * tset unix command:                     Remote shell setup.  (line 124)
 * txz file archive suffix:               Archive file names.  (line  71)
 * type-ahead:                            Usage.               (line  12)
@@ -4629,15 +4644,15 @@ Node: Cleanup remote connections106523
 Node: Renaming remote files108224
 Node: Archive file names112443
 Node: Bug Reports116957
-Node: Frequently Asked Questions119625
-Node: Files directories and localnames143521
-Node: Localname deconstruction143957
-Node: External packages144610
-Node: Traces and Profiles146655
-Node: GNU Free Documentation License148624
-Node: Function Index173997
-Node: Variable Index176875
-Node: Concept Index184557
+Node: Frequently Asked Questions119698
+Node: Files directories and localnames144063
+Node: Localname deconstruction144499
+Node: External packages145152
+Node: Traces and Profiles147197
+Node: GNU Free Documentation License149166
+Node: Function Index174539
+Node: Variable Index177417
+Node: Concept Index185241
 
 End Tag Table
 
