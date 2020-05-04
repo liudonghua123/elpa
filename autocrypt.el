@@ -202,7 +202,7 @@ The key should identify a record in the
         (print
          `(unless ,var
             (setq ,var ',(symbol-value var))))))
-    (write-file autocrypt-save-file)))
+    (write-region (point-min) (point-max) autocrypt-save-file)))
 
 ;; https://autocrypt.org/level1.html#recommendations-for-single-recipient-messages
 (defun autocrypt-single-recommentation (sender recipient)
