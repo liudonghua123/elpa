@@ -162,7 +162,9 @@ The key should identify a record in the
     'rmail)
    ((derived-mode-p 'message-mode)
     'message)
-   (t (user-error "MUA not supported"))))
+   ((derived-mode-p 'mu4e-main-mode 'mu4e-view-mode)
+    'mu4e)
+   (t (user-error "MUA not supported: %s" major-mode))))
 
 (defsubst autocrypt-mua-func (msg)
   "Return function behind MSG for major mode."
