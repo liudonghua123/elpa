@@ -53,6 +53,7 @@ proper upwards directory pointers. This means that '....' becomes
       (mapconcat #'identity (make-list (1- (length sub)) "..") "/"))
     path)))
 
+;;;###autoload
 (defun bang (command beg end)
   "Intelligently execute string COMMAND in inferior shell.
 
