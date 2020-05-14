@@ -131,20 +131,18 @@
 
 declaration
   : PERCENT token_keyword_non_grammar IDENTIFIER declaration_item_list
-    %((progn
-        (wisi-statement-action [1 statement-start])
-        (wisi-name-action 3)
-        (wisi-face-apply-action
-         [1 nil font-lock-constant-face
-            2 nil font-lock-keyword-face
-            3 nil font-lock-function-name-face])
-        (wisi-indent-action [nil nil nil (wisi-hanging 4 2)])))%
+    %((wisi-statement-action [1 statement-start])
+      (wisi-name-action 3)
+      (wisi-face-apply-action
+       [1 nil font-lock-constant-face
+          2 nil font-lock-keyword-face
+          3 nil font-lock-function-name-face])
+      (wisi-indent-action [nil nil nil (wisi-hanging 4 2)]))%
   | PERCENT CODE identifier_list RAW_CODE
     %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IDENTIFIER declaration_item_list
-    %((progn
-        (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face])
-        (wisi-indent-action [nil nil (wisi-hanging 4 2)])))%
+    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face])
+      (wisi-indent-action [nil nil (wisi-hanging 4 2)]))%
   | PERCENT IDENTIFIER
     %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
@@ -190,11 +188,10 @@ declaration_item
 
 nonterminal
   : IDENTIFIER (COLON | COLON_COLON_EQUAL) rhs_list semicolon_opt
-    %( (progn
-         (wisi-statement-action [1 statement-start 4 statement-end])
-         (wisi-name-action 1)
-         (wisi-face-apply-action [1 nil font-lock-function-name-face])
-         (wisi-indent-action [nil 2 2 2])) )%
+    %((wisi-statement-action [1 statement-start 4 statement-end])
+      (wisi-name-action 1)
+      (wisi-face-apply-action [1 nil font-lock-function-name-face])
+      (wisi-indent-action [nil 2 2 2]))%
   ;
 
 semicolon_opt :

@@ -20,7 +20,7 @@
 # Boston, MA 02111-1307, USA.
 
 
-export GPR_PROJECT_PATH="../wisi-2.2.1"
+export GPR_PROJECT_PATH=`ls -d ../wisi-3.1.?`
 
 gnatprep -DELPA="yes" wisitoken_grammar.gpr.gp wisitoken_grammar.gpr
 

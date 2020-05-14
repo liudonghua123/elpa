@@ -1,14 +1,13 @@
 ;;; wisitoken-grammar-mode.el --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017 - 2019  Free Software Foundation, Inc.
+;; Copyright (C) 2017 - 2020  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
-;; Version: 1.0.3
-;; package-requires: ((wisi "2.2.1") (emacs "25.0") (mmm-mode "0.5.7"))
-
-;; no upstream url; just ELPA
+;; Version: 1.1.0
+;; package-requires: ((wisi "3.1.1") (emacs "25.0") (mmm-mode "0.5.7"))
+;; url: http://www.nongnu.org/ada-mode/
 
 ;; This file is part of GNU Emacs.
 
@@ -63,6 +62,14 @@
     (define-key map [S-return] 'wisitoken-grammar-new-line)
     map
   )  "Local keymap used for wisitoken-grammar mode.")
+
+(define-key emacs-lisp-mode-map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
+
+(defvar wisitoken-grammar-mode-menu (make-sparse-keymap "Wisi-Grammar"))
+(easy-menu-define wisitoken-grammar-mode-menu wisitoken-grammar-mode-map "Menu keymap for Wisitoken Grammar mode"
+  '("Wisi-Grammar"
+    ["Goto declaration" xref-find-definitions t]
+    ["mmm-ify action"   wisitoken-grammar-mmm-parse t]))
 
 (cl-defstruct (wisitoken-grammar-parser (:include wisi-process--parser))
   ;; no new slots
@@ -314,22 +321,29 @@ Otherwise insert a plain new line."
   (wisi-xref-identifier-at-point))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql wisitoken-grammar)))
-  (wisi-xref-identifier-completion-table))
+  (wisi-names t nil))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql wisitoken-grammar)) identifier)
-  (unless (and (string-match wisi-xref-ident-regexp identifier)
-	       (match-string 2 identifier))
-    ;; Identifier is from identifier-at-point; get line from completion table
-    (setq identifier (try-completion identifier (wisi-xref-identifier-completion-table)))
-    (unless (test-completion identifier (wisi-xref-identifier-completion-table))
-      (setq identifier (completing-read "decl: " (wisi-xref-identifier-completion-table) nil t identifier)))
-    (string-match wisi-xref-ident-regexp identifier))
+  (when (get-text-property 0 'xref-identifier identifier)
+    ;; Identifier is from identifier-at-point; find declaration in completion table
+    (let* ((table (wisi-names t nil))
+	   (temp (try-completion identifier table)))
+      (cond
+       ((or (null temp)
+	    (not (test-completion temp table)))
+	(setq identifier (completing-read "decl: " table nil t identifier)))
 
-  (let* ((ident (match-string 1 identifier))
-	 (line-str (match-string 2 identifier))
-	 (line (when line-str (string-to-number line-str))))
-    (when line
-      (list (xref-make ident (xref-make-file-location (buffer-file-name) line  0))))
+       (t
+	(setq identifier temp)))
+      ))
+
+  ;; Identifier is now from completion table, or nil
+  (when identifier
+    (string-match wisi-names-regexp identifier)
+    (list (xref-make
+	 (match-string 1 identifier)
+	 (xref-make-file-location
+	  (buffer-file-name) (string-to-number (match-string 2 identifier)) 0)))
     ))
 
 ;;; debug

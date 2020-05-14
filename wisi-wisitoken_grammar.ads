@@ -2,7 +2,7 @@
 --
 --  Wisitoken_grammar parser language-specific runtime
 --
---  Copyright (C) 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2019 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -38,7 +38,7 @@ package Wisi.WisiToken_Grammar is
    procedure Check_Parens
      (Data        : in out Wisi.Parse_Data_Type'Class;
       Tree        : in     WisiToken.Syntax_Trees.Tree;
-      Tree_Tokens : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Tree_Tokens : in     WisiToken.Valid_Node_Index_Array;
       Args        : in     Arg_Index_Array);
 
 end Wisi.WisiToken_Grammar;
