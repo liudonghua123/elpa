@@ -21,10 +21,10 @@ END-INFO-DIR-ENTRY
 
 File: tramp.info,  Node: Top,  Next: Overview,  Prev: (dir),  Up: (dir)
 
-TRAMP 2.4.3.4 User Manual
+TRAMP 2.4.3.5 User Manual
 *************************
 
-This file documents TRAMP 2.4.3.4, a remote file editing package for
+This file documents TRAMP 2.4.3.5, a remote file editing package for
 Emacs.
 
    TRAMP stands for “Transparent Remote (file) Access, Multiple
@@ -248,13 +248,13 @@ TRAMP is included as part of Emacs (since Emacs 22.1).
    TRAMP is also freely packaged for download on the Internet at
 <https://ftp.gnu.org/gnu/tramp/>.  The version number of TRAMP can be
 obtained by the variable ‘tramp-version’.  For released TRAMP versions,
-this is a three-number string like “2.4.2”.
+this is a three-number string like “2.4.3”.
 
    A TRAMP release, which is packaged with Emacs, could differ slightly
 from the corresponding standalone release.  This is because it isn’t
 always possible to synchronize release dates between Emacs and TRAMP.
 Such version numbers have the Emacs version number as suffix, like
-“2.3.5.26.3”.  This means TRAMP 2.3.5 as integrated in Emacs 26.3.  A
+“2.4.3.27.1”.  This means TRAMP 2.4.3 as integrated in Emacs 27.1.  A
 complete list of TRAMP versions packaged with Emacs can be retrieved by
 
      (assoc 'Tramp customize-package-emacs-version-alist)
@@ -262,12 +262,12 @@ complete list of TRAMP versions packaged with Emacs can be retrieved by
    TRAMP is also available as GNU ELPA (https://elpa.gnu.org) package.
 Besides the standalone releases, further minor version of TRAMP will
 appear on GNU ELPA, until the next TRAMP release appears.  These minor
-versions have a four-number string, like “2.4.2.1”.
+versions have a four-number string, like “2.4.3.1”.
 
    TRAMP development versions are available on Git servers.  Development
 versions contain new and incomplete features.  The development version
 of TRAMP is always the version number of the next release, plus the
-suffix “-pre”, like “2.4.3-pre”.
+suffix “-pre”, like “2.4.4-pre”.
 
    One way to obtain TRAMP from Git server is to visit the Savannah
 project page at the following URL and then clicking on the Git link in
@@ -1757,7 +1757,7 @@ Determining a TRAMP session
      of that environment variable looks always like
 
           echo $INSIDE_EMACS
-          ⇒ 26.2,tramp:2.3.4
+          ⇒ 27.1,tramp:2.4.3
 
 ‘tset’ and other questions
 
@@ -2290,14 +2290,28 @@ the variable ‘default-directory’ is remote:
        (start-file-process "grep" (get-buffer-create "*grep*")
                            "/bin/sh" "-c" "grep -e tramp *"))
 
+   ‘process-file’ shall return either the exit code of the process, or a
+string describing the signal, when the process has been interrupted.
+Since it cannot be determined reliably whether a remote process has been
+interrupted, ‘process-file’ returns always the exit code.  When the user
+option ‘process-file-return-signal-string’ is non-nil, ‘process-file’
+regards all exit codes greater than 128 as an indication that the
+process has been interrupted, and returns a respective string.
+
    Remote processes do not apply to GVFS (see *note GVFS-based
 methods::) because the remote file system is mounted on the local host
 and TRAMP just accesses by changing the ‘default-directory’.
 
    TRAMP starts a remote process when a command is executed in a remote
 file or directory buffer.  As of now, these packages have been
-integrated to work with TRAMP: ‘compile.el’ (commands like ‘compile’ and
-‘grep’) and ‘gud.el’ (‘gdb’ or ‘perldb’).
+integrated to work with TRAMP: ‘shell.el’, ‘eshell.el’, ‘compile.el’
+(commands like ‘compile’ and ‘grep’) and ‘gud.el’ (‘gdb’ or ‘perldb’).
+
+   TRAMP always modifies the ‘INSIDE_EMACS’ environment variable for
+remote processes.  Per default, this environment variable shows the
+Emacs version.  TRAMP adds its own version string, so it looks like
+‘27.1,tramp:2.4.3.1’.  However, other packages might also add their name
+to this environment variable, like ‘27.1,comint,tramp:2.4.3.1’.
 
    For TRAMP to find the command on the remote, it must be accessible
 through the default search path as setup by TRAMP upon first connection.
@@ -2435,10 +2449,10 @@ variables in the previous section, these variables can be changed via
 connection-local variables.
 
    If Emacs supports the variable ‘async-shell-command-width’ (since
-Emacs 27.1), TRAMP cares about its value for asynchronous shell
-commands.  It specifies the number of display columns for command
-output.  For synchronous shell commands, a similar effect can be
-achieved by adding the environment variable ‘COLUMNS’ to
+Emacs 27), TRAMP cares about its value for asynchronous shell commands.
+It specifies the number of display columns for command output.  For
+synchronous shell commands, a similar effect can be achieved by adding
+the environment variable ‘COLUMNS’ to
 ‘tramp-remote-process-environment’.
 
 5.5.4 Running ‘eshell’ on a remote host
@@ -2749,7 +2763,7 @@ Even several suffixes in a row are possible, like
 ‘/path/to/dir/file.tar.gz.uu/dir/file’.
 
    An archive file name could be a remote file name, as in
-‘/ftp:anonymous@ftp.gnu.org:/gnu/tramp/tramp-2.3.2.tar.gz/INSTALL’.
+‘/ftp:anonymous@ftp.gnu.org:/gnu/tramp/tramp-2.4.3.tar.gz/INSTALL’.
 Since all file operations are mapped internally to GVFS operations,
 remote file names supported by ‘tramp-gvfs’ perform better, because no
 local copy of the file archive must be downloaded first.  For example,
@@ -2758,14 +2772,14 @@ local copy of the file archive must be downloaded first.  For example,
 for a complete list of ‘tramp-gvfs’ supported method names.
 
    If ‘url-handler-mode’ is enabled, archives could be visited via URLs,
-like ‘https://ftp.gnu.org/gnu/tramp/tramp-2.3.2.tar.gz/INSTALL’.  This
+like ‘https://ftp.gnu.org/gnu/tramp/tramp-2.4.3.tar.gz/INSTALL’.  This
 allows complex file operations like
 
      (progn
        (url-handler-mode 1)
        (ediff-directories
-        "https://ftp.gnu.org/gnu/tramp/tramp-2.3.1.tar.gz/tramp-2.3.1"
-        "https://ftp.gnu.org/gnu/tramp/tramp-2.3.2.tar.gz/tramp-2.3.2" ""))
+        "https://ftp.gnu.org/gnu/tramp/tramp-2.4.2.tar.gz/tramp-2.4.2"
+        "https://ftp.gnu.org/gnu/tramp/tramp-2.4.3.tar.gz/tramp-2.4.3" ""))
 
    It is even possible to access file archives in file archives, as
 
@@ -4157,7 +4171,7 @@ Variable Index
 * Menu:
 
 * ange-ftp-netrc-filename:               Password handling.   (line  39)
-* async-shell-command-width:             Remote processes.    (line 165)
+* async-shell-command-width:             Remote processes.    (line 179)
 * auth-source-debug:                     Password handling.   (line  37)
 * auth-source-save-behavior:             Password handling.   (line  31)
 * auth-sources:                          Password handling.   (line  15)
@@ -4165,31 +4179,33 @@ Variable Index
                                                               (line  58)
 * backup-directory-alist:                Auto-save and Backup.
                                                               (line   6)
-* COLUMNS, environment variable:         Remote processes.    (line 165)
+* COLUMNS, environment variable:         Remote processes.    (line 179)
 * customize-package-emacs-version-alist: Obtaining TRAMP.     (line  20)
-* DISPLAY, environment variable:         Remote processes.    (line  93)
+* DISPLAY, environment variable:         Remote processes.    (line 107)
 * EDITOR, environment variable:          Frequently Asked Questions.
                                                               (line 570)
-* ENV, environment variable:             Remote processes.    (line  64)
+* ENV, environment variable:             Remote processes.    (line  78)
 * ESHELL, environment variable:          Remote shell setup.  (line 187)
-* HGPLAIN, environment variable:         Remote processes.    (line  82)
+* HGPLAIN, environment variable:         Remote processes.    (line  96)
 * HISTFILE, environment variable:        Frequently Asked Questions.
                                                               (line 311)
 * HISTFILESIZE, environment variable:    Frequently Asked Questions.
                                                               (line 311)
-* HISTORY, environment variable:         Remote processes.    (line  52)
+* HISTORY, environment variable:         Remote processes.    (line  66)
 * HISTSIZE, environment variable:        Frequently Asked Questions.
                                                               (line 311)
 * INSIDE_EMACS, environment variable:    Remote shell setup.  (line 104)
 * INSIDE_EMACS, environment variable <1>: Remote shell setup. (line 187)
+* INSIDE_EMACS, environment variable <2>: Remote processes.   (line  38)
 * non-essential:                         External packages.   (line   9)
 * password-cache:                        Password handling.   (line  57)
 * password-cache-expiry:                 Password handling.   (line  52)
 * PATH, environment variable:            External methods.    (line 185)
+* process-file-return-signal-string:     Remote processes.    (line  21)
 * remote-file-name-inhibit-cache:        Frequently Asked Questions.
                                                               (line  40)
-* shell-command-switch:                  Remote processes.    (line 158)
-* shell-file-name:                       Remote processes.    (line 158)
+* shell-command-switch:                  Remote processes.    (line 172)
+* shell-file-name:                       Remote processes.    (line 172)
 * SHELLNAME, environment variable:       Remote shell setup.  (line 187)
 * SSH_AUTH_SOCK, environment variable:   Windows setup hints. (line  29)
 * TERM, environment variable:            Remote shell setup.  (line  90)
@@ -4246,7 +4262,7 @@ Variable Index
 * tramp-rclone-program:                  External methods.    (line 215)
 * tramp-remote-coding-commands:          Inline methods.      (line  16)
 * tramp-remote-path:                     Remote programs.     (line  15)
-* tramp-remote-process-environment:      Remote processes.    (line  38)
+* tramp-remote-process-environment:      Remote processes.    (line  52)
 * tramp-restricted-shell-hosts-alist:    Multi-hops.          (line  84)
 * tramp-save-ad-hoc-proxies:             Ad-hoc multi-hops.   (line  29)
 * tramp-sh-extra-args:                   Remote shell setup.  (line  22)
@@ -4330,7 +4346,7 @@ Concept Index
 * details of operation:                  Overview.            (line  44)
 * doas method:                           Inline methods.      (line  68)
 * docker method:                         Customizing Methods. (line  15)
-* eshell:                                Remote processes.    (line 175)
+* eshell:                                Remote processes.    (line 189)
 * exe file archive suffix:               Archive file names.  (line  47)
 * external methods:                      External methods.    (line   6)
 * fakecygpty and cygwin:                 Windows setup hints. (line  17)
@@ -4386,7 +4402,7 @@ Concept Index
 * fsh (with fcp method):                 External methods.    (line  76)
 * fsh method:                            External methods.    (line  86)
 * ftp method:                            External methods.    (line 118)
-* gdb:                                   Remote processes.    (line 208)
+* gdb:                                   Remote processes.    (line 222)
 * gdrive method:                         Quick Start Guide.   (line 104)
 * gdrive method <1>:                     GVFS-based methods.  (line  34)
 * git method:                            Customizing Methods. (line  37)
@@ -4395,7 +4411,7 @@ Concept Index
 * GNU ELPA:                              Obtaining TRAMP.     (line   6)
 * google drive:                          Quick Start Guide.   (line 104)
 * google drive <1>:                      GVFS-based methods.  (line  34)
-* gud.el:                                Remote processes.    (line 208)
+* gud.el:                                Remote processes.    (line 222)
 * gvfs-based methods:                    Quick Start Guide.   (line  95)
 * gvfs-based methods <1>:                GVFS-based methods.  (line   6)
 * hdfs method:                           Customizing Methods. (line  43)
@@ -4501,14 +4517,14 @@ Concept Index
 * overview:                              Overview.            (line   6)
 * passwords:                             Password handling.   (line   6)
 * pax file archive suffix:               Archive file names.  (line  62)
-* perldb:                                Remote processes.    (line 208)
+* perldb:                                Remote processes.    (line 222)
 * plink (with pscp method):              External methods.    (line  62)
 * plink (with psftp method):             External methods.    (line  62)
 * plink method:                          Quick Start Guide.   (line  44)
 * plink method <1>:                      Quick Start Guide.   (line  68)
 * plink method <2>:                      Inline methods.      (line 111)
 * plinkx method:                         Inline methods.      (line 123)
-* powershell:                            Remote processes.    (line 239)
+* powershell:                            Remote processes.    (line 253)
 * proxy hosts:                           Multi-hops.          (line   6)
 * proxy hosts, ad-hoc:                   Ad-hoc multi-hops.   (line   6)
 * proxy hosts, http tunnel:              Firewalls.           (line   6)
@@ -4541,9 +4557,9 @@ Concept Index
 * sg method:                             Quick Start Guide.   (line  56)
 * sg method <1>:                         Inline methods.      (line  74)
 * shar file archive suffix:              Archive file names.  (line  68)
-* shell:                                 Remote processes.    (line 112)
+* shell:                                 Remote processes.    (line 126)
 * shell init files:                      Remote shell setup.  (line  38)
-* shell-command:                         Remote processes.    (line 146)
+* shell-command:                         Remote processes.    (line 160)
 * simplified syntax:                     Change file name syntax.
                                                               (line  14)
 * smb method:                            Quick Start Guide.   (line  87)
@@ -4586,7 +4602,7 @@ Concept Index
 * uu encoding:                           Inline methods.      (line  16)
 * vagrant method:                        Customizing Methods. (line  48)
 * warc file archive suffix:              Archive file names.  (line  73)
-* winexe:                                Remote processes.    (line 239)
+* winexe:                                Remote processes.    (line 253)
 * xar file archive suffix:               Archive file names.  (line  75)
 * xpi file archive suffix:               Archive file names.  (line  77)
 * xps file archive suffix:               Archive file names.  (line  79)
@@ -4639,20 +4655,20 @@ Node: Change file name syntax89143
 Node: File name completion90574
 Node: Ad-hoc multi-hops93729
 Node: Remote processes95795
-Ref: Running a debugger on a remote host104553
-Node: Cleanup remote connections106523
-Node: Renaming remote files108224
-Node: Archive file names112443
-Node: Bug Reports116957
-Node: Frequently Asked Questions119698
-Node: Files directories and localnames144063
-Node: Localname deconstruction144499
-Node: External packages145152
-Node: Traces and Profiles147197
-Node: GNU Free Documentation License149166
-Node: Function Index174539
-Node: Variable Index177417
-Node: Concept Index185241
+Ref: Running a debugger on a remote host105442
+Node: Cleanup remote connections107412
+Node: Renaming remote files109113
+Node: Archive file names113332
+Node: Bug Reports117846
+Node: Frequently Asked Questions120587
+Node: Files directories and localnames144952
+Node: Localname deconstruction145388
+Node: External packages146041
+Node: Traces and Profiles148086
+Node: GNU Free Documentation License150055
+Node: Function Index175428
+Node: Variable Index178306
+Node: Concept Index186276
 
 End Tag Table
 
