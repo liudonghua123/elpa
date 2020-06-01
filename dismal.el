@@ -1,6 +1,6 @@
-;;; dismal.el --- Dis Mode Ain't Lotus: Spreadsheet program Emacs
+;;; dismal.el --- Dis Mode Ain't Lotus: Spreadsheet program Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-2019 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2020 Free Software Foundation, Inc.
 
 ;; Author: David Fox, fox@cs.nyu.edu
 ;;         Frank E. Ritter, ritter@cs.cmu.edu
@@ -4515,8 +4515,8 @@ Writes an extra tab if last field is empty for use in other programs, like S."
                          nil "-i")
 	  ;; could use make-local-hook, but thats a relatively new
 	  ;; function, so do it the hard way for now.
-	  (setq (make-local-variable 'dismal-gnuplot-finish)
-                dis-gnuplot-kill-gplot)
+	  (set (make-local-variable 'dismal-gnuplot-finish)
+               dis-gnuplot-kill-gplot)
 	  (add-hook 'kill-buffer-hook #'dis-gnuplot-finished)
 	  ;;(shell)
 	  ))
