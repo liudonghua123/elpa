@@ -181,7 +181,9 @@ declaration_item
   | RIGHT_PAREN
   | SLASH
   | STRING_LITERAL_1
+    %((wisi-face-apply-action [1 nil font-lock-string-face]))%
   | STRING_LITERAL_2
+    %((wisi-face-apply-action [1 nil font-lock-string-face]))%
   | TOKEN
   ;; ",", "token", "/", "(", ")" appear in %conflict declarations
   ;
@@ -235,6 +237,7 @@ rhs_item_list
 rhs_item
   : IDENTIFIER
   | STRING_LITERAL_2   ;; value of token
+    %((wisi-face-apply-action [1 nil font-lock-constant-face]))%
   | rhs_attribute ;; ANTLR attribute
   | rhs_optional_item
   | rhs_multiple_item
@@ -250,6 +253,7 @@ rhs_optional_item
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION
   | IDENTIFIER QUESTION
   | STRING_LITERAL_2 QUESTION
+    %((wisi-face-apply-action [1 nil font-lock-constant-face]))%
   ;
 
 rhs_multiple_item

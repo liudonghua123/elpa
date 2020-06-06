@@ -285,13 +285,13 @@ package body Wisitoken_Grammar_1_Process_Main is
             Table.States (33).Kernel := To_Vector ((0 => ((42, 1),  33,  0, (42, 1),  1)));
             Table.States (33).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (42, 1),  1)));
             Table.States (34).Action_List.Set_Capacity (13);
-            Add_Action (Table.States (34), (8, 10, 15, 16, 20, 23, 28, 30, 32, 33, 34, 35, 36), (42, 8),  1, null,
-            null);
+            Add_Action (Table.States (34), (8, 10, 15, 16, 20, 23, 28, 30, 32, 33, 34, 35, 36), (42, 8),  1,
+            declaration_item_8'Access, null);
             Table.States (34).Kernel := To_Vector ((0 => ((42, 8),  34,  0, (42, 8),  1)));
             Table.States (34).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (42, 8),  1)));
             Table.States (35).Action_List.Set_Capacity (13);
-            Add_Action (Table.States (35), (8, 10, 15, 16, 20, 23, 28, 30, 32, 33, 34, 35, 36), (42, 9),  1, null,
-            null);
+            Add_Action (Table.States (35), (8, 10, 15, 16, 20, 23, 28, 30, 32, 33, 34, 35, 36), (42, 9),  1,
+            declaration_item_9'Access, null);
             Table.States (35).Kernel := To_Vector ((0 => ((42, 9),  35,  0, (42, 9),  1)));
             Table.States (35).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (42, 9),  1)));
             Table.States (36).Action_List.Set_Capacity (13);
@@ -418,18 +418,18 @@ package body Wisitoken_Grammar_1_Process_Main is
             Table.States (43).Minimal_Complete_Actions := To_Vector (((Reduce, (50, 0),  1), (Shift, (52, 2),  25,
             106), (Shift, (53, 4),  24, 105), (Shift, (53, 5),  31, 107)));
             Table.States (44).Action_List.Set_Capacity (12);
-            Add_Action (Table.States (44), 11, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (44), 12, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (44), 18, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (44), 19, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (44), 20, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (44), 21, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (44), 23, Reduce, (50, 1),  1, null, null);
+            Add_Action (Table.States (44), 11, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (44), 12, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (44), 18, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (44), 19, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (44), 20, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (44), 21, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (44), 23, Reduce, (50, 1),  1, rhs_item_1'Access, null);
             Add_Action (Table.States (44), 25, (52, 3), 108);
-            Add_Action (Table.States (44), 29, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (44), 33, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (44), 35, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (44), 36, Reduce, (50, 1),  1, null, null);
+            Add_Action (Table.States (44), 29, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (44), 33, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (44), 35, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (44), 36, Reduce, (50, 1),  1, rhs_item_1'Access, null);
             Table.States (44).Kernel := To_Vector ((((50, 1),  35,  0, (50, 1),  1), ((52, 3),  35,  1, (2147483647,
             0),  0)));
             Table.States (44).Minimal_Complete_Actions := To_Vector (((Reduce, (50, 1),  1), (Shift, (52, 3),  25,
@@ -622,15 +622,15 @@ package body Wisitoken_Grammar_1_Process_Main is
             Table.States (65).Minimal_Complete_Actions := To_Vector (((Reduce, (50, 0),  1), (Shift, (52, 2),  25,
             124), (Shift, (53, 4),  24, 123), (Shift, (53, 5),  31, 125)));
             Table.States (66).Action_List.Set_Capacity (9);
-            Add_Action (Table.States (66), 12, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (66), 18, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (66), 19, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (66), 20, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (66), 21, Reduce, (50, 1),  1, null, null);
+            Add_Action (Table.States (66), 12, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (66), 18, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (66), 19, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (66), 20, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (66), 21, Reduce, (50, 1),  1, rhs_item_1'Access, null);
             Add_Action (Table.States (66), 25, (52, 3), 126);
-            Add_Action (Table.States (66), 26, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (66), 33, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (66), 35, Reduce, (50, 1),  1, null, null);
+            Add_Action (Table.States (66), 26, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (66), 33, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (66), 35, Reduce, (50, 1),  1, rhs_item_1'Access, null);
             Table.States (66).Kernel := To_Vector ((((50, 1),  35,  0, (50, 1),  1), ((52, 3),  35,  1, (2147483647,
             0),  0)));
             Table.States (66).Minimal_Complete_Actions := To_Vector (((Reduce, (50, 1),  1), (Shift, (52, 3),  25,
@@ -763,15 +763,15 @@ package body Wisitoken_Grammar_1_Process_Main is
             Table.States (79).Minimal_Complete_Actions := To_Vector (((Reduce, (50, 0),  1), (Shift, (52, 2),  25,
             136), (Shift, (53, 4),  24, 135), (Shift, (53, 5),  31, 137)));
             Table.States (80).Action_List.Set_Capacity (9);
-            Add_Action (Table.States (80), 12, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (80), 18, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (80), 19, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (80), 20, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (80), 21, Reduce, (50, 1),  1, null, null);
+            Add_Action (Table.States (80), 12, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (80), 18, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (80), 19, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (80), 20, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (80), 21, Reduce, (50, 1),  1, rhs_item_1'Access, null);
             Add_Action (Table.States (80), 25, (52, 3), 138);
-            Add_Action (Table.States (80), 27, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (80), 33, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (80), 35, Reduce, (50, 1),  1, null, null);
+            Add_Action (Table.States (80), 27, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (80), 33, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (80), 35, Reduce, (50, 1),  1, rhs_item_1'Access, null);
             Table.States (80).Kernel := To_Vector ((((50, 1),  35,  0, (50, 1),  1), ((52, 3),  35,  1, (2147483647,
             0),  0)));
             Table.States (80).Minimal_Complete_Actions := To_Vector (((Reduce, (50, 1),  1), (Shift, (52, 3),  25,
@@ -907,15 +907,15 @@ package body Wisitoken_Grammar_1_Process_Main is
             Table.States (93).Minimal_Complete_Actions := To_Vector (((Reduce, (50, 0),  1), (Shift, (52, 2),  25,
             148), (Shift, (53, 4),  24, 147), (Shift, (53, 5),  31, 149)));
             Table.States (94).Action_List.Set_Capacity (9);
-            Add_Action (Table.States (94), 12, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (94), 18, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (94), 19, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (94), 20, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (94), 21, Reduce, (50, 1),  1, null, null);
+            Add_Action (Table.States (94), 12, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (94), 18, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (94), 19, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (94), 20, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (94), 21, Reduce, (50, 1),  1, rhs_item_1'Access, null);
             Add_Action (Table.States (94), 25, (52, 3), 150);
-            Add_Action (Table.States (94), 28, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (94), 33, Reduce, (50, 1),  1, null, null);
-            Add_Action (Table.States (94), 35, Reduce, (50, 1),  1, null, null);
+            Add_Action (Table.States (94), 28, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (94), 33, Reduce, (50, 1),  1, rhs_item_1'Access, null);
+            Add_Action (Table.States (94), 35, Reduce, (50, 1),  1, rhs_item_1'Access, null);
             Table.States (94).Kernel := To_Vector ((((50, 1),  35,  0, (50, 1),  1), ((52, 3),  35,  1, (2147483647,
             0),  0)));
             Table.States (94).Minimal_Complete_Actions := To_Vector (((Reduce, (50, 1),  1), (Shift, (52, 3),  25,
@@ -1002,7 +1002,8 @@ package body Wisitoken_Grammar_1_Process_Main is
             Table.States (107).Kernel := To_Vector ((0 => ((53, 5),  31,  0, (53, 5),  2)));
             Table.States (107).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (53, 5),  2)));
             Table.States (108).Action_List.Set_Capacity (11);
-            Add_Action (Table.States (108), (11, 12, 18, 19, 20, 21, 23, 29, 33, 35, 36), (52, 3),  2, null, null);
+            Add_Action (Table.States (108), (11, 12, 18, 19, 20, 21, 23, 29, 33, 35, 36), (52, 3),  2,
+            rhs_optional_item_3'Access, null);
             Table.States (108).Kernel := To_Vector ((0 => ((52, 3),  25,  0, (52, 3),  2)));
             Table.States (108).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (52, 3),  2)));
             Table.States (109).Action_List.Set_Capacity (10);
@@ -1119,7 +1120,8 @@ package body Wisitoken_Grammar_1_Process_Main is
             Table.States (125).Kernel := To_Vector ((0 => ((53, 5),  31,  0, (53, 5),  2)));
             Table.States (125).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (53, 5),  2)));
             Table.States (126).Action_List.Set_Capacity (8);
-            Add_Action (Table.States (126), (12, 18, 19, 20, 21, 26, 33, 35), (52, 3),  2, null, null);
+            Add_Action (Table.States (126), (12, 18, 19, 20, 21, 26, 33, 35), (52, 3),  2, rhs_optional_item_3'Access,
+            null);
             Table.States (126).Kernel := To_Vector ((0 => ((52, 3),  25,  0, (52, 3),  2)));
             Table.States (126).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (52, 3),  2)));
             Table.States (127).Action_List.Set_Capacity (8);
@@ -1211,7 +1213,8 @@ package body Wisitoken_Grammar_1_Process_Main is
             Table.States (137).Kernel := To_Vector ((0 => ((53, 5),  31,  0, (53, 5),  2)));
             Table.States (137).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (53, 5),  2)));
             Table.States (138).Action_List.Set_Capacity (8);
-            Add_Action (Table.States (138), (12, 18, 19, 20, 21, 27, 33, 35), (52, 3),  2, null, null);
+            Add_Action (Table.States (138), (12, 18, 19, 20, 21, 27, 33, 35), (52, 3),  2, rhs_optional_item_3'Access,
+            null);
             Table.States (138).Kernel := To_Vector ((0 => ((52, 3),  25,  0, (52, 3),  2)));
             Table.States (138).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (52, 3),  2)));
             Table.States (139).Action_List.Set_Capacity (8);
@@ -1290,7 +1293,8 @@ package body Wisitoken_Grammar_1_Process_Main is
             Table.States (149).Kernel := To_Vector ((0 => ((53, 5),  31,  0, (53, 5),  2)));
             Table.States (149).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (53, 5),  2)));
             Table.States (150).Action_List.Set_Capacity (8);
-            Add_Action (Table.States (150), (12, 18, 19, 20, 21, 28, 33, 35), (52, 3),  2, null, null);
+            Add_Action (Table.States (150), (12, 18, 19, 20, 21, 28, 33, 35), (52, 3),  2, rhs_optional_item_3'Access,
+            null);
             Table.States (150).Kernel := To_Vector ((0 => ((52, 3),  25,  0, (52, 3),  2)));
             Table.States (150).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (52, 3),  2)));
             Table.States (151).Action_List.Set_Capacity (8);

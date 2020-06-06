@@ -5,7 +5,7 @@
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
-;; Version: 1.1.0
+;; Version: 1.2.0
 ;; package-requires: ((wisi "3.1.1") (emacs "25.0") (mmm-mode "0.5.7"))
 ;; url: http://www.nongnu.org/ada-mode/
 
@@ -40,16 +40,24 @@
   :group 'languages)
 
 (defcustom wisitoken-grammar-process-parse-exec "wisitoken_grammar_mode_parse.exe"
+  ;; wisitoken_grammar.gpr uses .exe even on non-windows.
   "Name of executable to use for external process wisitoken-grammar parser,"
   :type 'string
   :group 'wisitoken-grammar)
 
 (defvar wisitoken-grammar-mode-syntax-table
   (let ((table (make-syntax-table)))
-    ;; see wisitoken-grammar-syntax-propertize for comment start
-    (modify-syntax-entry ?\n ">   " table)
-    (modify-syntax-entry ?= ".   " table) ;; default symbol
-    (modify-syntax-entry ?* ".   " table) ;; default symbol
+    (modify-syntax-entry ?\; ". 12" table) ;; ";;" comment start; default punctuation
+    (modify-syntax-entry ?\n ">   " table) ;; comment end
+    (modify-syntax-entry ?=  ".   " table) ;; default symbol
+    (modify-syntax-entry ?*  ".   " table) ;; default symbol
+
+    ;; WORKAROUND (see mmm github issue 130) Because mmm does not
+    ;; limit syntax-ppss, we can't set ?\' to string here; that sees
+    ;; ?\' in 'code' and 'action' blocks. In addition, we prefer
+    ;; font-lock-constant-face for tokens. So we handle ?\' in the
+    ;; parser.
+
     table))
 
 (defvar wisitoken-grammar-mode-map
@@ -60,6 +68,7 @@
     (define-key map "\C-c\C-f" 'wisi-show-parse-error)
     (define-key map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
     (define-key map [S-return] 'wisitoken-grammar-new-line)
+    (define-key map "\C-c`"    'ada-show-secondary-error)
     map
   )  "Local keymap used for wisitoken-grammar mode.")
 
@@ -175,7 +184,7 @@
   "If in action, call `mmm-parse-region' on it."
   (interactive)
   (save-excursion
-    (let* ((begin (search-backward-regexp "%[(}]" nil t))
+    (let* ((begin (search-backward-regexp "%[({]" nil t))
 	   (end   (when begin (search-forward-regexp "[)}]%" nil t))))
       (when (and begin end)
 	(mmm-parse-region begin end)))
@@ -236,19 +245,14 @@ Otherwise insert a plain new line."
     (goto-char start)
     (save-match-data
       (while (re-search-forward
-	      (concat
-	       "\\(;;\\)"     ;; comment start
-	       "\\|\\(%\\[\\)" ;; regexp begin
-	       )
+	       "\\(%\\[\\)" ;; regexp begin
 	      end t)
 	(cond
 	 ((match-beginning 1)
-	  (put-text-property (match-beginning 1) (match-end 1) 'syntax-table '(11 . nil)))
-
-	 ((match-beginning 2)
-	  (let ((begin (match-beginning 2))
+	  (let ((begin (match-beginning 1))
 		(end (search-forward "]%")))
-	    ;; allow single quotes in regexp to not mess up the rest of the buffer
+	    ;; allow single quotes in regexp to not mess up the rest
+	    ;; of the buffer
 	    (put-text-property begin end 'syntax-table '(11 . nil))
 	    ))
 	 ))
@@ -358,7 +362,7 @@ Otherwise insert a plain new line."
 (define-derived-mode wisitoken-grammar-mode prog-mode "Wisi"
   "A major mode for Wisi grammar files."
   (set (make-local-variable 'syntax-propertize-function) 'wisitoken-grammar-syntax-propertize)
-  (syntax-ppss-flush-cache (point-min));; reparse with new function
+
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
 

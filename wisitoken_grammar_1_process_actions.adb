@@ -191,6 +191,42 @@ package body Wisitoken_Grammar_1_Process_Actions is
       end case;
    end declaration_item_5;
 
+   procedure declaration_item_8
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (1, 5, 3)));
+      when Indent =>
+         null;
+      end case;
+   end declaration_item_8;
+
+   procedure declaration_item_9
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (1, 5, 3)));
+      when Indent =>
+         null;
+      end case;
+   end declaration_item_9;
+
    procedure nonterminal_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
@@ -305,6 +341,42 @@ package body Wisitoken_Grammar_1_Process_Actions is
          null;
       end case;
    end rhs_3;
+
+   procedure rhs_item_1
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (1, 5, 0)));
+      when Indent =>
+         null;
+      end case;
+   end rhs_item_1;
+
+   procedure rhs_optional_item_3
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (1, 5, 0)));
+      when Indent =>
+         null;
+      end case;
+   end rhs_optional_item_3;
 
    procedure compilation_unit_list_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
