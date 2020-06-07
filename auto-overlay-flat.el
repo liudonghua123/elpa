@@ -1,4 +1,4 @@
-;;; auto-overlay-flat.el --- flat start/end-delimited automatic overlays
+;;; auto-overlay-flat.el --- flat start/end-delimited automatic overlays    -*- lexical-binding: t; -*-
 
 
 ;; Copyright (C) 2005-2015  Free Software Foundation, Inc
@@ -148,8 +148,7 @@
 
 
      (t ;; if we're an end-match, look for next end-match...
-      (let ((o-start (overlay-get o-parent 'start))
-	    (o-end (auto-o-next-flat-match o-self 'end)))
+      (let ((o-end (auto-o-next-flat-match o-self 'end)))
 	(cond
 	 ;; if there is one, match parent with it
 	 (o-end

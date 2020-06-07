@@ -1,4 +1,4 @@
-;;; auto-overlay-word.el --- automatic overlays for single "words"
+;;; auto-overlay-word.el --- automatic overlays for single "words"    -*- lexical-binding: t; -*-
 
 
 ;; Copyright (C) 2005-2015  Free Software Foundation, Inc

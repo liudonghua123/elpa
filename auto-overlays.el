@@ -1,4 +1,4 @@
-;;; auto-overlays.el --- Automatic regexp-delimited overlays
+;;; auto-overlays.el --- Automatic regexp-delimited overlays    -*- lexical-binding: t; -*-
 
 
 ;; Copyright (C) 2005-2015  Free Software Foundation, Inc
@@ -28,12 +28,12 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (defvar auto-overlay-regexps nil)
 (make-variable-buffer-local 'auto-overlay-regexps)
 (defvar auto-overlay-load-hook nil)
 (defvar auto-overlay-unload-hook nil)
-
-(eval-when-compile (require 'cl))
 
 
 ;; (defvar auto-overlay-list nil)
@@ -590,7 +590,7 @@ Only overlays that satisfy all property tests are returned."
   (auto-overlay-trigger-update start)
   (unless (= start end) (auto-overlay-trigger-update end))
 
-  (let (overlay-list function prop-list value-list result)
+  (let (overlay-list function prop-list value-list)
     ;; check properties of each overlay in region
     (dolist (o (overlays-in start end))
       (catch 'failed
@@ -927,7 +927,7 @@ assumed to be 'start. ID property is a symbol that can be used to
 uniquely identify REGEXP (see `auto-overlay-unload-regexp')."
 
   (let ((defs (assq definition-id (auto-o-get-set set-id)))
-	regexp-id rgxp edge exclusive props)
+	regexp-id)
     (when (null defs)
       (error "Definition \"%s\" not found in auto-overlay regexp set %s"
 	     (symbol-name definition-id) (symbol-name set-id)))
@@ -1000,7 +1000,7 @@ from the current buffer. Returns the deleted definition."
 				`(eq definition-id ,definition-id)))))
     ;; delete definition
     (let ((olddef (assq definition-id (auto-o-get-set set-id)))
-	   def-id class regexps regexp edge regexp-id props)
+	   def-id class regexps)
       ;; safe to delete by side effect here because definition is guaranteed
       ;; not to be the first element of the list (the first two elements of a
       ;; regexp set are always the set-id and the buffer list)
@@ -1410,14 +1410,13 @@ overlays were saved."
 
 
 
-(defun auto-o-schedule-update (start &optional end unused set-id)
+(defun auto-o-schedule-update (start &optional end _unused _set-id)
   ;; Schedule `auto-overlay-update' of lines between positions START and END
-  ;; (including lines containing START and END), optionally restricted to
-  ;; SET-ID. If END is not supplied, schedule update for just line containing
-  ;; START. The update will be run by `auto-o-run-after-change-functions'
-  ;; after buffer modification is complete. This function is assigned to
-  ;; `after-change-functions'.
-
+  ;; (including lines containing START and END). If END is not supplied,
+  ;; schedule update for just line containing START. The update will be run by
+  ;; `auto-o-run-after-change-functions' after buffer modification is
+  ;; complete. This function is assigned to `after-change-functions'.
+  ;; FIXME: Optionally allow argument to restrict to SET-ID?
   (save-restriction
     (widen)   ; need to widen, since goto-line goes to absolute line
     (setq start (line-number-at-pos start))
@@ -1477,7 +1476,7 @@ overlays were saved."
 
 
 
-(defun auto-o-schedule-suicide (o-self &optional modified &rest unused)
+(defun auto-o-schedule-suicide (o-self &optional modified &rest _unused)
   ;; Schedule `auto-o-suicide' to run after buffer modification is
   ;; complete. It will be run by `auto-o-run-after-change-functions'. Assigned
   ;; to overlay modification and insert in-front/behind hooks.
@@ -1501,7 +1500,7 @@ overlays were saved."
 
   (save-restriction
     (widen)
-    (let (definition-id regexp-id class def regexp group priority
+    (let (definition-id regexp-id regexp group priority
 	   o-match o-overlap o-new beg end)
       (unless start-line (setq start-line (line-number-at-pos)))
       (save-excursion
@@ -1528,8 +1527,8 @@ overlays were saved."
 		  (setq definition-id (pop def))
 		  (when (or (null definition-ids)
 			    (memq definition-id definition-ids))
-		    (setq class (pop def))
-
+		    (pop def)
+		    
 		    ;; check all regexps for current definition
 		    (dotimes (rank (length def))
 		      (setq regexp-id (car (nth rank def)))

@@ -1,4 +1,4 @@
-;;; auto-overlay-self.el --- self-delimited automatic overlays
+;;; auto-overlay-self.el --- self-delimited automatic overlays    -*- lexical-binding: t; -*-
 
 
 ;; Copyright (C) 2005-2015  Free Software Foundation, Inc
@@ -296,19 +296,16 @@
   ;; is null, all overlays after O-START are included.
 
   (when (null end) (setq end (point-max)))
-  (let (overlay-list)
-    ;; create list of all overlays corresponding to same entry between O-START
-    ;; and END
-    (setq overlay-list
-	  ;; Note: We subtract 1 from start and add 1 to end to catch overlays
-	  ;;       that end at start or start at end. This seems to give the
-	  ;;       same results as the old version of `auto-o-self-list'
-	  ;;       (above) in all circumstances.
-	  (sort (auto-overlays-in
-		 (1- (overlay-get o-start 'delim-start)) (1+ end)
-		 `(eq set-id ,(overlay-get o-start 'set-id))
-		 `(eq definition-id ,(overlay-get o-start 'definition-id)))
-		#'auto-overlay-<))))
+  ;; create list of all overlays corresponding to same entry between O-START and END
+  ;; Note: We subtract 1 from start and add 1 to end to catch overlays that
+  ;;       end at start or start at end. This seems to give the same results
+  ;;       as the old version of `auto-o-self-list' (above) in all
+  ;;       circumstances.
+  (sort (auto-overlays-in
+	 (1- (overlay-get o-start 'delim-start)) (1+ end)
+	 `(eq set-id ,(overlay-get o-start 'set-id))
+	 `(eq definition-id ,(overlay-get o-start 'definition-id)))
+	#'auto-overlay-<))
 
 
 ;;; auto-overlay-self.el ends here

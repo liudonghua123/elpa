@@ -1,4 +1,4 @@
-;;; auto-overlay-line.el --- automatic overlays for single lines
+;;; auto-overlay-line.el --- automatic overlays for single lines    -*- lexical-binding: t; -*-
 
 
 ;; Copyright (C) 2005-2015  Free Software Foundation, Inc
@@ -59,7 +59,7 @@
     o-new))
 
 
-(defun auto-o-schedule-extend-line (o-self modified &rest unused)
+(defun auto-o-schedule-extend-line (o-self modified &rest _unused)
   ;; All line overlay modification hooks are set to this function, which
   ;; schedules `auto-o-extend-line' to run after any suicide functions have
   ;; been called, but before the overlays are updated.

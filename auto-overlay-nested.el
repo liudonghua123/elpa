@@ -1,4 +1,4 @@
-;;; auto-overlay-nested.el --- nested start/end-delimited automatic overlays
+;;; auto-overlay-nested.el --- nested start/end-delimited automatic overlays    -*- lexical-binding: t; -*-
 
 
 ;; Copyright (C) 2005-2015  Free Software Foundation, Inc
@@ -115,7 +115,7 @@
     (cond
      ((eq (auto-o-edge o-match) 'start)
       (setq pos (overlay-get o-match 'delim-end))
-      (setq o-new (make-overlay pos pos nil nil 'rear-advance))
+      (setq o-new (make-overlay pos (if unmatched (point-max) pos) nil nil 'rear-advance))
       (overlay-put o-new 'auto-overlay t)
       (overlay-put o-new 'set-id (overlay-get o-match 'set-id))
       (overlay-put o-new 'definition-id (overlay-get o-match 'definition-id))
@@ -123,7 +123,8 @@
 
      ((eq (auto-o-edge o-match) 'end)
       (setq pos (overlay-get o-match 'delim-start))
-      (setq o-new (make-overlay pos pos nil nil 'rear-advance))
+      (setq o-new (make-overlay (if unmatched (point-min) pos) pos nil nil
+      'rear-advance))
       (overlay-put o-new 'auto-overlay t)
       (overlay-put o-new 'set-id (overlay-get o-match 'set-id))
       (overlay-put o-new 'definition-id (overlay-get o-match 'definition-id))
