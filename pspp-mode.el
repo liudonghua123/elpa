@@ -1,6 +1,6 @@
 ;;; pspp-mode.el --- Major mode for editing PSPP files
 
-;; Copyright (C) 2005,2018,2020 Free Software Foundation
+;; Copyright (C) 2005,2018,2020 Free Software Foundation, Inc.
 ;; Author: Scott Andrew Borton <scott@pp.htv.fi>
 ;; Created: 05 March 2005
 ;; Version: 1.1
@@ -9,8 +9,6 @@
 
 ;;; Commentary:
 ;; Based on the example wpdl-mode.el by Scott Borton
-
-;; Copyright (C) 2000, 2003 Scott Andrew Borton <scott@pp.htv.fi>
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -63,29 +61,29 @@
   "size of indent")
 
 
-(defun downcase-list (l)
+(defun pspp--downcase-list (l)
   "Takes a list of strings and returns that list with all elements downcased"
   (if l
-      (cons (downcase (car l)) (downcase-list (cdr l)))
+      (cons (downcase (car l)) (pspp--downcase-list (cdr l)))
     nil))
 
 
-(defun upcase-list (l)
+(defun pspp--upcase-list (l)
   "Takes a list of strings and returns that list with all elements upcased"
   (if l
-      (cons (upcase (car l)) (upcase-list (cdr l)))
+      (cons (upcase (car l)) (pspp--upcase-list (cdr l)))
     nil))
 
 
-(defun updown-list (l)
+(defun pspp--updown-list (l)
   "Takes a list of strings and returns that list with all elements upcased
 and downcased"
-  (append (upcase-list l) (downcase-list l)))
+  (append (pspp--upcase-list l) (pspp--downcase-list l)))
 
 
 (defconst pspp-indenters
   (concat "^[\t ]*"
-          (regexp-opt (updown-list '("DO"
+          (regexp-opt (pspp--updown-list '("DO"
                                      "BEGIN"
                                      "LOOP"
                                      "INPUT")) t)
@@ -95,7 +93,7 @@ and downcased"
 
 (defconst pspp-unindenters
   (concat "^[\t ]*\\(END\\|end\\)[\t ]+"
-          (regexp-opt (updown-list '("IF"
+          (regexp-opt (pspp--updown-list '("IF"
                                      "DATA"
                                      "LOOP"
                                      "REPEAT"
@@ -227,7 +225,7 @@ and downcased"
 (defconst pspp-font-lock-keywords
   (list (cons
          (concat "\\<"
-                 (regexp-opt (updown-list '(
+                 (regexp-opt (pspp--updown-list '(
                                "END DATA"
                                "ACF"
                                "ADD FILES"
@@ -403,14 +401,14 @@ and downcased"
          'font-lock-builtin-face)
 
         (cons
-         (concat "\\<" (regexp-opt (updown-list
+         (concat "\\<" (regexp-opt (pspp--updown-list
                         '("ALL" "AND" "BY" "EQ" "GE" "GT" "LE" "LT" "NE" "NOT" "OR" "TO" "WITH"))
                         t) "\\>")
          'font-lock-keyword-face)
 
         (cons
          (concat "\\<"
-                 (regexp-opt (updown-list '(
+                 (regexp-opt (pspp--updown-list '(
                                "ABS"
                                "ACOS"
                                "ANY"
