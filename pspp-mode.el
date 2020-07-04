@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 2005,2018,2020 Free Software Foundation, Inc.
 ;; Author: Scott Andrew Borton <scott@pp.htv.fi>
+;; Maintainer: John Darrington <john@darrington.wattle.id.au>
 ;; Created: 05 March 2005
 ;; Version: 1.1
 ;; Keywords: PSPP major-mode
