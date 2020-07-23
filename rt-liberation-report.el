@@ -1,4 +1,4 @@
-;;; rt-liberation-report.el --- Free from the RT Web Interface
+;;; rt-liberation-report.el --- Emacs interface to RT
 
 ;; Copyright (C) 2015  Free Software Foundation
 ;;

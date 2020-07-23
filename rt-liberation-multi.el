@@ -1,4 +1,4 @@
-;;; rt-liberation-multi.el --- Free from the RT Web Interface
+;;; rt-liberation-multi.el --- Emacs interface to RT
 
 ;; Copyright (C) 2010, 2014  Free Software Foundation
 ;;

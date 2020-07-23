@@ -1,10 +1,16 @@
-;;; rt-liberation.el --- Free from the RT Web Interface
+;;; rt-liberation.el --- Emacs interface to RT
 
-;; Copyright (C) 2008, 2009, 2010, 2011, 2014, 2015  Free Software Foundation
-;;
-;; Authors: Yoni Rabkin <yrk@gnu.org>, Aaron S. Hawley
-;; <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>
-;;
+;; Copyright (C) 2008, 2009, 2010, 2011, 2014, 2015, 2020 Free
+;; Software Foundation
+
+;; Author: Yoni Rabkin <yrk@gnu.org>
+;; Authors: Aaron S. Hawley <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>
+;; Maintainer: Yoni Rabkin <yrk@gnu.org>
+;; Version: 1.00
+;; Keywords: rt, tickets
+;; Package-Type: multi
+
+
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
 ;; published by the Free Software Foundation; either version 3 of the
