@@ -40,7 +40,7 @@
 
 (require 'browse-url)
 (require 'time-date)
-(require 'cl)
+(require 'cl-lib)
 
 (require 'rt-liberation-rest)
 
