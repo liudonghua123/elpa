@@ -1,6 +1,6 @@
-As of early 2020, RT is under GPLv2. GPLv3 is incompatible with
-GPLv2. So you might ask the question: Why and how is rt-liberation
-under GPLv3?
+rt-liberation is an Emacs interface to the RT system. As of early
+2020, RT is under GPLv2. GPLv3 is incompatible with GPLv2. So you
+might ask the question: how is rt-liberation under GPLv3?
 
 It's because I emailed Best Practical (the people behind RT) and got
 their excplicit permission to do so. Included below is the complete
