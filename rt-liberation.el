@@ -1,7 +1,6 @@
 ;;; rt-liberation.el --- Free from the RT Web Interface
 
-;; Copyright (C) 2008, 2009, 2010, 2011, 2014, 2015 Yoni Rabkin, Aaron
-;; S. Hawley, John Sullivan
+;; Copyright (C) 2008, 2009, 2010, 2011, 2014, 2015  Free Software Foundation
 ;;
 ;; Authors: Yoni Rabkin <yrk@gnu.org>, Aaron S. Hawley
 ;; <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>

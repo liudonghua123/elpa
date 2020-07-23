@@ -1,6 +1,6 @@
 ;;; rt-liberation-multi.el --- Free from the RT Web Interface
 
-;; Copyright (C) 2010, 2014 Yoni Rabkin
+;; Copyright (C) 2010, 2014  Free Software Foundation
 ;;
 ;; Authors: Yoni Rabkin <yrk@gnu.org>
 ;;

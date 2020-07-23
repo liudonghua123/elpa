@@ -1,6 +1,6 @@
 ;;; rt-liberation-rest.el --- Interface to the RT REST API
 
-;; Copyright (C) 2014, 2015  Yoni Rabkin
+;; Copyright (C) 2014, 2015  Free Software Foundation
 ;;
 ;; Authors: Yoni Rabkin <yrk@gnu.org>
 ;;

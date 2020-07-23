@@ -1,6 +1,6 @@
 ;;; rt-liberation-report.el --- Free from the RT Web Interface
 
-;; Copyright (C) 2015  Yoni Rabkin
+;; Copyright (C) 2015  Free Software Foundation
 ;;
 ;; Authors: Yoni Rabkin <yrk@gnu.org>
 ;;

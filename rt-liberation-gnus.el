@@ -1,6 +1,6 @@
 ;;; rt-liberation-gnus.el --- Gnus integration for rt-liberation
 
-;; Copyright (C) 2009, 2012, 2014 Yoni Rabkin
+;; Copyright (C) 2009, 2012, 2014  Free Software Foundation
 ;;
 ;; Authors: Yoni Rabkin <yrk@gnu.org>
 ;;
