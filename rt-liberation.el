@@ -9,7 +9,9 @@
 ;; Version: 1.00
 ;; Keywords: rt, tickets
 ;; Package-Type: multi
+;; url: http://www.nongnu.org/rtliber/
 
+;; This file is a part of rt-liberation.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
