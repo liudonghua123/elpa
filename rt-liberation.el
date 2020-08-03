@@ -46,6 +46,7 @@
 
 (require 'rt-liberation-rest)
 
+
 (defgroup rt-liber nil
   "*rt-liberation, the Emacs interface to RT"
   :prefix "rt-liber-"
@@ -95,9 +96,6 @@
 (defvar rt-liber-correspondence-regexp
   "^Type: \\(EmailRecord\\|CommentEmailRecord\\|Correspond\\)"
   "Regular expression for correspondence sections.")
-
-(defvar rt-liber-rt-version "X.Y.Z"
-  "Version of the RT CLI.")
 
 (defvar rt-liber-username nil
   "Username for assigning ownership on the RT server.")
@@ -368,26 +366,6 @@ AFTER  date after predicate."
 
 
 ;;; --------------------------------------------------------
-;;; TicketSQL runner
-;;; --------------------------------------------------------
-
-(defun rt-liber-ticketsql-runner-parser-f ()
-  "Parser function for a textual list of tickets."
-  (let (idsub-list)
-    (while (or
-	    (and (not (rt-liber-version-< rt-liber-rt-version
-					  "3.8.2"))
-		 (re-search-forward "^ *\\([0-9]+\\) *\\(.*\\)$"
-				    (point-max) t))
-	    (re-search-forward "^\\([0-9]+\\): \\(.*\\)$"
-			       (point-max) t))
-      (push (list (match-string-no-properties 1)
-		  (match-string-no-properties 2))
-	    idsub-list))
-    idsub-list))
-
-
-;;; --------------------------------------------------------
 ;;; Ticket list retriever
 ;;; --------------------------------------------------------
 
@@ -432,54 +410,6 @@ AFTER  date after predicate."
 		       (format "%s,%s" a b))
 		   ticket-list)))
       (signal 'rt-liber-no-result-from-query-error nil))))
-
-(defun rt-liber-run-show-base-query (idsublist)
-  "Run \"show\" type query against the server with IDSUBLIST."
-  (rt-liber-parse-answer
-   (rt-liber-query-runner "show"
-			  (rt-liber-create-tickets-string idsublist))
-   #'rt-liber-ticket-base-retriever-parser-f))
-
-
-;;; --------------------------------------------------------
-;;; Ticket retriever
-;;; --------------------------------------------------------
-
-(defun rt-liber-create-ticket-history-string (ticket-id)
-  "Create a query for TICKET-ID to retrieve all history objects."
-  (concat "ticket/" ticket-id "/history/id"))
-
-(defun rt-liber-create-ticket-histories-string (ticket-id subid-list)
-  "Create query for TICKET-ID to retrieve SUBID-LIST objects."
-  (concat "ticket/" ticket-id "/history/id/"
-	  (reduce
-	   #'(lambda (a b) (format "%s,%s" a b)) subid-list)))
-
-(defun rt-liber-run-ticket-history-base-query (ticket-id)
-  "Run history query against server for TICKET-ID."
-  (rt-liber-parse-answer
-   (rt-liber-query-runner "show"
-			  (rt-liber-create-ticket-history-string
-			   ticket-id))
-   (if (rt-liber-version-< rt-liber-rt-version "3.8.2")
-       #'(lambda ()
-	   (let ((ticket-history-sublist nil))
-	     (goto-char (point-min))
-	     (while (re-search-forward "^\\([0-9]+\\): " (point-max) t)
-	       (setq ticket-history-sublist
-		     (append (list (match-string-no-properties 1))
-			     ticket-history-sublist)))
-	     (if ticket-history-sublist
-		 (rt-liber-parse-answer
-		  (rt-liber-query-runner
-		   "show"
-		   (rt-liber-create-ticket-histories-string
-		    ticket-id
-		    ticket-history-sublist))
-		  #'(lambda () (buffer-substring (point-min)
-						 (point-max))))
-	       (error "an unhandled exceptions occurred"))))
-     #'(lambda () (buffer-substring (point-min) (point-max))))))
 
 
 ;;; --------------------------------------------------------
