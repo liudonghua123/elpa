@@ -32,7 +32,9 @@
 
 ;;; Code:
 
+(require 'rt-liberation)
 (require 'rt-liberation-rest)
+
 
 (defvar rt-liber-report-csv-header
   '("date" "tickets resolved")
