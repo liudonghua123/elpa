@@ -1117,12 +1117,6 @@ returned as no associated text properties."
    status-symbol
    rt-liber-status-dictionary))
 
-(defun rt-liber-command-get-custom-field-string (custom-field-symbol)
-  "Return value associated with key CUSTOM-FIELD-SYMBOL."
-  (rt-liber-command-get-dictionary-value
-   custom-field-symbol
-   rt-liber-custom-field-dictionary))
-
 (defun rt-liber-command-runner-parser-f ()
   "Display command return status from the server to the user."
   (message (buffer-string)))
@@ -1132,7 +1126,7 @@ returned as no associated text properties."
   (rt-liber-rest-command-set
    id
    (rt-liber-get-field-string 'status)
-   (rt-liber-com  mand-get-status-string 'deleted)))
+   (rt-liber-command-get-status-string 'deleted)))
 
 (defun rt-liber-command-set-status-new (id)
   "Set the status of ticket ID to `new'."
