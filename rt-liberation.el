@@ -396,21 +396,6 @@ AFTER  date after predicate."
 	    continue t))
     ticketbase-list))
 
-;; accept the output of `rt-liber-ticketsql-runner-parser-f' and
-;; return a string suitable for an RT "show" query
-(defun rt-liber-create-tickets-string (idsublist)
-  "Create a RT CLI ticket \"show\" string from IDSUBLIST."
-  (let ((ticket-list (mapcar #'(lambda (e) (car e)) idsublist)))
-    (if ticket-list
-	(concat "ticket/"
-		(if (= (length ticket-list) 1)
-		    (format "%s" (car ticket-list))
-		  (reduce
-		   #'(lambda (a b)
-		       (format "%s,%s" a b))
-		   ticket-list)))
-      (signal 'rt-liber-no-result-from-query-error nil))))
-
 
 ;;; --------------------------------------------------------
 ;;; Ticket utilities
@@ -927,79 +912,6 @@ If POINT is nil then called on (point)."
 This function is really a placeholder for user custom functions,
 and as such always return t."
   t)
-
-
-;;; --------------------------------------------------------
-;;; Version comparison functions
-;;; --------------------------------------------------------
-
-;; rt-liber-version-<: string * string -> t-or-nil
-(defun rt-liber-version-< (vnum1 vnum2)
-  "Test whehther version number VNUM1 is less than VNUM2.
-Arguments must be strings Lisp objects, and not numbers.
-
-Examples:
-  (rt-liber-version-< \"1.01\" \"1.11\")
-    => t
-
-  (rt-liber-version-< \"1.1\" \"1.0.1\")
-    => nil"
-  (rt-liber-version-<- (rt-liber-version-value
-			(rt-liber-version-read vnum1))
-		       (rt-liber-version-value
-			(rt-liber-version-read vnum2))))
-
-;; rt-liber-version-read: string -> list string
-(defun rt-liber-version-read (str)
-  "Tokenize version number STR whenever the syntax class changes.
-
- Example:
-   \"1.043.0-1_=+\" \
-==> (\"1\" \".\" \"043\" \".\" \"0\" \"-\" \"1\" \"_=+\")"
-  (let ((tokens nil)
-	(start 0)
-	(re (mapconcat 'identity '("[[:digit:]]+" "[[:punct:]]+") "\\|")))
-    (while (and (string-match re (substring str start))
-		(> (length str) start))
-      (setq tokens (cons (match-string 0 (substring str start)) tokens))
-      (setq start (+ start (match-end 0))))
-    (if (< start (length str))
-	(error "Unknown character: %s" (substring str start (1+ start))))
-    (reverse tokens)))
-
-;; rt-liber-version-value: list string -> list number
-(defun rt-liber-version-value (tokens)
-  "Convert list of TOKENS to a comparable number list."
-  (mapcar #'(lambda (tk)
-	      (if (string-match "^0+$" tk)
-		  1
-		(if (string-match "^[[:digit:]]+$" tk)
-		    (if (string-match "^0+" tk)
-			(1+ (* (string-to-number tk)
-			       (expt 10
-				     (- (length
-					 (match-string 0 tk))))))
-		      (1+ (string-to-number tk)))
-		  (if (string-match "^[[:punct:]]+$" tk)
-		      0
-		    ;; else (string-match "[^[:digit:][:punct:]]" tk)
-		    -1))))
-	  tokens))
-
-;; rt-liber-version-<-: list number -> t-or-nil
-(defun rt-liber-version-<- (vals1 vals2)
-  "Test whether version representation VALS1 is less than VALS2."
-  (if (and (null vals1) (null vals2))
-      nil
-    (if (null vals2)
-	nil
-      (if (null vals1)
-	  t
-	(if (= (car vals1) (car vals2))
-	    (rt-liber-version-<- (cdr vals1) (cdr vals2))
-	  (if (< (car vals1) (car vals2))
-	      t
-	    nil))))))
 
 
 ;;; --------------------------------------------------------
