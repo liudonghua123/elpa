@@ -20,9 +20,7 @@
 ;; License along with this program; if not, write to the Free
 ;; Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 ;; MA 02111-1307, USA.
-;;
-;; Note: Licensed under GPLv2+ and not GPLv3+ in order to be
-;; compatible with the license of RT.
+
 
 ;;; History:
 ;;
@@ -55,6 +53,9 @@
 
 (defvar rt-liber-rest-verbose-p t
   "If non-nil, be verbose about what's happening.")
+
+(defvar rt-liber-rest-response-buffer nil
+  "Buffer for manipulating server responses.")
 
 
 (defun rt-liber-rest-write-debug (str)
@@ -242,7 +243,7 @@
 
 (defun rt-liber-rest-handle-response (buffer)
   "Handle the response provided in BUFFER."
-  (with-current-buffer response-buffer
+  (with-current-buffer rt-liber-rest-response-buffer
     (rt-liber-rest-write-debug (buffer-string))))
 
 (defun rt-liber-rest-edit-runner (ticket-id field value)
@@ -256,8 +257,8 @@
     (rt-liber-rest-write-debug (concat request-data "\n"))
     (let ((url-request-method "POST")
 	  (url-request-data request-data)
-	  response-buffer)
-      (setq response-buffer
+	  rt-liber-rest-response-buffer)
+      (setq rt-liber-rest-response-buffer
 	    (url-retrieve-synchronously
 	     (rt-liber-rest-command-edit-string
 	      rt-liber-rest-scheme
@@ -265,7 +266,7 @@
 	      ticket-id
 	      rt-liber-rest-username
 	      rt-liber-rest-password)))
-      (rt-liber-rest-handle-response response-buffer)))
+      (rt-liber-rest-handle-response rt-liber-rest-response-buffer)))
   (message "edit command ended at %s" (current-time-string)))
 
 (defun rt-liber-rest-command-set (id field status)
