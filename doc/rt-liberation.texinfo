@@ -14,7 +14,7 @@
 
 
 @copying
- @copyright{} 2009, 2010, 2011, 2012, 2013, 2014, 2015  Free Software Foundation
+ @copyright{} 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2020  Free Software Foundation
    
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -140,12 +140,10 @@ Tell GNU/Emacs to load the package with:
 (require 'rt-liberation)
 @end lisp
 
-Tell rt-liberation where to find the RT server's REST interface and
-which version of RT the server is running:
+Tell rt-liberation where to find the RT server's REST interface:
 
 @lisp
-(setq rt-liber-rest-url "rt.example.org"
-      rt-liber-rt-version "4.2.4")
+(setq rt-liber-rest-url "rt.example.org")
 @end lisp
 
 rt-liberation can issue a command to ``take'' a ticket (that is,
