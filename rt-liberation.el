@@ -42,7 +42,7 @@
 
 (require 'browse-url)
 (require 'time-date)
-(require 'cl-lib)
+(require 'seq)
 
 (require 'rt-liberation-rest)
 
@@ -262,10 +262,11 @@ This variable is made buffer local for the ticket history")
 (defun rt-liber-reduce (op seq)
   "Reduce-OP with SEQ to a string of \"s0 op s1 op s2..\"."
   (if seq
-      (reduce
+      (seq-reduce
        #'(lambda (a b)
 	   (format "%s %s %s" a op b))
-       seq)
+       (cdr seq)
+       (car seq))
     ""))
 
 (defun rt-liber-make-interval (pred before after)
@@ -391,7 +392,7 @@ AFTER  date after predicate."
 	  (push (cons (match-string-no-properties 2)
 		      (match-string-no-properties 3))
 		ticketbase)))
-      (push (copy-seq ticketbase) ticketbase-list)
+      (push (copy-tree ticketbase) ticketbase-list)
       (setq ticketbase nil
 	    continue t))
     ticketbase-list))
@@ -916,7 +917,7 @@ If POINT is nil then called on (point)."
 
 (defun rt-liber-sort-ticket-list (ticket-list sort-f)
   "Return a copy of TICKET-LIST sorted by SORT-F."
-  (let ((seq (copy-seq ticket-list)))
+  (let ((seq (copy-tree ticket-list)))
     (sort seq sort-f)))
 
 (defun rt-liber-sort-by-owner (ticket-list)
