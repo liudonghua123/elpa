@@ -2,7 +2,7 @@
 
 ;; COPYRIGHT
 ;; 
-;; Copyright © 2019 Free Software Foundation, Inc.
+;; Copyright © 2019-2020 Free Software Foundation, Inc.
 ;; All rights reserved.
 ;; 
 ;; This program is free software: you can redistribute it and/or modify
@@ -51,8 +51,7 @@
 ;;
 ;; Dependencies
 ;; 
-(eval-when-compile
-  (require 'cl-lib))
+(eval-when-compile (require 'cpio-generic)) ;For `with-writable-buffer'!
 (require 'cl-lib)
 
 ;; (condition-case err
@@ -799,8 +798,6 @@ once the TRAILER is written and padded."
 ;; Test and other development assistance.
 ;; 
 
-(eval-when-compile
-  (require 'cl-lib))				;For (mapcar*)
 (defun cpio-newc-present-header (header-string)
   "Parse the HEADER-STRING and present its fields nicely.
 That is show their names and octal and decimal values."
@@ -821,21 +818,20 @@ That is show their names and octal and decimal values."
 			     "namesize"
 			     "chksum"
 			     "name")))
-    (apply 'concat (mapcar* (lambda (name value)
-			      (setq name name)
-				    ;; (cg-pad-right name 12 " "))
-			      (format "%s\t%s\t%o\t%d\n"
-				      name
-				      (cg-pad-right value 8 " ")
-				      (string-to-number value 16)
-				      (string-to-number value 16)))
+    (apply #'concat (cl-mapcar (lambda (name value)
+				 (setq name name)
+				 ;; (cg-pad-right name 12 " "))
+				 (format "%s\t%s\t%o\t%d\n"
+				         name
+				         (cg-pad-right value 8 " ")
+				         (string-to-number value 16)
+				         (string-to-number value 16)))
 			    header-fields header-contents))))
 
-(defvar *locations-delay* 0.05
+(defconst *locations-delay* 0.05        ;FIXME: Namespace!
   "The number of seconds to wait at certain points in M-x locations.")
-(setq *locations-delay* 0.05)
 
-(defun locations ()
+(defun locations ()                     ;FIXME: Namespace!
   "Put locations and location related data into the buffer *Locations*.
 This is not done properly; it is somewhat brute force.
 However, it is intended to help figure out
@@ -944,7 +940,7 @@ what the proper way to do it is."
       (goto-char (point-min)))
     (pop-to-buffer lbuf)))
 
-(defun insert-table-header-maybe (ct)
+(defun insert-table-header-maybe (ct)   ;FIXME: Namespace!
   "Insert a table header for a cpio entry."
   (let ((fname "insert-table-header-maybe"))
     (message "%s(): ct is [[%s]]" fname ct) (sit-for .2)

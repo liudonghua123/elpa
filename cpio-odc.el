@@ -2,7 +2,7 @@
 
 ;; COPYRIGHT
 ;; 
-;; Copyright © 2019 Free Software Foundation, Inc.
+;; Copyright © 2019-2020 Free Software Foundation, Inc.
 ;; All rights reserved.
 ;; 
 ;; This program is free software: you can redistribute it and/or modify
@@ -37,6 +37,8 @@
 ;; 
 
 ;; (load-file (concat default-directory "cpio-generic.el"))
+
+(eval-when-compile (require 'cpio-generic)) ;For `with-writable-buffer'!
 
 ;;;;;;;;;;;;;;;;
 ;; Things to make the byte compiler happy.

@@ -2,7 +2,7 @@
 
 ;; COPYRIGHT
 ;; 
-;; Copyright © 2019 Free Software Foundation, Inc.
+;; Copyright © 2019-2020 Free Software Foundation, Inc.
 ;; All rights reserved.
 ;; 
 ;; This program is free software: you can redistribute it and/or modify
@@ -286,10 +286,10 @@ please let me know."
   (let* ((fname "cpio-mode-string-to-int-mode")
 	 (bits 0)
 	 (chars (mapcar 'string-to-char (split-string mode-string "" t)))
-	 (type-char (car (subseq chars 0  1)))
-	 (owner-chars    (subseq chars 1  4))
-	 (group-chars    (subseq chars 4  7))
-	 (other-chars    (subseq chars 7 10)))
+	 (type-char (car (cl-subseq chars 0  1)))
+	 (owner-chars    (cl-subseq chars 1  4))
+	 (group-chars    (cl-subseq chars 4  7))
+	 (other-chars    (cl-subseq chars 7 10)))
     (setq bits (logior bits
 		       (cpio-type-char-to-bits type-char)
 		       (cpio-owner-chars-to-bits owner-chars)

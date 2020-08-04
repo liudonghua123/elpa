@@ -2,7 +2,7 @@
 
 ;; COPYRIGHT
 ;; 
-;; Copyright © 2019 Free Software Foundation, Inc.
+;; Copyright © 2019-2020 Free Software Foundation, Inc.
 ;; All rights reserved.
 ;; 
 ;; This program is free software: you can redistribute it and/or modify
@@ -208,7 +208,7 @@ CAVEAT: This deletes any buffer holding /etc/group."
 	   (string-to-number gid))
 	  (t nil))))
 
-(defmacro with-writable-buffer (&rest body)
+(defmacro with-writable-buffer (&rest body) ;FIXME: Namespace!
   "Run body with the current buffer writable.
 Reset the buffer's read-only (or not) status after execution."
   `(let ((bro-before buffer-read-only))
@@ -216,21 +216,7 @@ Reset the buffer's read-only (or not) status after execution."
      ,@body
      (setq buffer-read-only bro-before)))
 
-(defun current-minor-modes ()
-  "Return a list of currently active minor modes.
-The contents are symbols.
-The definition of \"currently active\" comes
-from the code for \(describe-mode\)."
-  (let ((fname "current-minor-modes")
-	(mode)
-	(result))
-    (dolist (mode minor-mode-list result)
-      (let ((fmode (or (get mode :minor-mode-function) mode)))
-	(if (and (boundp mode) (symbol-value mode) (fboundp fmode))
-	    (push mode result))))
-    result))
-
-(defun encode-human-time (human-time)
+(defun encode-human-time (human-time)   ;FIXME: Namespace!
   "Return an emacs time from a HUMAN-TIME.
 HUMAN-TIME may be any of many time formats typically used by humans.
 If I've missed one, please let me know.
@@ -489,7 +475,7 @@ Other languages are not yet implemented."
 	(encode-time second minute hour day month year)
       nil)))
 
-(defun month-to-number (month-name)
+(defun month-to-number (month-name)     ;FIXME: Namespace!
   "Convert The MONTH-NAME to a number (1..12)."
   (let ((fname "month-to-number"))
     (save-match-data
@@ -521,7 +507,7 @@ Other languages are not yet implemented."
 
 ;; HEREHERE Remove this before publishing or
 ;; figure out how to put it in test-generic.el.
-(defun test-encode-human-time ()
+(defun test-encode-human-time ()        ;FIXME: Namespace!
   "Test (encode-human-time)."
   (interactive)
   (let ((fname "test-encode-human-time")

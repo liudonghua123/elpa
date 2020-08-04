@@ -44,7 +44,7 @@
 ;; Hacks
 ;;
 
-(defun snarf-defuns ()
+(defun snarf-defuns ()                  ;FIXME: Namespace!
   "Return a list of the defuns in the visible porition of the buffer.
 Keep any preceding comments." 
   (let ((fname "snarf-defuns")
@@ -66,7 +66,7 @@ Keep any preceding comments."
 	(goto-char end)))
     results))
 
-(defun sort-defuns (defuns)
+(defun sort-defuns (defuns)             ;FIXME: Namespace!
   "Return a copy of the given list of DEFUNS sorted by name."
   (let ((fname "sort-defuns")
 	(sortable-list)
@@ -82,7 +82,7 @@ Keep any preceding comments."
 					    (string-lessp (car l) (car r)))))
     (mapcar 'cdr sorted-list)))
 
-(defun sort-defuns-in-buffer ()
+(defun sort-defuns-in-buffer ()         ;FIXME: Namespace!
   "Replace the visible portion of the current buffer with its defuns, but sorted."
   (interactive)
   (let ((fname "sort-defuns-in-buffer")
@@ -97,12 +97,8 @@ Keep any preceding comments."
 ;; Dependencies
 ;; 
 
-(eval-when-compile
-  (require 'dired))
+(eval-when-compile (require 'cpio-generic)) ;For `with-writable-buffer'!
 (require 'dired)
-
-(eval-when-compile
-  (require 'dired-aux))
 (require 'dired-aux)
 
 ;; 
@@ -795,7 +791,8 @@ CONTRACT: You're in that archive's buffer."
 	  (error "%s(): Could not get entry information for %s." fname entry-name))
       (setq start-marker (aref (cdr entry-info) 1)) ;HEREHERE Shouldn't this have an abstraction?
       (setq end-marker (1+ (cg-round-up (1- (+ (aref (cdr entry-info) 2)
-					    (cpio-entry-size (cpio-entry-attrs entry-name)))) *cpio-padding-modulus*)))
+					    (cpio-entry-size (cpio-entry-attrs entry-name))))
+					*cpio-padding-modulus*)))
       (with-writable-buffer
        (delete-region start-marker end-marker))
       (setq *cpio-catalog* (delete (assoc entry-name *cpio-catalog*) *cpio-catalog*)))))
@@ -2991,12 +2988,300 @@ permissions are hidden from view."
     (error "%s() is not yet implemented" fname)))
 
 
-;; 
+;;
 ;; mode definition
-;; 
-(defvar *cpio-dired-have-made-keymap* nil)
-(setq *cpio-dired-have-made-keymap* nil)
+;;
 
+(defvar cpio-dired-mode-map
+  (let ((map (make-keymap)))
+    (define-key map "\C-c\C-c" 'cpio-dired-view-archive) ;✓
+    ;; e .. f		dired-find-file
+    ;;
+    ;; RET		dired-find-file
+    (define-key map "e" 'cpio-dired-find-entry)      ;✓
+    (define-key map "f" 'cpio-dired-find-entry)      ;✓
+    (define-key map "\C-j" 'cpio-dired-find-entry)   ;✓
+    ;; C-o		dired-display-file
+    (define-key map "\C-o" 'cpio-dired-display-entry) ;✓
+    ;; C-t		Prefix Command
+    ;; ESC		Prefix Command
+    ;; SPC		dired-next-line
+    ;; n		dired-next-line
+    ;; <remap> <next-line>		dired-next-line
+    (define-key map "[remap next-line]" 'cpio-dired-next-line)
+    (define-key map "n" 'cpio-dired-next-line)
+    (define-key map "\C-n" 'cpio-dired-next-line)
+    (define-key map " " 'cpio-dired-next-line) ;✓
+    ;; !		dired-do-shell-command
+    ;; (define-key map "!" 'cpio-dired-do-shell-command) ;×
+    ;; #		dired-flag-auto-save-files
+    (define-key map "#" 'cpio-dired-flag-auto-save-entries) ;✓
+    ;; $		dired-hide-subdir
+    (define-key map "$" 'cpio-dired-hide-subdir) ;?
+    ;; %		Prefix Command
+    (define-key map "%" nil)
+    ;; &		dired-do-async-shell-command
+    (define-key map "&" 'cpio-dired-do-async-shell-command) ;×
+    ;; (		dired-hide-details-mode
+    (define-key map "(" 'cpio-dired-hide-details-mode) ;✓ Implemented by analogue to dired, but does nothing.
+    ;; *		Prefix Command
+    ;; (define-key map "+" nil) ;×
+    ;; +		dired-create-directory
+    (define-key map "+" 'cpio-dired-create-directory) ;✓✓
+    ;; -		negative-argument
+    ;; .		dired-clean-directory
+    (define-key map "." 'cpio-dired-clean-directory)
+    ;; 0 .. 9		digit-argument
+    ;; :		Prefix Command
+    (define-key map ":" nil)
+    ;; <		dired-prev-dirline
+    (define-key map "<" 'cpio-dired-prev-dirline) ;✓
+    ;; =		dired-diff
+    (define-key map "=" 'cpio-dired-diff) ;×
+    ;; >		dired-next-dirline
+    (define-key map ">" 'cpio-dired-next-dirline) ;✓
+    ;; ?		dired-summary
+    (define-key map "?" 'cpio-dired-summary) ;✓
+    ;; A		dired-do-search
+    (define-key map "A" 'cpio-dired-do-search) ;HEREHERE
+    ;; (define-key map "\M-," 'cpio-tags-loop-continue)
+    ;; B		dired-do-byte-compile
+    ;; (define-key map "B" 'cpio-dired-do-byte-compile) ;×
+    ;; C		dired-do-copy
+    (define-key map "C" 'cpio-dired-do-copy) ;✓
+    ;; D		dired-do-delete
+    (define-key map "D" 'cpio-dired-do-delete) ;✓
+    ;; G		dired-do-chgrp
+    (define-key map "G" 'cpio-dired-do-chgrp) ;✓
+    ;; H		dired-do-hardlink
+    (define-key map "H" 'cpio-dired-do-hardlink)
+    ;; I -- Add an entry. New for cpio-dired.
+    (define-key map "I" 'cpio-dired-add-entry)
+    ;; L		dired-do-load
+    ;; (define-key map "L" 'cpio-dired-do-load) ;×
+    ;; M		dired-do-chmod
+    (define-key map "M" 'cpio-dired-do-chmod)
+    ;; O		dired-do-chown
+    (define-key map "O" 'cpio-dired-do-chown) ;✓
+    ;; P		dired-do-print
+    (define-key map "P" 'cpio-dired-do-print)
+    ;; Q		dired-do-query-replace-regexp
+    (define-key map "Q" 'cpio-dired-do-query-replace-regexp)
+    ;; R		dired-do-rename
+    (define-key map "R" 'cpio-dired-do-rename)
+    ;; S		dired-do-symlink
+    (define-key map "S" 'cpio-dired-do-symlink)
+    ;; T		dired-do-touch
+    (define-key map "T" 'cpio-dired-do-touch)
+ ;;;; ;; X		dired-do-shell-command
+ ;;;; (define-key map "X" 'cpio-dired-do-shell-command)
+    ;; X	prefix command
+    (define-key map "X" nil)
+    ;; Xa
+    (define-key map "Xa" 'cpio-dired-extract-all)
+    ;; Xm
+    (define-key map "Xm" 'cpio-dired-extract-entries)
+    ;; Z		dired-do-compress
+    (define-key map "Z" 'cpio-dired-do-compress)
+    ;; ^		dired-up-directory
+    (define-key map "^" 'cpio-dired-up-directory)
+    ;; a		dired-find-alternate-file
+    (define-key map "a" 'cpio-dired-find-alternate-entry)
+    ;; d		dired-flag-file-deletion
+    (define-key map "d" 'cpio-dired-flag-entry-deletion) ;✓
+    ;; g		revert-buffer
+    ;; HEREHERE This is not the way to do this.
+    (define-key map "g" 'revert-buffer)
+    ;; h		describe-mode
+    (define-key map "h" 'describe-mode)
+    ;; i		dired-maybe-insert-subdir
+    ;; (define-key map "i" 'cpio-dired-maybe-insert-subdir) ;×
+    ;; j		dired-goto-file
+    (define-key map "j" 'cpio-dired-goto-entry)
+    ;; k		dired-do-kill-lines
+    (define-key map "k" 'cpio-dired-do-kill-lines)
+    ;; l		dired-do-redisplay
+    (define-key map "l" 'cpio-dired-do-redisplay)
+    ;; m		dired-mark
+    (define-key map "m" 'cpio-dired-mark) ;✓
+    ;; o		dired-find-file-other-window
+    (define-key map "o" 'cpio-dired-find-entry-other-window)
+    ;; p		dired-previous-line
+    ;; <remap> <previous-line>		dired-previous-line
+    (define-key map "[remap previous-line]" 'cpio-dired-previous-line)
+    (define-key map "p" 'cpio-dired-previous-line)
+    (define-key map "\C-p" 'cpio-dired-previous-line)
+    ;; q		quit-window
+    (define-key map "q" 'cpio-dired-quit-window)
+    ;; s		dired-sort-toggle-or-edit
+    (define-key map "s" 'cpio-dired-sort-toggle-or-edit)
+    ;; t		dired-toggle-marks
+    (define-key map "t" 'cpio-dired-toggle-marks)
+    ;; u		dired-unmark
+    ;; * u
+    (define-key map "u" 'cpio-dired-unmark)    ;✓
+    (define-key map "*u" 'cpio-dired-unmark)   ;✓
+    ;; v		dired-view-file
+    (define-key map "v" 'cpio-dired-view-entry)
+    ;; w		dired-copy-filename-as-kill
+    (define-key map "w" 'cpio-dired-copy-entry-name-as-kill)
+    ;; x		dired-do-flagged-delete
+    (define-key map "x" 'cpio-dired-do-flagged-delete)
+    ;; y		dired-show-file-type
+    (define-key map "y" 'cpio-dired-show-entry-type)
+    ;; ~		dired-flag-backup-files
+    (define-key map "~" 'cpio-dired-flag-backup-entries)
+    ;; DEL		dired-unmark-backward
+    (define-key map "\177" 'cpio-dired-unmark-backward)
+    ;; S-SPC		scroll-down-command
+    ;; Not in dired.el (define-key map "\S-SPC" 'cpio-scroll-down-command)
+    ;; <follow-link>	mouse-face
+    (define-key map [follow-link] 'cpio-mouse-face)
+    ;; <mouse-2>	dired-mouse-find-file-other-window
+    (define-key map "[mouse-2]" 'cpio-dired-mouse-find-entry-other-window)
+    ;; <remap>		Prefix Command
+    (define-key map "[remap]" nil)
+    ;;
+    ;; C-t C-t		image-dired-dired-toggle-marked-thumbs
+    (define-key map "\C-t\C-t" 'cpio-image-dired-dired-toggle-marked-thumbs)
+    ;;
+    ;; C-t .		image-dired-display-thumb
+    (define-key map "\C-t" 'cpio-image-dired-display-thumb)
+    ;; C-t a		image-dired-display-thumbs-append
+    (define-key map "\C-t" 'cpio-image-dired-display-thumbs-append)
+    ;; C-t c		image-dired-dired-comment-files
+    (define-key map "\C-t" 'cpio-image-dired-dired-comment-entries)
+    ;; C-t d		image-dired-display-thumbs
+    (define-key map "\C-t" 'cpio-image-dired-display-thumbs)
+    ;; C-t e		image-dired-dired-edit-comment-and-tags
+    (define-key map "\C-t" 'cpio-image-dired-dired-edit-comment-and-tags)
+    ;; C-t f		image-dired-mark-tagged-files
+    (define-key map "\C-t" 'cpio-image-dired-mark-tagged-entries)
+    ;; C-t i		image-dired-dired-display-image
+    (define-key map "\C-t" 'cpio-image-dired-dired-display-image)
+    ;; C-t j		image-dired-jump-thumbnail-buffer
+    (define-key map "\C-t" 'cpio-image-dired-jump-thumbnail-buffer)
+    ;; C-t r		image-dired-delete-tag
+    (define-key map "\C-t" 'cpio-image-dired-delete-tag)
+    ;; C-t t		image-dired-tag-files
+    (define-key map "\C-t" 'cpio-image-dired-tag-entries)
+    ;; C-t x		image-dired-dired-display-external
+    (define-key map "\C-t" 'cpio-image-dired-dired-display-external)
+    ;;
+    ;; C-M-d		dired-tree-down
+    ;; (define-key map "\C-M-d" 'cpio-dired-tree-down) ;×
+    ;; C-M-n		dired-next-subdir
+    (define-key map "\C-M-n" 'cpio-dired-next-subdir)
+    ;; C-M-p		dired-prev-subdir
+    (define-key map "\C-M-p" 'cpio-dired-prev-subdir)
+    ;; C-M-u		dired-tree-up
+    ;; (define-key map "\C-M-u" 'cpio-dired-tree-up) ;×
+    ;; M-$		dired-hide-all
+    (define-key map "\M-$" 'cpio-dired-hide-all)
+    ;; M-s		Prefix Command
+    (define-key map "\M-s" nil)
+    ;; M-{		dired-prev-marked-file
+    (define-key map "\M-{" 'cpio-dired-prev-marked-entry)
+    ;; M-}		dired-next-marked-file
+    (define-key map "\M-}" 'cpio-dired-next-marked-entry)
+    ;; M-DEL		dired-unmark-all-files
+    (define-key map "\M-\177" 'cpio-dired-unmark-all-entries)
+    ;;
+    ;; M-s a		Prefix Command
+    (define-key map "\M-sa" nil)
+    ;; M-s f		Prefix Command
+    (define-key map "\M-sf" nil)
+    ;;
+    ;; % &		dired-flag-garbage-files
+    (define-key map "%&" 'cpio-dired-flag-garbage-entries)
+    ;; % C		dired-do-copy-regexp
+    (define-key map "%C" 'cpio-dired-do-copy-regexp)
+    ;; % H		dired-do-hardlink-regexp
+    (define-key map "%H" 'cpio-dired-do-hardlink-regexp)
+    ;; % R		dired-do-rename-regexp
+    (define-key map "%R" 'cpio-dired-do-rename-regexp)
+    ;; % S		dired-do-symlink-regexp
+    (define-key map "%S" 'cpio-dired-do-symlink-regexp)
+    ;; % d		dired-flag-files-regexp
+    (define-key map "%d" 'cpio-dired-flag-entries-regexp)
+    ;; % g		dired-mark-files-containing-regexp
+    (define-key map "%g" 'cpio-dired-mark-entries-containing-regexp)
+    ;; % l		dired-downcase
+    (define-key map "%l" 'cpio-dired-downcase)
+    ;; % m		dired-mark-files-regexp
+    ;; * %		dired-mark-files-regexp
+    (define-key map "%m" 'cpio-dired-mark-entries-regexp)   ;✓
+    (define-key map "*%" 'cpio-dired-mark-entries-regexp)   ;✓
+    ;; % r		dired-do-rename-regexp
+    (define-key map "%r" 'cpio-dired-do-rename-regexp)
+    ;; % u		dired-upcase
+    (define-key map "%u" 'cpio-dired-upcase)
+    ;;
+    ;; * C-n		dired-next-marked-file
+    (define-key map "*\C-n" 'cpio-dired-next-marked-entry)
+    ;; * C-p		dired-prev-marked-file
+    (define-key map "*\C-p" 'cpio-dired-prev-marked-entry)
+    ;; * !		dired-unmark-all-marks
+    ;; U		dired-unmark-all-marks
+    (define-key map "*!" 'cpio-dired-unmark-all-marks)  ;✓
+    (define-key map "U" 'cpio-dired-unmark-all-marks)   ;✓
+    ;; * *		dired-mark-executables
+    (define-key map "**" 'cpio-dired-mark-executables)
+    ;; * /		dired-mark-directories
+    (define-key map "*/" 'cpio-dired-mark-directories)
+    ;; * ?		dired-unmark-all-files
+    (define-key map "*?" 'cpio-dired-unmark-all-entries)
+    ;; * @		dired-mark-symlinks
+    (define-key map "*@" 'cpio-dired-mark-symlinks)
+    ;; * c		dired-change-marks
+    (define-key map "*c" 'cpio-dired-change-marks)
+    ;; * m		dired-mark
+    (define-key map "*m" 'cpio-dired-mark) ;✓
+    ;; * s		dired-mark-subdir-files
+    (define-key map "*s" 'cpio-dired-mark-subdir-entries)
+    ;; * t		dired-toggle-marks
+    (define-key map "*t" 'cpio-dired-toggle-marks)
+    ;; * DEL		dired-unmark-backward
+    (define-key map "*\177" 'cpio-dired-unmark-backward)
+    ;;
+    ;; : d		epa-dired-do-decrypt
+    (define-key map ":d" 'cpio-epa-dired-do-decrypt)
+    ;; : e		epa-dired-do-encrypt
+    (define-key map ":e" 'cpio-epa-dired-do-encrypt)
+    ;; : s		epa-dired-do-sign
+    (define-key map ":s" 'cpio-epa-dired-do-sign)
+    ;; : v		epa-dired-do-verify
+    (define-key map ":v" 'cpio-epa-dired-do-verify)
+    ;;
+    ;; <remap> <advertised-undo>	dired-undo
+    (define-key map "[remap advertised-undo]" 'cpio-dired-undo)
+    ;; <remap> <read-only-mode>	dired-toggle-read-only
+    (define-key map "[remap read-only-mode]" 'cpio-dired-toggle-read-only)
+    ;; <remap> <toggle-read-only>	dired-toggle-read-only
+    (define-key map "[remap toggle-read-only]" 'cpio-dired-toggle-read-only)
+    ;; <remap> <undo>			dired-undo
+    (define-key map "[remap undo]" 'cpio-dired-undo)
+    ;;
+    ;; M-s f C-s	dired-isearch-filenames
+    (define-key map (kbd "M-s f C-s") 'cpio-dired-isearch-entry-names)
+    ;; M-s f ESC	Prefix Command
+    (define-key map "\M-sf" nil)
+    ;;
+    ;; M-s a C-s	dired-do-isearch
+    (define-key map (kbd "M-s a C-s") 'cpio-dired-do-isearch)
+    ;; M-s a ESC	Prefix Command
+    ;;
+    ;; M-s f C-M-s	dired-isearch-filenames-regexp
+    (define-key map (kbd "M-s f C-M-s") 'cpio-dired-isearch-entry-names-regexp)
+    ;;
+    ;; M-s a C-M-s	dired-do-isearch-regexp
+    (define-key map (kbd "M-s a C-M-s") 'cpio-dired-do-isearch-regexp)
+    ;; C-x k -- kill the cpio-related buffers from the cpio-dired buffer.
+    (define-key map (kbd "C-x k") 'cpio-dired-kill) ;✓
+    ;; C-x C-s -- save the archive form the cpio-dired-buffer.
+    (define-key map (kbd "C-x C-s") 'cpio-dired-save-archive) ;✓
+    ;; (setq *cpio-have-made-keymap)
+    map))
 
 (define-derived-mode cpio-dired-mode fundamental-mode "cpio-dired"
   "Mode for editing cpio archives in the style of dired."
@@ -3011,303 +3296,6 @@ permissions are hidden from view."
 	 (setq-local font-lock-defaults
               '(dired-font-lock-keywords t nil nil beginning-of-line)))
 	(t t)))
-
-(defun cpio-dired-make-keymap ()
-  "Make the keymap for the cpio-dired UI."
-  (let ((fname "cpio-dired-make-keymap")
-	(keymap (make-keymap)))
-    (setq cpio-dired-mode-map keymap)
-    (unless *cpio-dired-have-made-keymap*
-      (define-key cpio-dired-mode-map "\C-c\C-c" 'cpio-dired-view-archive) ;✓
-      ;; e .. f		dired-find-file
-      ;; 
-      ;; RET		dired-find-file
-      (define-key cpio-dired-mode-map "e" 'cpio-dired-find-entry) ;✓
-      (define-key cpio-dired-mode-map "f" 'cpio-dired-find-entry) ;✓
-      (define-key cpio-dired-mode-map "\C-j" 'cpio-dired-find-entry) ;✓
-      ;; C-o		dired-display-file
-      (define-key cpio-dired-mode-map "\C-o" 'cpio-dired-display-entry) ;✓
-      ;; C-t		Prefix Command
-      ;; ESC		Prefix Command
-      ;; SPC		dired-next-line
-      ;; n		dired-next-line
-      ;; <remap> <next-line>		dired-next-line
-      (define-key cpio-dired-mode-map "[remap next-line]" 'cpio-dired-next-line)
-      (define-key cpio-dired-mode-map "n" 'cpio-dired-next-line)
-      (define-key cpio-dired-mode-map "\C-n" 'cpio-dired-next-line)
-      (define-key cpio-dired-mode-map " " 'cpio-dired-next-line) ;✓
-      ;; !		dired-do-shell-command
-      ;; (define-key cpio-dired-mode-map "!" 'cpio-dired-do-shell-command) ;×
-      ;; #		dired-flag-auto-save-files
-      (define-key cpio-dired-mode-map "#" 'cpio-dired-flag-auto-save-entries) ;✓
-      ;; $		dired-hide-subdir
-      (define-key cpio-dired-mode-map "$" 'cpio-dired-hide-subdir) ;?
-      ;; %		Prefix Command
-      (define-key cpio-dired-mode-map "%" nil)
-      ;; &		dired-do-async-shell-command
-      (define-key cpio-dired-mode-map "&" 'cpio-dired-do-async-shell-command) ;×
-      ;; (		dired-hide-details-mode
-      (define-key cpio-dired-mode-map "(" 'cpio-dired-hide-details-mode) ;✓ Implemented by analogue to dired, but does nothing.
-      ;; *		Prefix Command
-      ;; (define-key cpio-dired-mode-map "+" nil) ;×
-      ;; +		dired-create-directory
-      (define-key cpio-dired-mode-map "+" 'cpio-dired-create-directory) ;✓✓
-      ;; -		negative-argument
-      ;; .		dired-clean-directory
-      (define-key cpio-dired-mode-map "." 'cpio-dired-clean-directory)
-      ;; 0 .. 9		digit-argument
-      ;; :		Prefix Command
-      (define-key cpio-dired-mode-map ":" nil)
-      ;; <		dired-prev-dirline
-      (define-key cpio-dired-mode-map "<" 'cpio-dired-prev-dirline) ;✓
-      ;; =		dired-diff
-      (define-key cpio-dired-mode-map "=" 'cpio-dired-diff) ;×
-      ;; >		dired-next-dirline
-      (define-key cpio-dired-mode-map ">" 'cpio-dired-next-dirline) ;✓
-      ;; ?		dired-summary
-      (define-key cpio-dired-mode-map "?" 'cpio-dired-summary) ;✓
-      ;; A		dired-do-search
-      (define-key cpio-dired-mode-map "A" 'cpio-dired-do-search) ;HEREHERE
-      ;; (define-key cpio-dired-mode-map "\M-," 'cpio-tags-loop-continue)
-      ;; B		dired-do-byte-compile
-      ;; (define-key cpio-dired-mode-map "B" 'cpio-dired-do-byte-compile) ;×
-      ;; C		dired-do-copy
-      (define-key cpio-dired-mode-map "C" 'cpio-dired-do-copy) ;✓
-      ;; D		dired-do-delete
-      (define-key cpio-dired-mode-map "D" 'cpio-dired-do-delete) ;✓
-      ;; G		dired-do-chgrp
-      (define-key cpio-dired-mode-map "G" 'cpio-dired-do-chgrp) ;✓
-      ;; H		dired-do-hardlink
-      (define-key cpio-dired-mode-map "H" 'cpio-dired-do-hardlink)
-      ;; I -- Add an entry. New for cpio-dired.
-      (define-key cpio-dired-mode-map "I" 'cpio-dired-add-entry)
-      ;; L		dired-do-load
-      ;; (define-key cpio-dired-mode-map "L" 'cpio-dired-do-load) ;×
-      ;; M		dired-do-chmod
-      (define-key cpio-dired-mode-map "M" 'cpio-dired-do-chmod)
-      ;; O		dired-do-chown
-      (define-key cpio-dired-mode-map "O" 'cpio-dired-do-chown) ;✓
-      ;; P		dired-do-print
-      (define-key cpio-dired-mode-map "P" 'cpio-dired-do-print)
-      ;; Q		dired-do-query-replace-regexp
-      (define-key cpio-dired-mode-map "Q" 'cpio-dired-do-query-replace-regexp)
-      ;; R		dired-do-rename
-      (define-key cpio-dired-mode-map "R" 'cpio-dired-do-rename)
-      ;; S		dired-do-symlink
-      (define-key cpio-dired-mode-map "S" 'cpio-dired-do-symlink)
-      ;; T		dired-do-touch
-      (define-key cpio-dired-mode-map "T" 'cpio-dired-do-touch)
-      ;;;; ;; X		dired-do-shell-command
-      ;;;; (define-key cpio-dired-mode-map "X" 'cpio-dired-do-shell-command)
-      ;; X	prefix command
-      (define-key cpio-dired-mode-map "X" nil)
-      ;; Xa
-      (define-key cpio-dired-mode-map "Xa" 'cpio-dired-extract-all)
-      ;; Xm
-      (define-key cpio-dired-mode-map "Xm" 'cpio-dired-extract-entries)
-      ;; Z		dired-do-compress
-      (define-key cpio-dired-mode-map "Z" 'cpio-dired-do-compress)
-      ;; ^		dired-up-directory
-      (define-key cpio-dired-mode-map "^" 'cpio-dired-up-directory)
-      ;; a		dired-find-alternate-file
-      (define-key cpio-dired-mode-map "a" 'cpio-dired-find-alternate-entry)
-      ;; d		dired-flag-file-deletion
-      (define-key cpio-dired-mode-map "d" 'cpio-dired-flag-entry-deletion) ;✓
-      ;; g		revert-buffer
-      ;; HEREHERE This is not the way to do this.
-      (define-key cpio-dired-mode-map "g" 'revert-buffer)
-      ;; h		describe-mode
-      (define-key cpio-dired-mode-map "h" 'describe-mode)
-      ;; i		dired-maybe-insert-subdir
-      ;; (define-key cpio-dired-mode-map "i" 'cpio-dired-maybe-insert-subdir) ;×
-      ;; j		dired-goto-file
-      (define-key cpio-dired-mode-map "j" 'cpio-dired-goto-entry)
-      ;; k		dired-do-kill-lines
-      (define-key cpio-dired-mode-map "k" 'cpio-dired-do-kill-lines)
-      ;; l		dired-do-redisplay
-      (define-key cpio-dired-mode-map "l" 'cpio-dired-do-redisplay)
-      ;; m		dired-mark
-      (define-key cpio-dired-mode-map "m" 'cpio-dired-mark) ;✓
-      ;; o		dired-find-file-other-window
-      (define-key cpio-dired-mode-map "o" 'cpio-dired-find-entry-other-window)
-      ;; p		dired-previous-line
-      ;; <remap> <previous-line>		dired-previous-line
-      (define-key cpio-dired-mode-map "[remap previous-line]" 'cpio-dired-previous-line)
-      (define-key cpio-dired-mode-map "p" 'cpio-dired-previous-line)
-      (define-key cpio-dired-mode-map "\C-p" 'cpio-dired-previous-line)
-      ;; q		quit-window
-      (define-key cpio-dired-mode-map "q" 'cpio-dired-quit-window)
-      ;; s		dired-sort-toggle-or-edit
-      (define-key cpio-dired-mode-map "s" 'cpio-dired-sort-toggle-or-edit)
-      ;; t		dired-toggle-marks
-      (define-key cpio-dired-mode-map "t" 'cpio-dired-toggle-marks)
-      ;; u		dired-unmark
-      ;; * u
-      (define-key cpio-dired-mode-map "u" 'cpio-dired-unmark) ;✓
-      (define-key cpio-dired-mode-map "*u" 'cpio-dired-unmark) ;✓
-      ;; v		dired-view-file
-      (define-key cpio-dired-mode-map "v" 'cpio-dired-view-entry)
-      ;; w		dired-copy-filename-as-kill 
-      (define-key cpio-dired-mode-map "w" 'cpio-dired-copy-entry-name-as-kill)
-      ;; x		dired-do-flagged-delete
-      (define-key cpio-dired-mode-map "x" 'cpio-dired-do-flagged-delete)
-      ;; y		dired-show-file-type
-      (define-key cpio-dired-mode-map "y" 'cpio-dired-show-entry-type)
-      ;; ~		dired-flag-backup-files
-      (define-key cpio-dired-mode-map "~" 'cpio-dired-flag-backup-entries)
-      ;; DEL		dired-unmark-backward
-      (define-key cpio-dired-mode-map "\177" 'cpio-dired-unmark-backward)
-      ;; S-SPC		scroll-down-command
-      ;;;; Not in dired.el (define-key cpio-dired-mode-map "\S-SPC" 'cpio-scroll-down-command)
-      ;; <follow-link>	mouse-face
-      (define-key cpio-dired-mode-map [follow-link] 'cpio-mouse-face)
-      ;; <mouse-2>	dired-mouse-find-file-other-window
-      (define-key cpio-dired-mode-map "[mouse-2]" 'cpio-dired-mouse-find-entry-other-window)
-      ;; <remap>		Prefix Command
-      (define-key cpio-dired-mode-map "[remap]" nil)
-      ;; 
-      ;; C-t C-t		image-dired-dired-toggle-marked-thumbs
-      (define-key cpio-dired-mode-map "\C-t\C-t" 'cpio-image-dired-dired-toggle-marked-thumbs)
-      ;; 
-      ;; C-t .		image-dired-display-thumb
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-display-thumb)
-      ;; C-t a		image-dired-display-thumbs-append
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-display-thumbs-append)
-      ;; C-t c		image-dired-dired-comment-files
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-dired-comment-entries)
-      ;; C-t d		image-dired-display-thumbs
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-display-thumbs)
-      ;; C-t e		image-dired-dired-edit-comment-and-tags
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-dired-edit-comment-and-tags)
-      ;; C-t f		image-dired-mark-tagged-files
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-mark-tagged-entries)
-      ;; C-t i		image-dired-dired-display-image
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-dired-display-image)
-      ;; C-t j		image-dired-jump-thumbnail-buffer
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-jump-thumbnail-buffer)
-      ;; C-t r		image-dired-delete-tag
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-delete-tag)
-      ;; C-t t		image-dired-tag-files
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-tag-entries)
-      ;; C-t x		image-dired-dired-display-external
-      (define-key cpio-dired-mode-map "\C-t" 'cpio-image-dired-dired-display-external)
-      ;; 
-      ;; C-M-d		dired-tree-down
-      ;; (define-key cpio-dired-mode-map "\C-M-d" 'cpio-dired-tree-down) ;×
-      ;; C-M-n		dired-next-subdir
-      (define-key cpio-dired-mode-map "\C-M-n" 'cpio-dired-next-subdir)
-      ;; C-M-p		dired-prev-subdir
-      (define-key cpio-dired-mode-map "\C-M-p" 'cpio-dired-prev-subdir)
-      ;; C-M-u		dired-tree-up
-      ;; (define-key cpio-dired-mode-map "\C-M-u" 'cpio-dired-tree-up) ;×
-      ;; M-$		dired-hide-all
-      (define-key cpio-dired-mode-map "\M-$" 'cpio-dired-hide-all)
-      ;; M-s		Prefix Command
-      (define-key cpio-dired-mode-map "\M-s" nil)
-      ;; M-{		dired-prev-marked-file
-      (define-key cpio-dired-mode-map "\M-{" 'cpio-dired-prev-marked-entry)
-      ;; M-}		dired-next-marked-file
-      (define-key cpio-dired-mode-map "\M-}" 'cpio-dired-next-marked-entry)
-      ;; M-DEL		dired-unmark-all-files
-      (define-key cpio-dired-mode-map "\M-\177" 'cpio-dired-unmark-all-entries)
-      ;; 
-      ;; M-s a		Prefix Command
-      (define-key cpio-dired-mode-map "\M-sa" nil)
-      ;; M-s f		Prefix Command
-      (define-key cpio-dired-mode-map "\M-sf" nil)
-      ;; 
-      ;; % &		dired-flag-garbage-files
-      (define-key cpio-dired-mode-map "%&" 'cpio-dired-flag-garbage-entries)
-      ;; % C		dired-do-copy-regexp
-      (define-key cpio-dired-mode-map "%C" 'cpio-dired-do-copy-regexp)
-      ;; % H		dired-do-hardlink-regexp
-      (define-key cpio-dired-mode-map "%H" 'cpio-dired-do-hardlink-regexp)
-      ;; % R		dired-do-rename-regexp
-      (define-key cpio-dired-mode-map "%R" 'cpio-dired-do-rename-regexp)
-      ;; % S		dired-do-symlink-regexp
-      (define-key cpio-dired-mode-map "%S" 'cpio-dired-do-symlink-regexp)
-      ;; % d		dired-flag-files-regexp
-      (define-key cpio-dired-mode-map "%d" 'cpio-dired-flag-entries-regexp)
-      ;; % g		dired-mark-files-containing-regexp
-      (define-key cpio-dired-mode-map "%g" 'cpio-dired-mark-entries-containing-regexp)
-      ;; % l		dired-downcase
-      (define-key cpio-dired-mode-map "%l" 'cpio-dired-downcase)
-      ;; % m		dired-mark-files-regexp
-      ;; * %		dired-mark-files-regexp
-      (define-key cpio-dired-mode-map "%m" 'cpio-dired-mark-entries-regexp) ;✓
-      (define-key cpio-dired-mode-map "*%" 'cpio-dired-mark-entries-regexp) ;✓
-      ;; % r		dired-do-rename-regexp
-      (define-key cpio-dired-mode-map "%r" 'cpio-dired-do-rename-regexp)
-      ;; % u		dired-upcase
-      (define-key cpio-dired-mode-map "%u" 'cpio-dired-upcase)
-      ;; 
-      ;; * C-n		dired-next-marked-file
-      (define-key cpio-dired-mode-map "*\C-n" 'cpio-dired-next-marked-entry)
-      ;; * C-p		dired-prev-marked-file
-      (define-key cpio-dired-mode-map "*\C-p" 'cpio-dired-prev-marked-entry)
-      ;; * !		dired-unmark-all-marks
-      ;; U		dired-unmark-all-marks
-      (define-key cpio-dired-mode-map "*!" 'cpio-dired-unmark-all-marks) ;✓
-      (define-key cpio-dired-mode-map "U" 'cpio-dired-unmark-all-marks) ;✓
-      ;; * *		dired-mark-executables
-      (define-key cpio-dired-mode-map "**" 'cpio-dired-mark-executables)
-      ;; * /		dired-mark-directories
-      (define-key cpio-dired-mode-map "*/" 'cpio-dired-mark-directories)
-      ;; * ?		dired-unmark-all-files
-      (define-key cpio-dired-mode-map "*?" 'cpio-dired-unmark-all-entries)
-      ;; * @		dired-mark-symlinks
-      (define-key cpio-dired-mode-map "*@" 'cpio-dired-mark-symlinks)
-      ;; * c		dired-change-marks
-      (define-key cpio-dired-mode-map "*c" 'cpio-dired-change-marks)
-      ;; * m		dired-mark
-      (define-key cpio-dired-mode-map "*m" 'cpio-dired-mark) ;✓
-      ;; * s		dired-mark-subdir-files
-      (define-key cpio-dired-mode-map "*s" 'cpio-dired-mark-subdir-entries)
-      ;; * t		dired-toggle-marks
-      (define-key cpio-dired-mode-map "*t" 'cpio-dired-toggle-marks)
-      ;; * DEL		dired-unmark-backward
-      (define-key cpio-dired-mode-map "*\177" 'cpio-dired-unmark-backward)
-      ;; 
-      ;; : d		epa-dired-do-decrypt
-      (define-key cpio-dired-mode-map ":d" 'cpio-epa-dired-do-decrypt)
-      ;; : e		epa-dired-do-encrypt
-      (define-key cpio-dired-mode-map ":e" 'cpio-epa-dired-do-encrypt)
-      ;; : s		epa-dired-do-sign
-      (define-key cpio-dired-mode-map ":s" 'cpio-epa-dired-do-sign)
-      ;; : v		epa-dired-do-verify
-      (define-key cpio-dired-mode-map ":v" 'cpio-epa-dired-do-verify)
-      ;; 
-      ;; <remap> <advertised-undo>	dired-undo
-      (define-key cpio-dired-mode-map "[remap advertised-undo]" 'cpio-dired-undo)
-      ;; <remap> <read-only-mode>	dired-toggle-read-only
-      (define-key cpio-dired-mode-map "[remap read-only-mode]" 'cpio-dired-toggle-read-only)
-      ;; <remap> <toggle-read-only>	dired-toggle-read-only
-      (define-key cpio-dired-mode-map "[remap toggle-read-only]" 'cpio-dired-toggle-read-only)
-      ;; <remap> <undo>			dired-undo
-      (define-key cpio-dired-mode-map "[remap undo]" 'cpio-dired-undo)
-      ;; 
-      ;; M-s f C-s	dired-isearch-filenames
-      (define-key cpio-dired-mode-map (kbd "M-s f C-s") 'cpio-dired-isearch-entry-names)
-      ;; M-s f ESC	Prefix Command
-      (define-key cpio-dired-mode-map "\M-sf" nil)
-      ;;  
-      ;; M-s a C-s	dired-do-isearch
-      (define-key cpio-dired-mode-map (kbd "M-s a C-s") 'cpio-dired-do-isearch)
-      ;; M-s a ESC	Prefix Command
-      ;; 
-      ;; M-s f C-M-s	dired-isearch-filenames-regexp
-      (define-key cpio-dired-mode-map (kbd "M-s f C-M-s") 'cpio-dired-isearch-entry-names-regexp)
-      ;; 
-      ;; M-s a C-M-s	dired-do-isearch-regexp
-      (define-key cpio-dired-mode-map (kbd "M-s a C-M-s") 'cpio-dired-do-isearch-regexp)
-      ;; C-x k -- kill the cpio-related buffers from the cpio-dired buffer.
-      (define-key cpio-dired-mode-map (kbd "C-x k") 'cpio-dired-kill) ;✓
-      ;; C-x C-s -- save the archive form the cpio-dired-buffer.
-      (define-key cpio-dired-mode-map (kbd "C-x C-s") 'cpio-dired-save-archive) ;✓
-      ;; (setq *cpio-have-made-keymap)
-      )))
-
-(cpio-dired-make-keymap)
 
 
 (provide 'cpio-dired)
