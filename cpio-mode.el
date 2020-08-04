@@ -2,14 +2,14 @@
 
 ;; Author: Douglas Lewan <d.lewan2000@gmail.com>
 ;; Maintainer: Douglas Lewan <d.lewan2000@gmail.com>
-;; Version: 0.16β
+;; Version: 0.16
 ;; Long description: cpio-mode provides a dired-like interface for working with cpio archives. You can view, edit and save entries. You can also change permissions, UID, etc.
-;; Dependencies: (bindat 24.5) (cl 24.5) (ert 24.5)
+;; Package-Requires: ((emacs "24.5"))
 ;; Created: 2015 Jan 03
 ;; Package-Type: multi
 ;; Keywords: files
 
-;; Copyright © 2019 Free Software Foundation, Inc.
+;; Copyright © 2019-2020 Free Software Foundation, Inc.
 ;; All rights reserved.
 ;; 
 ;; This program is free software: you can redistribute it and/or modify
@@ -39,26 +39,21 @@
 ;; NAME: cpio-mode
 ;; 
 ;; USAGE:
-;;     (load-library 'cpio-mode) OR
-;;     (require 'cpio-mode)
-;;
-;;     Once loaded, there are several ways to invoke cpio-mode:
+;;     There are several ways to invoke cpio-mode:
 ;; 
 ;;     • M-x cpio-mode
 ;; 
-;;     • If you want to put a cpio-archive into cpio-mode autmatically,
+;;     • If you want to put a cpio-archive into cpio-mode automatically,
 ;;       then add the following to your .emacs:
-;;         (add-hook 'find-file-hook 'cpio-mode-find-file-hook)
+;;         (add-hook 'find-file-hook #'cpio-mode-find-file-hook)
 ;;
 ;;     • Another way to do this would be to modify magic-mode-alist
-;;         (setq magic-mode-alist
-;;              (add-to-list 'magic-mode-alist
-;;                           (cons 'cpio-discern-archive-type 'cpio-mode))).
+;;         (add-to-list 'magic-mode-alist
+;;                      (cons #'cpio-discern-archive-type #'cpio-mode))
 ;;
 ;;     • If you only care about archives that end .cpio,
 ;;       then the following would also work:
-;;         (setq auto-mode-alist
-;;               (add-to-list 'auto-mode-alist (cons "\\.cpio\\'" 'cpio-mode))).
+;;         (add-to-list 'auto-mode-alist (cons "\\.cpio\\'" #'cpio-mode))
 ;; 
 ;; DESCRIPTION:
 ;;     cpio-mode presents a cpio archive as if it were a directory
@@ -251,7 +246,7 @@
 (require 'cpio-hpodc)
 (require 'cpio-odc)
 (require 'cpio-dired)
-(require 'cpio-entry-contents-mode)
+;; (require 'cpio-entry-contents-mode) ;;FIXME: missing file?
 
 ;; Formats not supported:
 ;;   (require 'cpio-tar)
@@ -297,7 +292,7 @@
 (declare-function cpio-dired-buffer-name "cpio-dired.el")
 (declare-function cpio-dired-move-to-first-entry "cpio-dired.el")
 (declare-function cpio-dired-next-line "cpio-dired.el")
-(declare-function cpio-entry-contents-mode "cpio-entry-contents-mode.el")
+(declare-function cpio-entry-contents-mode "cpio-entry-contents-mode.el") ;FIXME: Unused!
 (declare-function cpio-present-ala-dired "cpio-dired.el")
 ;; EO things for the byte compiler.
 ;;;;;;;;;;;;;;;;
@@ -642,6 +637,7 @@ for a cpio archive of the current format.")
 ;; Library
 ;; 
 
+;;;###autoload
 (defun cpio-mode-find-file-hook ()
   "find-file hook to detect if a file is likely a cpio archive.
 If it is, then put it under cpio-mode."
@@ -649,10 +645,11 @@ If it is, then put it under cpio-mode."
     (if (cpio-discern-archive-type)
 	(cpio-mode))))
 
+;;;###autoload
 (defun cpio-discern-archive-type ()
   "Return a symbol reflecting the type of the cpio archive in the current buffer.
-Values are 'bin, 'newc, 'odc, 'crc, 'tar, 'ustar, 'hpbin, 'hpodc
-and NIL if the current buffer does not begin with a cpio entry header."
+Values are `bin', `newc', `odc', `crc', `tar', `ustar', `hpbin', `hpodc',
+or nil if the current buffer does not begin with a cpio entry header."
   ;; Using a RE may not be the right way to go.
   ;; Maybe each format needs a function.
   (let ((fname "cpio-discern-archive-type")
@@ -1746,6 +1743,7 @@ or nil."
 ;; dired-mode -- Nope the hooks for dired-mode want a nicer environment.
 ;; I'll have to see how tar-mode does it.
 
+;;;###autoload
 (define-derived-mode cpio-mode fundamental-mode "cpio-mode"
   "Treat cpio archives like file systems with a dired UI."
   (if (null (setq *cpio-format* (cpio-discern-archive-type)))

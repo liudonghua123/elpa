@@ -2,7 +2,7 @@
 
 ;; COPYRIGHT
 
-;; Copyright © 2019 Free Software Foundation, Inc.
+;; Copyright © 2019-2020 Free Software Foundation, Inc.
 ;; All rights reserved.
 ;; 
 ;; This program is free software: you can redistribute it and/or modify
@@ -3304,7 +3304,8 @@ permissions are hidden from view."
       (define-key cpio-dired-mode-map (kbd "C-x k") 'cpio-dired-kill) ;✓
       ;; C-x C-s -- save the archive form the cpio-dired-buffer.
       (define-key cpio-dired-mode-map (kbd "C-x C-s") 'cpio-dired-save-archive) ;✓
-      (setq *cpio-have-made-keymap))))
+      ;; (setq *cpio-have-made-keymap)
+      )))
 
 (cpio-dired-make-keymap)
 
