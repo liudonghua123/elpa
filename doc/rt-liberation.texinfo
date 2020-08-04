@@ -18,7 +18,7 @@
    
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A
 copy of the license is included in the section entitled ``GNU Free
@@ -97,8 +97,6 @@ Ticket Browser
 
 
 
-
-
 @c --------------------------------------------------
 
 @node Introduction
@@ -115,8 +113,6 @@ uses the RT REST interface to communicate with the RT server.
 rt-liberation allows sending search queries to the RT server, browsing
 the resulting tickets, viewing the tickets' contents and performing
 operations on the tickets.
-
-
 
 
 @c --------------------------------------------------
@@ -182,8 +178,6 @@ TicketSQL language.
 
 
 
-
-
 @c --------------------------------------------------
 
 @node Query Compiler
@@ -201,8 +195,6 @@ specific to RT.
 rt-liberation provides a query compiler function to compile Emacs Lisp
 symbolic expressions into TicketSQL. The query compiler supports a
 number of TicketSQL tokens.
-
-
 
 
 
@@ -283,8 +275,6 @@ in function calls:
     (and (queue "complaints")
          (id ticket-id)))))
 @end lisp
-
-
 
 
 @c --------------------------------------------------
@@ -422,8 +412,6 @@ Set the numerical priority level of the ticket at point.
 
 
 
-
-
 @c --------------------------------------------------
 
 @node Ticket Browser Display
@@ -488,8 +476,6 @@ The function @dfn{rt-liber-high-priority-p} can be used to apply a
 different face or text to a ticket if it is high priority. A ticket is
 considered high priority if its value is strictly higher than
 @var{rt-liber-browser-priority-cutoff}
-
-
 
 
 @c --------------------------------------------------
@@ -633,8 +619,6 @@ buffers will be created displaying the query results and named
 
 
 
-
-
 @c --------------------------------------------------
 
 @node Ticket Viewer
@@ -752,8 +736,6 @@ Display the associated ticket in the ticket browser.
 
 
 
-
-
 @c --------------------------------------------------
 
 @node Gnus Integration
@@ -822,8 +804,6 @@ the Viewer will be able to call into it, @xref{Ticket Viewer}.
 
 
 
-
-
 @c --------------------------------------------------
 
 @node Tracking Updates
@@ -857,8 +837,6 @@ used.
 With the NO-UPDATE prefix, @code{rt-liber-update} will not update the
 time-stamp so that the next invocation will produce the same result.
 @end defun
-
-
 
 
 @c --------------------------------------------------
@@ -904,9 +882,6 @@ Assign all of the marked tickets to NAME.
 @defun rt-liber-multi-flag-as-spam-and-delete
 Set the status of all the marked tickets to ``is-spam'' and delete.
 @end defun
-
-
-
 
 
 @c --------------------------------------------------
@@ -958,15 +933,11 @@ can be extended to associate any arbitrary data with any ticket.
 
 
 
-
-
 @c --------------------------------------------------
 
 @node Concept Index
 @unnumbered Concept Index
 @printindex cp
-
-
 
 
 @c --------------------------------------------------
@@ -976,15 +947,11 @@ can be extended to associate any arbitrary data with any ticket.
 @printindex fn
 
 
-
-
 @c --------------------------------------------------
 
 @node Variable Index
 @unnumbered Variable Index
 @printindex vr
-
-
 
 
 @c --------------------------------------------------
