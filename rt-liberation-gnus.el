@@ -1,6 +1,6 @@
 ;;; rt-liberation-gnus.el --- Gnus integration for rt-liberation
 
-;; Copyright (C) 2009, 2012, 2014  Free Software Foundation
+;; Copyright (C) 2009-2014  Free Software Foundation, Inc.
 ;;
 ;; Authors: Yoni Rabkin <yrk@gnu.org>
 ;;
@@ -21,20 +21,11 @@
 ;; Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 ;; MA 02111-1307, USA.
 
-
 ;;; Installation:
 ;;
 ;; For installation instructions and detailed help please see the
 ;; wonderful rt-liberation manual located in the "doc/" directory of
 ;; the rt-liberation distribution.
-
-
-;; Code:
-
-(require 'rt-liberation)
-(require 'nnir)
-(require 'gnus-msg)
-
 
 (defgroup rt-liber-gnus nil
   "*Gnus integration for rt-liberation."
@@ -74,15 +65,13 @@ line of an email. For example: \\[company.com #\\([0-9].+?\\)\\]"
   :type 'string
   :group 'rt-liber-gnus)
 
+(require 'rt-liberation)
+(require 'nnir)
+(require 'gnus-msg)
+
+
 (defvar rt-liber-gnus-p nil
   "Non-nil when rt-liberation-gnus is composing a Gnus buffer.")
-
-
-(defmacro rt-liber-gnus-with-ticket-buffer (&rest body)
-  `(progn
-     (when (not (boundp 'rt-liber-ticket-local))
-       (error "rt-liberation ticket view buffer not present"))
-     ,@body))
 
 
 (defun rt-liber-gnus-compose (addr ticket-alist options)
@@ -125,6 +114,12 @@ OPTIONS association list of options.
        'switch-to-buffer))
     (save-excursion
       (insert message-text))))
+
+(defmacro rt-liber-gnus-with-ticket-buffer (&rest body)
+  `(progn
+     (when (not (boundp 'rt-liber-ticket-local))
+       (error "rt-liberation ticket view buffer not present"))
+     ,@body))
 
 (defun rt-liber-gnus-content-to-string ()
   "Return the current content section as a string"

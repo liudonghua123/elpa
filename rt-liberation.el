@@ -1,7 +1,6 @@
 ;;; rt-liberation.el --- Emacs interface to RT
 
-;; Copyright (C) 2008, 2009, 2010, 2011, 2014, 2015, 2020 Free
-;; Software Foundation
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: Yoni Rabkin <yrk@gnu.org>
 ;; Authors: Aaron S. Hawley <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>
@@ -42,7 +41,7 @@
 
 (require 'browse-url)
 (require 'time-date)
-(require 'seq)
+(require 'cl-lib)
 
 (require 'rt-liberation-rest)
 
@@ -262,11 +261,10 @@ This variable is made buffer local for the ticket history")
 (defun rt-liber-reduce (op seq)
   "Reduce-OP with SEQ to a string of \"s0 op s1 op s2..\"."
   (if seq
-      (seq-reduce
+      (cl-reduce
        #'(lambda (a b)
 	   (format "%s %s %s" a op b))
-       (cdr seq)
-       (car seq))
+       seq)
     ""))
 
 (defun rt-liber-make-interval (pred before after)
@@ -385,53 +383,32 @@ AFTER  date after predicate."
 	     (re-search-forward "^id:" (point-max) t))
       (while (and continue
 		  (re-search-forward
-		   "^\\(\\([\.{} #[:alpha:]]+\\): \\(.*\\)\\)$\\|^--$"
+		   "^\\(\\([.{} #[:alpha:]]+\\): \\(.*\\)\\)$\\|^--$"
 		   (point-max) t))
 	(if (string= (match-string-no-properties 0) "--")
 	    (setq continue nil)
 	  (push (cons (match-string-no-properties 2)
 		      (match-string-no-properties 3))
 		ticketbase)))
-      (push (copy-tree ticketbase) ticketbase-list)
+      (push (copy-sequence ticketbase) ticketbase-list)
       (setq ticketbase nil
 	    continue t))
     ticketbase-list))
 
-(defun rt-liber-rest-ticketsql-runner-parser-f ()
-  "Parser function for a textual list of tickets."
-  (let (idsub-list)
-    (rt-liber-rest-parse-http-header)
-    (while (re-search-forward "ticket/\\([0-9].+\\)" (point-max) t)
-      (push (list (match-string-no-properties 1)
-		  ".")
-	    idsub-list))
-    idsub-list))
-
-(defun rt-liber-rest-run-ls-query (query)
-  "Run an \"ls\" type query against the server with QUERY."
-  (rt-liber-parse-answer
-   (rt-liber-rest-query-runner "ls" query)
-   'rt-liber-rest-ticketsql-runner-parser-f))
-
-(defun rt-liber-rest-run-show-base-query (idsublist)
-  "Run \"show\" type query against the server with IDSUBLIST."
-  (rt-liber-parse-answer
-   (rt-liber-rest-show-query-runner idsublist)
-   #'rt-liber-ticket-base-retriever-parser-f))
-
-(defun rt-liber-rest-run-ticket-history-base-query (ticket-id)
-  "Run history query against server for TICKET-ID."
-  (rt-liber-parse-answer
-   (rt-liber-rest-query-runner "history" ticket-id)
-   #'(lambda ()
-       (rt-liber-rest-parse-http-header)
-       (buffer-substring (point) (point-max)))))
-
-(defun rt-liber-rest-command-set (id field status)
-  "Set ticket ID status to be STATUS."
-  (rt-liber-parse-answer
-   (rt-liber-rest-edit-runner id field status)
-   'rt-liber-command-runner-parser-f))
+;; accept the output of `rt-liber-ticketsql-runner-parser-f' and
+;; return a string suitable for an RT "show" query
+(defun rt-liber-create-tickets-string (idsublist)
+  "Create a RT CLI ticket \"show\" string from IDSUBLIST."
+  (let ((ticket-list (mapcar #'(lambda (e) (car e)) idsublist)))
+    (if ticket-list
+	(concat "ticket/"
+		(if (= (length ticket-list) 1)
+		    (format "%s" (car ticket-list))
+		  (cl-reduce
+		   #'(lambda (a b)
+		       (format "%s,%s" a b))
+		   ticket-list)))
+      (signal 'rt-liber-no-result-from-query-error nil))))
 
 
 ;;; --------------------------------------------------------
@@ -568,9 +545,9 @@ AFTER  date after predicate."
    (make-local-variable 'font-lock-defaults)
    '((rt-liber-viewer-font-lock-keywords)))
   (set (make-local-variable 'revert-buffer-function)
-       'rt-liber-refresh-ticket-history)
+       #'rt-liber-refresh-ticket-history)
   (set (make-local-variable 'buffer-stale-function)
-       (lambda (&optional noconfirm) 'slow))
+       (lambda (&optional _noconfirm) 'slow))
   (when rt-liber-jump-to-latest
     (rt-liber-jump-to-latest-correspondence))
   (run-hooks 'rt-liber-viewer-hook))
@@ -601,7 +578,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(setq buffer-read-only t)))
     (switch-to-buffer new-ticket-buffer)))
 
-(defun rt-liber-refresh-ticket-history (&optional ignore-auto noconfirm)
+(defun rt-liber-refresh-ticket-history (&optional _ignore-auto _noconfirm)
   (interactive)
   (if rt-liber-ticket-local
       (rt-liber-display-ticket-history rt-liber-ticket-local
@@ -807,7 +784,7 @@ The ticket's priority is compared to the variable
       (when (< 0 filtered-count)
 	(insert (format "%d tickets not shown (filtered)" filtered-count))))))
 
-(defun rt-liber-browser-refresh (&optional ignore-auto noconfirm)
+(defun rt-liber-browser-refresh (&optional _ignore-auto noconfirm)
   (interactive)
   (if rt-liber-query
       (when (or rt-liber-browser-do-refresh
@@ -917,7 +894,7 @@ If POINT is nil then called on (point)."
 
 (defun rt-liber-sort-ticket-list (ticket-list sort-f)
   "Return a copy of TICKET-LIST sorted by SORT-F."
-  (let ((seq (copy-tree ticket-list)))
+  (let ((seq (copy-sequence ticket-list)))
     (sort seq sort-f)))
 
 (defun rt-liber-sort-by-owner (ticket-list)
@@ -943,12 +920,85 @@ If POINT is nil then called on (point)."
 
 ;; See the fine manual for example code.
 
-(defun rt-liber-default-filter-f (ticket)
+(defun rt-liber-default-filter-f (_ticket)
   "The default filtering function for the ticket browser
 
 This function is really a placeholder for user custom functions,
 and as such always return t."
   t)
+
+
+;;; --------------------------------------------------------
+;;; Version comparison functions
+;;; --------------------------------------------------------
+
+;; rt-liber-version-<: string * string -> t-or-nil
+(defun rt-liber-version-< (vnum1 vnum2)
+  "Test whehther version number VNUM1 is less than VNUM2.
+Arguments must be strings Lisp objects, and not numbers.
+
+Examples:
+  (rt-liber-version-< \"1.01\" \"1.11\")
+    => t
+
+  (rt-liber-version-< \"1.1\" \"1.0.1\")
+    => nil"
+  (rt-liber-version-<- (rt-liber-version-value
+			(rt-liber-version-read vnum1))
+		       (rt-liber-version-value
+			(rt-liber-version-read vnum2))))
+
+;; rt-liber-version-read: string -> list string
+(defun rt-liber-version-read (str)
+  "Tokenize version number STR whenever the syntax class changes.
+
+ Example:
+   \"1.043.0-1_=+\" \
+==> (\"1\" \".\" \"043\" \".\" \"0\" \"-\" \"1\" \"_=+\")"
+  (let ((tokens nil)
+	(start 0)
+	(re (mapconcat 'identity '("[[:digit:]]+" "[[:punct:]]+") "\\|")))
+    (while (and (string-match re (substring str start))
+		(> (length str) start))
+      (setq tokens (cons (match-string 0 (substring str start)) tokens))
+      (setq start (+ start (match-end 0))))
+    (if (< start (length str))
+	(error "Unknown character: %s" (substring str start (1+ start))))
+    (reverse tokens)))
+
+;; rt-liber-version-value: list string -> list number
+(defun rt-liber-version-value (tokens)
+  "Convert list of TOKENS to a comparable number list."
+  (mapcar #'(lambda (tk)
+	      (if (string-match "^0+$" tk)
+		  1
+		(if (string-match "^[[:digit:]]+$" tk)
+		    (if (string-match "^0+" tk)
+			(1+ (* (string-to-number tk)
+			       (expt 10
+				     (- (length
+					 (match-string 0 tk))))))
+		      (1+ (string-to-number tk)))
+		  (if (string-match "^[[:punct:]]+$" tk)
+		      0
+		    ;; else (string-match "[^[:digit:][:punct:]]" tk)
+		    -1))))
+	  tokens))
+
+;; rt-liber-version-<-: list number -> t-or-nil
+(defun rt-liber-version-<- (vals1 vals2)
+  "Test whether version representation VALS1 is less than VALS2."
+  (if (and (null vals1) (null vals2))
+      nil
+    (if (null vals2)
+	nil
+      (if (null vals1)
+	  t
+	(if (= (car vals1) (car vals2))
+	    (rt-liber-version-<- (cdr vals1) (cdr vals2))
+	  (if (< (car vals1) (car vals2))
+	      t
+	    nil))))))
 
 
 ;;; --------------------------------------------------------
@@ -961,7 +1011,7 @@ and as such always return t."
 NEW if non-nil create additional browser buffer. If NEW is a
 string then that will be the name of the new buffer."
   (interactive "Mquery: ")
-  (condition-case excep
+  (condition-case nil
       (rt-liber-browser-startup
        (rt-liber-rest-run-show-base-query
 	(rt-liber-rest-run-ls-query query))
@@ -981,7 +1031,7 @@ returned as no associated text properties."
 	 (or ticket-redraw-f
 	     rt-liber-custom-ticket-redraw-function))
 	(out ""))
-    (condition-case excep
+    (condition-case nil
 	(with-temp-buffer
 	  (rt-liber-ticketlist-browser-redraw
 	   (rt-liber-rest-run-show-base-query
@@ -1029,9 +1079,9 @@ returned as no associated text properties."
   "Major Mode for browsing RT tickets.
 \\{rt-liber-browser-mode-map}"
   (set (make-local-variable 'revert-buffer-function)
-       'rt-liber-browser-refresh)
+       #'rt-liber-browser-refresh)
   (set (make-local-variable 'buffer-stale-function)
-       (lambda (&optional noconfirm) 'slow))
+       (lambda (&optional _noconfirm) 'slow))
   (run-hooks 'rt-liber-browser-hook))
 
 (defun rt-liber-setup-browser-name (new)
@@ -1117,6 +1167,12 @@ returned as no associated text properties."
   (rt-liber-command-get-dictionary-value
    status-symbol
    rt-liber-status-dictionary))
+
+(defun rt-liber-command-get-custom-field-string (custom-field-symbol)
+  "Return value associated with key CUSTOM-FIELD-SYMBOL."
+  (rt-liber-command-get-dictionary-value
+   custom-field-symbol
+   rt-liber-custom-field-dictionary))
 
 (defun rt-liber-command-runner-parser-f ()
   "Display command return status from the server to the user."
