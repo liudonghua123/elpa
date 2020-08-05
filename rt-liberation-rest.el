@@ -1,6 +1,6 @@
 ;;; rt-liberation-rest.el --- Interface to the RT REST API
 
-;; Copyright (C) 2014, 2015  Free Software Foundation
+;; Copyright (C) 2014-2015  Free Software Foundation, Inc.
 ;;
 ;; Authors: Yoni Rabkin <yrk@gnu.org>
 ;;
@@ -33,7 +33,9 @@
 
 (require 'url)
 (require 'url-util)
-
+;; (require 'rt-liberation) ; FIXME: Circular dependency
+(declare-function rt-liber-parse-answer "rt-liberation" (answer-string parser-f))
+(declare-function rt-liber-ticket-base-retriever-parser-f "rt-liberation" ())
 
 (defvar rt-liber-rest-debug-buffer-name "*rt-liber-rest debug log*"
   "Buffer name of debug capture.")
@@ -81,7 +83,7 @@
 	    "format=i" "&"
 	    "orderby=+Created")))
 
-(defun rt-liber-rest-show-string (scheme url ticket-id-list username password query)
+(defun rt-liber-rest-show-string (scheme url ticket-id-list username password _query)
   "Return the ticket show string."
   (let ((user (url-encode-url username))
 	(pass (url-encode-url password)))
@@ -168,11 +170,11 @@
   "Parse the HTTP header from the server."
   (let ((http-ok-regexp "^HTTP.*200 OK$")
 	(rt-ok-regexp   "^rt/.*200 ok$"))
-    (condition-case excep
+    (condition-case nil
 	(progn
 	  (re-search-forward http-ok-regexp (point-max))
 	  (re-search-forward rt-ok-regexp (point-max)))
-      (error "bad HTTP response from server"))))
+      (error "bad HTTP response from server")))) ;FIXME: Unused string!
 
 (defun rt-liber-rest-ticketsql-runner-parser-f ()
   "Parser function for a textual list of tickets."
@@ -242,7 +244,7 @@
 
 (defun rt-liber-rest-handle-response (buffer)
   "Handle the response provided in BUFFER."
-  (with-current-buffer response-buffer
+  (with-current-buffer buffer
     (rt-liber-rest-write-debug (buffer-string))))
 
 (defun rt-liber-rest-edit-runner (ticket-id field value)

@@ -1,6 +1,6 @@
 ;;; rt-liberation-storage.el --- Storage backend for rt-liberation
 
-;; Copyright (C) 2010  Free Software Foundation
+;; Copyright (C) 2010  Free Software Foundation, Inc.
 ;;
 ;; Author: Yoni Rabkin <yrk@gnu.org>
 ;;

@@ -1,6 +1,6 @@
 ;;; rt-liberation-gnus.el --- Gnus integration for rt-liberation
 
-;; Copyright (C) 2009, 2012, 2014  Free Software Foundation
+;; Copyright (C) 2009-2014  Free Software Foundation, Inc.
 ;;
 ;; Authors: Yoni Rabkin <yrk@gnu.org>
 ;;
@@ -115,6 +115,12 @@ OPTIONS association list of options.
     (save-excursion
       (insert message-text))))
 
+(defmacro rt-liber-gnus-with-ticket-buffer (&rest body)
+  `(progn
+     (when (not (boundp 'rt-liber-ticket-local))
+       (error "rt-liberation ticket view buffer not present"))
+     ,@body))
+
 (defun rt-liber-gnus-content-to-string ()
   "Return the current content section as a string"
   (rt-liber-gnus-with-ticket-buffer
@@ -142,12 +148,6 @@ OPTIONS association list of options.
 	 (whitespace-cleanup)
 	 (setq text (buffer-substring (point-min) (point-max))))
        text))))
-
-(defmacro rt-liber-gnus-with-ticket-buffer (&rest body)
-  `(progn
-     (when (not (boundp 'rt-liber-ticket-local))
-       (error "rt-liberation ticket view buffer not present"))
-     ,@body))
 
 (defun rt-liber-gnus-compose-reply-to-requestor ()
   (interactive)

@@ -1,6 +1,6 @@
 ;;; rt-liberation-update.el --- check updated tickets
 
-;; Copyright (C) 2009  Free Software Foundation
+;; Copyright (C) 2009  Free Software Foundation, Inc.
 ;;
 ;; Authors: Yoni Rabkin <yrk@gnu.org>
 ;;

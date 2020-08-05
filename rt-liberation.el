@@ -1,7 +1,6 @@
 ;;; rt-liberation.el --- Emacs interface to RT
 
-;; Copyright (C) 2008, 2009, 2010, 2011, 2014, 2015, 2020 Free
-;; Software Foundation
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: Yoni Rabkin <yrk@gnu.org>
 ;; Authors: Aaron S. Hawley <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>
@@ -262,7 +261,7 @@ This variable is made buffer local for the ticket history")
 (defun rt-liber-reduce (op seq)
   "Reduce-OP with SEQ to a string of \"s0 op s1 op s2..\"."
   (if seq
-      (reduce
+      (cl-reduce
        #'(lambda (a b)
 	   (format "%s %s %s" a op b))
        seq)
@@ -384,14 +383,14 @@ AFTER  date after predicate."
 	     (re-search-forward "^id:" (point-max) t))
       (while (and continue
 		  (re-search-forward
-		   "^\\(\\([\.{} #[:alpha:]]+\\): \\(.*\\)\\)$\\|^--$"
+		   "^\\(\\([.{} #[:alpha:]]+\\): \\(.*\\)\\)$\\|^--$"
 		   (point-max) t))
 	(if (string= (match-string-no-properties 0) "--")
 	    (setq continue nil)
 	  (push (cons (match-string-no-properties 2)
 		      (match-string-no-properties 3))
 		ticketbase)))
-      (push (copy-seq ticketbase) ticketbase-list)
+      (push (copy-sequence ticketbase) ticketbase-list)
       (setq ticketbase nil
 	    continue t))
     ticketbase-list))
@@ -405,7 +404,7 @@ AFTER  date after predicate."
 	(concat "ticket/"
 		(if (= (length ticket-list) 1)
 		    (format "%s" (car ticket-list))
-		  (reduce
+		  (cl-reduce
 		   #'(lambda (a b)
 		       (format "%s,%s" a b))
 		   ticket-list)))
@@ -546,9 +545,9 @@ AFTER  date after predicate."
    (make-local-variable 'font-lock-defaults)
    '((rt-liber-viewer-font-lock-keywords)))
   (set (make-local-variable 'revert-buffer-function)
-       'rt-liber-refresh-ticket-history)
+       #'rt-liber-refresh-ticket-history)
   (set (make-local-variable 'buffer-stale-function)
-       (lambda (&optional noconfirm) 'slow))
+       (lambda (&optional _noconfirm) 'slow))
   (when rt-liber-jump-to-latest
     (rt-liber-jump-to-latest-correspondence))
   (run-hooks 'rt-liber-viewer-hook))
@@ -579,7 +578,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(setq buffer-read-only t)))
     (switch-to-buffer new-ticket-buffer)))
 
-(defun rt-liber-refresh-ticket-history (&optional ignore-auto noconfirm)
+(defun rt-liber-refresh-ticket-history (&optional _ignore-auto _noconfirm)
   (interactive)
   (if rt-liber-ticket-local
       (rt-liber-display-ticket-history rt-liber-ticket-local
@@ -785,7 +784,7 @@ The ticket's priority is compared to the variable
       (when (< 0 filtered-count)
 	(insert (format "%d tickets not shown (filtered)" filtered-count))))))
 
-(defun rt-liber-browser-refresh (&optional ignore-auto noconfirm)
+(defun rt-liber-browser-refresh (&optional _ignore-auto noconfirm)
   (interactive)
   (if rt-liber-query
       (when (or rt-liber-browser-do-refresh
@@ -895,7 +894,7 @@ If POINT is nil then called on (point)."
 
 (defun rt-liber-sort-ticket-list (ticket-list sort-f)
   "Return a copy of TICKET-LIST sorted by SORT-F."
-  (let ((seq (copy-seq ticket-list)))
+  (let ((seq (copy-sequence ticket-list)))
     (sort seq sort-f)))
 
 (defun rt-liber-sort-by-owner (ticket-list)
@@ -921,7 +920,7 @@ If POINT is nil then called on (point)."
 
 ;; See the fine manual for example code.
 
-(defun rt-liber-default-filter-f (ticket)
+(defun rt-liber-default-filter-f (_ticket)
   "The default filtering function for the ticket browser
 
 This function is really a placeholder for user custom functions,
@@ -1012,7 +1011,7 @@ Examples:
 NEW if non-nil create additional browser buffer. If NEW is a
 string then that will be the name of the new buffer."
   (interactive "Mquery: ")
-  (condition-case excep
+  (condition-case nil
       (rt-liber-browser-startup
        (rt-liber-rest-run-show-base-query
 	(rt-liber-rest-run-ls-query query))
@@ -1032,7 +1031,7 @@ returned as no associated text properties."
 	 (or ticket-redraw-f
 	     rt-liber-custom-ticket-redraw-function))
 	(out ""))
-    (condition-case excep
+    (condition-case nil
 	(with-temp-buffer
 	  (rt-liber-ticketlist-browser-redraw
 	   (rt-liber-rest-run-show-base-query
@@ -1080,9 +1079,9 @@ returned as no associated text properties."
   "Major Mode for browsing RT tickets.
 \\{rt-liber-browser-mode-map}"
   (set (make-local-variable 'revert-buffer-function)
-       'rt-liber-browser-refresh)
+       #'rt-liber-browser-refresh)
   (set (make-local-variable 'buffer-stale-function)
-       (lambda (&optional noconfirm) 'slow))
+       (lambda (&optional _noconfirm) 'slow))
   (run-hooks 'rt-liber-browser-hook))
 
 (defun rt-liber-setup-browser-name (new)
@@ -1184,7 +1183,7 @@ returned as no associated text properties."
   (rt-liber-rest-command-set
    id
    (rt-liber-get-field-string 'status)
-   (rt-liber-com  mand-get-status-string 'deleted)))
+   (rt-liber-command-get-status-string 'deleted)))
 
 (defun rt-liber-command-set-status-new (id)
   "Set the status of ticket ID to `new'."

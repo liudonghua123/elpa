@@ -1,6 +1,6 @@
 ;;; rt-liberation-report.el --- Emacs interface to RT
 
-;; Copyright (C) 2015  Free Software Foundation
+;; Copyright (C) 2015  Free Software Foundation, Inc.
 ;;
 ;; Authors: Yoni Rabkin <yrk@gnu.org>
 ;;
@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'rt-liberation-rest)
+(require 'rt-liberation)
 
 (defvar rt-liber-report-csv-header
   '("date" "tickets resolved")
@@ -124,8 +125,8 @@ return `nil'."
 		  (rt-liber-report-get-interval
 		   rt-queue start-date end-date)))
 	by-date by-owner
-	by-date-out
-	by-owner-out
+	;; by-date-out
+	;; by-owner-out
 	total)
     (when (not tickets)
       (error (concat "no tickets in interval between "
