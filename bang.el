@@ -34,8 +34,10 @@
 
 (defconst bang--command-regexp
   (rx bos (* space)
-      (? (group (or "." "/" "~") (* (not space))) (+ space))
-      (or (group "<") (group ">") (group "|") "!" "")
+      (? (group (or (: ?. (not (any "/"))) ?/ ?~)
+                (* (not space)))
+         (+ space))
+      (or (group ?<) (group ?>) (group ?|) ?! "")
       (* space)
       (group (+ not-newline))
       eos))
