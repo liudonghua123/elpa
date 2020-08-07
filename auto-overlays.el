@@ -365,8 +365,7 @@ Comparison is done with `eq'."
 	      (overlay-end o-match))))
     (if (null n) str
       (let ((g (auto-o-group o-match n)))
-	(when g
-	  (string-match (auto-o-regexp o-match) str)
+	(when (and g (string-match (auto-o-regexp o-match) str))
 	  (match-string g str))))))
 
 (defun auto-o-key-value (o-match key)
@@ -1528,7 +1527,7 @@ overlays were saved."
 		  (when (or (null definition-ids)
 			    (memq definition-id definition-ids))
 		    (pop def)
-		    
+
 		    ;; check all regexps for current definition
 		    (dotimes (rank (length def))
 		      (setq regexp-id (car (nth rank def)))
