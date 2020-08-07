@@ -395,20 +395,41 @@ AFTER  date after predicate."
 	    continue t))
     ticketbase-list))
 
-;; accept the output of `rt-liber-ticketsql-runner-parser-f' and
-;; return a string suitable for an RT "show" query
-(defun rt-liber-create-tickets-string (idsublist)
-  "Create a RT CLI ticket \"show\" string from IDSUBLIST."
-  (let ((ticket-list (mapcar #'(lambda (e) (car e)) idsublist)))
-    (if ticket-list
-	(concat "ticket/"
-		(if (= (length ticket-list) 1)
-		    (format "%s" (car ticket-list))
-		  (cl-reduce
-		   #'(lambda (a b)
-		       (format "%s,%s" a b))
-		   ticket-list)))
-      (signal 'rt-liber-no-result-from-query-error nil))))
+(defun rt-liber-rest-ticketsql-runner-parser-f ()
+  "Parser function for a textual list of tickets."
+  (let (idsub-list)
+    (rt-liber-rest-parse-http-header)
+    (while (re-search-forward "ticket/\\([0-9].+\\)" (point-max) t)
+      (push (list (match-string-no-properties 1)
+		  ".")
+	    idsub-list))
+    idsub-list))
+
+(defun rt-liber-rest-run-ls-query (query)
+  "Run an \"ls\" type query against the server with QUERY."
+  (rt-liber-parse-answer
+   (rt-liber-rest-query-runner "ls" query)
+   'rt-liber-rest-ticketsql-runner-parser-f))
+
+(defun rt-liber-rest-run-show-base-query (idsublist)
+  "Run \"show\" type query against the server with IDSUBLIST."
+  (rt-liber-parse-answer
+   (rt-liber-rest-show-query-runner idsublist)
+   #'rt-liber-ticket-base-retriever-parser-f))
+
+(defun rt-liber-rest-run-ticket-history-base-query (ticket-id)
+  "Run history query against server for TICKET-ID."
+  (rt-liber-parse-answer
+   (rt-liber-rest-query-runner "history" ticket-id)
+   #'(lambda ()
+       (rt-liber-rest-parse-http-header)
+       (buffer-substring (point) (point-max)))))
+
+(defun rt-liber-rest-command-set (id field status)
+  "Set ticket ID status to be STATUS."
+  (rt-liber-parse-answer
+   (rt-liber-rest-edit-runner id field status)
+   'rt-liber-command-runner-parser-f))
 
 
 ;;; --------------------------------------------------------
@@ -538,7 +559,7 @@ AFTER  date after predicate."
   "Key map for ticket viewer.")
 
 (define-derived-mode rt-liber-viewer-mode nil
-		     "RT Liberation Viewer"
+  "RT Liberation Viewer"
   "Major Mode for viewing RT tickets.
 \\{rt-liber-viewer-mode-map}"
   (set
@@ -929,79 +950,6 @@ and as such always return t."
 
 
 ;;; --------------------------------------------------------
-;;; Version comparison functions
-;;; --------------------------------------------------------
-
-;; rt-liber-version-<: string * string -> t-or-nil
-(defun rt-liber-version-< (vnum1 vnum2)
-  "Test whehther version number VNUM1 is less than VNUM2.
-Arguments must be strings Lisp objects, and not numbers.
-
-Examples:
-  (rt-liber-version-< \"1.01\" \"1.11\")
-    => t
-
-  (rt-liber-version-< \"1.1\" \"1.0.1\")
-    => nil"
-  (rt-liber-version-<- (rt-liber-version-value
-			(rt-liber-version-read vnum1))
-		       (rt-liber-version-value
-			(rt-liber-version-read vnum2))))
-
-;; rt-liber-version-read: string -> list string
-(defun rt-liber-version-read (str)
-  "Tokenize version number STR whenever the syntax class changes.
-
- Example:
-   \"1.043.0-1_=+\" \
-==> (\"1\" \".\" \"043\" \".\" \"0\" \"-\" \"1\" \"_=+\")"
-  (let ((tokens nil)
-	(start 0)
-	(re (mapconcat 'identity '("[[:digit:]]+" "[[:punct:]]+") "\\|")))
-    (while (and (string-match re (substring str start))
-		(> (length str) start))
-      (setq tokens (cons (match-string 0 (substring str start)) tokens))
-      (setq start (+ start (match-end 0))))
-    (if (< start (length str))
-	(error "Unknown character: %s" (substring str start (1+ start))))
-    (reverse tokens)))
-
-;; rt-liber-version-value: list string -> list number
-(defun rt-liber-version-value (tokens)
-  "Convert list of TOKENS to a comparable number list."
-  (mapcar #'(lambda (tk)
-	      (if (string-match "^0+$" tk)
-		  1
-		(if (string-match "^[[:digit:]]+$" tk)
-		    (if (string-match "^0+" tk)
-			(1+ (* (string-to-number tk)
-			       (expt 10
-				     (- (length
-					 (match-string 0 tk))))))
-		      (1+ (string-to-number tk)))
-		  (if (string-match "^[[:punct:]]+$" tk)
-		      0
-		    ;; else (string-match "[^[:digit:][:punct:]]" tk)
-		    -1))))
-	  tokens))
-
-;; rt-liber-version-<-: list number -> t-or-nil
-(defun rt-liber-version-<- (vals1 vals2)
-  "Test whether version representation VALS1 is less than VALS2."
-  (if (and (null vals1) (null vals2))
-      nil
-    (if (null vals2)
-	nil
-      (if (null vals1)
-	  t
-	(if (= (car vals1) (car vals2))
-	    (rt-liber-version-<- (cdr vals1) (cdr vals2))
-	  (if (< (car vals1) (car vals2))
-	      t
-	    nil))))))
-
-
-;;; --------------------------------------------------------
 ;;; Entry points
 ;;; --------------------------------------------------------
 
@@ -1075,7 +1023,7 @@ returned as no associated text properties."
   "Key map for ticket browser.")
 
 (define-derived-mode rt-liber-browser-mode nil
-		     "RT Liberation Browser"
+  "RT Liberation Browser"
   "Major Mode for browsing RT tickets.
 \\{rt-liber-browser-mode-map}"
   (set (make-local-variable 'revert-buffer-function)
@@ -1167,12 +1115,6 @@ returned as no associated text properties."
   (rt-liber-command-get-dictionary-value
    status-symbol
    rt-liber-status-dictionary))
-
-(defun rt-liber-command-get-custom-field-string (custom-field-symbol)
-  "Return value associated with key CUSTOM-FIELD-SYMBOL."
-  (rt-liber-command-get-dictionary-value
-   custom-field-symbol
-   rt-liber-custom-field-dictionary))
 
 (defun rt-liber-command-runner-parser-f ()
   "Display command return status from the server to the user."
