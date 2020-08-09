@@ -14,11 +14,11 @@
 
 
 @copying
- @copyright{} 2009, 2010, 2011, 2012, 2013, 2014, 2015  Free Software Foundation
+ @copyright{} 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2020  Free Software Foundation, Inc.
    
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A
 copy of the license is included in the section entitled ``GNU Free
@@ -96,14 +96,9 @@ Ticket Browser
 @end ifnottex
 
 
-
-
-
 @c --------------------------------------------------
-
 @node Introduction
 @chapter Introduction
-
 @cindex introduction
 
 rt-liberation is a GNU/Emacs package for working with the Request
@@ -117,35 +112,32 @@ the resulting tickets, viewing the tickets' contents and performing
 operations on the tickets.
 
 
-
-
 @c --------------------------------------------------
-
 @node Installation
 @chapter Installation
-
 @cindex installation
 
-rt-liberation can be configured in the ~/.emacs file.
+rt-liberation is available via GNU ELPA.
 
-Place rt-liberation in the load path:
+If you install rt-liberation manually instead you'll need to tell
+Emacs where to find it, and tell Emacs to load the package:
 
 @lisp
 (add-to-list 'load-path "/PATH/TO/rt-liberation/")
 @end lisp
 
-Tell GNU/Emacs to load the package with:
-
 @lisp
 (require 'rt-liberation)
 @end lisp
 
-Tell rt-liberation where to find the RT server's REST interface and
-which version of RT the server is running:
+
+rt-liberation needs to be configured in your ~/.emacs, an ~/.rt-liber
+file, or similar.
+
+Tell rt-liberation where to find the RT server's REST interface:
 
 @lisp
-(setq rt-liber-rest-url "rt.example.org"
-      rt-liber-rt-version "4.2.4")
+(setq rt-liber-rest-url "rt.example.org")
 @end lisp
 
 rt-liberation can issue a command to ``take'' a ticket (that is,
@@ -164,10 +156,8 @@ that to work the base URL needs to be set in
 
 
 @c --------------------------------------------------
-
 @node Queries
 @chapter Queries
-
 @cindex queries
 
 A typical RT server is meant to manage a large amount of tickets. Much
@@ -183,14 +173,9 @@ TicketSQL language.
 @end menu
 
 
-
-
-
 @c --------------------------------------------------
-
 @node Query Compiler
 @section Query Compiler
-
 @cindex query compiler
 
 In order to browse and view tickets a list of needs to be requested
@@ -205,14 +190,9 @@ symbolic expressions into TicketSQL. The query compiler supports a
 number of TicketSQL tokens.
 
 
-
-
-
 @c --------------------------------------------------
-
 @node Query Language
 @section Query Language
-
 @cindex query language
 
 rt-liberation's Sexp-based query language covers a portion of the
@@ -287,13 +267,9 @@ in function calls:
 @end lisp
 
 
-
-
 @c --------------------------------------------------
-
 @node Ticket Browser
 @chapter Ticket Browser
-
 @cindex ticket browser
 
 The ticket browser is a special buffer which provides a convenient
@@ -423,14 +399,9 @@ Set the numerical priority level of the ticket at point.
 @end menu
 
 
-
-
-
 @c --------------------------------------------------
-
 @node Ticket Browser Display
 @section Ticket Browser Display
-
 @cindex ticket browser display function
 
 The ticket browser displays the tickets in the browser by calling
@@ -492,13 +463,9 @@ considered high priority if its value is strictly higher than
 @var{rt-liber-browser-priority-cutoff}
 
 
-
-
 @c --------------------------------------------------
-
 @node Ticket Browser Sorting
 @section Ticket Browser Sorting
-
 @cindex ticket browser sorting
 
 The tickets in the browser are displayed by default in reverse
@@ -550,11 +517,10 @@ signaled).
 
 @end defun
 
-@c -------------------------------------------------------------------
 
+@c -------------------------------------------------------------------
 @node Ticket Browser Filtering
 @section Ticket Browser Filtering
-
 @cindex ticket browser filtering filter
 
 The Ticket Browser can also filter out (that is, not display) certain
@@ -594,12 +560,10 @@ Then we assign that function to be our default filtering function:
       'rt-liber-browser-deleted-filter)
 @end lisp
 
+
 @c -------------------------------------------------------------------
-
-
 @node Multiple Ticket Browsers
 @section Multiple Ticket Browsers
-
 @cindex ticket browser multiple buffer
 
 It is sometimes useful to rename the ticket browser buffer to
@@ -634,14 +598,9 @@ buffers will be created displaying the query results and named
 @end lisp
 
 
-
-
-
 @c --------------------------------------------------
-
 @node Ticket Viewer
 @chapter Ticket Viewer
-
 @cindex ticket viewer
 
 The ticket viewer is an interface for viewing the contents of a
@@ -753,14 +712,9 @@ Display the associated ticket in the ticket browser.
 @end table
 
 
-
-
-
 @c --------------------------------------------------
-
 @node Gnus Integration
 @chapter Gnus Integration
-
 @cindex Gnus Integration
 
 The file @file{rt-liberation-gnus.el} implements integration with Gnus
@@ -823,14 +777,9 @@ Once rt-liberation-gnus is loaded and customized the key-bindings in
 the Viewer will be able to call into it, @xref{Ticket Viewer}.
 
 
-
-
-
 @c --------------------------------------------------
-
 @node Tracking Updates
 @chapter Tracking Updates
-
 @cindex Tracking Updates
 
 The functions in @file{rt-liberation-update.el} help keep up with
@@ -861,13 +810,9 @@ time-stamp so that the next invocation will produce the same result.
 @end defun
 
 
-
-
 @c --------------------------------------------------
-
 @node Batch Operations
 @chapter Batch Operations
-
 @cindex Batch Operations
 
 The extension @file{rt-liberation-multi.el} implements performing
@@ -908,14 +853,9 @@ Set the status of all the marked tickets to ``is-spam'' and delete.
 @end defun
 
 
-
-
-
 @c --------------------------------------------------
-
 @node Local Storage
 @chapter Local Storage
-
 @cindex Local Storage
 
 @file{rt-liberation-storage.el} implements associating arbitrary
@@ -954,43 +894,31 @@ text with tickets but is not limited to text. The same implementation
 can be extended to associate any arbitrary data with any ticket.
 
 
+@c --------------------------------------------------
 @c including the relevant licenses
 @include gpl.texi
 @include fdl.texi
 
 
-
-
-
 @c --------------------------------------------------
-
 @node Concept Index
 @unnumbered Concept Index
 @printindex cp
 
 
-
-
 @c --------------------------------------------------
-
 @node Function Index
 @unnumbered Function Index
 @printindex fn
 
 
-
-
 @c --------------------------------------------------
-
 @node Variable Index
 @unnumbered Variable Index
 @printindex vr
 
 
-
-
 @c --------------------------------------------------
-
 @node Keybinding Index
 @unnumbered Keybinding Index
 @printindex ky
