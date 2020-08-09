@@ -20,9 +20,7 @@
 ;; License along with this program; if not, write to the Free
 ;; Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 ;; MA 02111-1307, USA.
-;;
-;; Note: Licensed under GPLv2+ and not GPLv3+ in order to be
-;; compatible with the license of RT.
+
 
 ;;; History:
 ;;
@@ -33,9 +31,7 @@
 
 (require 'url)
 (require 'url-util)
-;; (require 'rt-liberation) ; FIXME: Circular dependency
-(declare-function rt-liber-parse-answer "rt-liberation" (answer-string parser-f))
-(declare-function rt-liber-ticket-base-retriever-parser-f "rt-liberation" ())
+
 
 (defvar rt-liber-rest-debug-buffer-name "*rt-liber-rest debug log*"
   "Buffer name of debug capture.")
@@ -176,24 +172,6 @@
 	  (re-search-forward rt-ok-regexp (point-max)))
       (error "bad HTTP response from server")))) ;FIXME: Unused string!
 
-(defun rt-liber-rest-ticketsql-runner-parser-f ()
-  "Parser function for a textual list of tickets."
-  (let (idsub-list)
-    (rt-liber-rest-parse-http-header)
-    (while (re-search-forward "ticket/\\([0-9].+\\)" (point-max) t)
-      ;; the output should be compatible with the input to
-      ;; `rt-liber-create-tickets-string'
-      (push (list (match-string-no-properties 1)
-		  ".")
-	    idsub-list))
-    idsub-list))
-
-(defun rt-liber-rest-run-ls-query (query)
-  "Run an \"ls\" type query against the server with QUERY."
-  (rt-liber-parse-answer
-   (rt-liber-rest-query-runner "ls" query)
-   'rt-liber-rest-ticketsql-runner-parser-f))
-
 (defun rt-liber-rest-show-process (response)
   "Process and return the show query response."
   (when (not (stringp response))
@@ -228,20 +206,6 @@
 	(message "done retrieving %d tickets" l)))
     (buffer-substring (point-min) (point-max))))
 
-(defun rt-liber-rest-run-show-base-query (idsublist)
-  "Run \"show\" type query against the server with IDSUBLIST."
-  (rt-liber-parse-answer
-   (rt-liber-rest-show-query-runner idsublist)
-   #'rt-liber-ticket-base-retriever-parser-f))
-
-(defun rt-liber-rest-run-ticket-history-base-query (ticket-id)
-  "Run history query against server for TICKET-ID."
-  (rt-liber-parse-answer
-   (rt-liber-rest-query-runner "history" ticket-id)
-   #'(lambda ()
-       (rt-liber-rest-parse-http-header)
-       (buffer-substring (point) (point-max)))))
-
 (defun rt-liber-rest-handle-response (buffer)
   "Handle the response provided in BUFFER."
   (with-current-buffer buffer
@@ -269,12 +233,6 @@
 	      rt-liber-rest-password)))
       (rt-liber-rest-handle-response response-buffer)))
   (message "edit command ended at %s" (current-time-string)))
-
-(defun rt-liber-rest-command-set (id field status)
-  "Set ticket ID status to be STATUS."
-  (rt-liber-parse-answer
-   (rt-liber-rest-edit-runner id field status)
-   'rt-liber-command-runner-parser-f))
 
 
 (provide 'rt-liberation-rest)
