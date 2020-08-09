@@ -1,0 +1,18 @@
+-*- outline -*-
+
+* Notes for preparing a release for rt-liberation
+
+
+** Version
+In order for the ELPA system to trigger a release the version number
+in the comment header of rt-liberation.el must be incremented.
+
+
+** Info
+After each manual update the info file needs to be copied into the
+root of the project so that ELPA can pick it up.
+
+
+** ELPA
+Updates to the Savannah repository that have been tested can be pushed
+to the ELPA repository at externals/rt-liberation.
