@@ -12,7 +12,7 @@ Foundation, Inc.
      section entitled "GNU Free Documentation License".
 INFO-DIR-SECTION Emacs
 START-INFO-DIR-ENTRY
-* rt-liberation: (rt-liberation).           Emacs Interface to Request Tracker
+* rt-liberation: (rt-liberation).       Emacs Interface to RT
 END-INFO-DIR-ENTRY
 
 
@@ -2016,27 +2016,27 @@ Keybinding Index
 
 
 Tag Table:
-Node: Top715
-Node: Introduction2996
-Node: Installation3608
-Node: Queries4592
-Node: Query Compiler5159
-Node: Query Language5805
-Node: Ticket Browser8249
-Node: Ticket Browser Display10726
-Node: Ticket Browser Sorting12722
-Node: Ticket Browser Filtering14677
-Node: Multiple Ticket Browsers16225
-Node: Ticket Viewer17399
-Node: Gnus Integration19576
-Node: Tracking Updates21869
-Node: Batch Operations22951
-Node: Local Storage24136
-Node: Copying25219
-Node: The GNU FDL62773
-Node: Concept Index85170
-Node: Function Index86756
-Node: Variable Index90111
-Node: Keybinding Index90492
+Node: Top698
+Node: Introduction2979
+Node: Installation3591
+Node: Queries4575
+Node: Query Compiler5142
+Node: Query Language5788
+Node: Ticket Browser8232
+Node: Ticket Browser Display10709
+Node: Ticket Browser Sorting12705
+Node: Ticket Browser Filtering14660
+Node: Multiple Ticket Browsers16208
+Node: Ticket Viewer17382
+Node: Gnus Integration19559
+Node: Tracking Updates21852
+Node: Batch Operations22934
+Node: Local Storage24119
+Node: Copying25202
+Node: The GNU FDL62756
+Node: Concept Index85153
+Node: Function Index86739
+Node: Variable Index90094
+Node: Keybinding Index90475
 
 End Tag Table
