@@ -9,7 +9,7 @@
 
 @dircategory Emacs
 @direntry
-* rt-liberation: (rt-liberation).           Emacs Interface to Request Tracker
+* rt-liberation: (rt-liberation).       Emacs Interface to RT
 @end direntry
 
 
