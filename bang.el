@@ -1,7 +1,7 @@
 ;;; bang.el --- A sam-like shell-command -*- lexical-binding: t -*-
 
 ;; Author: Philip K. <philip@warpmail.net>
-;; Version: 1.0.2
+;; Version: 1.0.3
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://git.sr.ht/~zge/bang
