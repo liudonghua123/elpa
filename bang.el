@@ -46,7 +46,7 @@
   "Expand any PATH into absolute path with additional tricks.
 
 Furthermore, replace each sequence with three or more `.'s with a
-proper upwards directory pointers. This means that '....' becomes
+proper upwards directory pointers.  This means that '....' becomes
 '../../../..', and so on."
   (expand-file-name
    (replace-regexp-in-string
@@ -69,14 +69,14 @@ Without any argument, `bang' will behave like `shell-command'.
 
 Before these characters, one may also place a relative or
 absolute path, which will be the current working directory in
-which the command will be executed. See `bang-expand-path' for
+which the command will be executed.  See `bang-expand-path' for
 more details on this expansion.
 
-Inside COMMAND, % is replaced with the current file name. To
+Inside COMMAND, % is replaced with the current file name.  To
 insert a literal % quote it using a backslash.
 
 In case a region is active, bang will only work with the region
-between BEG and END. Otherwise the whole buffer is processed."
+between BEG and END.  Otherwise the whole buffer is processed."
   (interactive (list (read-shell-command "Shell command: ")
                      (if (use-region-p) (region-beginning) (point-min))
                      (if (use-region-p) (region-end) (point-max))))
