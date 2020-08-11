@@ -1,5 +1,5 @@
-This is rt-liberation.info, produced by makeinfo version 6.1 from
-rt-liberation.texinfo.
+This is rt-liber.info, produced by makeinfo version 6.1 from
+rt-liber.texinfo.
 
 (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2020 Free Software
 Foundation, Inc.
@@ -12,11 +12,11 @@ Foundation, Inc.
      section entitled "GNU Free Documentation License".
 INFO-DIR-SECTION Emacs
 START-INFO-DIR-ENTRY
-* rt-liberation: (rt-liberation).       Emacs Interface to RT
+* rt-liberation: (rt-liber).    Emacs Interface to RT
 END-INFO-DIR-ENTRY
 
 
-File: rt-liberation.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
+File: rt-liber.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
 
 The rt-liberation Manual
 ************************
@@ -79,7 +79,7 @@ Ticket Browser
 
 
 
-File: rt-liberation.info,  Node: Introduction,  Next: Installation,  Up: Top
+File: rt-liber.info,  Node: Introduction,  Next: Installation,  Up: Top
 
 1 Introduction
 **************
@@ -95,7 +95,7 @@ browsing the resulting tickets, viewing the tickets' contents and
 performing operations on the tickets.
 
 
-File: rt-liberation.info,  Node: Installation,  Next: Queries,  Prev: Introduction,  Up: Top
+File: rt-liber.info,  Node: Installation,  Next: Queries,  Prev: Introduction,  Up: Top
 
 2 Installation
 **************
@@ -128,7 +128,7 @@ example:
    (setq rt-liber-base-url "https://rt.foo.org/")
 
 
-File: rt-liberation.info,  Node: Queries,  Next: Ticket Browser,  Prev: Installation,  Up: Top
+File: rt-liber.info,  Node: Queries,  Next: Ticket Browser,  Prev: Installation,  Up: Top
 
 3 Queries
 *********
@@ -146,7 +146,7 @@ RT's TicketSQL language.
 * Query Language::              A description of the Sexp-based language.
 
 
-File: rt-liberation.info,  Node: Query Compiler,  Next: Query Language,  Up: Queries
+File: rt-liber.info,  Node: Query Compiler,  Next: Query Language,  Up: Queries
 
 3.1 Query Compiler
 ==================
@@ -162,7 +162,7 @@ Lisp symbolic expressions into TicketSQL. The query compiler supports a
 number of TicketSQL tokens.
 
 
-File: rt-liberation.info,  Node: Query Language,  Prev: Query Compiler,  Up: Queries
+File: rt-liber.info,  Node: Query Language,  Prev: Query Compiler,  Up: Queries
 
 3.2 Query Language
 ==================
@@ -230,7 +230,7 @@ in function calls:
               (id ticket-id)))))
 
 
-File: rt-liberation.info,  Node: Ticket Browser,  Next: Ticket Viewer,  Prev: Queries,  Up: Top
+File: rt-liber.info,  Node: Ticket Browser,  Next: Ticket Viewer,  Prev: Queries,  Up: Top
 
 4 Ticket Browser
 ****************
@@ -322,7 +322,7 @@ string, the following is equivalent:
 * Multiple Ticket Browsers::    More than one ticket browser buffer.
 
 
-File: rt-liberation.info,  Node: Ticket Browser Display,  Next: Ticket Browser Sorting,  Up: Ticket Browser
+File: rt-liber.info,  Node: Ticket Browser Display,  Next: Ticket Browser Sorting,  Up: Ticket Browser
 
 4.1 Ticket Browser Display
 ==========================
@@ -382,7 +382,7 @@ considered high priority if its value is strictly higher than
 RT-LIBER-BROWSER-PRIORITY-CUTOFF
 
 
-File: rt-liberation.info,  Node: Ticket Browser Sorting,  Next: Ticket Browser Filtering,  Prev: Ticket Browser Display,  Up: Ticket Browser
+File: rt-liber.info,  Node: Ticket Browser Sorting,  Next: Ticket Browser Filtering,  Prev: Ticket Browser Display,  Up: Ticket Browser
 
 4.2 Ticket Browser Sorting
 ==========================
@@ -429,7 +429,7 @@ functions to perform comparisons between ticket objects:
                   (rt-liber-time-lessthan-p a b "Created")))))
 
 
-File: rt-liberation.info,  Node: Ticket Browser Filtering,  Next: Multiple Ticket Browsers,  Prev: Ticket Browser Sorting,  Up: Ticket Browser
+File: rt-liber.info,  Node: Ticket Browser Filtering,  Next: Multiple Ticket Browsers,  Prev: Ticket Browser Sorting,  Up: Ticket Browser
 
 4.3 Ticket Browser Filtering
 ============================
@@ -467,7 +467,7 @@ ticket is to be filtered.
            'rt-liber-browser-deleted-filter)
 
 
-File: rt-liberation.info,  Node: Multiple Ticket Browsers,  Prev: Ticket Browser Filtering,  Up: Ticket Browser
+File: rt-liber.info,  Node: Multiple Ticket Browsers,  Prev: Ticket Browser Filtering,  Up: Ticket Browser
 
 4.4 Multiple Ticket Browsers
 ============================
@@ -501,7 +501,7 @@ supervisor*" and "*new tickets*" respectively:
         "*new tickets*"))
 
 
-File: rt-liberation.info,  Node: Ticket Viewer,  Next: Gnus Integration,  Prev: Ticket Browser,  Up: Top
+File: rt-liber.info,  Node: Ticket Viewer,  Next: Gnus Integration,  Prev: Ticket Browser,  Up: Top
 
 5 Ticket Viewer
 ***************
@@ -578,7 +578,7 @@ is visited.  By default RT-LIBER-JUMP-TO-LATEST is set to 'nil'.
      Display the associated ticket in the ticket browser.
 
 
-File: rt-liberation.info,  Node: Gnus Integration,  Next: Tracking Updates,  Prev: Ticket Viewer,  Up: Top
+File: rt-liber.info,  Node: Gnus Integration,  Next: Tracking Updates,  Prev: Ticket Viewer,  Up: Top
 
 6 Gnus Integration
 ******************
@@ -633,7 +633,7 @@ rt-liberation.  Headers can be added and removed in a similar manner.
 the Viewer will be able to call into it, *Note Ticket Viewer::.
 
 
-File: rt-liberation.info,  Node: Tracking Updates,  Next: Batch Operations,  Prev: Gnus Integration,  Up: Top
+File: rt-liber.info,  Node: Tracking Updates,  Next: Batch Operations,  Prev: Gnus Integration,  Up: Top
 
 7 Tracking Updates
 ******************
@@ -662,7 +662,7 @@ watch for updates.  For example:
      result.
 
 
-File: rt-liberation.info,  Node: Batch Operations,  Next: Local Storage,  Prev: Tracking Updates,  Up: Top
+File: rt-liber.info,  Node: Batch Operations,  Next: Local Storage,  Prev: Tracking Updates,  Up: Top
 
 8 Batch Operations
 ******************
@@ -695,7 +695,7 @@ through all of the marked tickets.
      Set the status of all the marked tickets to "is-spam" and delete.
 
 
-File: rt-liberation.info,  Node: Local Storage,  Next: Copying,  Prev: Batch Operations,  Up: Top
+File: rt-liber.info,  Node: Local Storage,  Next: Copying,  Prev: Batch Operations,  Up: Top
 
 9 Local Storage
 ***************
@@ -728,7 +728,7 @@ text with tickets but is not limited to text.  The same implementation
 can be extended to associate any arbitrary data with any ticket.
 
 
-File: rt-liberation.info,  Node: Copying,  Next: The GNU FDL,  Prev: Local Storage,  Up: Top
+File: rt-liber.info,  Node: Copying,  Next: The GNU FDL,  Prev: Local Storage,  Up: Top
 
 10 The GNU General Public License.
 **********************************
@@ -1444,7 +1444,7 @@ GNU Lesser General Public License instead of this License.  But first,
 please read <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 
-File: rt-liberation.info,  Node: The GNU FDL,  Next: Concept Index,  Prev: Copying,  Up: Top
+File: rt-liber.info,  Node: The GNU FDL,  Next: Concept Index,  Prev: Copying,  Up: Top
 
 11 GNU Free Documentation License
 *********************************
@@ -1873,7 +1873,7 @@ software license, such as the GNU General Public License, to permit
 their use in free software.
 
 
-File: rt-liberation.info,  Node: Concept Index,  Next: Function Index,  Prev: The GNU FDL,  Up: Top
+File: rt-liber.info,  Node: Concept Index,  Next: Function Index,  Prev: The GNU FDL,  Up: Top
 
 Concept Index
 *************
@@ -1903,7 +1903,7 @@ Concept Index
 * Tracking Updates:                      Tracking Updates.      (line 6)
 
 
-File: rt-liberation.info,  Node: Function Index,  Next: Variable Index,  Prev: Concept Index,  Up: Top
+File: rt-liber.info,  Node: Function Index,  Next: Variable Index,  Prev: Concept Index,  Up: Top
 
 Function Index
 **************
@@ -1957,7 +1957,7 @@ Function Index
 * scroll-up <1>:                         Ticket Viewer.        (line 69)
 
 
-File: rt-liberation.info,  Node: Variable Index,  Next: Keybinding Index,  Prev: Function Index,  Up: Top
+File: rt-liber.info,  Node: Variable Index,  Next: Keybinding Index,  Prev: Function Index,  Up: Top
 
 Variable Index
 **************
@@ -1970,7 +1970,7 @@ Variable Index
 * rt-liber-gnus-subject-name:            Gnus Integration.     (line 28)
 
 
-File: rt-liberation.info,  Node: Keybinding Index,  Prev: Variable Index,  Up: Top
+File: rt-liber.info,  Node: Keybinding Index,  Prev: Variable Index,  Up: Top
 
 Keybinding Index
 ****************
@@ -2016,27 +2016,27 @@ Keybinding Index
 
 
 Tag Table:
-Node: Top698
-Node: Introduction2979
-Node: Installation3591
-Node: Queries4575
-Node: Query Compiler5142
-Node: Query Language5788
-Node: Ticket Browser8232
-Node: Ticket Browser Display10709
-Node: Ticket Browser Sorting12705
-Node: Ticket Browser Filtering14660
-Node: Multiple Ticket Browsers16208
-Node: Ticket Viewer17382
-Node: Gnus Integration19559
-Node: Tracking Updates21852
-Node: Batch Operations22934
-Node: Local Storage24119
-Node: Copying25202
-Node: The GNU FDL62756
-Node: Concept Index85153
-Node: Function Index86739
-Node: Variable Index90094
-Node: Keybinding Index90475
+Node: Top680
+Node: Introduction2956
+Node: Installation3563
+Node: Queries4542
+Node: Query Compiler5104
+Node: Query Language5745
+Node: Ticket Browser8184
+Node: Ticket Browser Display10656
+Node: Ticket Browser Sorting12647
+Node: Ticket Browser Filtering14597
+Node: Multiple Ticket Browsers16140
+Node: Ticket Viewer17309
+Node: Gnus Integration19481
+Node: Tracking Updates21769
+Node: Batch Operations22846
+Node: Local Storage24026
+Node: Copying25104
+Node: The GNU FDL62653
+Node: Concept Index85045
+Node: Function Index86626
+Node: Variable Index89976
+Node: Keybinding Index90352
 
 End Tag Table

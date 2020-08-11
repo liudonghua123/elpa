@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @c %**start of header
-@setfilename rt-liberation.info
+@setfilename rt-liber.info
 @settitle The rt-liberation Manual
 @c %**end of header
 
@@ -9,7 +9,7 @@
 
 @dircategory Emacs
 @direntry
-* rt-liberation: (rt-liberation).       Emacs Interface to RT
+* rt-liberation: (rt-liber).    Emacs Interface to RT
 @end direntry
 
 
