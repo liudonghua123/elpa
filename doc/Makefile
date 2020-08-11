@@ -1,7 +1,7 @@
 # Don't delete if make is interrupted
 .PRECIOUS: %.info %.html
 
-all: rt-liberation.info
+all: rt-liber.info
 
 %.info: %.texinfo
 	makeinfo --no-split $<
