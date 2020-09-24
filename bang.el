@@ -116,8 +116,8 @@ between BEG and END.  Otherwise the whole buffer is processed."
                       beg end rest t t
                       shell-command-default-error-buffer t))
               ((and bang-use-eshell can-eshell)
-               (eshell-command rest (if current-prefix-arg t nil)))
-              (t (shell-command rest (if current-prefix-arg t nil)
+               (eshell-command rest (and current-prefix-arg t)))
+              (t (shell-command rest (and current-prefix-arg t)
                                 shell-command-default-error-buffer))))
       (when has->
         (with-current-buffer "*Shell Command Output*"
