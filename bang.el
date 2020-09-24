@@ -30,6 +30,15 @@
 
 ;;; Code:
 
+(defgroup bang nil
+  "An extended `shell-command'"
+  :group 'external
+  :prefix "bang-")
+
+(defcustom bang-use-eshell t
+  "Check if there is an eshell-handler for each command."
+  :type 'boolean)
+
 (defconst bang--command-regexp
   (rx bos (* space)
       (? (group (or (: ?. (not (any "/"))) ?/ ?~)
@@ -37,7 +46,9 @@
          (+ space))
       (or (group ?<) (group ?>) (group ?|) ?! "")
       (* space)
-      (group (+ not-newline))
+      (group (: (group (* (any alnum ?_ ?-)))
+                (? space))
+             (+ not-newline))
       eos))
 
 (defun bang-expand-path (path)
@@ -81,17 +92,19 @@ between BEG and END.  Otherwise the whole buffer is processed."
   (save-match-data
     (unless (string-match bang--command-regexp command)
       (error "Invalid command"))
-    (let ((path (match-string-no-properties 1 command))
-          (has-< (match-string-no-properties 2 command))
-          (has-> (match-string-no-properties 3 command))
-          (has-| (match-string-no-properties 4 command))
-          (rest (condition-case nil
-                    (replace-regexp-in-string
-                     (rx (* ?\\ ?\\) (or ?\\ (group "%")))
-                     buffer-file-name
-                     (match-string-no-properties 5 command)
-                     nil nil 1)
-                  (error (match-string-no-properties 5 command)))))
+    (let* ((path (match-string-no-properties 1 command))
+           (has-< (match-string-no-properties 2 command))
+           (has-> (match-string-no-properties 3 command))
+           (has-| (match-string-no-properties 4 command))
+           (cmd (match-string-no-properties 6 command))
+           (can-eshell (intern-soft (concat "eshell/" cmd)))
+           (rest (condition-case nil
+                     (replace-regexp-in-string
+                      (rx (* ?\\ ?\\) (or ?\\ (group "%")))
+                      buffer-file-name
+                      (match-string-no-properties 5 command)
+                      nil nil 1)
+                   (error (match-string-no-properties 5 command)))))
       (let ((default-directory (bang-expand-path (or path "."))))
         (cond (has-< (delete-region beg end)
                      (shell-command rest t shell-command-default-error-buffer)
@@ -102,6 +115,8 @@ between BEG and END.  Otherwise the whole buffer is processed."
               (has-| (shell-command-on-region
                       beg end rest t t
                       shell-command-default-error-buffer t))
+              ((and bang-use-eshell can-eshell)
+               (eshell-command rest (if current-prefix-arg t nil)))
               (t (shell-command rest (if current-prefix-arg t nil)
                                 shell-command-default-error-buffer))))
       (when has->
