@@ -1,22 +1,26 @@
 `bang.el`
 =========
 
-`bang` is a `shell-command` substitute that makes it easier to run
-commands on regions or whole buffers. This is done by potentially
-interpreting the first character differently, as the `bang` docstring
-explains.
+`shell-command+` is a `shell-command` substitute that makes it easier
+to run commands on regions or whole buffers, among other things.
 
-Bang has been based on a function of the same name by [Leah
+`shell-command+` has been based on a function named `bang` by [Leah
 Neukirchen][leah].
+
+Features
+--------
+
+
 
 How to use
 ----------
 
-Using [MELPA] and `use-package`, a minimal setup might look something like
-this:
+`shell-command+` is available from [ELPA]. It can be installed by
+invoking
 
-	(use-package bang
-	  :bind ("M-!" . bang))
+	M-x package-install RET shell-command+ RET
+
+Bind the command `shell-command+` to any key, for example `M-!`.
 
 Bug reports and patches should be sent to my [public inbox].
 
@@ -27,6 +31,6 @@ Copying
 Domain Dedication][cc0] license.
 
 [leah]: http://leahneukirchen.org/dotfiles/.emacs
-[MELPA]: https://melpa.org/#/bang
+[ELPA]: http://elpa.gnu.org/packages/shell-command+.html
 [public inbox]: https://lists.sr.ht/~zge/public-inbox
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
