@@ -56,8 +56,11 @@
   :prefix "shell-command+-")
 
 (defcustom shell-command+-use-eshell t
-  "Check if there is an eshell-handler for each command."
-  :type 'boolean)
+  "Check for eshell handlers.
+If t, always invoke eshell handlers.  If a list, only invoke
+handlers if the symbol (eg. `man') is contained in the list."
+  :type '(choice (boolean :tag "Always active?")
+                 (repeat :tag "Selected commands" symbol)))
 
 (defconst shell-command+--command-regexp
   (rx bos
@@ -72,8 +75,8 @@
       ;; allow whitespace after indicator
       (* space)
       ;; actual command (and command name)
-      (group (: (group (*? not-newline))
-                (? space))
+      (group (? (group (+ not-newline))
+                (+ space))
              (+ not-newline))
       eos)
   "Regular expression to parse `shell-command+' input.")
@@ -142,7 +145,8 @@ between BEG and END.  Otherwise the whole buffer is processed."
                (shell-command-on-region
                 beg end rest t t
                 shell-command-default-error-buffer t))
-              ((and shell-command+-use-eshell
+              ((and (or (eq shell-command+-use-eshell t)
+                        (memq (intern cmd) shell-command+-use-eshell))
                     (intern-soft (concat "eshell/" cmd)))
                (eshell-command rest (and current-prefix-arg t)))
               (t (shell-command rest (and current-prefix-arg t)
