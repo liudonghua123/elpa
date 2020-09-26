@@ -1,7 +1,7 @@
 ;;; shell-command+.el --- An extended shell-command -*- lexical-binding: t -*-
 
 ;; Author: Philip K. <philipk@posteo.net>
-;; Version: 1.0.3
+;; Version: 2.0.0
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: http://elpa.gnu.org/packages/shell-command+.html
