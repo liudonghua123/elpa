@@ -17,7 +17,10 @@
 ;;; Commentary:
 ;;
 ;; `shell-command+' is a `shell-command' substitute, that extends the
-;; regular Emacs command with several features.
+;; regular Emacs command with several features.  After installed,
+;; configure the package as follows:
+;;
+;;	(global-set-key (kbd "M-!") #'shell-command+)
 ;;
 ;; A few examples of what `shell-command+' can do:
 ;;
@@ -42,8 +45,11 @@
 ;;
 ;;	... make
 ;;
-;; Run Eshell's make (i.e. `compile') in the parent's parent
+;; Run Eshell's make (via `compile') in the parent's parent
 ;; directory.
+;;
+;; See `shell-command+'s docstring for more details on how it's input
+;; is interpreted..
 
 (eval-when-compile (require 'rx))
 (require 'eshell)
