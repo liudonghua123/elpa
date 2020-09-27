@@ -10,6 +10,29 @@ Neukirchen][leah].
 Features
 --------
 
+Usually `shell-command+` acts just like `shell-command`, but in
+certain cases, `shell-command+` pre-processes the input. Here are a
+few examples of what that might look like:
+
+ 	> wc -l
+
+Count all lines in a buffer, and display the result in the
+minibuffer.
+
+	.. < ls -l
+
+Replace the current region (or buffer in no region is selected)
+with a directory listing of the parent directory.
+
+	| tr -d a-z
+
+Delete all instances of the charachters a, b, c, ..., z, in the
+selected region (or buffer, if no region was selected).
+
+	.../src make
+
+Run Eshell's make (via `compile`) in the parent's parent
+directory, and then in `src`.
 
 
 How to use
