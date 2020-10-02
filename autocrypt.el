@@ -40,27 +40,6 @@
   :link '(url-link "https://autocrypt.org/")
   :prefix "autocrypt-")
 
-(defcustom autocrypt-accounts nil
-  "Alist of supported Autocrypt accounts.
-
-All elements have the form (MAIL FINGERPRINT PREFERENCE), where
-FINGERPRINT is the fingerprint of the PGP key that should be used
-by email address MAIL. PREFERENCE must be one of `mutual' or
-`no-preference', `none' (if no preference should be inserted into
-headers), or nil if this account should be temporarily disabled.
-
-This variable doesn't have to be manually specified, as
-activating the command `autocrypt-mode' should automatically
-configure it, or by calling `autocrypt-create-account'."
-  :type '(alist :key-type string
-                :value-type
-                (group (string :tag "Fingerprint")
-                       (choice :tag "Encryption Preference"
-                               (const :tag "None" none)
-                               (const :tag "No Preference" no-preference)
-                               (const :tag "Mutual" mutual)
-                               (const :tag "Disable this Account" nil)))))
-
 (defcustom autocrypt-do-gossip t
   "Enable Autocrypt gossiping.
 
@@ -92,13 +71,27 @@ process \"Autocrypt-Gossip\" headers when received."
 
 ;;; INTERNAL STATE
 
+(defvar autocrypt-accounts nil
+  "Alist of supported Autocrypt accounts.
+
+All elements have the form (MAIL FINGERPRINT PREFERENCE), where
+FINGERPRINT is the fingerprint of the PGP key that should be used
+by email address MAIL. PREFERENCE must be one of `mutual' or
+`no-preference', `none' (if no preference should be inserted into
+headers), or nil if this account should be temporarily disabled.
+
+This variable doesn't have to be manually specified, as
+activating the command `autocrypt-mode' should automatically
+configure it, or by calling `autocrypt-create-account'.")
+
 (defvar autocrypt-peers nil
   "List of known autocrypt peers.
 
 Every member of this list has to be an instance of the
 `autocrypt-peer' structure.")
 
-(defconst autocrypt-save-variables '(autocrypt-peers)
+(defconst autocrypt-save-variables '(autocrypt-accounts
+                                     autocrypt-peers)
   "List of variables to save to `autocrypt-save-data'.")
 
 
