@@ -156,14 +156,14 @@ the part contents can be found.")
 The key should identify a record in the
 `autocrypt-mua-func-alist' alist."
   (cond
+   ((derived-mode-p 'mu4e-main-mode 'mu4e-view-mode)
+    'mu4e)
    ((derived-mode-p 'gnus-mode)
     'gnus)
    ((derived-mode-p 'rmail-mode)
     'rmail)
    ((derived-mode-p 'message-mode)
     'message)
-   ((derived-mode-p 'mu4e-main-mode 'mu4e-view-mode)
-    'mu4e)
    (t (user-error "MUA not supported: %s" major-mode))))
 
 (defsubst autocrypt-mua-func (msg)
