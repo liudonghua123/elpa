@@ -912,7 +912,7 @@ current record set."
     (when descriptor
       (let ((fields-str (rec-record-assoc rec-keyword-summary descriptor)))
         (when fields-str
-          (split-string (car fields-str)))))))
+          (split-string (car fields-str) "[ ,]"))))))
 
 (defun rec-mandatory-fields ()
   "Return a list with the names of the mandatory fields in the
@@ -2077,7 +2077,7 @@ the user is prompted."
         (unless summary-fields
           (setq summary-fields (list (rec-key)))
           (unless (car summary-fields)
-            (setq summary-fields (list (read-from-minibuffer "Fields to use in the summary: ")))))
+            (setq summary-fields (split-string (read-from-minibuffer "Fields to use in the summary: ") "[ ,]"))))
         (if (car summary-fields)
             (let* ((query (rec-query :fex (rec-join-string summary-fields ",")))
                    (summary-list (mapcar (lambda (rec)
