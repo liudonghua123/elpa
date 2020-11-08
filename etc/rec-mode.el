@@ -1,9 +1,10 @@
-;;; rec-mode.el --- Major mode for viewing/editing rec files
+;;; rec-mode.el --- Major mode for viewing/editing rec files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
-;; 2018, 2019, 2020 Jose E. Marchesi
+;; Copyright (C) 2009-2020  Free Software Foundation, Inc.
 
-;; Maintainer: Jose E. Marchesi
+;; Maintainer: Jose E. Marchesi <jose.marchesi@oracle.com>
+;; Package-Requires: ((emacs "25"))
+;; Version: 0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -32,7 +33,7 @@
 ;;; Code:
 
 (require 'compile)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'calendar)
 (require 'hl-line)
 (require 'tabulated-list)
@@ -47,19 +48,16 @@
 (defcustom rec-open-mode 'navigation
   "Default mode to use when switching a buffer to rec-mode.
 Valid values are `edit' and `navigation'.  The default is `navigation'"
-  :type 'symbol
-  :group 'rec-mode)
+  :type 'symbol)
 
 (defcustom rec-popup-calendar t
   "Whether to use a popup calendar to select dates when editing field
 values.  The default is `t'."
-  :type 'boolean
-  :group 'rec-mode)
+  :type 'boolean)
 
 (defcustom rec-mode-hook nil
   "Hook run when entering rec mode."
-  :type 'hook
-  :group 'rec-mode)
+  :type 'hook)
 
 (defvar rec-max-lines-in-fields 15
   "Values of fields having more than the specified lines will be
@@ -74,9 +72,9 @@ hidden by default in navigation mode.")
 (defvar rec-recfix "recfix"
   "Name of the 'recfix' utility from the GNU recutils.")
 
-(defface rec-field-name-face '((t :weight bold)) "" :group 'rec-mode)
-(defface rec-keyword-face '((t :weight bold)) "" :group 'rec-mode)
-(defface rec-continuation-line-face '((t :weight bold)) "" :group 'rec-mode)
+(defface rec-field-name-face '((t :weight bold)) "")
+(defface rec-keyword-face '((t :weight bold)) "")
+(defface rec-continuation-line-face '((t :weight bold)) "")
 
 ;;;; Variables and constants that the user does not want to touch (really!)
 
@@ -139,16 +137,21 @@ hidden by default in navigation mode.")
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?# "<" st)   ; Comment start
     (modify-syntax-entry ?\n ">" st)  ; Comment end
-    (modify-syntax-entry ?\" "w" st)
-    (modify-syntax-entry ?\' "w" st)
+    (modify-syntax-entry ?\" "w" st)  ;FIXME: really?  Why?
+    (modify-syntax-entry ?\' "w" st)  ;FIXME: really?  Why?
     st)
   "Syntax table used in rec-mode")
 
+(defconst rec-syntax-propertize-function
+  (syntax-propertize-rules
+   ;; In rec, `#' only starts a comment when at BOL.
+   (".\\(#\\)" (1 "."))))
+
 (defvar rec-font-lock-keywords
-`((,(concat "^" rec-keyword-prefix "[a-zA-Z0-9_]+:") . rec-field-name-face)
-  (,rec-field-name-re . rec-keyword-face)
-  ("^\\+" . rec-continuation-line-face))
-"Font lock keywords used in rec-mode")
+  `((,(concat "^" rec-keyword-prefix "[a-zA-Z0-9_]+:") . rec-field-name-face)
+    (,rec-field-name-re . rec-keyword-face)
+    ("^\\+" . rec-continuation-line-face))
+  "Font lock keywords used in rec-mode")
 
 (defvar rec-mode-edit-map
   (let ((map (make-sparse-keymap)))
@@ -225,18 +228,16 @@ including the leading #:
    (comment POSITION \"# foo\")
 
 If the point is not at the beginning of a comment then return nil"
-  (let ((there (point))
-        comment)
-    (when (and (equal (current-column) 0)
-               (looking-at rec-comment-re))
-      (setq comment (list 'comment
-                          there
-                          (buffer-substring-no-properties (match-beginning 0)
-                                                          (match-end 0))))
+  (when (and (equal (current-column) 0)
+             (looking-at rec-comment-re))
+    (let ((comment (list 'comment
+                         (point)
+                         (buffer-substring-no-properties (match-beginning 0)
+                                                         (match-end 0)))))
       (goto-char (match-end 0))
       ;; Skip a newline if needed
-      (when (looking-at "\n") (goto-char (match-end 0))))
-    comment))
+      (when (eolp) (forward-line 1))
+      comment)))
 
 (defun rec-parse-field-name ()
   "Parse and return a field name starting at point.
@@ -266,7 +267,7 @@ nil"
       (with-temp-buffer
         (insert val)
         (goto-char (point-min))
-        (if (equal (char-after (point)) ? )
+        (if (equal (char-after (point)) ?\s)
             (progn
               (delete-char 1)))
         (setq val (buffer-substring-no-properties (point-min)
@@ -411,18 +412,18 @@ If no such field exists in RECORD then nil is returned."
 ;; Those functions retrieve or set properties of comment structures.
 
 (defun rec-comment-p (comment)
-  "Determine if the provided structure is a comment"
+  "Determine if the provided COMMENT arg is a comment structure."
   (and (listp comment)
        (= (length comment) 3)
        (equal (car comment) 'comment)))
 
 (defun rec-comment-position (comment)
-  "Return the start position of the given comment."
+  "Return the start position of the given COMMENT."
   (when (rec-comment-p comment)
     (nth 1 comment)))
 
 (defun rec-comment-string (comment)
-  "Return the string composig the comment, including the initial '#' character."
+  "Return the string composing the COMMENT, including the initial '#' character."
   (when (rec-comment-p comment)
     (nth 2 comment)))
 
@@ -471,10 +472,7 @@ If no such field exists in RECORD then nil is returned."
                          (match-end 0)))
         (goto-char (point-max))
         (setq c (char-before))
-        (while (and c
-                    (or (equal c ?\n)
-                        (equal c ?\t)
-                        (equal c ? )))
+        (while (and c (member c '(?\n ?\t ?\s)))
           (backward-char)
           (setq c (char-before)))
         (delete-region (point) (point-max))
@@ -493,18 +491,18 @@ If no such field exists in RECORD then nil is returned."
 nil if the pointer is not on a field."
   (save-excursion
     (beginning-of-line)
-    (let (res exit)
-      (while (not exit)
-        (cond
-         ((and (not (= (line-beginning-position) 1))
-               (or (looking-at "+")
-                   (looking-back "\\\\\n" 2)))
-          (forward-line -1))
-         ((looking-at rec-field-name-re)
-          (setq res (point))
-          (setq exit t))
-         (t
-          (setq exit t))))
+    (let (res)
+      (while
+          (cond
+           ((and (not (= (line-beginning-position) 1))
+                 (or (looking-at "+")
+                     (looking-back "\\\\\n" 2)))
+            (forward-line -1)
+            t) ;;Continue
+           ((looking-at rec-field-name-re)
+            (setq res (point))
+            nil)     ;;Exit
+           (t nil))) ;;Exit
       res)))
 
 (defun rec-end-of-field-pos ()
@@ -544,11 +542,10 @@ or nil if the pointer is not on a comment."
   "Return the position of the beginning of the current record, or nil if
 the pointer is not on a record."
   (save-excursion
-    (let (field-pos prev-pos)
-      (setq prev-pos (point))
+    (let (field-pos)
       (while (and (not (equal (point) (point-min)))
-                  (or (setq field-pos (rec-beginning-of-field-pos))
-                      (setq field-pos (rec-beginning-of-comment-pos))))
+                  (setq field-pos (or (rec-beginning-of-field-pos)
+                                      (rec-beginning-of-comment-pos))))
         (goto-char field-pos)
         (if (not (equal (point) (point-min)))
             (backward-char)))
@@ -619,6 +616,17 @@ The current record is the record where the pointer is"
 ;; These functions perform the management of the collection of records
 ;; in the buffer.
 
+;; FIXME: The term "descriptor" is used for this object as well as for its
+;; first field, which is confusing.
+(cl-defstruct (rec--descriptor
+               (:constructor nil)
+               (:constructor rec--descriptor-make (descriptor marker)))
+  descriptor marker)
+
+(defvar rec-buffer-descriptors nil
+  "List of `rec--descriptor's.")
+(make-variable-buffer-local 'rec-buffer-descriptors)
+
 (defun rec-buffer-valid-p ()
   "Determine whether the current buffer contains valid rec data."
   (equal (call-process-region (point-min) (point-max)
@@ -626,7 +634,8 @@ The current record is the record where the pointer is"
                               nil ; delete
                               nil ; discard output
                               nil ; display
-                              ) 0))
+                              )
+         0))
 
 (defun rec-update-buffer-descriptors-and-check (&optional dont-go-fundamental)
   "Update buffer descriptors and switch to fundamental mode if
@@ -663,16 +672,17 @@ there is a parse error."
 If the contents of the current buffer are not valid rec data then
 this function returns `nil'."
   (setq rec-buffer-descriptors
-	(let ((buffer (generate-new-buffer "Rec Inf "))
-	      descriptors records status)
-          ;; Call 'recinf' to get the list of record descriptors in
-          ;; sexp format.
-          (setq status (call-process-region (point-min) (point-max)
-                                            rec-recinf
-                                            nil ; delete
-                                            buffer
-                                            nil ; display
-                                            "-S" "-d"))
+	(let* ((buffer (generate-new-buffer "Rec Inf "))
+	       descriptors records
+	       (status
+	        ;; Call 'recinf' to get the list of record descriptors in
+	        ;; sexp format.
+	        (call-process-region (point-min) (point-max)
+                                     rec-recinf
+                                     nil ; delete
+                                     buffer
+                                     nil ; display
+                                     "-S" "-d")))
           (if (equal status 0)
               (progn (with-current-buffer buffer
                        (goto-char (point-min))
@@ -684,10 +694,17 @@ this function returns `nil'."
                          (kill-buffer buffer)))
                      (when descriptors
                        (mapc (lambda (descriptor)
-                               (let ((marker (make-marker)))
-                                 (set-marker marker (rec-record-position descriptor))
-                                 (setq records (cons (list 'descriptor descriptor marker)
-                                                     records))))
+                               ;; FIXME: The `rec-record-position' data comes
+                               ;; from the `recinf' tool.  Are these positions
+                               ;; counted in bytes or characters?  Do they
+                               ;; count positions starting from 0 or from 1?
+                               (let ((marker (copy-marker
+                                              (rec-record-position descriptor))))
+                                 ;; FIXME: Why do we need `marker' if the buffer
+                                 ;; position is already contained in
+                                 ;; `descriptor'?
+                                 (push (rec--descriptor-make descriptor marker)
+                                       records)))
                              descriptors)
                        (reverse records)))
             (kill-buffer buffer)
@@ -700,7 +717,7 @@ existing buffer."
   ;; used.  The rest are ignored.
   (mapcar
    (lambda (elem)
-     (car (rec-record-assoc rec-keyword-rec (cadr elem))))
+     (car (rec-record-assoc rec-keyword-rec (rec--descriptor-descriptor elem))))
    rec-buffer-descriptors))
 
 (defun rec-type-p (type)
@@ -736,10 +753,10 @@ this function returns nil."
       (mapc
        (lambda (elem)
          (when (equal (car (rec-record-assoc rec-keyword-rec
-                                             (cadr elem)))
+                                             (rec--descriptor-descriptor elem)))
                       type)
            (setq found t)
-           (goto-char (nth 2 elem))))
+           (goto-char (rec--descriptor-marker elem))))
        descriptors)
       found)))
 
@@ -875,9 +892,9 @@ Return nil otherwise."
 If the record is of no known type, return nil."
   (let ((descriptor (rec-record-descriptor)))
     (cond
-     ((listp descriptor)
+     ((rec--descriptor-p descriptor)
       (car (rec-record-assoc rec-keyword-rec
-                             (cadr descriptor))))
+                             (rec--descriptor-descriptor descriptor))))
      ((equal descriptor "")
       "")
      (t
@@ -890,12 +907,13 @@ Return \"\" if no proper record descriptor is found in the file.
 Return nil if the point is not on a record."
   (when (rec-current-record)
     (let ((descriptors rec-buffer-descriptors)
-          descriptor type position found
+          descriptor position found
           (i 0))
+      ;; FIXME: length+nth on every iteration means O(N²) for no good reason!
       (while (and (not found)
                   (< i (length descriptors)))
         (setq descriptor (nth i rec-buffer-descriptors))
-        (setq position (marker-position (nth 2 descriptor)))
+        (setq position (marker-position (rec--descriptor-marker descriptor)))
         (if (and (>= (point) position)
                  (or (= i (- (length rec-buffer-descriptors) 1))
                      (< (point) (marker-position (nth 2 (nth (+ i 1) rec-buffer-descriptors))))))
@@ -908,7 +926,7 @@ Return nil if the point is not on a record."
 (defun rec-summary-fields ()
   "Return a list with the names of the summary fields in the
 current record set."
-  (let ((descriptor (cadr (rec-record-descriptor))))
+  (let ((descriptor (rec--descriptor-descriptor (rec-record-descriptor))))
     (when descriptor
       (let ((fields-str (rec-record-assoc rec-keyword-summary descriptor)))
         (when fields-str
@@ -917,7 +935,7 @@ current record set."
 (defun rec-mandatory-fields ()
   "Return a list with the names of the mandatory fields in the
 current record set."
-  (let ((descriptor (cadr (rec-record-descriptor))))
+  (let ((descriptor (rec--descriptor-descriptor (rec-record-descriptor))))
     (when descriptor
       (let ((fields-str (rec-record-assoc rec-keyword-mandatory descriptor)))
         (when fields-str
@@ -926,11 +944,9 @@ current record set."
 (defun rec-key ()
   "Return the name of the field declared as the key of the
 current record set, if any.  Otherwise return `nil'."
-  (let ((descriptor (cadr (rec-record-descriptor))))
+  (let ((descriptor (rec--descriptor-descriptor (rec-record-descriptor))))
     (when descriptor
-      (let ((key (rec-record-assoc rec-keyword-key descriptor)))
-        (when key
-          (car key))))))
+      (car (rec-record-assoc rec-keyword-key descriptor)))))
 
 ;;;; Navigation
 
@@ -993,7 +1009,7 @@ current buffer to look like indentation."
 
 (defun rec-remove-continuation-line-marker-overlays ()
   "Delete all the continuation line markers overlays."
-  (mapc 'delete-overlay rec-continuation-line-markers-overlays)
+  (mapc #'delete-overlay rec-continuation-line-markers-overlays)
   (setq rec-continuation-line-markers-overlays nil))
 
 ;;;; Field folding
@@ -1012,8 +1028,7 @@ the visibility."
          (when (rec-field-p field)
            (let ((lines-in-value (with-temp-buffer
                                    (insert (rec-field-value field))
-                                   (count-lines (point-min) (point-max))))
-                 ov)
+                                   (count-lines (point-min) (point-max)))))
              (when (> lines-in-value rec-max-lines-in-fields)
                (save-excursion
                  (goto-char (rec-field-position field))
@@ -1057,7 +1072,7 @@ the visibility."
 
 (defun rec-unfold-all-fields ()
   "Unfold all folded fields in the buffer."
-  (mapc 'delete-overlay rec-hide-field-overlays)
+  (mapc #'delete-overlay rec-hide-field-overlays)
   (setq rec-hide-field-overlays nil))
 
 (defun rec-unfold-record-fields ()
@@ -1086,10 +1101,8 @@ the visibility."
                                   (eq (overlay-get overlay 'invisible)
                                       'rec-hide-field))
                                 (overlays-at value-start)))
-                (mapcar
-                 (lambda (overlay)
-                   (delete-overlay overlay))
-                 (overlays-at value-start))
+                (mapcar #'delete-overlay
+                        (overlays-at value-start))
               (setq ov (make-overlay value-start value-end))
               (overlay-put ov 'invisible 'rec-hide-field))))))))
 
@@ -1126,108 +1139,101 @@ the visibility."
 ;;
 ;;    - For any other type, it is nil.
 
-(defvar rec-types
+(cl-defstruct (rec-type
+               (:predicate nil)         ;Don't override the `rec-type-p' above!
+               (:constructor nil)
+               (:constructor rec-type--create (kind text data))
+               (:type list))
+  (-head 'type)
+  kind text data)
+
+(defvar rec-types                       ;FIXME: Shouldn't this be `defconst'?
   '("int" "bool" "range" "real" "size" "line" "regexp" "date" "enum" "field" "email" "uuid" "rec")
   "Kind of supported types")
 
 (defun rec-type-kind-p (kind)
   "Determine whether the given symbol or string is a type kind."
-  (let (kind-symbol)
-    (cond
-     ((symbolp kind)
-      (member (symbol-name kind) rec-types))
-     ((stringp kind)
-      (member kind rec-types))
-     (t
-      nil))))
+  (cond
+   ((symbolp kind)
+    (member (symbol-name kind) rec-types))
+   ((stringp kind)
+    (member kind rec-types))
+   (t
+    nil)))
 
 (defun rec-parse-type (str)
   "Parse STR into a new type structure and return it.
 
 STR must contain a type description as defined in the recutils
 manual."
-  (let (type)
-    (with-temp-buffer
-      (insert str)
-      (goto-char (point-min))
-      (when (looking-at "[a-z]+")
-        (let ((kind (match-string 0)))
-          (goto-char (match-end 0))
-          (when (rec-type-kind-p kind)
-            (cond
-             ((member kind '("int" "bool" "real" "line" "date" "field" "email" "uuid"))
-              (when (looking-at "[ \n\t]*$")
-                (list 'type (intern kind) str nil)))
-             ((equal kind "size")
-              (when (looking-at "[ \n\t]*\\([0-9]+\\)[ \n\t]*$")
-                (list (intern kind) str (string-to-number (match-string 1)))))
-             ((equal kind "range")
-              (when (or
-                     (looking-at "[ \n\t]*\\(-?[0-9]+\\)[ \n\t]*$")
-                     (looking-at "[ \n\t]*\\(-?[0-9]+\\)[ \n\t]+\\([0-9]+\\)[ \n\t]*$"))
-                (let ((min (string-to-number (match-string 1)))
-                      (max (when (stringp (match-string 2))
-                             (string-to-number (match-string 2)))))
-                (list 'type (intern kind) str (list min max)))))
-             ((equal kind "enum")
-              (let ((str-copy str)
-                    (here (point)))
-                ;; Remove comments from the enum description.
-                (delete-region (point-min) (point-max))
-                (insert (replace-regexp-in-string "([^)]*)" "" str-copy))
-                (goto-char here)
-                (when (looking-at "\\([ \n\t]*[a-zA-Z0-9][a-zA-Z0-9_-]*\\)+[ \n\t]*$")
-                  (let (names)
-                    ;; Scan the enum literals.
-                    (while (looking-at "[ \n\t]+\\([a-zA-Z0-9][a-zA-Z0-9_-]*\\)")
-                      (setq names (cons (match-string 1) names))
-                      (goto-char (match-end 0)))
-                    (list 'type (intern kind) str-copy (reverse names))))))
-             ((equal kind "rec")
-              (when (looking-at "[ \n\t]*\\([a-zA-Z%][a-zA-Z0-9_]*\\)[ \n\t]*$") ; Field name without a colon.
-                (let ((referred-record (match-string 1)))
-                  (list 'type (intern kind) str referred-record))))
-             ((equal kind "regexp")
-              (when (looking-at "[ \n\t]*\\(.*?\\)[ \n\t]*$")
-                (let ((expr (match-string 1)))
-                  (when (and (>= (length expr) 2)
-                             (equal (elt expr 0) (elt expr (- (length expr) 1))))
-                    (list 'type (intern kind) str (substring expr 1 -1))))))
-             (t
-              nil))))))))
-
-(defun rec-type-kind (type)
-  "Return the kind of a given type."
-  (cadr type))
-
-(defun rec-type-data (type)
-  "Return the data associated with a given type."
-  (cadddr type))
-
-(defun rec-type-text (type)
-  "Return the textual description of a given type."
-  (caddr type))
+  (with-temp-buffer
+    (insert str)
+    (goto-char (point-min))
+    (when (looking-at "[a-z]+")
+      (let ((kind (match-string 0)))
+        (goto-char (match-end 0))
+        (when (rec-type-kind-p kind)
+          (cond
+           ((member kind '("int" "bool" "real" "line" "date" "field" "email" "uuid"))
+            (when (looking-at "[ \n\t]*$")
+              (rec-type--create (intern kind) str nil)))
+           ((equal kind "size")
+            (when (looking-at "[ \n\t]*\\([0-9]+\\)[ \n\t]*$")
+              ;; FIXME: A missing `'type'?  Should it call `rec-type--create'?
+              (list (intern kind) str (string-to-number (match-string 1)))))
+           ((equal kind "range")
+            (when (or
+                   (looking-at "[ \n\t]*\\(-?[0-9]+\\)[ \n\t]*$")
+                   (looking-at "[ \n\t]*\\(-?[0-9]+\\)[ \n\t]+\\([0-9]+\\)[ \n\t]*$"))
+              (let ((min (string-to-number (match-string 1)))
+                    (max (when (stringp (match-string 2))
+                           (string-to-number (match-string 2)))))
+                (rec-type--create (intern kind) str (list min max)))))
+           ((equal kind "enum")
+            (let ((str-copy str)
+                  (here (point)))
+              ;; Remove comments from the enum description.
+              (delete-region (point-min) (point-max))
+              (insert (replace-regexp-in-string "([^)]*)" "" str-copy))
+              (goto-char here)
+              (when (looking-at "\\([ \n\t]*[a-zA-Z0-9][a-zA-Z0-9_-]*\\)+[ \n\t]*$")
+                (let (names)
+                  ;; Scan the enum literals.
+                  (while (looking-at "[ \n\t]+\\([a-zA-Z0-9][a-zA-Z0-9_-]*\\)")
+                    (setq names (cons (match-string 1) names))
+                    (goto-char (match-end 0)))
+                  (rec-type--create (intern kind) str-copy (reverse names))))))
+           ((equal kind "rec")
+            (when (looking-at "[ \n\t]*\\([a-zA-Z%][a-zA-Z0-9_]*\\)[ \n\t]*$") ; Field name without a colon.
+              (let ((referred-record (match-string 1)))
+                (rec-type--create (intern kind) str referred-record))))
+           ((equal kind "regexp")
+            (when (looking-at "[ \n\t]*\\(.*?\\)[ \n\t]*$")
+              (let ((expr (match-string 1)))
+                (when (and (>= (length expr) 2)
+                           (equal (elt expr 0) (elt expr (- (length expr) 1))))
+                  (rec-type--create (intern kind) str (substring expr 1 -1))))))
+           (t
+            nil)))))))
 
 (defun rec-check-type (type str)
   "Check whether STR contains a value conforming to TYPE, which
 is a field type structure."
-  (let* ((kind (cadr type))
-         (expr (caddr type))
-         (data (cadddr type))
-         (value (if (equal kind 'line)
-                    str
-                  str)))
+  (let* ((kind (rec-type-kind type))
+         ;; (expr (rec-type-text type))
+         (data (rec-type-data type))
+         (value str))
     (cond
      ((equal kind 'int)
-      (string-match-p "^-?[0-9]+$" value))
+      (string-match-p "\\`-?[0-9]+\\'" value))
      ((equal kind 'bool)
       (string-match-p "^\\(yes\\|no\\|0\\|1\\|true\\|false\\)$" value))
      ((equal kind 'range)
       (let ((min (car data))
             (max (cadr data)))
-        (when (looking-at "-?[0-9]+$")
+        (when (looking-at "-?[0-9]+$") ;FIXME: `type' relates to text at point?
           (let ((number (string-to-number (match-string 0))))
-          (and (>= number min) (<= number max))))))
+            (and (>= number min) (<= number max))))))
      ((equal kind 'real)
       (string-match-p "^-?\\([0-9]*\\.\\)?[0-9]+$" value))
      ((equal kind 'size)
@@ -1242,9 +1248,12 @@ is a field type structure."
      ((equal kind 'enum)
       (member value data))
      ((equal kind 'field)
-      (string-match-p "^[a-zA-Z%][a-zA-Z0-9_]*$" value))
+      ;; FIXME: [:alnum:]?
+      (string-match-p "\\`[a-zA-Z%][a-zA-Z0-9_]*\\'" value))
      ((equal kind 'email)
-      (string-match-p "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]+$" value))
+      ;; FIXME: [:alnum:]?
+      (string-match-p "\\`[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]+\\'"
+                      value))
      ((equal kind 'uuid)
       ;; TODO.
       t)
@@ -1260,7 +1269,8 @@ the current record set.  If the field has no type, i.e. it is an
 unrestricted field which can contain any text, then `nil' is
 returned."
   (let* ((descriptor (rec-record-descriptor))
-         (types (rec-record-assoc "%type" (cadr descriptor)))
+         (types (rec-record-assoc "%type"
+                                  (rec--descriptor-descriptor descriptor)))
          res-type)
     ;; Note that invalid %type entries are simply ignored.
     (mapc
@@ -1269,9 +1279,8 @@ returned."
          (insert type-descr)
          (goto-char (point-min))
          (when (looking-at "[ \n\t]*\\([a-zA-Z%][a-zA-Z0-9_-]*\\(,[a-zA-Z%][a-zA-Z0-9_-]*\\)?\\)[ \n\t]*")
-           (let ((names (match-string 1))
-                 (begin-description (match-end 0))
-                 name)
+           (let (;; (names (match-string 1))
+                 (begin-description (match-end 0)))
              (goto-char (match-beginning 1))
              (while (looking-at "\\([a-zA-Z%][a-zA-Z0-9_]*\\),?")
                (if (equal (match-string 1) field-name)
@@ -1307,16 +1316,19 @@ NAMES is an association list of the form:
 Each character should identify only one name."
   ;; Adapted from `org-fast-tag-selection' in org.el by Carsten Dominic
   ;; Thanks Carsten! :D
-  (let* ((maxlen (apply 'max (mapcar (lambda (name)
-                                       (string-width (car name))) names)))
-         (buf (current-buffer))
+  (let* ((maxlen (apply #'max (mapcar (lambda (name)
+                                        (string-width (car name)))
+                                      names)))
+         ;; (buf (current-buffer))
          (fwidth (+ maxlen 3 1 3))
          (ncol (/ (- (window-width) 4) fwidth))
-         name count result char i key-list)
+         name count result char key-list)
     (save-window-excursion
       (set-buffer (get-buffer-create " *Rec Fast Selection*"))
       (delete-other-windows)
-;;      (split-window-vertically)
+      ;;      (split-window-vertically)
+      ;; FIXME: This `switch-to-buffer-other-window' can pop up a new frame,
+      ;; which `save-window-excursion' won't undo at the end!
       (switch-to-buffer-other-window (get-buffer-create " *Rec Fast Selection*"))
       (erase-buffer)
       (insert prompt ":")
@@ -1347,6 +1359,9 @@ Each character should identify only one name."
       result)))
 
 ;;;; Summary mode
+
+(defvar rec-marker)
+(make-variable-buffer-local 'rec-marker)
 
 (defvar rec-summary-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1383,9 +1398,8 @@ The data has the same structure than `tabulated-list-entries'."
   "Jump to the selected record in the rec-mode buffer."
   (interactive)
 ;;  (if (buffer-live-p rec-summary-rec-buffer)
-  (save-excursion
-    (let ((rec-marker (tabulated-list-get-id)))
-      (set-buffer (marker-buffer rec-marker))
+  (let ((rec-marker (tabulated-list-get-id)))
+    (with-current-buffer (marker-buffer rec-marker)
       (widen)
       (goto-char (marker-position rec-marker))
       (rec-show-record))))
@@ -1401,7 +1415,7 @@ The data has the same structure than `tabulated-list-entries'."
 ;; Note that the functions are not checking for the integrity of the
 ;; arguments: it is the invoked recutil which is in charge of that.
 
-(defun* rec-query (&rest args
+(cl-defun rec-query (&rest args
                    &key (type nil) (join nil) (index nil) (sex nil)
                         (fast-string nil) (random nil) (fex nil) (password nil)
                         (group-by nil) (sort-by nil) (icase nil) (uniq nil))
@@ -1518,10 +1532,19 @@ A prefix argument means to use a case-insensitive search."
 
 (defvar rec-field-name)
 (make-variable-buffer-local 'rec-field-name)
-(defvar rec-marker)
-(make-variable-buffer-local 'rec-marker)
 (defvar rec-buffer)
 (make-variable-buffer-local 'rec-buffer)
+(defvar rec-jump-back nil)
+(make-variable-buffer-local 'rec-jump-back)
+(defvar rec-update-p nil)
+(make-variable-buffer-local 'rec-update-p)
+(defvar rec-preserve-last-newline nil)
+(make-variable-buffer-local 'rec-preserve-last-newline)
+(defvar rec-editing nil)
+(make-variable-buffer-local 'rec-editing)
+
+(defvar rec-prev-buffer)                ;FIXME: Should it have a global value?
+(defvar rec-pointer)                    ;FIXME: Buffer local?  Global value?
 
 (defun rec-cmd-edit-field (n)
   "Edit the contents of the field under point in a separate
@@ -1532,8 +1555,7 @@ type, unless a prefix argument is used.  Then the more general
 method, i.e. asking for the new value in an unrestricted buffer,
 will be used for fields of any type."
   (interactive "P")
-  (let* (edit-buf
-         (field (rec-current-field))
+  (let* ((field (rec-current-field))
          (field-value (rec-field-value field))
          (field-name (rec-field-name field))
          (field-type (rec-field-type field-name))
@@ -1542,8 +1564,7 @@ will be used for fields of any type."
          (prev-buffer (current-buffer)))
     (if field-value
         (cond
-         ((and (or (equal field-type-kind 'enum)
-                   (equal field-type-kind 'bool))
+         ((and (member field-type-kind '(enum bool))
                (null n))
           (let* ((data (rec-type-data field-type))
                  (fast-selection-data
@@ -1579,7 +1600,7 @@ will be used for fields of any type."
                     (error "Invalid kind of type"))))
                  (letter (rec-fast-selection fast-selection-data "New value")))
             (when letter
-              (let ((buffer-read-only nil)
+              (let ((inhibit-read-only t)
                     new-value)
                 (mapc
                  (lambda (elem)
@@ -1598,32 +1619,33 @@ will be used for fields of any type."
           (setq rec-prev-buffer prev-buffer)
           (setq rec-pointer pointer)
           (calendar)
-          (let ((old-map (current-local-map))
-                (map (copy-keymap calendar-mode-map)))
+          (let ((old-map (current-local-map)) ;Isn't this calendar-mode-map?
+                (map (make-sparse-keymap)))
+            (set-keymap-parent map calendar-mode-map)
             (define-key map "q"
-              `(lambda () (interactive)
-                 (use-local-map (quote ,old-map))
-                 (calendar-exit)))
+              (lambda () (interactive)
+                (use-local-map old-map)
+                (calendar-exit)))
             (define-key map "t"
-              `(lambda () (interactive)
-                 (use-local-map (quote ,old-map))
-                 (calendar-exit)
-                 (set-buffer rec-prev-buffer)
-                 (let ((buffer-read-only nil))
-                   (rec-delete-field)
-                   (save-excursion
-                     (rec-insert-field (list 'field
-                                             0
-                                             rec-field-name
-                                             (format-time-string rec-time-stamp-format)))))))
+              (lambda () (interactive)
+                (use-local-map old-map)
+                (calendar-exit)
+                (set-buffer rec-prev-buffer)
+                (let ((inhibit-read-only t))
+                  (rec-delete-field)
+                  (save-excursion
+                    (rec-insert-field (list 'field
+                                            0
+                                            rec-field-name
+                                            (format-time-string rec-time-stamp-format)))))))
             (define-key map (kbd "RET")
-              `(lambda () (interactive)
-                 (let* ((date (calendar-cursor-to-date))
-                        (time (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date))))
-                   (use-local-map (quote ,old-map))
+              (lambda () (interactive)
+                (let* ((date (calendar-cursor-to-date))
+                       (time (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date))))
+                   (use-local-map old-map)
                    (calendar-exit)
                    (set-buffer rec-prev-buffer)
-                   (let ((buffer-read-only nil))
+                   (let ((inhibit-read-only t))
                      (rec-delete-field)
                      (save-excursion
                        (rec-insert-field (list 'field
@@ -1633,19 +1655,19 @@ will be used for fields of any type."
             (use-local-map map)
             (message "[RET]: Select date [t]: Time-stamp     [q]: Exit")))
          (t
-          (setq edit-buf (get-buffer-create "Rec Edit"))
-          (set-buffer edit-buf)
-          (delete-region (point-min) (point-max))
-          (rec-edit-field-mode)
-          (setq rec-field-name field-name)
-          (setq rec-marker (make-marker))
-          (set-marker rec-marker pointer prev-buffer)
-          (setq rec-prev-buffer prev-buffer)
-          (setq rec-pointer pointer)
-          (insert field-value)
-          (switch-to-buffer-other-window edit-buf)
-          (goto-char (point-min))
-          (message "Edit the value of the field and use C-c C-c to exit")))
+          (let ((edit-buf (get-buffer-create "Rec Edit")))
+            (set-buffer edit-buf)
+            (delete-region (point-min) (point-max))
+            (rec-edit-field-mode)
+            (setq rec-field-name field-name)
+            (setq rec-marker (make-marker))
+            (set-marker rec-marker pointer prev-buffer)
+            (setq rec-prev-buffer prev-buffer)
+            (setq rec-pointer pointer)
+            (insert field-value)
+            (switch-to-buffer-other-window edit-buf)
+            (goto-char (point-min))
+            (message "Edit the value of the field and use C-c C-c to exit"))))
       (message "Not in a field"))))
 
 (defun rec-finish-editing-field ()
@@ -1660,7 +1682,7 @@ will be used for fields of any type."
         (set-window-buffer (selected-window) rec-prev-buffer)
       (delete-window))
     (switch-to-buffer rec-prev-buffer)
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (kill-buffer edit-buffer)
       (goto-char marker)
       (rec-delete-field)
@@ -1745,7 +1767,7 @@ file.  Interactive version."
   (when (null n) (setq n 1))
   (widen)
   (let ((record-type (rec-record-type)))
-    (dotimes (i n)
+    (dotimes (_ n)
       (if (save-excursion
 	    (and (rec-goto-next-rec)
 		 (equal (rec-record-type) record-type)
@@ -1768,7 +1790,7 @@ the file.  Interactive version."
   (when (null n) (setq n 1))
   (widen)
   (let ((record-type (rec-record-type)))
-    (dotimes (i n)
+    (dotimes (_ n)
       (if (save-excursion
 	    (and (rec-goto-previous-rec)
 		 (equal (rec-record-type) record-type)
@@ -1787,7 +1809,7 @@ the file.  Interactive version."
 (defun rec-cmd-undo ()
   "Undo a change in the buffer when in navigation mode."
   (interactive)
-  (let ((buffer-read-only nil))
+  (let ((inhibit-read-only t))
     (undo)))
 
 (defun rec-cmd-jump-back ()
@@ -1958,7 +1980,7 @@ This command is especially useful with enumerated types."
   "Trim the value of the field under point, if any."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
           (field (rec-current-field)))
       (setq field (rec-field-trim-value field))
       (rec-delete-field)
@@ -2039,7 +2061,7 @@ This command is especially useful with enumerated types."
         (end-pos (rec-end-of-record-pos)))
     (if (and begin-pos end-pos)
         (progn
-          (when (looking-back "^[ \t]*")
+          (when (looking-back "^[ \t]*" (line-beginning-position))
             ;; Delete the newline before the record as well, but do
             ;; not include it in the kill ring.
             (delete-region (match-beginning 0) (+ (match-end 0) 1)))
@@ -2092,7 +2114,7 @@ the user is prompted."
                 (delete-other-windows)
                 (split-window-vertically 10)
                 (switch-to-buffer buf)
-                (let ((buffer-read-only nil))
+                (let ((inhibit-read-only t))
                   (delete-region (point-min) (point-max))
                   (setq rec-summary-rec-buffer rec-buf)
                   (rec-summary-mode)
@@ -2120,46 +2142,23 @@ function returns `nil'."
 ;;;; Definition of modes
 
 (defvar font-lock-defaults)
-(make-variable-buffer-local 'font-lock-defaults)
-(defvar rec-type)
-(make-variable-buffer-local 'rec-type)
-(defvar rec-buffer-descriptors)
-(make-variable-buffer-local 'rec-buffer-descriptors)
-(defvar rec-jump-back)
-(make-variable-buffer-local 'rec-jump-back)
-(defvar rec-update-p)
-(make-variable-buffer-local 'rec-update-p)
-(defvar rec-preserve-last-newline)
-(make-variable-buffer-local 'rec-preserve-last-newline)
-(defvar rec-editing)
-(make-variable-buffer-local 'rec-editing)
 (defvar add-log-current-defun-section)
-(make-variable-buffer-local 'add-log-current-defun-section)
 
-(defun rec-mode ()
-  "A major mode for editing rec files.
-
-Commands:
-\\{rec-mode-map}
-
-Turning on rec-mode calls the members of the variable
-`rec-mode-hook' with no args, if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
+(define-derived-mode rec-mode nil "Rec"
+  "A major mode for editing rec files."
   (widen)
   ;; Local variables
-  (setq add-log-current-defun-section #'rec-log-current-defun)
-  (setq rec-editing nil)
-  (setq rec-jump-back nil)
-  (setq rec-update-p nil)
-  (setq rec-preserve-last-newline nil)
-  (setq font-lock-defaults '(rec-font-lock-keywords))
+  (setq (make-local-variable 'add-log-current-defun-section)
+        #'rec-log-current-defun)
+  (setq (make-local-variable 'font-lock-defaults) '(rec-font-lock-keywords))
+  (setq-local syntax-propertize-function rec-syntax-propertize-function)
   (add-to-invisibility-spec '(rec-hide-field . "..."))
-  (use-local-map rec-mode-map)
-  (set-syntax-table rec-mode-syntax-table)
-  (setq mode-name "Rec")
-  (setq major-mode 'rec-mode)
-  (run-hooks 'rec-mode-hook)
+
+  ;; Run some code later (i.e. after running the mode hook and setting the
+  ;; file-local variables).
+  (add-hook 'hack-local-variables-hook #'rec--after-major-mode nil t))
+
+(defun rec--after-major-mode ()
   ;; Goto the first record of the first type (including the Unknown).
   ;; If there is a problem (i.e.  syntax error) then go to fundamental
   ;; mode and show the output of recfix in a separated buffer.
@@ -2171,8 +2170,7 @@ Turning on rec-mode calls the members of the variable
              (> (buffer-size (current-buffer)) 0))
         (progn
           (setq buffer-read-only t)
-          (setq rec-type (car (rec-buffer-types)))
-          (rec-show-type rec-type))
+          (rec-show-type (car (rec-buffer-types))))
       ;; Edit mode
       (use-local-map rec-mode-edit-map)
       (setq rec-editing t)
@@ -2184,16 +2182,8 @@ Turning on rec-mode calls the members of the variable
     map)
   "Keymap for rec-edit-field-mode")
 
-(defun rec-edit-field-mode ()
-  "A major mode for editing rec field values.
-
-Commands:
-\\{rec-edit-field-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map rec-edit-field-mode-map)
-  (setq mode-name "Rec Edit")
-  (setq major-mode 'rec-edit-field-mode))
+(define-derived-mode rec-edit-field-mode nil "Rec Edit"
+  "A major mode for editing rec field values.")
 
 ;;;; Miscellaneous utilities
 
