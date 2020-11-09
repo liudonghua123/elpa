@@ -46,13 +46,13 @@
   :link '(url-link "http://www.gnu.org/software/recutils"))
 
 (defcustom rec-open-mode 'navigation
-  "Default mode to use when switching a buffer to rec-mode.
+  "Default mode to use when switching a buffer to `rec-mode'.
 Valid values are `edit' and `navigation'.  The default is `navigation'"
   :type 'symbol)
 
 (defcustom rec-popup-calendar t
-  "Whether to use a popup calendar to select dates when editing field
-values.  The default is `t'."
+  "Whether to use a popup calendar to select dates when editing field values.
+The default is t."
   :type 'boolean)
 
 (defcustom rec-mode-hook nil
@@ -60,8 +60,7 @@ values.  The default is `t'."
   :type 'hook)
 
 (defvar rec-max-lines-in-fields 15
-  "Values of fields having more than the specified lines will be
-hidden by default in navigation mode.")
+  "Values of fields having more than the specified lines will be hidden by default in navigation mode.")
 
 (defvar rec-recsel "recsel"
   "Name of the 'recsel' utility from the GNU recutils.")
@@ -72,14 +71,19 @@ hidden by default in navigation mode.")
 (defvar rec-recfix "recfix"
   "Name of the 'recfix' utility from the GNU recutils.")
 
-(defface rec-field-name-face '((t :weight bold)) "")
-(defface rec-keyword-face '((t :weight bold)) "")
-(defface rec-continuation-line-face '((t :weight bold)) "")
+(defface rec-field-name-face '((t :inherit font-lock-variable-name-face))
+  "Face for field names in record entries.")
+
+(defface rec-keyword-face '((t :inherit font-lock-keyword-face))
+  "Face for keywords in the record descriptor.")
+
+(defface rec-continuation-line-face '((t :weight bold))
+  "Face for line continuations (+).")
 
 ;;;; Variables and constants that the user does not want to touch (really!)
 
 (defconst rec-mode-version "1.5"
-  "Version of rec-mode.el")
+  "Version of rec-mode.el.")
 
 (defconst rec-keyword-prefix "%"
   "Prefix used to distinguish special fields.")
@@ -102,14 +106,14 @@ hidden by default in navigation mode.")
   "Format for `format-time-string' which is used for time stamps.")
 
 (defvar rec-comment-re "^#.*"
-  "regexp denoting a comment line")
+  "Regexp denoting a comment line.")
 
 (defvar rec-comment-field-re "^\\(#.*\n\\)*\\([a-zA-Z0-1_%-]+:\\)+"
-  "regexp denoting the beginning of a record")
+  "Regexp denoting the beginning of a record.")
 
 (defvar rec-field-name-re
   "^[a-zA-Z%][a-zA-Z0-9_]*:"
-  "Regexp matching a field name")
+  "Regexp matching a field name.")
 
 (defvar rec-field-value-re
   (let ((ret-re "\n\\+ ?")
@@ -121,17 +125,28 @@ hidden by default in navigation mode.")
      "\\(" "\\\\[^\n]" "\\)*"
      "[^\\\n]*"
      "\\)*"))
-  "Regexp matching a field value")
+  "Regexp matching a field value.")
+
+(defvar rec-type-re
+  (concat "^" rec-keyword-rec ":\s+" "\\([[:word:]_]+\\)"))
 
 (defvar rec-field-re
   (concat rec-field-name-re
           rec-field-value-re
           "\n")
-  "Regexp matching a field")
+  "Regexp matching a field.")
 
 (defvar rec-record-re
   (concat rec-field-re "\\(" rec-field-re "\\|" rec-comment-re "\\)*")
-  "Regexp matching a record")
+  "Regexp matching a record.")
+
+(defvar rec-constants
+  '("yes" "no" "true" "false" "MIN" "MAX")
+  "Symbols that are constants, like boolean values or MIN/MAX.")
+
+(defvar rec-field-types
+  '("line" "real" "int" "regexp" "enum" "date" "field" "uuid" "email" "bool" "size"
+    "rec" "range" ))
 
 (defvar rec-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -140,7 +155,7 @@ hidden by default in navigation mode.")
     (modify-syntax-entry ?\" "w" st)  ;FIXME: really?  Why?
     (modify-syntax-entry ?\' "w" st)  ;FIXME: really?  Why?
     st)
-  "Syntax table used in rec-mode")
+  "Syntax table used in `rec-mode'.")
 
 (defconst rec-syntax-propertize-function
   (syntax-propertize-rules
@@ -148,10 +163,13 @@ hidden by default in navigation mode.")
    (".\\(#\\)" (1 "."))))
 
 (defvar rec-font-lock-keywords
-  `((,(concat "^" rec-keyword-prefix "[a-zA-Z0-9_]+:") . rec-field-name-face)
-    (,rec-field-name-re . rec-keyword-face)
-    ("^\\+" . rec-continuation-line-face))
-  "Font lock keywords used in rec-mode")
+  `((,(concat "^" rec-keyword-prefix "[a-zA-Z0-9_]+:") . 'rec-keyword-face)
+    (,rec-type-re . (1 font-lock-function-name-face))
+    (,(regexp-opt rec-constants) . 'font-lock-constant-face)
+    (,(regexp-opt rec-field-types) . 'font-lock-type-face)
+    (,rec-field-name-re . 'rec-field-name-face)
+    ("^\\+" . 'rec-continuation-line-face))
+  "Font lock keywords used in `rec-mode'.")
 
 (defvar rec-mode-edit-map
   (let ((map (make-sparse-keymap)))
@@ -175,7 +193,7 @@ hidden by default in navigation mode.")
     (define-key map "\C-cb" 'rec-cmd-jump-back)
     (define-key map "\C-c\C-c" 'rec-finish-editing)
     map)
-  "Keymap for rec-mode")
+  "Keymap for `rec-mode'.")
 
 (defvar rec-mode-map
   (let ((map (make-sparse-keymap)))
@@ -210,7 +228,7 @@ hidden by default in navigation mode.")
     (define-key map (kbd "SPC") 'rec-cmd-toggle-field-visibility)
     (define-key map "b" 'rec-cmd-jump-back)
     map)
-  "Keymap for rec-mode")
+  "Keymap for `rec-mode'.")
 
 ;;;; Parsing functions (rec-parse-*)
 ;;
@@ -275,8 +293,7 @@ nil"
       val)))
 
 (defun rec-parse-field ()
-  "Return a structure describing the field starting from the
-pointer.
+  "Return a structure describing the field starting from the pointer.
 
 The returned structure is a list whose first element is the
 symbol 'field', the second element is the name of the field and
@@ -319,18 +336,18 @@ nil"
 ;; starting at the current position.
 
 (defun rec-insert-comment (comment)
-  "Insert the written form of COMMENT in the current buffer"
+  "Insert the written form of COMMENT in the current buffer."
   (when (rec-comment-p comment)
     (insert (rec-comment-string comment))))
 
 (defun rec-insert-field-name (field-name)
-  "Insert the written form of FIELD-NAME in the current buffer"
+  "Insert the written form of FIELD-NAME in the current buffer."
   (when (stringp field-name)
     (insert (concat field-name ":"))
     t))
 
 (defun rec-insert-field-value (field-value)
-  "Insert the written form of FIELD-VALUE in the current buffer"
+  "Insert the written form of FIELD-VALUE in the current buffer."
   (when (stringp field-value)
     (let ((val field-value))
       ;; FIXME: Maximum line size
@@ -338,7 +355,7 @@ nil"
     (insert "\n")))
 
 (defun rec-insert-field (field)
-  "Insert the written form of FIELD in the current buffer"
+  "Insert the written form of FIELD in the current buffer."
   (when (rec-field-p field)
     (when (rec-insert-field-name (rec-field-name field))
       (insert " ")
@@ -358,23 +375,23 @@ nil"
 ;; Those functions retrieve or set properties of field structures.
 
 (defun rec-record-p (record)
-  "Determine if the provided structure is a record."
+  "Determine if RECORD is a record."
   (and (listp record)
        (= (length record) 3)
        (equal (car record) 'record)))
 
 (defun rec-record-position (record)
-  "Return the start position of the given record."
+  "Return the start position of the given RECORD."
   (when (rec-record-p record)
     (nth 1 record)))
 
 (defun rec-record-elems (record)
-  "Return a list with the elements of the given record."
+  "Return a list with the elements of the given RECORD."
   (when (rec-record-p record)
     (nth 2 record)))
 
 (defun rec-record-descriptor-p (record)
-  "Determine if the given record is a descriptor."
+  "Determine if the given RECORD is a descriptor."
   (not (null (rec-record-assoc rec-keyword-rec record))))
 
 (defun rec-record-assoc (name record)
@@ -392,7 +409,7 @@ If no such field exists in RECORD then nil is returned."
       (reverse result))))
 
 (defun rec-record-names (record)
-  "Get a list of the field names in the record"
+  "Get a list of the field names in the RECORD."
   (when (rec-record-p record)
     (let (result)
       (mapc (lambda (field)
@@ -402,7 +419,7 @@ If no such field exists in RECORD then nil is returned."
       (reverse result))))
 
 (defun rec-record-values (record fields)
-  "Given a list of field names, return a list of the values."
+  "Given a list of field names in FIELDS, return a list of the values of RECORD."
   (when fields
     (append (rec-record-assoc (car fields) record)
             (rec-record-values record (cdr fields)))))
@@ -432,23 +449,23 @@ If no such field exists in RECORD then nil is returned."
 ;; Those functions retrieve or set properties of field structures.
 
 (defun rec-field-p (field)
-  "Determine if the provided structure is a field"
+  "Determine if FIELD is a field."
   (and (listp field)
        (= (length field) 4)
        (equal (car field) 'field)))
 
 (defun rec-field-position (field)
-  "Return the start position of the given field."
+  "Return the start position of the given FIELD."
   (when (rec-field-p field)
     (nth 1 field)))
 
 (defun rec-field-name (field)
-  "Return the name of the provided field"
+  "Return the name of the provided FIELD."
   (when (rec-field-p field)
     (nth 2 field)))
 
 (defun rec-field-value (field)
-  "Return the value of the provided field"
+  "Return the value of the provided FIELD."
   (when (rec-field-p field)
     (nth 3 field)))
 
@@ -487,8 +504,7 @@ If no such field exists in RECORD then nil is returned."
 ;; under the pointer then nil is returned.
 
 (defun rec-beginning-of-field-pos ()
-  "Return the position of the beginning of the current field, or
-nil if the pointer is not on a field."
+  "Return the position of the beginning of the current field, or nil if the pointer is not on a field."
   (save-excursion
     (beginning-of-line)
     (let (res)
@@ -506,8 +522,7 @@ nil if the pointer is not on a field."
       res)))
 
 (defun rec-end-of-field-pos ()
-  "Return the position of the end of the current field, or nil if
-the pointer is not on a field."
+  "Return the position of the end of the current field, or nil if the pointer is not on a field."
   (let ((begin-pos (rec-beginning-of-field-pos)))
     (when begin-pos
       (save-excursion
@@ -521,16 +536,14 @@ the pointer is not on a field."
           (match-end 0))))))
 
 (defun rec-beginning-of-comment-pos ()
-  "Return the position of the beginning of the current comment,
-or nil if the pointer is not on a comment."
+  "Return the position of the beginning of the current comment,or nil if the pointer is not on a comment."
   (save-excursion
     (beginning-of-line)
     (when (looking-at rec-comment-re)
       (point))))
 
 (defun rec-end-of-comment-pos ()
-  "Return the position of the end of the current comment,
-or nil if the pointer is not on a comment."
+  "Return the position of the end of the current comment, or nil if the pointer is not on a comment."
   (let ((begin-pos (rec-beginning-of-comment-pos)))
     (when begin-pos
       (save-excursion
@@ -539,8 +552,7 @@ or nil if the pointer is not on a comment."
           (match-end 0))))))
 
 (defun rec-beginning-of-record-pos ()
-  "Return the position of the beginning of the current record, or nil if
-the pointer is not on a record."
+  "Return the position of the beginning of the current record, or nil if the pointer is not on a record."
   (save-excursion
     (let (field-pos)
       (while (and (not (equal (point) (point-min)))
@@ -2125,10 +2137,11 @@ the user is prompted."
 ;;;; Interacting with other modes
 
 (defun rec-log-current-defun ()
-  "Return the value of the key in the current record, if any.  If
-no key is defined then return the value of the first field in the
-record.  In case the pointer is not in a record then this
-function returns `nil'."
+  "Return the value of the key in the current record, if any.
+
+If no key is defined then return the value of the first field in
+the record.  In case the pointer is not in a record then this
+function returns nil."
   (let ((record (rec-current-record))
         (key (rec-key)))
     (when record
@@ -2145,12 +2158,13 @@ function returns `nil'."
 (defvar add-log-current-defun-section)
 
 (define-derived-mode rec-mode nil "Rec"
-  "A major mode for editing rec files."
+  "A major mode for editing rec files.
+\\{rec-mode-map}"
+  :syntax-table rec-mode-syntax-table
   (widen)
   ;; Local variables
-  (setq (make-local-variable 'add-log-current-defun-section)
-        #'rec-log-current-defun)
-  (setq (make-local-variable 'font-lock-defaults) '(rec-font-lock-keywords))
+  (setq-local add-log-current-defun-function #'rec-log-current-defun)
+  (setq-local font-lock-defaults '(rec-font-lock-keywords))
   (setq-local syntax-propertize-function rec-syntax-propertize-function)
   (add-to-invisibility-spec '(rec-hide-field . "..."))
 
@@ -2159,9 +2173,9 @@ function returns `nil'."
   (add-hook 'hack-local-variables-hook #'rec--after-major-mode nil t))
 
 (defun rec--after-major-mode ()
-  ;; Goto the first record of the first type (including the Unknown).
-  ;; If there is a problem (i.e.  syntax error) then go to fundamental
-  ;; mode and show the output of recfix in a separated buffer.
+  "Goto the first record of the first type (including the Unknown).
+If there is a problem (i.e.  syntax error) then go to fundamental
+mode and show the output of recfix in a separated buffer."
   (when (rec-update-buffer-descriptors-and-check)
     ;; If the configured open-mode is navigation, set up the buffer
     ;; accordingly.  But don't go into navigation mode if the file is
