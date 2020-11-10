@@ -568,8 +568,7 @@ If no such field exists in RECORD then nil is returned."
         (point)))))
 
 (defun rec-end-of-record-pos ()
-  "Return the position of the end of the current record,
-or nil if the pointer is not on a record."
+  "Return the position of the end of the current record, or nil if the pointer is not on a record."
   (let ((begin-pos (rec-beginning-of-record-pos)))
     (when begin-pos
       (save-excursion
@@ -611,14 +610,14 @@ The current record is the record where the pointer is"
 ;; These functions manage the visibility in the rec buffer.
 
 (defun rec-narrow-to-record ()
-  "Narrow to the current record, if any"
+  "Narrow to the current record, if any."
   (let ((begin-pos (rec-beginning-of-record-pos))
         (end-pos (rec-end-of-record-pos)))
     (if (and begin-pos end-pos)
         (narrow-to-region begin-pos end-pos))))
 
 (defun rec-narrow-to-type (type)
-  "Narrow to the specified type, if any"
+  "Narrow to the specified TYPE, if any."
   (let ((begin-pos (or (rec-type-pos type) (point-min)))
         (end-pos (or (rec-type-pos (rec-type-next type)) (point-max))))
     (narrow-to-region begin-pos end-pos)))
@@ -650,8 +649,10 @@ The current record is the record where the pointer is"
          0))
 
 (defun rec-update-buffer-descriptors-and-check (&optional dont-go-fundamental)
-  "Update buffer descriptors and switch to fundamental mode if
-there is a parse error."
+  "Update buffer descriptors and check if there's a parse error.
+
+Switch to fundamental mode if there is a parse error.  If
+DONT-GO-FUNDAMENTAL is non-nil, don't switch to fundamental."
   (if (rec-buffer-valid-p)
       (progn
         (rec-update-buffer-descriptors)
@@ -682,7 +683,7 @@ there is a parse error."
   "Get a list of the record descriptors in the current buffer.
 
 If the contents of the current buffer are not valid rec data then
-this function returns `nil'."
+this function returns nil."
   (setq rec-buffer-descriptors
 	(let* ((buffer (generate-new-buffer "Rec Inf "))
 	       descriptors records
@@ -723,8 +724,7 @@ this function returns `nil'."
             nil))))
 
 (defun rec-buffer-types ()
-  "Return a list with the names of the record types in the
-existing buffer."
+  "Return a list with the names of the record types in the existing buffer."
   ;; If a descriptor has more than a %rec field, then the first one is
   ;; used.  The rest are ignored.
   (mapcar
@@ -733,8 +733,7 @@ existing buffer."
    rec-buffer-descriptors))
 
 (defun rec-type-p (type)
-  "Determine if there are records of type TYPE in the current
-file."
+  "Determine if there are records of type TYPE in the current file."
   (member type (rec-buffer-types)))
 
 (defun rec-goto-type (type)
@@ -773,8 +772,9 @@ this function returns nil."
       found)))
 
 (defun rec-type-pos (type)
-  "Return the position where the records of type TYPE start in
-the current file.  If no records of type TYPE are defined in the
+  "Return the position where the records of type TYPE start in the current file.
+
+If no records of type TYPE are defined in the
 current file then return nil."
   (when (rec-type-p type)
     (save-excursion
@@ -782,22 +782,23 @@ current file then return nil."
       (point))))
 
 (defun rec-type-next (type)
-  "Return the name of the type following TYPE in the file, if
-any.  If the specified type is the last appearing in the file,
+  "Return the name of the type following TYPE in the file, if any.
+
+If the specified type is the last appearing in the file,
 or the specified type does not exist, then return nil."
   (let ((types (member type (rec-buffer-types))))
     (nth 1 types)))
 
 (defun rec-type-previous (type)
-  "Return the name of the type preceding TYPE in the file, if
-any.  If the specified type is the first appearing in the file,
+  "Return the name of the type preceding TYPE in the file, if any.
+
+If the specified type is the first appearing in the file,
 or the specified type does not exist, then return nil."
   (let ((types (member type (reverse (rec-buffer-types)))))
     (nth 1 types)))
 
 (defun rec-goto-next-field ()
-  "Move the pointer to the beginning of the next field in the
-file."
+  "Move the pointer to the beginning of the next field in the file."
   (let ((pos (save-excursion
                (rec-end-of-field)
                (when (re-search-forward rec-field-name-re nil t)
@@ -807,8 +808,7 @@ file."
       t)))
 
 (defun rec-goto-next-rec ()
-  "Move the pointer to the beginning of the next record in the
-file."
+  "Move the pointer to the beginning of the next record in the file."
   (let ((pos (save-excursion
                (rec-end-of-record)
                (when (re-search-forward rec-comment-field-re nil t)
@@ -818,8 +818,7 @@ file."
         t)))
 
 (defun rec-goto-previous-rec ()
-  "Move the pointer to the end of the previous record in the
-file."
+  "Move the pointer to the end of the previous record in the file."
     (let ((pos (save-excursion
                  (rec-beginning-of-record)
                  (if (not (= (point) (point-min)))
@@ -857,8 +856,13 @@ If no such record exist then don't move and return nil."
       (goto-char pos))))
 
 (defun rec-count (&optional type sex)
-  "If TYPE is a string, return the number of records of the
-specified type in the current file."
+  "Return number of record in the file.
+
+When optional argument TYPE is a string, return records of that
+type.
+
+Optional rgument SEX specifies the selection expression to apply
+on top of the results."
   (let (num
         (rec-file-name (if buffer-file-name
                            buffer-file-name
@@ -936,8 +940,7 @@ Return nil if the point is not on a record."
         nil))))
 
 (defun rec-summary-fields ()
-  "Return a list with the names of the summary fields in the
-current record set."
+  "Return a list with the names of the summary fields in the current record set."
   (let ((descriptor (rec--descriptor-descriptor (rec-record-descriptor))))
     (when descriptor
       (let ((fields-str (rec-record-assoc rec-keyword-summary descriptor)))
@@ -945,8 +948,7 @@ current record set."
           (split-string (car fields-str) "[ ,]"))))))
 
 (defun rec-mandatory-fields ()
-  "Return a list with the names of the mandatory fields in the
-current record set."
+  "Return a list with the names of the mandatory fields in the current record set."
   (let ((descriptor (rec--descriptor-descriptor (rec-record-descriptor))))
     (when descriptor
       (let ((fields-str (rec-record-assoc rec-keyword-mandatory descriptor)))
@@ -954,8 +956,9 @@ current record set."
           (split-string (car fields-str)))))))
 
 (defun rec-key ()
-  "Return the name of the field declared as the key of the
-current record set, if any.  Otherwise return `nil'."
+  "Return the name of the field declared as the key of the current record set.
+
+Returns nil if no key is declared."
   (let ((descriptor (rec--descriptor-descriptor (rec-record-descriptor))))
     (when descriptor
       (car (rec-record-assoc rec-keyword-key descriptor)))))
@@ -963,8 +966,12 @@ current record set, if any.  Otherwise return `nil'."
 ;;;; Navigation
 
 (defun rec-show-type (type &optional show-descriptor)
-  "Show the records of the given type.  If TYPE is nil then the records
-of the default type are shown."
+  "Show the records of the given TYPE.
+
+If TYPE is nil then the records of the default type are shown.
+
+Optional argument SHOW-DESCRIPTOR when non-nil shows the
+descriptor record.  If nil, the descriptor is skipped."
   (widen)
   (unless (rec-goto-type type)
     (message "No records of the requested type were found."))
@@ -978,7 +985,7 @@ of the default type are shown."
   (rec-show-record))
 
 (defun rec-show-record ()
-  "Show the record under the point"
+  "Show the record under the point."
   (setq buffer-read-only t)
   (rec-narrow-to-record)
   (use-local-map rec-mode-map)
@@ -991,15 +998,13 @@ of the default type are shown."
   (rec-hide-continuation-line-markers))
 
 (defvar rec-continuation-line-markers-width 4
-  "Width (in number of characters) used to represent continuation
-  line markers in navigation mode.")
+  "Number of characters used to represent continuation line markers.")
 
 (defvar rec-continuation-line-markers-overlays nil
   "Continuation line markers overlays.")
 
 (defun rec-hide-continuation-line-markers ()
-  "Change the appearance of continuation line markers in the
-current buffer to look like indentation."
+  "Make continuation line markers look like indentation."
   (let ((record (rec-current-record)))
     (when (rec-record-p record)
       (mapcar
@@ -1030,9 +1035,10 @@ current buffer to look like indentation."
   "Overlays hiding fields.")
 
 (defun rec-hide-record-fields ()
-  "Hide the contents of fields whose value exceeds
-`rec-max-lines-in-fields' lines.  TAB can then be used to toggle
-the visibility."
+  "Hide the contents of fields that are too long.
+
+If the value value exceeds `rec-max-lines-in-fields' lines, TAB
+can then be used to toggle the visibility."
   (let ((record (rec-current-record)))
     (when (rec-record-p record)
       (mapcar
@@ -1161,10 +1167,10 @@ the visibility."
 
 (defvar rec-types                       ;FIXME: Shouldn't this be `defconst'?
   '("int" "bool" "range" "real" "size" "line" "regexp" "date" "enum" "field" "email" "uuid" "rec")
-  "Kind of supported types")
+  "Kind of supported types.")
 
 (defun rec-type-kind-p (kind)
-  "Determine whether the given symbol or string is a type kind."
+  "Determine whether the given symbol or string is a type KIND."
   (cond
    ((symbolp kind)
     (member (symbol-name kind) rec-types))
@@ -1229,8 +1235,7 @@ manual."
             nil)))))))
 
 (defun rec-check-type (type str)
-  "Check whether STR contains a value conforming to TYPE, which
-is a field type structure."
+  "Check whether STR contains a value conforming to TYPE, which is a field type structure."
   (let* ((kind (rec-type-kind type))
          ;; (expr (rec-type-text type))
          (data (rec-type-data type))
@@ -1276,10 +1281,10 @@ is a field type structure."
       nil))))
 
 (defun rec-field-type (field-name)
-  "Return the type of the given field, if any, as determined in
-the current record set.  If the field has no type, i.e. it is an
-unrestricted field which can contain any text, then `nil' is
-returned."
+  "Return the type of FIELD-NAME in determined in the current record set.
+
+If the field has no type, i.e. it is an unrestricted field which
+can contain any text, then nil is returned."
   (let* ((descriptor (rec-record-descriptor))
          (types (rec-record-assoc "%type"
                                   (rec--descriptor-descriptor descriptor)))
@@ -1306,14 +1311,15 @@ returned."
 ;;;; Mode line and Head line
 
 (defun rec-set-mode-line (str)
-  "Set the modeline in rec buffers."
+  "Set the modeline in rec buffers.
+Argument STR is the string to be displayed."
   (when str
     (setq mode-line-buffer-identification
           (list 20
                 "%b " str))))
 
 (defun rec-set-head-line (str)
-  "Set the headline in rec buffers."
+  "Set the headline in rec buffers to STR."
   (setq header-line-format str))
 
 ;;;; Fast selection
@@ -1325,7 +1331,9 @@ NAMES is an association list of the form:
 
     ((\"NAME1\" char1) ...)
 
-Each character should identify only one name."
+Each character should identify only one name.
+
+PROMPT is the prompt string to use."
   ;; Adapted from `org-fast-tag-selection' in org.el by Carsten Dominic
   ;; Thanks Carsten! :D
   (let* ((maxlen (apply #'max (mapcar (lambda (name)
@@ -1383,7 +1391,7 @@ Each character should identify only one name."
   "Local keymap for `rec-summary-mode' buffers.")
 
 (defvar rec-summary-rec-buffer nil
-  "rec-mode buffer paired with this summary buffer.")
+  "The `rec-mode' buffer paired with this summary buffer.")
 (make-variable-buffer-local 'rec-summary-rec-buffer)
 
 (define-derived-mode rec-summary-mode tabulated-list-mode "Rec Summary"
@@ -1396,20 +1404,21 @@ Each character should identify only one name."
   (tabulated-list-init-header))
 
 (defun rec-summary-populate (headers entries)
-  "Populate a rec-mode summary buffer with the data in ENTRIES.
+  "Populate a `rec-mode' summary buffer with the data in ENTRIES.
 
-The data has the same structure than `tabulated-list-entries'."
+The data has the same structure than `tabulated-list-entries'.
+Argument HEADERS specifies the headers to display."
   (setq tabulated-list-format headers)
   (setq tabulated-list-padding 2)
-;;  (setq tabulated-list-sort-key (cons (car (elt headers 0)) nil))
+  ;;  (setq tabulated-list-sort-key (cons (car (elt headers 0)) nil))
   (tabulated-list-init-header)
   (setq tabulated-list-entries entries)
   (tabulated-list-print nil))
 
 (defun rec-summary-cmd-jump-to-record ()
-  "Jump to the selected record in the rec-mode buffer."
+  "Jump to the selected record in the `rec-mode' buffer."
   (interactive)
-;;  (if (buffer-live-p rec-summary-rec-buffer)
+  ;;  (if (buffer-live-p rec-summary-rec-buffer)
   (let ((rec-marker (tabulated-list-get-id)))
     (with-current-buffer (marker-buffer rec-marker)
       (widen)
@@ -1428,12 +1437,36 @@ The data has the same structure than `tabulated-list-entries'."
 ;; arguments: it is the invoked recutil which is in charge of that.
 
 (cl-defun rec-query (&rest args
-                   &key (type nil) (join nil) (index nil) (sex nil)
-                        (fast-string nil) (random nil) (fex nil) (password nil)
-                        (group-by nil) (sort-by nil) (icase nil) (uniq nil))
+                           &key (type nil) (join nil) (index nil) (sex nil)
+                           (fast-string nil) (random nil) (fex nil) (password nil)
+                           (group-by nil) (sort-by nil) (icase nil) (uniq nil))
   "Perform a query in the current buffer using recsel.
 
-ARGS contains the arguments to pass to the program."
+ARGS contains the arguments to pass to the program.
+
+Optional argument TYPE speficies the type of records to select.
+
+Optional argument JOIN the field to perform a join operation with.
+
+Optional argument INDEX chooses record at specified index.
+
+Optional argument SEX is a selection expression to use.
+
+Optional argument FAST-STRING is a fast search on the string.
+
+Optional argument RANDOM selects a given number of random records.
+
+Optional argument FEX prints the specified fields (field expression).
+
+Optional argument PASSWORD specifies the password to use.
+
+Optional argument GROUP-BY groups results by given fields.
+
+Optional argument SORT-BY sorts the output by given fields.
+
+Optional argument ICASE makes the selection case-insensitive.
+
+Optional argument UNIQ when non-nil, returns only unique results."
   (let ((buffer (generate-new-buffer "Rec Sel "))
         args records status)
     (save-restriction
@@ -1478,7 +1511,7 @@ ARGS contains the arguments to pass to the program."
                                 nil ; display
                                 args))
             (if (/= status 0)
-                (error "recsel returned error: %d" status))
+                (error "Recsel returned error: %d" status))
             (with-current-buffer buffer
               (goto-char (point-min))
               (insert "(")
@@ -1494,8 +1527,7 @@ ARGS contains the arguments to pass to the program."
 ;; maintains a subset of the records in the current buffer.
 
 (defvar rec-current-selection nil
-  "List of records corresponding to the last executed selection,
-or `nil' if no selection is active.")
+  "List of records corresponding to the last executed selection.")
 (make-variable-buffer-local 'rec-current-selection)
 
 (defun rec-navigate-selection ()
@@ -1516,9 +1548,9 @@ The result of the selection is stored in `rec-current-selection'."
   (setq rec-current-selection (rec-query)))
 
 (defun rec-cmd-select-fast (prefix str)
-  "Perform a selection on the current record set using a fast string search.
+  "Perform a fast selection using a fast string search of STR.
 
-A prefix argument means to use a case-insensitive search."
+Argument PREFIX when non-nil means to use a case-insensitive search."
   (interactive "P\nsFast string query: ")
   (when (not (equal str ""))
     (setq rec-current-selection (rec-query :fast-string str
@@ -1529,7 +1561,8 @@ A prefix argument means to use a case-insensitive search."
 (defun rec-cmd-select-sex (prefix sex)
   "Perform a selection on the current record set using a selection expression.
 
-A prefix argument means to use a case-insensitive search."
+A PREFIX argument means to use a case-insensitive search.
+Argument SEX is the selection expression to use."
   (interactive "P\nsSelection expression: ")
   (when (not (equal sex ""))
     (setq rec-current-selection (rec-query :sex sex
@@ -1559,11 +1592,10 @@ A prefix argument means to use a case-insensitive search."
 (defvar rec-pointer)                    ;FIXME: Buffer local?  Global value?
 
 (defun rec-cmd-edit-field (n)
-  "Edit the contents of the field under point in a separate
-buffer.
+  "Edit the contents of the field under point in a separate buffer.
 
 The input method used for getting the field value depends on its
-type, unless a prefix argument is used.  Then the more general
+type, unless a prefix argument N specifies.is used.  Then the more general
 method, i.e. asking for the new value in an unrestricted buffer,
 will be used for fields of any type."
   (interactive "P")
@@ -1654,16 +1686,16 @@ will be used for fields of any type."
               (lambda () (interactive)
                 (let* ((date (calendar-cursor-to-date))
                        (time (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date))))
-                   (use-local-map old-map)
-                   (calendar-exit)
-                   (set-buffer rec-prev-buffer)
-                   (let ((inhibit-read-only t))
-                     (rec-delete-field)
-                     (save-excursion
-                       (rec-insert-field (list 'field
-                                               0
-                                               rec-field-name
-                                               (format-time-string "%Y-%m-%d" time))))))))
+                  (use-local-map old-map)
+                  (calendar-exit)
+                  (set-buffer rec-prev-buffer)
+                  (let ((inhibit-read-only t))
+                    (rec-delete-field)
+                    (save-excursion
+                      (rec-insert-field (list 'field
+                                              0
+                                              rec-field-name
+                                              (format-time-string "%Y-%m-%d" time))))))))
             (use-local-map map)
             (message "[RET]: Select date [t]: Time-stamp     [q]: Exit")))
          (t
@@ -1707,35 +1739,35 @@ will be used for fields of any type."
         (rec-hide-continuation-line-markers)))))
 
 (defun rec-beginning-of-field ()
-  "Goto to the beginning of the current field"
+  "Goto to the beginning of the current field."
   (interactive)
   (let ((pos (rec-beginning-of-field-pos)))
     (when pos
       (goto-char pos))))
 
 (defun rec-end-of-field ()
-  "Goto to the end of the current field"
+  "Goto to the end of the current field."
   (interactive)
   (let ((pos (rec-end-of-field-pos)))
     (when pos
       (goto-char pos))))
 
 (defun rec-beginning-of-record ()
-  "Goto to the beginning of the current record"
+  "Goto to the beginning of the current record."
   (interactive)
   (let ((pos (rec-beginning-of-record-pos)))
     (when pos
       (goto-char pos))))
 
 (defun rec-end-of-record ()
-  "Goto to the end of the current record"
+  "Goto to the end of the current record."
   (interactive)
   (let ((pos (rec-end-of-record-pos)))
     (when pos
       (goto-char pos))))
 
 (defun rec-delete-field ()
-  "Delete the current field"
+  "Delete the current field."
   (interactive)
   (let ((begin-pos (rec-beginning-of-field-pos))
         (end-pos (rec-end-of-field-pos)))
@@ -1745,7 +1777,7 @@ will be used for fields of any type."
         (delete-char 1)))))
 
 (defun rec-copy-record ()
-  "Copy the current record"
+  "Copy the current record."
   (interactive))
 
 (defun rec-find-type ()
@@ -1759,8 +1791,9 @@ will be used for fields of any type."
     (rec-show-type type)))
 
 (defun rec-cmd-goto-next-field ()
-  "Move the pointer to the beginning of the next field in the
-record.  Interactive version."
+  "Move to the next field.
+
+Interactive version of `rec-goto-next-field'."
   (interactive)
   (if (save-excursion
         (not (rec-goto-next-field)))
@@ -1773,8 +1806,10 @@ record.  Interactive version."
     (rec-goto-next-field)))
 
 (defun rec-cmd-goto-next-rec (&optional n)
-  "Move the pointer to the beginning of the next record in the
-file.  Interactive version."
+  "Move to the next record.
+
+Interactive version of `rec-goto-next-rec'.
+Optional argument N specifies number of records to skip."
   (interactive "P")
   (when (null n) (setq n 1))
   (widen)
@@ -1796,8 +1831,11 @@ file.  Interactive version."
     (rec-show-record)))
 
 (defun rec-cmd-goto-previous-rec (&optional n)
-  "Move the pointer to the beginning of the previous record in
-the file.  Interactive version."
+  "Move to the previous record.
+
+Interactive version of `rec-goto-previous-rec'.
+Optional argument N specifies number of records to skip."
+  
   (interactive "P")
   (when (null n) (setq n 1))
   (widen)
@@ -1825,7 +1863,7 @@ the file.  Interactive version."
     (undo)))
 
 (defun rec-cmd-jump-back ()
-  "Undo the previous jump"
+  "Undo the previous jump."
   (interactive)
   (if rec-jump-back
       (progn
@@ -1837,7 +1875,7 @@ the file.  Interactive version."
     (message "No previous position to jump")))
 
 (defun rec-edit-record ()
-  "Go to the record edition mode"
+  "Go to the record edition mode."
   (interactive)
   (setq rec-editing t)
   (rec-unfold-all-fields)
@@ -1850,7 +1888,7 @@ the file.  Interactive version."
   (setq rec-preserve-last-newline t))
 
 (defun rec-edit-type ()
-  "Go to the type edition mode"
+  "Go to the type edition mode."
   (interactive)
   (setq rec-editing t)
   (rec-unfold-all-fields)
@@ -1866,7 +1904,7 @@ the file.  Interactive version."
   (rec-set-mode-line "Edit type"))
 
 (defun rec-edit-buffer ()
-  "Go to the buffer edition mode"
+  "Go to the buffer edition mode."
   (interactive)
   (setq rec-editing t)
   (rec-unfold-all-fields)
@@ -1879,7 +1917,7 @@ the file.  Interactive version."
   (rec-set-mode-line "Edit buffer"))
 
 (defun rec-finish-editing ()
-  "Go back from the record edition mode"
+  "Go back from the record edition mode."
   (interactive)
   (when (or (not rec-update-p)
             (and rec-update-p
@@ -1912,8 +1950,7 @@ This jump sets jump-back."
         (rec-show-type type t)))))
 
 (defun rec-cmd-show-type ()
-  "Show the descriptor corresponding to the field under point, in
-the modeline."
+  "Show the descriptor corresponding to the field under point, in the modeline."
   (interactive)
   (let ((type (rec-current-field-type)))
     (if type
@@ -1921,11 +1958,10 @@ the modeline."
       (message "Unrestricted text"))))
 
 (defun rec-cmd-count (n)
-  "Display a message in the minibuffer showing the number of
-records of the current type.
+  "Show number of records of the current type in the minibuffer.
 
-If a numeric argument is used then prompt for a selection
-expression."
+Prefix argument N prompts for the selection expression to use, otherwise
+the value of the current field is used to specify the selection expression."
   (interactive "P")
   (let* ((default-sex (let ((current-field (rec-current-field)))
                         (when (and current-field
@@ -1950,8 +1986,10 @@ expression."
                               (concat " with sex " sex)))))))
 
 (defun rec-cmd-statistic ()
-  "Display a statistic on the occurrence of the value contained
-  in the field under point in the minibuffer, if any.
+  "Display statistics of the current field value.
+
+Displays a statistic on the occurrence of the value contained in
+the field under point in the minibuffer, if any.
 
 This command is especially useful with enumerated types."
   (interactive)
@@ -2047,7 +2085,7 @@ This command is especially useful with enumerated types."
       (rec-fold-field))))
 
 (defun rec-cmd-kill-field ()
-  "Kill the current field"
+  "Kill the current field."
   (interactive)
   (let ((begin-pos (rec-beginning-of-field-pos))
         (end-pos (rec-end-of-field-pos)))
@@ -2056,7 +2094,7 @@ This command is especially useful with enumerated types."
       (message "Not in a field"))))
 
 (defun rec-cmd-copy-field ()
-  "Copy the current field"
+  "Copy the current field."
   (interactive)
   (let ((begin-pos (rec-beginning-of-field-pos))
         (end-pos (rec-end-of-field-pos)))
@@ -2067,7 +2105,7 @@ This command is especially useful with enumerated types."
       (message "Not in a field"))))
 
 (defun rec-cmd-kill-record ()
-  "Kill the current record"
+  "Kill the current record."
   (interactive)
   (let ((begin-pos (rec-beginning-of-record-pos))
         (end-pos (rec-end-of-record-pos)))
@@ -2081,7 +2119,7 @@ This command is especially useful with enumerated types."
       (message "Not in a record"))))
 
 (defun rec-cmd-copy-record ()
-  "Copy the current record"
+  "Copy the current record."
   (interactive)
   (let ((begin-pos (rec-beginning-of-record-pos))
         (end-pos (rec-end-of-record-pos)))
@@ -2092,8 +2130,7 @@ This command is especially useful with enumerated types."
       (message "Not in a record"))))
 
 (defun rec-cmd-show-summary ()
-  "Show a window with a summary of the contents of the current
-record set.
+  "Show a window with a summary of the contents of the current record set.
 
 The fields used to build the summary are determined in the
 following way: if there is a %summary field in the record
@@ -2113,7 +2150,7 @@ the user is prompted."
           (unless (car summary-fields)
             (setq summary-fields (split-string (read-from-minibuffer "Fields to use in the summary: ") "[ ,]"))))
         (if (car summary-fields)
-            (let* ((query (rec-query :fex (rec-join-string summary-fields ",")))
+            (let* ((query (rec-query :fex (string-join summary-fields ",")))
                    (summary-list (mapcar (lambda (rec)
                                            (let ((entry-marker (make-marker)))
                                              (set-marker entry-marker (rec-record-position rec))
@@ -2194,22 +2231,14 @@ mode and show the output of recfix in a separated buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'rec-finish-editing-field)
     map)
-  "Keymap for rec-edit-field-mode")
+  "Keymap for `rec-edit-field-mode'.")
 
 (define-derived-mode rec-edit-field-mode nil "Rec Edit"
   "A major mode for editing rec field values.")
-
-;;;; Miscellaneous utilities
-
-(defun rec-join-string (l c)
-  (if (> (length l) 1)
-    (concat (car l) c (rec-join-string (cdr l) c))
-    (car l)))
-
-(provide 'rec-mode)
 
 ;; Local variables:
 ;; outline-regexp: ";;;;"
 ;; End:
 
+(provide 'rec-mode)
 ;;; rec-mode.el ends here
