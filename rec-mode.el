@@ -25,23 +25,33 @@
 
 ;;; Commentary:
 
-;; A major mode for editing rec files.
-;;
-;; To see the structure of this file activate the outline minor mode
-;; and execute M-xhide-body
+;; Rec Mode is a mode for browsing and editing recfiles, which are text files
+;; containing data structured in fields and records.  It is part of the GNU
+;; recutils suite, for more information visit http://www.gnu.org/software/recutils.
+;; 
+;; Recfiles are text-based databases which are easy to read and write manually
+;; using a text editor.  At the same time they feature enough structure so they can
+;; be read, edited and processed automatically by programs.
+;; 
+;; Rec Mode offers convenience commands for navigation, edition, record statistics,
+;; syntax highlighting, and more.  Rec mode comes with a manual, see Info node
+;; `(rec-mode)Introduction'.
 
 ;;; Code:
+;; To see the structure of this file activate the outline minor mode
+;; and execute M-xhide-body
 
 (require 'compile)
 (eval-when-compile (require 'cl-lib))
 (require 'calendar)
 (require 'hl-line)
 (require 'tabulated-list)
+(require 'subr-x)
 
 ;;;; Customization
 
 (defgroup rec-mode nil
-  "rec-mode subsystem"
+  "Rec Mode, a major mode for GNU Recutils recfiles."
   :group 'applications
   :link '(url-link "http://www.gnu.org/software/recutils"))
 
@@ -652,7 +662,7 @@ The current record is the record where the pointer is"
   "Update buffer descriptors and check if there's a parse error.
 
 Switch to fundamental mode if there is a parse error.  If
-DONT-GO-FUNDAMENTAL is non-nil, don't switch to fundamental."
+`DONT-GO-FUNDAMENTAL is non-nil, don't switch to fundamental."
   (if (rec-buffer-valid-p)
       (progn
         (rec-update-buffer-descriptors)

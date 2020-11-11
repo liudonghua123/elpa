@@ -4,8 +4,7 @@ rec-mode.texi.
 This manual is for rec-mode for Emacs, which is part of the GNU recutils
 suite (version 1.8.90, 7 November 2020).
 
-   Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
-Jose E. Marchesi
+   Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
@@ -13,9 +12,9 @@ Jose E. Marchesi
      Foundation; with no Invariant Sections, no Front-Cover Texts, and
      no Back-Cover Texts.  A copy of the license is included in the
      section entitled "GNU Free Documentation License".
-INFO-DIR-SECTION Database
+INFO-DIR-SECTION Emacs
 START-INFO-DIR-ENTRY
-* rec-mode: (rec-mode). Emacs mode for editing recfiles.
+* Rec Mode: (rec-mode). Emacs mode for editing recfiles.
 END-INFO-DIR-ENTRY
 
 
@@ -29,8 +28,7 @@ This manual documents version 1.8.90 of rec-mode.
    This manual is for rec-mode for Emacs, which is part of the GNU
 recutils suite (version 1.8.90, 7 November 2020).
 
-   Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
-Jose E. Marchesi
+   Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
@@ -945,28 +943,28 @@ their use in free software.
 
 
 Tag Table:
-Node: Top803
-Node: Introduction2905
-Ref: Introduction-Footnote-13656
-Node: Installation3703
-Node: Activation4820
-Ref: Activation-Footnote-15487
-Node: Feedback5613
-Ref: Feedback-Footnote-16031
-Node: Navigation mode6252
-Node: Record navigation7990
-Node: Field navigation8944
-Node: Field folding9620
-Node: Field edition10366
-Node: Searches12160
-Node: Statistics12936
-Node: Data integrity14005
-Node: Edition modes14517
-Ref: Edition modes-Footnote-116192
-Node: Configuration16223
-Node: Finding the recutils16524
-Node: Records appearance17138
-Node: GNU Free Documentation License17641
+Node: Top771
+Node: Introduction2844
+Ref: Introduction-Footnote-13595
+Node: Installation3642
+Node: Activation4759
+Ref: Activation-Footnote-15426
+Node: Feedback5552
+Ref: Feedback-Footnote-15970
+Node: Navigation mode6191
+Node: Record navigation7929
+Node: Field navigation8883
+Node: Field folding9559
+Node: Field edition10305
+Node: Searches12099
+Node: Statistics12875
+Node: Data integrity13944
+Node: Edition modes14456
+Ref: Edition modes-Footnote-116131
+Node: Configuration16162
+Node: Finding the recutils16463
+Node: Records appearance17077
+Node: GNU Free Documentation License17580
 
 End Tag Table
 
