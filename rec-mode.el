@@ -932,22 +932,22 @@ If the record is of no known type, return nil."
 Return \"\" if no proper record descriptor is found in the file.
 Return nil if the point is not on a record."
   (when (rec-current-record)
-    (let ((descriptors rec-buffer-descriptors)
-          descriptor position found
-          (i 0))
-      ;; FIXME: length+nth on every iteration means O(N²) for no good reason!
-      (while (and (not found)
-                  (< i (length descriptors)))
-        (setq descriptor (nth i rec-buffer-descriptors))
-        (setq position (marker-position (rec--descriptor-marker descriptor)))
-        (if (and (>= (point) position)
-                 (or (= i (- (length rec-buffer-descriptors) 1))
-                     (< (point) (marker-position (nth 2 (nth (+ i 1) rec-buffer-descriptors))))))
-            (setq found t)
-          (setq i (+ i 1))))
-      (if found
-          descriptor
-        nil))))
+    (cl-loop with descriptors = rec-buffer-descriptors
+             with next-descriptors = (append (cdr descriptors) '(nil))
+             with count = (length descriptors)
+             with point = (point)
+
+             for index from 0
+             for curr in descriptors and
+             next in next-descriptors
+             
+             if (and (>= point (marker-position (rec--descriptor-marker curr)))
+                     (or (= index (- count 1))
+                         (< point (marker-position
+                                   (rec--descriptor-marker
+                                    next)))))
+             
+             return curr)))
 
 (defun rec-summary-fields ()
   "Return a list with the names of the summary fields in the current record set."
@@ -1816,7 +1816,7 @@ Interactive version of `rec-goto-next-field'."
     (rec-goto-next-field)))
 
 (defun rec-cmd-goto-next-rec (&optional n)
-  "Move to the next record.
+  "Move to the next record of the same type.
 
 Interactive version of `rec-goto-next-rec'.
 Optional argument N specifies number of records to skip."
@@ -1841,7 +1841,7 @@ Optional argument N specifies number of records to skip."
     (rec-show-record)))
 
 (defun rec-cmd-goto-previous-rec (&optional n)
-  "Move to the previous record.
+  "Move to the previous record of the same type.
 
 Interactive version of `rec-goto-previous-rec'.
 Optional argument N specifies number of records to skip."
@@ -2203,6 +2203,10 @@ function returns nil."
 
 (defvar font-lock-defaults)
 (defvar add-log-current-defun-section)
+
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.rec\\'" . rec-mode))
 
 (define-derived-mode rec-mode nil "Rec"
   "A major mode for editing rec files.
