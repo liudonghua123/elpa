@@ -126,15 +126,7 @@ The default is t."
   "Regexp matching a field name.")
 
 (defvar rec-field-value-re
-  (let ((ret-re "\n\\+ ?")
-        (esc-ret-re "\\\\\n"))
-    (concat
-     "\\("
-     "\\(" ret-re "\\)*"
-     "\\(" esc-ret-re "\\)*"
-     "\\(" "\\\\[^\n]" "\\)*"
-     "[^\\\n]*"
-     "\\)*"))
+  "\\(?:\n\\+ ?\\|\\\\\n\\|\\\\.\\|[^\n\\]\\)*"
   "Regexp matching a field value.")
 
 (defvar rec-type-re
