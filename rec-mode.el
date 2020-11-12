@@ -521,7 +521,7 @@ If no such field exists in RECORD then nil is returned."
       (while
           (cond
            ((and (not (= (line-beginning-position) 1))
-                 (or (looking-at "+")
+                 (or (looking-at "\\+")
                      (looking-back "\\\\\n" 2)))
             (forward-line -1)
             t) ;;Continue
