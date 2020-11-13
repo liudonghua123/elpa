@@ -2,7 +2,7 @@ This is rec-mode.info, produced by makeinfo version 6.7 from
 rec-mode.texi.
 
 This manual is for rec-mode for Emacs, which is part of the GNU recutils
-suite (version 1.8.90, 7 November 2020).
+suite (version 1.8.90, 13 November 2020).
 
    Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
@@ -26,7 +26,7 @@ rec-mode: an Emacs mode for editing recfiles
 This manual documents version 1.8.90 of rec-mode.
 
    This manual is for rec-mode for Emacs, which is part of the GNU
-recutils suite (version 1.8.90, 7 November 2020).
+recutils suite (version 1.8.90, 13 November 2020).
 
    Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
@@ -229,7 +229,7 @@ The following commands jump to other records in the buffer.
      descriptor.  then this command does nothing.
 'b'     ('rec-cmd-jump-back')
      Display the record previously displayed in the buffer.
-'C-c t'     ('rec-find-type')
+'C-c C-t'     ('rec-find-type')
      Prompt the user for one of the record types present in the recfile
      and display the first record of the selected type.
 
@@ -385,9 +385,12 @@ recfile: record, record type and buffer.  When an edition mode is
 entered the buffer is set in read/write mode, it is narrowed to the
 desired area and any embellishment used in navigation mode is
 removed(1).  As a general rule, the commands available in navigation
-mode are also available in the edition mode prefixed with 'C-c'.  Thus,
-'C-c n' would make the cursor to jump to the beginning of the next
-record.
+mode are also available in the edition mode prefixed with 'C-c' and with
+a control sequence 'C-'.  Thus, 'n', which in record navigation mode
+jumps to the next record, becomes 'C-c C-n' in the record edition modes.
+The exceptions to this are the bindings 'c' ('rec-cmd-compile') which
+becomes 'C-c C-k' and 'h' ('rec-cmd-show-summary') which becomes 'C-c
+M-h'.
 
    The following commands are used to enter into one of the available
 edition modes from the navigation mode.
@@ -943,28 +946,28 @@ their use in free software.
 
 
 Tag Table:
-Node: Top771
-Node: Introduction2844
-Ref: Introduction-Footnote-13595
-Node: Installation3642
-Node: Activation4759
-Ref: Activation-Footnote-15426
-Node: Feedback5552
-Ref: Feedback-Footnote-15970
-Node: Navigation mode6191
-Node: Record navigation7929
-Node: Field navigation8883
-Node: Field folding9559
-Node: Field edition10305
-Node: Searches12099
-Node: Statistics12875
-Node: Data integrity13944
-Node: Edition modes14456
-Ref: Edition modes-Footnote-116131
-Node: Configuration16162
-Node: Finding the recutils16463
-Node: Records appearance17077
-Node: GNU Free Documentation License17580
+Node: Top772
+Node: Introduction2846
+Ref: Introduction-Footnote-13597
+Node: Installation3644
+Node: Activation4761
+Ref: Activation-Footnote-15428
+Node: Feedback5554
+Ref: Feedback-Footnote-15972
+Node: Navigation mode6193
+Node: Record navigation7931
+Node: Field navigation8887
+Node: Field folding9563
+Node: Field edition10309
+Node: Searches12103
+Node: Statistics12879
+Node: Data integrity13948
+Node: Edition modes14460
+Ref: Edition modes-Footnote-116349
+Node: Configuration16380
+Node: Finding the recutils16681
+Node: Records appearance17295
+Node: GNU Free Documentation License17798
 
 End Tag Table
 

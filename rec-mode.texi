@@ -2,7 +2,7 @@
 @comment %**start of header
 @setfilename rec-mode.info
 @settitle rec-mode for Emacs
-@set UPDATED 7 November 2020
+@set UPDATED 13 November 2020
 @set EDITION 1.8.90
 @set VERSION 1.8.90
 @afourpaper
@@ -245,7 +245,7 @@ the current record is anonymous, @ie{} there is not record
 descriptor. then this command does nothing.
 @reccmd{b, rec-cmd-jump-back}
 Display the record previously displayed in the buffer.
-@reccmd{C-c t, rec-find-type}
+@reccmd{C-c C-t, rec-find-type}
 Prompt the user for one of the record types present in the recfile and
 display the first record of the selected type.
 @end table
@@ -394,8 +394,12 @@ entered the buffer is set in read/write mode, it is narrowed to the
 desired area and any embellishment used in navigation mode is
 removed@footnote{Exceptuating font-lock}.  As a general rule, the
 commands available in navigation mode are also available in the
-edition mode prefixed with @kbd{C-c}.  Thus, @kbd{C-c n} would make
-the cursor to jump to the beginning of the next record.
+edition mode prefixed with @kbd{C-c} and with a control sequence
+@kbd{C-}.  Thus, @kbd{n}, which in record navigation mode jumps to the
+next record, becomes @kbd{C-c C-n} in the record edition modes.  The
+exceptions to this are the bindings @kbd{c}
+(@command{rec-cmd-compile}) which becomes @kbd{C-c C-k} and @kbd{h}
+(@command{rec-cmd-show-summary}) which becomes @kbd{C-c M-h}. 
 
 The following commands are used to enter into one of the available
 edition modes from the navigation mode.

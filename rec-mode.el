@@ -2,9 +2,11 @@
 
 ;; Copyright (C) 2009-2020  Free Software Foundation, Inc.
 
-;; Maintainer: Jose E. Marchesi <jose.marchesi@oracle.com>
+;; Author: Jose E. Marchesi <jemarch@gnu.org>
+;; Maintainer: Antoine Kalmbach <ane@iki.fi>
+;; URL: https://www.gnu.org/software/recutils/
 ;; Package-Requires: ((emacs "25"))
-;; Version: 0
+;; Version: 1.6
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -175,60 +177,59 @@ The default is t."
 
 (defvar rec-mode-edit-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-cn" 'rec-cmd-goto-next-rec)
-    (define-key map "\C-cp" 'rec-cmd-goto-previous-rec)
-    (define-key map "\C-ce" 'rec-cmd-edit-field)
-    (define-key map "\C-cd" 'rec-cmd-show-descriptor)
-    (define-key map "\C-ct" 'rec-cmd-show-type)
-    (define-key map "\C-c#" 'rec-cmd-count)
-    (define-key map "\C-cm" 'rec-cmd-trim-field-value)
-    (define-key map "\C-cc" 'rec-cmd-compile)
-    (define-key map "\C-csq" 'rec-cmd-select-fast)
-    (define-key map "\C-css" 'rec-cmd-select-sex)
-    (define-key map "\C-ch" 'rec-cmd-show-summary)
-    (define-key map "\C-cI" 'rec-cmd-show-info)
-    (define-key map "\C-cf\C-w" 'rec-cmd-kill-field)
-    (define-key map "\C-cf\M-w" 'rec-cmd-copy-field)
-    (define-key map "\C-cr\C-w" 'rec-cmd-kill-record)
-    (define-key map "\C-cr\M-w" 'rec-cmd-copy-record)
+    (define-key map (kbd "C-c C-n") 'rec-cmd-goto-next-rec)
+    (define-key map (kbd "C-c C-p") 'rec-cmd-goto-previous-rec)
+    (define-key map (kbd "C-c C-e") 'rec-cmd-edit-field)
+    (define-key map (kbd "C-c C-d") 'rec-cmd-show-descriptor)
+    (define-key map (kbd "C-c C-t") 'rec-cmd-show-type)
+    (define-key map (kbd "C-c C-#") 'rec-cmd-count)
+    (define-key map (kbd "C-c C-%") 'rec-cmd-statistic)
+    (define-key map (kbd "C-c C-f m") 'rec-cmd-trim-field-value)
+    (define-key map (kbd "C-c C-k") 'rec-cmd-compile)
+    (define-key map (kbd "C-c C-s q") 'rec-cmd-select-fast)
+    (define-key map (kbd "C-c C-s s") 'rec-cmd-select-sex)
+    (define-key map (kbd "C-c M-h") 'rec-cmd-show-summary)
+    (define-key map (kbd "C-c C-i") 'rec-cmd-show-info)
+    (define-key map (kbd "C-c C-f C-w") 'rec-cmd-kill-field)
+    (define-key map (kbd "C-c C-f M-w") 'rec-cmd-copy-field)
+    (define-key map (kbd "C-c C-r C-w") 'rec-cmd-kill-record)
+    (define-key map (kbd "C-c C-r M-w") 'rec-cmd-copy-record)
+    (define-key map [tab] 'rec-cmd-goto-next-field)
     (define-key map (kbd "TAB") 'rec-cmd-goto-next-field)
-    (define-key map "\C-cb" 'rec-cmd-jump-back)
-    (define-key map "\C-c\C-c" 'rec-finish-editing)
+    (define-key map (kbd "C-c C-b") 'rec-cmd-jump-back)
+    (define-key map (kbd "C-c C-c") 'rec-finish-editing)
     map)
-  "Keymap for `rec-mode'.")
+  "Keymap for `rec-mode' when editing records.")
 
 (defvar rec-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "n" 'rec-cmd-goto-next-rec)
-    (define-key map "p" 'rec-cmd-goto-previous-rec)
-    (define-key map "e" 'rec-cmd-edit-field)
-    (define-key map "R" 'rec-edit-record)
-    (define-key map "T" 'rec-edit-type)
-    (define-key map "B" 'rec-edit-buffer)
-    (define-key map "A" 'rec-cmd-append-field)
-    (define-key map "I" 'rec-cmd-show-info)
-    (define-key map "d" 'rec-cmd-show-descriptor)
-    (define-key map "t" 'rec-cmd-show-type)
-    (define-key map "m" 'rec-cmd-trim-field-value)
-    (define-key map "c" 'rec-cmd-compile)
-    (define-key map "f\C-w" 'rec-cmd-kill-field)
-    (define-key map "f\M-w" 'rec-cmd-copy-field)
-    (define-key map "r\C-w" 'rec-cmd-kill-record)
-    (define-key map "r\M-w" 'rec-cmd-copy-record)
-    (define-key map "f\C-w" 'rec-cmd-kill-field)
-    (define-key map "f\M-w" 'rec-cmd-copy-field)
-    (define-key map "sq" 'rec-cmd-select-fast)
-    (define-key map "ss" 'rec-cmd-select-sex)
-    (define-key map "h" 'rec-cmd-show-summary)
-    (define-key map "\C-ct" 'rec-find-type)
-;;    (define-key map [remap move-beginning-of-line] 'rec-cmd-beginning-of-line)
+    (define-key map (kbd "n") 'rec-cmd-goto-next-rec)
+    (define-key map (kbd "p") 'rec-cmd-goto-previous-rec)
+    (define-key map (kbd "e") 'rec-cmd-edit-field)
+    (define-key map (kbd "R") 'rec-edit-record)
+    (define-key map (kbd "T") 'rec-edit-type)
+    (define-key map (kbd "B") 'rec-edit-buffer)
+    (define-key map (kbd "A") 'rec-cmd-append-field)
+    (define-key map (kbd "I") 'rec-cmd-show-info)
+    (define-key map (kbd "d") 'rec-cmd-show-descriptor)
+    (define-key map (kbd "t") 'rec-cmd-show-type)
+    (define-key map (kbd "m") 'rec-cmd-trim-field-value)
+    (define-key map (kbd "c") 'rec-cmd-compile)
+    (define-key map (kbd "f C-w") 'rec-cmd-kill-field)
+    (define-key map (kbd "f M-w") 'rec-cmd-copy-field)
+    (define-key map (kbd "r C-w") 'rec-cmd-kill-record)
+    (define-key map (kbd "r M-w") 'rec-cmd-copy-record)
+    (define-key map (kbd "s q") 'rec-cmd-select-fast)
+    (define-key map (kbd "s s") 'rec-cmd-select-sex)
+    (define-key map (kbd "h") 'rec-cmd-show-summary)
+    (define-key map (kbd "C-c t") 'rec-find-type)
     (define-key map [remap undo] 'rec-cmd-undo)
-    (define-key map "#" 'rec-cmd-count)
-    (define-key map "%" 'rec-cmd-statistic)
-    (define-key map (kbd "RET") 'rec-cmd-jump)
+    (define-key map (kbd "#") 'rec-cmd-count)
+    (define-key map (kbd "%") 'rec-cmd-statistic)
+    (define-key map [tab] 'rec-cmd-goto-next-field)
     (define-key map (kbd "TAB") 'rec-cmd-goto-next-field)
     (define-key map (kbd "SPC") 'rec-cmd-toggle-field-visibility)
-    (define-key map "b" 'rec-cmd-jump-back)
+    (define-key map (kbd "b") 'rec-cmd-jump-back)
     map)
   "Keymap for `rec-mode'.")
 
@@ -1167,9 +1168,9 @@ can then be used to toggle the visibility."
   (-head 'type)
   kind text data)
 
-(defvar rec-types                       ;FIXME: Shouldn't this be `defconst'?
+(defconst rec-types
   '("int" "bool" "range" "real" "size" "line" "regexp" "date" "enum" "field" "email" "uuid" "rec")
-  "Kind of supported types.")
+  "Built-in types of recutils.")
 
 (defun rec-type-kind-p (kind)
   "Determine whether the given symbol or string is a type KIND."
@@ -1186,6 +1187,8 @@ can then be used to toggle the visibility."
 
 STR must contain a type description as defined in the recutils
 manual."
+  ;; FIXME: Does not support type aliases.  Most likely this function will be
+  ;; built into recinf so that we do not do parsing in Elisp land.
   (with-temp-buffer
     (insert str)
     (goto-char (point-min))
@@ -1199,8 +1202,7 @@ manual."
               (rec-type--create (intern kind) str nil)))
            ((equal kind "size")
             (when (looking-at "[ \n\t]*\\([0-9]+\\)[ \n\t]*$")
-              ;; FIXME: A missing `'type'?  Should it call `rec-type--create'?
-              (list (intern kind) str (string-to-number (match-string 1)))))
+              (rec-type--create (intern kind) str (string-to-number (match-string 1)))))
            ((equal kind "range")
             (when (or
                    (looking-at "[ \n\t]*\\(-?[0-9]+\\)[ \n\t]*$")
@@ -1235,52 +1237,6 @@ manual."
                   (rec-type--create (intern kind) str (substring expr 1 -1))))))
            (t
             nil)))))))
-
-(defun rec-check-type (type str)
-  "Check whether STR contains a value conforming to TYPE, which is a field type structure."
-  (let* ((kind (rec-type-kind type))
-         ;; (expr (rec-type-text type))
-         (data (rec-type-data type))
-         (value str))
-    (cond
-     ((equal kind 'int)
-      (string-match-p "\\`-?[0-9]+\\'" value))
-     ((equal kind 'bool)
-      (string-match-p "^\\(yes\\|no\\|0\\|1\\|true\\|false\\)$" value))
-     ((equal kind 'range)
-      (let ((min (car data))
-            (max (cadr data)))
-        (when (looking-at "-?[0-9]+$") ;FIXME: `type' relates to text at point?
-          (let ((number (string-to-number (match-string 0))))
-            (and (>= number min) (<= number max))))))
-     ((equal kind 'real)
-      (string-match-p "^-?\\([0-9]*\\.\\)?[0-9]+$" value))
-     ((equal kind 'size)
-      (<= (length str) data))
-     ((equal kind 'line)
-      (string-match-p "^[^\n]*$" value))
-     ((equal kind 'regexp)
-      (string-match-p data value))
-     ((equal kind 'date)
-      ;; TODO.
-      t)
-     ((equal kind 'enum)
-      (member value data))
-     ((equal kind 'field)
-      ;; FIXME: [:alnum:]?
-      (string-match-p "\\`[a-zA-Z%][a-zA-Z0-9_]*\\'" value))
-     ((equal kind 'email)
-      ;; FIXME: [:alnum:]?
-      (string-match-p "\\`[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]+\\'"
-                      value))
-     ((equal kind 'uuid)
-      ;; TODO.
-      t)
-     ((equal kind 'rec)
-      ;; TODO.
-      t)
-     (t
-      nil))))
 
 (defun rec-field-type (field-name)
   "Return the type of FIELD-NAME in determined in the current record set.
@@ -1593,6 +1549,10 @@ Argument SEX is the selection expression to use."
 (defvar rec-prev-buffer)                ;FIXME: Should it have a global value?
 (defvar rec-pointer)                    ;FIXME: Buffer local?  Global value?
 
+(defconst rec-cmd-edit-field-message
+  "Edit the value of the field and use \\[rec-finish-editing-field] to exit"
+  "Message to display when entering `rec-edit-field-mode'.")
+
 (defun rec-cmd-edit-field (n)
   "Edit the contents of the field under point in a separate buffer.
 
@@ -1713,7 +1673,7 @@ will be used for fields of any type."
             (insert field-value)
             (switch-to-buffer-other-window edit-buf)
             (goto-char (point-min))
-            (message "Edit the value of the field and use C-c C-c to exit"))))
+            (message (substitute-command-keys rec-cmd-edit-field-message)))))
       (message "Not in a field"))))
 
 (defun rec-finish-editing-field ()
@@ -1884,7 +1844,7 @@ Optional argument N specifies number of records to skip."
   (rec-remove-continuation-line-marker-overlays)
   (setq buffer-read-only nil)
   (use-local-map rec-mode-edit-map)
-  (rec-set-head-line "Editing record - use C-cC-c to return to navigation mode")
+  (rec-set-head-line (substitute-command-keys "Editing record - use \\[rec-finish-editing] to return to navigation mode"))
   (rec-set-mode-line "Edit record")
   (setq rec-update-p nil)
   (setq rec-preserve-last-newline t))
@@ -1902,7 +1862,7 @@ Optional argument N specifies number of records to skip."
   (setq rec-update-p t)
   (rec-set-head-line (concat "Editing type "
                              "'" (rec-record-type) "'"
-                             " - use C-cC-c to return to navigation mode"))
+                             (substitute-command-keys " - use \\[rec-finish-editing] to return to navigation mode")))
   (rec-set-mode-line "Edit type"))
 
 (defun rec-edit-buffer ()
@@ -1915,7 +1875,7 @@ Optional argument N specifies number of records to skip."
   (use-local-map rec-mode-edit-map)
   (widen)
   (setq rec-update-p t)
-  (rec-set-head-line "Editing buffer - use C-cC-c to return to navigation mode")
+  (rec-set-head-line (substitute-command-keys "Editing buffer - use \\[rec-finish-editing] to return to navigation mode"))
   (rec-set-mode-line "Edit buffer"))
 
 (defun rec-finish-editing ()
@@ -2235,7 +2195,7 @@ mode and show the output of recfix in a separated buffer."
 
 (defvar rec-edit-field-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'rec-finish-editing-field)
+    (define-key map (kbd "C-c C-c") 'rec-finish-editing-field)
     map)
   "Keymap for `rec-edit-field-mode'.")
 
