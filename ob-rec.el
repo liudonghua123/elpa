@@ -1,6 +1,6 @@
 ;;; ob-rec.el --- org-babel functions for recutils evaluation  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2019 Free Software Foundation
+;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
 ;; Author: Jose E. Marchesi
 ;; Keywords: literate programming, reproducible research
