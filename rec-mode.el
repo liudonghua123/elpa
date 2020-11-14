@@ -67,6 +67,10 @@ Valid values are `edit' and `navigation'.  The default is `navigation'"
 The default is t."
   :type 'boolean)
 
+(defcustom rec-move-to-next-line-after-edit t
+  "Whether to move forward to the next field or line after editing a record field."
+  :type 'boolean)
+
 (defcustom rec-mode-hook nil
   "Hook run when entering rec mode."
   :type 'hook)
@@ -222,7 +226,7 @@ The default is t."
     (define-key map (kbd "s q") 'rec-cmd-select-fast)
     (define-key map (kbd "s s") 'rec-cmd-select-sex)
     (define-key map (kbd "h") 'rec-cmd-show-summary)
-    (define-key map (kbd "C-c t") 'rec-find-type)
+    (define-key map (kbd "C-c C-t") 'rec-find-type)
     (define-key map [remap undo] 'rec-cmd-undo)
     (define-key map (kbd "#") 'rec-cmd-count)
     (define-key map (kbd "%") 'rec-cmd-statistic)
@@ -1543,11 +1547,23 @@ Argument SEX is the selection expression to use."
 (make-variable-buffer-local 'rec-update-p)
 (defvar rec-preserve-last-newline nil)
 (make-variable-buffer-local 'rec-preserve-last-newline)
-(defvar rec-editing nil)
+
+;;; FIXME: should this be a minor mode?
+(defvar rec-editing nil
+  "Whether we are editing the whole buffer or record.")
 (make-variable-buffer-local 'rec-editing)
 
-(defvar rec-prev-buffer)                ;FIXME: Should it have a global value?
-(defvar rec-pointer)                    ;FIXME: Buffer local?  Global value?
+(defvar rec-prev-buffer nil
+  "The previous buffer we were in before jumping into `rec-edit-field-mode'.")
+(make-variable-buffer-local 'rec-prev-bufffer)
+
+(defvar rec-pointer nil
+  "The previous position in `rec-prev-buffer' we were at, before jumping into `rec-edit-field-mode'.")
+(make-variable-buffer-local 'rec-point)
+
+(defvar rec-prev-window-configuration nil
+  "The window configuration that was active before jumping into `rec-edit-field-mode'.")
+(make-variable-buffer-local 'rec-prev-window-configuration)
 
 (defconst rec-cmd-edit-field-message
   "Edit the value of the field and use \\[rec-finish-editing-field] to exit"
@@ -1557,7 +1573,7 @@ Argument SEX is the selection expression to use."
   "Edit the contents of the field under point in a separate buffer.
 
 The input method used for getting the field value depends on its
-type, unless a prefix argument N specifies.is used.  Then the more general
+type, unless a prefix argument N is used.  Then the more general
 method, i.e. asking for the new value in an unrestricted buffer,
 will be used for fields of any type."
   (interactive "P")
@@ -1618,7 +1634,8 @@ will be used for fields of any type."
                   (rec-insert-field (list 'field
                                           0
                                           field-name
-                                          new-value)))))))
+                                          new-value)))
+                (rec-finish-editing-move)))))
          ((and (equal field-type-kind 'date) rec-popup-calendar
                (null n))
           (setq rec-field-name field-name)
@@ -1643,7 +1660,8 @@ will be used for fields of any type."
                     (rec-insert-field (list 'field
                                             0
                                             rec-field-name
-                                            (format-time-string rec-time-stamp-format)))))))
+                                            (format-time-string rec-time-stamp-format))))
+                  (rec-finish-editing-move))))
             (define-key map (kbd "RET")
               (lambda () (interactive)
                 (let* ((date (calendar-cursor-to-date))
@@ -1657,7 +1675,8 @@ will be used for fields of any type."
                       (rec-insert-field (list 'field
                                               0
                                               rec-field-name
-                                              (format-time-string "%Y-%m-%d" time))))))))
+                                              (format-time-string "%Y-%m-%d" time))))
+                    (rec-finish-editing-move)))))
             (use-local-map map)
             (message "[RET]: Select date [t]: Time-stamp     [q]: Exit")))
          (t
@@ -1670,23 +1689,48 @@ will be used for fields of any type."
             (set-marker rec-marker pointer prev-buffer)
             (setq rec-prev-buffer prev-buffer)
             (setq rec-pointer pointer)
+            (setq rec-prev-window-configuration (current-window-configuration))
             (insert field-value)
             (switch-to-buffer-other-window edit-buf)
             (goto-char (point-min))
             (message (substitute-command-keys rec-cmd-edit-field-message)))))
       (message "Not in a field"))))
 
-(defun rec-finish-editing-field ()
-  "Stop editing the value of a field."
-  (interactive)
+(defun rec-finish-editing-move ()
+  "Move point to the next field or line after editing.
+
+If there is no next field, move forward one line, unless
+`rec-editing' is nil, we are on a single record, so we're not
+going to move past the last line.
+
+If the movement would jump to a next record, this moves forward one line.
+
+If `rec-move-to-next-line-after-edit' is nil, do nothing."
+  (when rec-move-to-next-line-after-edit
+    (if (let ((this-end (rec-end-of-record-pos)))
+          (save-excursion
+            (rec-goto-next-field)
+            (< (point) this-end)))
+        (rec-goto-next-field)
+      (when rec-editing
+        (forward-line 1)))))
+
+(defun rec-finish-editing-field (&optional stay)
+  "Stop editing the value of a field, and move on the next field.
+
+If no field is next, move forward one line.
+
+If `rec-move-to-next-line-after-edit' is non-nil, moves to the
+next field or line.
+
+Prefix argument STAY means stay on the field we just edited."
+  (interactive "P")
   (let ((marker rec-marker)
         (prev-pointer rec-pointer)
         (edit-buffer (current-buffer))
         (name rec-field-name)
         (value (buffer-substring-no-properties (point-min) (point-max))))
-    (if (equal (length (window-list)) 1)
-        (set-window-buffer (selected-window) rec-prev-buffer)
-      (delete-window))
+    (set-window-configuration rec-prev-window-configuration)
     (switch-to-buffer rec-prev-buffer)
     (let ((inhibit-read-only t))
       (kill-buffer edit-buffer)
@@ -1698,7 +1742,9 @@ will be used for fields of any type."
                               value))
       (goto-char prev-pointer)
       (unless rec-editing
-        (rec-hide-continuation-line-markers)))))
+        (rec-hide-continuation-line-markers))
+      (unless stay
+        (rec-finish-editing-move)))))
 
 (defun rec-beginning-of-field ()
   "Goto to the beginning of the current field."
@@ -1876,10 +1922,11 @@ Optional argument N specifies number of records to skip."
   (widen)
   (setq rec-update-p t)
   (rec-set-head-line (substitute-command-keys "Editing buffer - use \\[rec-finish-editing] to return to navigation mode"))
-  (rec-set-mode-line "Edit buffer"))
+  (rec-set-mode-line "Edit buffer")
+  (recenter-top-bottom))
 
 (defun rec-finish-editing ()
-  "Go back from the record edition mode."
+  "Go back from the record or buffer edition mode."
   (interactive)
   (when (or (not rec-update-p)
             (and rec-update-p
