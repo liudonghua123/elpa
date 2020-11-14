@@ -202,6 +202,7 @@ The default is t."
     (define-key map (kbd "TAB") 'rec-cmd-goto-next-field)
     (define-key map (kbd "C-c C-b") 'rec-cmd-jump-back)
     (define-key map (kbd "C-c C-c") 'rec-finish-editing)
+    (define-key map (kbd "C-c C-t") 'rec-find-type)
     map)
   "Keymap for `rec-mode' when editing records.")
 
@@ -2206,6 +2207,35 @@ function returns nil."
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.rec\\'" . rec-mode))
+
+(easy-menu-define rec-mode-menu (list rec-mode-map rec-mode-edit-map)
+  "Menu for rec-mode."
+  '("Rec"
+    ["Jump back"                    rec-cmd-jump-back rec-jump-back]
+    ["Next record of same type"     rec-cmd-goto-next-rec t]
+    ["Previous record of same type" rec-cmd-goto-previous-rec t]
+    ["Next field"                   rec-cmd-goto-next-field t]
+    ["Goto record descriptor"       rec-cmd-show-descriptor t]
+    "---"
+    ["Toggle field visibility" rec-cmd-toggle-field-visibility t]
+    ["Trim field value"   rec-cmd-trim-field-value t]
+    "---"
+    ["Edit field"         rec-cmd-edit-field (not (derived-mode-p 'rec-edit-field-mode))]
+    ["Edit record"        rec-edit-record  (not rec-editing)]
+    ["Edit type"          rec-edit-type  (not rec-editing)]
+    ["Edit buffer"        rec-edit-buffer (not rec-editing)]
+    "---"
+    ["Show info about file" rec-cmd-show-info t]
+    ["Show field type"    rec-cmd-show-type t]
+    ["Show field value statistics" rec-cmd-statistic t]
+    "---"
+    ["Count records of same type" rec-cmd-count t]
+    "---"
+    ["Show summary"       rec-cmd-show-summary t]
+    ["Compile (recfix)"   rec-cmd-compile t]
+    ["Find type"          rec-find-type t]
+    ["---"                nil                :visible rec-editing]
+    ["Finish editing"     rec-finish-editing :visible rec-editing]))
 
 (define-derived-mode rec-mode nil "Rec"
   "A major mode for editing rec files.
