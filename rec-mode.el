@@ -179,7 +179,7 @@ The default is t."
     ("^\\+" . 'rec-continuation-line-face))
   "Font lock keywords used in `rec-mode'.")
 
-(defvar rec-mode-edit-map
+(defvar rec-edit-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-n") 'rec-cmd-goto-next-rec)
     (define-key map (kbd "C-c C-p") 'rec-cmd-goto-previous-rec)
@@ -203,8 +203,11 @@ The default is t."
     (define-key map (kbd "C-c C-b") 'rec-cmd-jump-back)
     (define-key map (kbd "C-c C-c") 'rec-finish-editing)
     (define-key map (kbd "C-c C-t") 'rec-find-type)
+    ;; Set a dummy keymap as the parent so we shadow
+    ;; `rec-mode-map' instead of inheriting it.
+    (set-keymap-parent map (make-sparse-keymap))
     map)
-  "Keymap for `rec-mode' when editing records.")
+  "Keymap for `rec-edit-mode'.")
 
 (defvar rec-mode-map
   (let ((map (make-sparse-keymap)))
@@ -996,7 +999,6 @@ descriptor record.  If nil, the descriptor is skipped."
   "Show the record under the point."
   (setq buffer-read-only t)
   (rec-narrow-to-record)
-  (use-local-map rec-mode-map)
   (rec-set-head-line nil)
   (rec-set-mode-line (rec-record-type))
   ;; Hide the contents of big fields.
@@ -1549,11 +1551,6 @@ Argument SEX is the selection expression to use."
 (defvar rec-preserve-last-newline nil)
 (make-variable-buffer-local 'rec-preserve-last-newline)
 
-;;; FIXME: should this be a minor mode?
-(defvar rec-editing nil
-  "Whether we are editing the whole buffer or record.")
-(make-variable-buffer-local 'rec-editing)
-
 (defvar rec-prev-buffer nil
   "The previous buffer we were in before jumping into `rec-edit-field-mode'.")
 (make-variable-buffer-local 'rec-prev-bufffer)
@@ -1711,9 +1708,9 @@ If `rec-move-to-next-line-after-edit' is nil, do nothing."
     (if (let ((this-end (rec-end-of-record-pos)))
           (save-excursion
             (rec-goto-next-field)
-            (< (point) this-end)))
+            (< (line-end-position) this-end)))
         (rec-goto-next-field)
-      (when rec-editing
+      (when (derived-mode-p 'rec-edit-mode)
         (forward-line 1)))))
 
 (defun rec-finish-editing-field (&optional stay)
@@ -1742,7 +1739,7 @@ Prefix argument STAY means stay on the field we just edited."
                               name
                               value))
       (goto-char prev-pointer)
-      (unless rec-editing
+      (unless (derived-mode-p 'rec-edit-mode)
         (rec-hide-continuation-line-markers))
       (unless stay
         (rec-finish-editing-move)))))
@@ -1806,12 +1803,12 @@ Interactive version of `rec-goto-next-field'."
   (interactive)
   (if (save-excursion
         (not (rec-goto-next-field)))
-      (if rec-editing
+      (if (derived-mode-p 'rec-edit-mode)
           (progn
             (goto-char (point-min))
             (unless (looking-at rec-field-name-re)
               (rec-goto-next-field)))
-      (rec-beginning-of-record))
+        (rec-beginning-of-record))
     (rec-goto-next-field)))
 
 (defun rec-cmd-goto-next-rec (&optional n)
@@ -1836,7 +1833,7 @@ Optional argument N specifies number of records to skip."
 	    (message "No more records")
 	  (message "%s" (concat "No more records of type "
 				(rec-record-type)))))))
-  (unless rec-editing
+  (unless (derived-mode-p 'rec-edit-mode)
     (rec-show-record)))
 
 (defun rec-cmd-goto-previous-rec (&optional n)
@@ -1862,7 +1859,7 @@ Optional argument N specifies number of records to skip."
 	    (message "No more records")
 	  (message "%s" (concat "No more records of type "
 				(rec-record-type)))))))
-  (unless rec-editing
+  (unless (derived-mode-p 'rec-edit-mode)
     (rec-show-record)))
 
 (defun rec-cmd-undo ()
@@ -1878,7 +1875,7 @@ Optional argument N specifies number of records to skip."
       (progn
         (widen)
         (goto-char (marker-position rec-jump-back))
-        (unless rec-editing
+        (unless (derived-mode-p 'rec-edit-mode)
           (rec-show-record))
         (setq rec-jump-back nil))
     (message "No previous position to jump")))
@@ -1886,11 +1883,9 @@ Optional argument N specifies number of records to skip."
 (defun rec-edit-record ()
   "Go to the record edition mode."
   (interactive)
-  (setq rec-editing t)
-  (rec-unfold-all-fields)
-  (rec-remove-continuation-line-marker-overlays)
-  (setq buffer-read-only nil)
-  (use-local-map rec-mode-edit-map)
+  (major-mode-suspend)
+  (save-restriction
+    (rec-edit-mode))
   (rec-set-head-line (substitute-command-keys "Editing record - use \\[rec-finish-editing] to return to navigation mode"))
   (rec-set-mode-line "Edit record")
   (setq rec-update-p nil)
@@ -1899,11 +1894,8 @@ Optional argument N specifies number of records to skip."
 (defun rec-edit-type ()
   "Go to the type edition mode."
   (interactive)
-  (setq rec-editing t)
-  (rec-unfold-all-fields)
-  (rec-remove-continuation-line-marker-overlays)
-  (setq buffer-read-only nil)
-  (use-local-map rec-mode-edit-map)
+  (major-mode-suspend)
+  (rec-edit-mode)
   (widen)
   (rec-narrow-to-type (rec-record-type))
   (setq rec-update-p t)
@@ -1915,11 +1907,8 @@ Optional argument N specifies number of records to skip."
 (defun rec-edit-buffer ()
   "Go to the buffer edition mode."
   (interactive)
-  (setq rec-editing t)
-  (rec-unfold-all-fields)
-  (rec-remove-continuation-line-marker-overlays)
-  (setq buffer-read-only nil)
-  (use-local-map rec-mode-edit-map)
+  (major-mode-suspend)
+  (rec-edit-mode)
   (widen)
   (setq rec-update-p t)
   (rec-set-head-line (substitute-command-keys "Editing buffer - use \\[rec-finish-editing] to return to navigation mode"))
@@ -1927,11 +1916,14 @@ Optional argument N specifies number of records to skip."
   (recenter-top-bottom))
 
 (defun rec-finish-editing ()
-  "Go back from the record or buffer edition mode."
+  "Go back from the record, type or buffer edition mode."
   (interactive)
   (when (or (not rec-update-p)
             (and rec-update-p
                  (save-restriction (widen) (rec-update-buffer-descriptors-and-check t))))
+    (save-excursion
+      (save-restriction
+        (major-mode-restore)))
     (or (rec-current-record)
         (rec-goto-next-rec)
         (rec-goto-previous-rec))
@@ -1944,7 +1936,6 @@ Optional argument N specifies number of records to skip."
     (rec-show-record)
     (rec-set-head-line nil)
     (rec-set-mode-line (rec-record-type))
-    (setq rec-editing nil)
     (message "End of edition")))
 
 (defun rec-cmd-show-descriptor ()
@@ -1955,7 +1946,7 @@ This jump sets jump-back."
   (let ((type (rec-record-type)))
     (when type
       (setq rec-jump-back (point-marker))
-      (if rec-editing
+      (if (derived-mode-p 'rec-edit-mode)
           (rec-goto-type type)
         (rec-show-type type t)))))
 
@@ -2030,7 +2021,7 @@ This command is especially useful with enumerated types."
 (defun rec-cmd-append-field ()
   "Goto the end of the record and switch to edit record mode."
   (interactive)
-  (unless rec-editing
+  (unless (derived-mode-p 'rec-edit-mode)
     (rec-edit-record)
     (goto-char (point-max))
     (insert "\n")
@@ -2208,22 +2199,23 @@ function returns nil."
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.rec\\'" . rec-mode))
 
-(easy-menu-define rec-mode-menu (list rec-mode-map rec-mode-edit-map)
+(easy-menu-define rec-mode-menu (list rec-mode-map rec-edit-mode-map)
   "Menu for rec-mode."
   '("Rec"
     ["Jump back"                    rec-cmd-jump-back rec-jump-back]
     ["Next record of same type"     rec-cmd-goto-next-rec t]
     ["Previous record of same type" rec-cmd-goto-previous-rec t]
     ["Next field"                   rec-cmd-goto-next-field t]
-    ["Goto record descriptor"       rec-cmd-show-descriptor t]
+    ["Go to record descriptor"       rec-cmd-show-descriptor t]
     "---"
+    ["Append field"       rec-cmd-append-field t]
     ["Toggle field visibility" rec-cmd-toggle-field-visibility t]
     ["Trim field value"   rec-cmd-trim-field-value t]
     "---"
-    ["Edit field"         rec-cmd-edit-field (not (derived-mode-p 'rec-edit-field-mode))]
-    ["Edit record"        rec-edit-record  (not rec-editing)]
-    ["Edit type"          rec-edit-type  (not rec-editing)]
-    ["Edit buffer"        rec-edit-buffer (not rec-editing)]
+    ["Edit field"         rec-cmd-edit-field t]
+    ["Edit record"        rec-edit-record  (not (derived-mode-p 'rec-edit-mode))]
+    ["Edit type"          rec-edit-type  (not (derived-mode-p 'rec-edit-mode))]
+    ["Edit buffer"        rec-edit-buffer (not (derived-mode-p 'rec-edit-mode))]
     "---"
     ["Show info about file" rec-cmd-show-info t]
     ["Show field type"    rec-cmd-show-type t]
@@ -2233,9 +2225,9 @@ function returns nil."
     "---"
     ["Show summary"       rec-cmd-show-summary t]
     ["Compile (recfix)"   rec-cmd-compile t]
-    ["Find type"          rec-find-type t]
-    ["---"                nil                :visible rec-editing]
-    ["Finish editing"     rec-finish-editing :visible rec-editing]))
+    ["Find type..."       rec-find-type t]
+    ["---"                nil                :visible (derived-mode-p 'rec-edit-mode)]
+    ["Finish editing"     rec-finish-editing :visible (derived-mode-p 'rec-edit-mode)]))
 
 (define-derived-mode rec-mode nil "Rec"
   "A major mode for editing rec files.
@@ -2266,9 +2258,19 @@ mode and show the output of recfix in a separated buffer."
           (setq buffer-read-only t)
           (rec-show-type (car (rec-buffer-types))))
       ;; Edit mode
-      (use-local-map rec-mode-edit-map)
-      (setq rec-editing t)
+      (rec-edit-mode)
       (rec-set-mode-line "Edit buffer"))))
+
+(define-derived-mode rec-edit-mode rec-mode "Rec Edit"
+  "A major mode for editing recfiles in Edit Mode.
+
+See Info node `(rec-mode)Editing Mode'.
+\\{rec-edit-mode-map}"
+  (rec-unfold-all-fields)
+  (rec-remove-continuation-line-marker-overlays)
+  (setq buffer-read-only nil)
+  (remove-hook 'hack-local-variables-hook #'rec--after-major-mode t)
+  (add-hook 'hack-local-variables-hook #'rec-update-buffer-descriptors-and-check nil t))
 
 (defvar rec-edit-field-mode-map
   (let ((map (make-sparse-keymap)))
