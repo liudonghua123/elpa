@@ -27,11 +27,13 @@
 ;;;###autoload
 (defun autocrypt-mu4e-install ()
   "Install autocrypt hooks for mu4e."
-  (add-hook 'mu4e-view-mode-hook #'autocrypt-process-header))
+  (add-hook 'mu4e-view-mode-hook #'autocrypt-process-header)
+  (add-hook 'mu4e-compose-mode-hook #'autocrypt-compose-setup))
 
 (defun autocrypt-mu4e-uninstall ()
   "Remove autocrypt hooks for mu4e."
-  (remove-hook 'mu4e-view-mode-hook #'autocrypt-process-header))
+  (remove-hook 'mu4e-view-mode-hook #'autocrypt-process-header)
+  (remove-hook 'mu4e-compose-mode-hook #'autocrypt-compose-setup))
 
 (defun autocrypt-mu4e-header (field)
   "Ask mu4e to return header FIELD."

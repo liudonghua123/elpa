@@ -109,7 +109,12 @@ Every member of this list has to be an instance of the
     (mu4e
      :install autocrypt-mu4e-install
      :uninstall autocrypt-mu4e-uninstall
-     :header autocrypt-mu4e-header)
+     :header autocrypt-mu4e-header
+     :add-header autocrypt-message-add-header
+     :remove-header message-remove-header
+     :sign-encrypt autocrypt-message-sign-encrypt
+     :secure-attach autocrypt-message-secure-attach
+     :encrypted-p mml-secure-is-encrypted-p)
     (message
      :install autocrypt-message-install
      :uninstall autocrypt-message-uninstall
