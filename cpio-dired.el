@@ -4,24 +4,24 @@
 
 ;; Copyright © 2019-2020 Free Software Foundation, Inc.
 ;; All rights reserved.
-;; 
+;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; Author: Douglas Lewan <d.lewan2000@gmail.com>
 ;; Maintainer: Douglas Lewan <d.lewan2000@gmail.com>
 ;; Created: 2017 Dec 01
-;; Version: 0.16β
+;; Version: 0.17
 ;; Keywords: files
 
 ;;; Commentary:
@@ -46,7 +46,7 @@
 
 (defun snarf-defuns ()                  ;FIXME: Namespace!
   "Return a list of the defuns in the visible porition of the buffer.
-Keep any preceding comments." 
+Keep any preceding comments."
   (let ((fname "snarf-defuns")
 	(results ())
 	(start)
@@ -95,15 +95,15 @@ Keep any preceding comments."
 
 ;;
 ;; Dependencies
-;; 
+;;
 
 (eval-when-compile (require 'cpio-generic)) ;For `with-writable-buffer'!
 (require 'dired)
 (require 'dired-aux)
 
-;; 
+;;
 ;; Vars
-;; 
+;;
 
 ;;;;;;;;;;;;;;;;
 ;; Make the byte compiler happy.
@@ -176,15 +176,15 @@ Keep any preceding comments."
 
 ;; (defvar dired-sort-by-date-regexp
 ;;   (concat "\\(\\`\\| \\)-[^- ]*t"
-;; 	  ;; `dired-ls-sorting-switches' after -t overrides -t.
-;; 	  "[^ " dired-ls-sorting-switches "]*"
-;; 	  "\\(\\(\\`\\| +\\)\\(--[^ ]+\\|-[^- t"
-;; 	  dired-ls-sorting-switches "]+\\)\\)* *$")
+;;	  ;; `dired-ls-sorting-switches' after -t overrides -t.
+;;	  "[^ " dired-ls-sorting-switches "]*"
+;;	  "\\(\\(\\`\\| +\\)\\(--[^ ]+\\|-[^- t"
+;;	  dired-ls-sorting-switches "]+\\)\\)* *$")
 ;;   "Regexp recognized by Dired to set `by date' mode.")
 
 ;; (defvar dired-sort-by-name-regexp
 ;;   (concat "\\`\\(\\(\\`\\| +\\)\\(--[^ ]+\\|"
-;; 	  "-[^- t" dired-ls-sorting-switches "]+\\)\\)* *$")
+;;	  "-[^- t" dired-ls-sorting-switches "]+\\)\\)* *$")
 ;;   "Regexp recognized by Dired to set `by name' mode.")
 
 ;; (defvar dired-sort-inhibit nil
@@ -225,7 +225,7 @@ Keep any preceding comments."
 						"\\("
 						"[[:alnum:]]+" ;group
 						"\\)"
-						
+
 						"\\s-+"
 						"[[:digit:]]+" ;filesize
 						"\\s-+"
@@ -250,7 +250,7 @@ Keep any preceding comments."
 					      "\\("
 					      "[[:alnum:]]+" ;group
 					      "\\)"
-					      
+
 					      "\\s-+"
 					      "[[:digit:]]+" ;filesize
 					      "\\s-+"
@@ -332,7 +332,6 @@ This is what the do-commands look for, and what the mark-commands store.")
   "In cpio-dired, a string corresponding to cpio-dired-del-marker.")
 (setq cpio-dired-del-str (char-to-string cpio-dired-del-marker))
 
-  
 ;; HEREHERE dired-keep-marker-copy is customizable.
 ;; Should it be here too?
 (defvar cpio-dired-keep-marker-copy ?C
@@ -419,16 +418,16 @@ Important: the match ends just after the marker.")
    ;;
    ;; Marked entries.
    (list (concat "^[" (char-to-string cpio-dired-marker-char) "]")
-         '(".+" (cpio-dired-move-to-entry-name) nil (0 cpio-dired-marked-face)))
+	 '(".+" (cpio-dired-move-to-entry-name) nil (0 cpio-dired-marked-face)))
    ;;
    ;; Flagged entries.
    (list (concat "^[" (char-to-string cpio-dired-del-marker) "]")
-         '(".+" (cpio-dired-move-to-entry-name) nil (0 cpio-dired-flagged-face)))
+	 '(".+" (cpio-dired-move-to-entry-name) nil (0 cpio-dired-flagged-face)))
    ;; People who are paranoid about security would consider this more
    ;; important than other things such as whether it is a directory.
    ;; But we don't want to encourage paranoia, so our default
    ;; should be what's most useful for non-paranoids. -- rms.
-   ;; 
+   ;;
    ;; However, we don't need to highlight the entry name, only the
    ;; permissions, to win generally.  -- fx.
    ;; Fixme: we could also put text properties on the permission
@@ -478,10 +477,10 @@ Important: the match ends just after the marker.")
    ;;
    ;; Directory headers.
    ;;;; (list cpio-dired-subdir-regexp '(1 cpio-dired-header-face))
-   
    )
   "Additional expressions to highlight in cpio-dired mode.")
-(setq cpio-dired-font-lock-keywords 
+
+(setq cpio-dired-font-lock-keywords
   ;; cpio-dired-font-lock-keywords is adapted from dired.
   (list
    ;;
@@ -495,16 +494,16 @@ Important: the match ends just after the marker.")
    ;;
    ;; Marked entries.
    (list (concat "^[" (char-to-string cpio-dired-marker-char) "]")
-         '(".+" (cpio-dired-move-to-entry-name) nil (0 cpio-dired-marked-face)))
+	 '(".+" (cpio-dired-move-to-entry-name) nil (0 cpio-dired-marked-face)))
    ;;
    ;; Flagged entries.
    (list (concat "^[" (char-to-string cpio-dired-del-marker) "]")
-         '(".+" (cpio-dired-move-to-entry-name) nil (0 cpio-dired-flagged-face)))
+	 '(".+" (cpio-dired-move-to-entry-name) nil (0 cpio-dired-flagged-face)))
    ;; People who are paranoid about security would consider this more
    ;; important than other things such as whether it is a directory.
    ;; But we don't want to encourage paranoia, so our default
    ;; should be what's most useful for non-paranoids. -- rms.
-   ;; 
+   ;;
    ;; However, we don't need to highlight the entry name, only the
    ;; permissions, to win generally.  -- fx.
    ;; Fixme: we could also put text properties on the permission
@@ -722,9 +721,9 @@ Important: the match ends just after the marker.")
   :type 'boolean)
 
 
-;; 
+;;
 ;; Library
-;; 
+;;
 
 (defun cpio-dired-get-entry-name ()
   "Get the entry name on the current line."
@@ -840,16 +839,16 @@ then use that to mark the new entry."
 
       (cpio-delete-trailer)
       (setq header-string (cpio-make-header-string attrs contents))
-      
+
       (with-writable-buffer
        (setq header-start-marker (point-max-marker))
        (goto-char (point-max))
        (insert header-string)
-      
+
        (setq contents-start-marker (point-max-marker))
        (goto-char (point-max))
        (cpio-insert-padded-contents contents))
-	
+
       (aset new-catalog-entry *cpio-catalog-entry-attrs-idx* attrs)
       (aset new-catalog-entry *cpio-catalog-entry-header-start-idx* header-start-marker)
       (aset new-catalog-entry *cpio-catalog-entry-contents-start-idx* contents-start-marker)
@@ -902,7 +901,7 @@ CONTRACT: TARGET is the actual TARGET name, not an implied directory entry."
 
 (defun cpio-dired-internal-do-rename (entry-name target)
   "Rename ENTRY-NAME to the TARGET entry.
-CONTRACT: 
+CONTRACT:
 1. TARGET is the actual TARGET name, not an implied directory entry.
 2. You're in a cpio-dired buffer"
   ;; HEREHERE This has some overlap with (cpio-dired-internal-do-copy).
@@ -1046,8 +1045,8 @@ The line does not include a trailing <new line>."
     (unless (characterp mark)
       (signal 'wrong-type-error (list 'characterp mark)))
     (if fmt
-	(format fmt mark 
-		mode-string nlink-string uid-string gid-string 
+	(format fmt mark
+		mode-string nlink-string uid-string gid-string
 		filesize-string mtime-string entry-name-string))))
 
 (defun cpio-dired-get-mark (&optional entry-name)
@@ -1059,13 +1058,13 @@ The line does not include a trailing <new line>."
       (setq entry-name (cpio-dired-get-entry-name)))
     (save-excursion
       (cpio-dired-goto-entry entry-name)
-      (string-to-char (buffer-substring (line-beginning-position) 
+      (string-to-char (buffer-substring (line-beginning-position)
 					(1+ (line-beginning-position)))))))
 
 
 ;;
 ;; Commands
-;; 
+;;
 
 ;; h		describe-mode
 
@@ -1109,7 +1108,7 @@ then use the current buffer."
 
 	   (cpio-delete-trailer)
 	   (setq header-string (cpio-make-header-string entry-attrs))
-	   
+
 	   (with-writable-buffer
 	    (setq header-start-marker (point-max-marker))
 	    (goto-char (point-max))
@@ -1121,7 +1120,7 @@ then use the current buffer."
 
 	    (goto-char (point-max))
 	    (cpio-insert-trailer))
-	   
+
 	   (with-current-buffer cpio-dired-buffer
 	     (with-writable-buffer
 	      (delete-region (line-beginning-position) (1+ (line-end-position)))))))))
@@ -1375,7 +1374,7 @@ in the buffer containing the archive."
 	(attrs)
 	(mark))
     (unless (or (eq major-mode 'cpio-dired-mode)
- 		(eq major-mode 'cpio-mode))
+		(eq major-mode 'cpio-mode))
       (error "%s(): major mode is [[%s]]." fname (symbol-name major-mode))
       (error "%s(): You're in neither a cpio-dired buffer nor a buffer in cpio-mode ." fname))
     (cond (*cab-parent*
@@ -1467,9 +1466,9 @@ into the minibuffer."
 			 owner
 		       ;; HERREHERE The following (read-string) doesn't play nicely
 		       ;; with make check*.
- 		       (read-string "Owner? "
- 				    nil
- 				    *cpio-dired-do-chown-history*)))
+		       (read-string "Owner? "
+				    nil
+				    *cpio-dired-do-chown-history*)))
 	(local-group)
 	(local-cpio-dired-buffer (if cpio-dired-buffer
 				     cpio-dired-buffer))
@@ -1516,7 +1515,7 @@ into the minibuffer."
 		   (if local-group
 		       (cpio-set-gid attrs local-group))
 		   (cpio-set-contents-start entry (+ (cpio-entry-header-start entry)
-						     (length (cpio-padded (cpio-make-header-string attrs)
+						     (length (cpio-pad (cpio-make-header-string attrs)
 									  *cpio-padding-modulus* ?\0))))
 		   (goto-char (cpio-entry-contents-start entry))
 
@@ -1662,7 +1661,7 @@ See function `dired-do-rename-regexp' for more info."
   (let ((fname "cpio-dired-do-hardlink-regexp"))
     (error "%s() is not yet implemented" fname)))
 
-;; 
+;;
 ;; M-s a C-s	dired-do-isearch
 (defun cpio-dired-do-isearch ()		;×
   "Search for a string through all marked entries using Isearch."
@@ -1670,7 +1669,7 @@ See function `dired-do-rename-regexp' for more info."
   (let ((fname "cpio-dired-do-isearch"))
     (error "%s() is not yet implemented" fname)))
 
-;; 
+;;
 ;; M-s a C-M-s	dired-do-isearch-regexp
 (defun cpio-dired-do-isearch-regexp ()	;×
   "Search for a regexp through all marked entries using Isearch."
@@ -2040,7 +2039,7 @@ Return the buffer containing those contents."
 	(entry-buf))
     (cond ((null local-entry-name)
 	   (message "%s(): Could not get entry name." fname))
-	  (t 
+	  (t
 	   (with-current-buffer (setq entry-buf (cpio-find-entry local-entry-name))
 	     (cpio-entry-contents-mode))
 	   (pop-to-buffer entry-buf)))))
@@ -2166,7 +2165,7 @@ Use M-x dired-hide-all to (un)hide all directories."
   (let ((fname "cpio-dired-hide-subdir"))
     (warn "%s() is not obvious." fname)))
 
-;; 
+;;
 ;; M-s f C-s	dired-isearch-filenames
 (defun cpio-dired-isearch-entry-names () ;×
   "Search for a string using Isearch only in entry names in the Dired buffer."
@@ -2175,7 +2174,7 @@ Use M-x dired-hide-all to (un)hide all directories."
     (error "%s() is not yet implemented" fname)))
 
 ;; M-s a ESC	Prefix Command
-;; 
+;;
 ;; M-s f C-M-s	dired-isearch-filenames-regexp
 (defun cpio-dired-isearch-entry-names-regexp () ;×
   "Search for a regexp using Isearch only in entry names in the cpio-dired buffer."
@@ -2250,8 +2249,8 @@ A prefix argument means to unmark them instead.
 `.' and `..' are never marked."
   (interactive
    (list (read-regexp (concat (if current-prefix-arg "Unmark" "Mark")
-                              " files containing (regexp): ")
-                      nil 'dired-regexp-history)
+			      " files containing (regexp): ")
+		      nil 'dired-regexp-history)
 	 (if current-prefix-arg ?\040)))
   (let ((fname "cpio-dired-mark-entries-containing-regexp"))
     (error "%s() is not yet implemented" fname)))
@@ -2298,7 +2297,7 @@ With prefix argument, unmark or unflag all those entries."
 		(/= 0 (logand s-ixoth this-mode)))
 	    (cpio-dired-mark-this-entry)
 	  (cpio-dired-next-line 1))))))
-  
+
 ;; * m		dired-mark
 ;; Defined above.
 ;; * s		dired-mark-subdir-entries
@@ -2810,7 +2809,7 @@ easy-to-use form."
     (error "%s() is not yet implemented" fname)))
 
 ;; <remap>		Prefix Command
-;; 
+;;
 ;; C-t C-t		image-dired-dired-toggle-marked-thumbs
 (defun cpio-image-dired-dired-toggle-marked-thumbs (arg)	;×
   "Toggle thumbnails in front of entry names in the dired buffer.

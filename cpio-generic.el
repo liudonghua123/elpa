@@ -1,28 +1,28 @@
 ;;; cpio-generic.el --- generically useful functions created in support of CPIO mode. -*- coding: utf-8 -*-
 
 ;; COPYRIGHT
-;; 
+;;
 ;; Copyright © 2019-2020 Free Software Foundation, Inc.
 ;; All rights reserved.
-;; 
+;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-;; 
+;;
 
 ;; Author: Douglas Lewan <d.lewan2000@gmail.com>
 ;; Maintainer: Douglas Lewan <d.lewan2000@gmail.com>
 ;; Created: 2015 Apr 23
-;; Version: 0.16β
+;; Version: 0.17
 ;; Keywords: files
 
 ;;; Commentary:
@@ -34,7 +34,7 @@
 ;;
 ;; A quick glance through it suggests
 ;; that it has a lot of functional overlap with cpio-modes.el.
-;; 
+;;
 
 ;;; Documentation:
 
@@ -42,12 +42,17 @@
 
 ;;
 ;; Dependencies
-;; 
+;;
+(eval-and-compile
+  (require 'cl))
+
+(declare-function signum "cl")
+
 
 
-;; 
+;;
 ;; Vars
-;; 
+;;
 
 (defvar *cg-integer-hex-digits* nil)
 
@@ -57,9 +62,9 @@
   "Value used to define that a marker has type 'insert before'.")
 
 
-;; 
+;;
 ;; Library
-;; 
+;;
 
 (defun cg-integer-hex-digits ()
   "Calculate the number of hex digits that are required to represent any integer."
@@ -99,12 +104,17 @@ CAVEAT: If NUMBER is negative, then the result may be surprising."
   (let ((fname "cg-round-up"))
     (unless (and (integerp number) (integerp modulus))
       (error "%s() takes integer arguments." fname))
-    (if (= 0 (mod number modulus))
-	number
-      (* modulus (/ (+ number modulus -1) modulus)))))
+    (cond ((= 0 (mod number modulus))
+	   number)
+	  ((= (signum number) 1)
+	   (* modulus (/ (+ number modulus -1) modulus)))
+	  ((= (signum number) -1)
+	   (* modulus (/ number modulus)))
+	  (t
+	   (error "%s(): Impossible condition." fname)))))
 
 (defun cg-pad-right (string width char)
-  "Pad STRING on the right with CHAR until it is WIDTH characters wide.
+  "Pad STRING on the right with CHAR until it is at least WIDTH characters wide.
 CHAR is typically a character or a single character string, but may be any string."
   (let ((fname "cg-pad-right"))
     (if (characterp char) (setq char (char-to-string char)))
@@ -132,9 +142,9 @@ If the optional argument MULTIPLES is not NIL,
 then match as many copies of RE as are there."
   (let ((fname "cg-strip-left")
 	(inner-re (if multiples
-		      (concat "\\`+\\(" re "\\)")
+		      (concat "\\`\\(" re "\\)+")
 		    (concat "\\`" re)))
-		  
+
 	(result string))
     (save-match-data
       (if (string-match inner-re string)
@@ -149,8 +159,8 @@ then match as many copies of RE as are there."
 	(result))
     (cg-strip-left re (cg-strip-right re string multiples) multiples)))
 
-(defun cpio-padded (string modulus pad-char)
-  "Pad the given STRING."
+(defun cpio-pad (string modulus pad-char)
+  "Pad the given STRING with PAD-CHAR so that the resulting string has at least length MODULUS."
   (let* ((fname "cpio-padded")
 	 (string-length (length string))
 	 (desired-length (cg-round-up string-length modulus)))
@@ -178,7 +188,9 @@ CAVEAT: This deletes any buffer holding /etc/passwd."
 		    (t nil))
 	      (forward-line))))))
     (kill-buffer passwd-buffer)
-    (string-to-number uid)))
+    (if uid
+	(string-to-number uid)
+      nil)))
 
 (defun cpio-gid-for-group (group)
   "Return the GID (an integer) for the given GROUP (a string) if it exists.
@@ -205,7 +217,9 @@ CAVEAT: This deletes any buffer holding /etc/group."
 			   (t nil))
 		     (forward-line))))))
 	   (kill-buffer group-buffer)
-	   (string-to-number gid))
+	   (if gid
+	       (string-to-number gid)
+	     nil))
 	  (t nil))))
 
 (defmacro with-writable-buffer (&rest body) ;FIXME: Namespace!
@@ -296,7 +310,7 @@ Other languages are not yet implemented."
 			 "\\)?"
 			 "\\)")))
     (save-match-data
-      (cond 
+      (cond
        ((string-match (concat "\\`"
 			      year-re
 			      "[-/ ]+"
@@ -310,7 +324,7 @@ Other languages are not yet implemented."
 	(setq year   (string-to-number     (match-string-no-properties 1 human-time)))
 	(setq month  (month-to-number      (match-string-no-properties 2 human-time)))
 	(setq day    (string-to-number     (match-string-no-properties 3 human-time)))
-								    
+
 	(setq hour   (string-to-number (or (match-string-no-properties 5 human-time) "0")))
 	(setq minute (string-to-number (or (match-string-no-properties 6 human-time) "0")))
 	(setq second (string-to-number (or (match-string-no-properties 8 human-time) "0"))))
@@ -319,7 +333,7 @@ Other languages are not yet implemented."
 			      year-re
 			      "[-/ ]+"
 			      mon-re
-			      "[-/ ]+"				 
+			      "[-/ ]+"
 			      day-re
 			      "[- ]*"
 			      time-re
@@ -328,7 +342,7 @@ Other languages are not yet implemented."
 	(setq year   (string-to-number     (match-string-no-properties 1 human-time)))
 	(setq month  (month-to-number      (match-string-no-properties 2 human-time)))
 	(setq day    (string-to-number     (match-string-no-properties 3 human-time)))
-								    
+
 	(setq hour   (string-to-number (or (match-string-no-properties 5 human-time) "0")))
 	(setq minute (string-to-number (or (match-string-no-properties 6 human-time) "0")))
 	(setq second (string-to-number (or (match-string-no-properties 8 human-time) "0"))))
@@ -336,7 +350,7 @@ Other languages are not yet implemented."
        ((string-match (concat "\\`"
 			      month-re
 			      "[-/ ]+"
-			      day-re				 
+			      day-re
 			      "[,]?\\s-+"
 			      year-re
 			      "[-/ ]*"
@@ -346,7 +360,7 @@ Other languages are not yet implemented."
 	(setq year  (string-to-number      (match-string-no-properties 3 human-time)))
 	(setq month (month-to-number       (match-string-no-properties 1 human-time)))
 	(setq day   (string-to-number      (match-string-no-properties 2 human-time)))
-								    
+
 	(setq hour   (string-to-number (or (match-string-no-properties 5 human-time) "0")))
 	(setq minute (string-to-number (or (match-string-no-properties 6 human-time) "0")))
 	(setq second (string-to-number (or (match-string-no-properties 8 human-time) "0"))))
@@ -354,7 +368,7 @@ Other languages are not yet implemented."
        ((string-match (concat "\\`"
 			      mon-re
 			      "[-/ ]+"
-			      day-re				 
+			      day-re
 			      "[,]?\\s-*"
 			      year-re
 			      "[-/ ]*"
@@ -364,7 +378,7 @@ Other languages are not yet implemented."
 	(setq year   (string-to-number     (match-string-no-properties 3 human-time)))
 	(setq month  (month-to-number      (match-string-no-properties 1 human-time)))
 	(setq day    (string-to-number     (match-string-no-properties 2 human-time)))
-								    
+
 	(setq hour   (string-to-number (or (match-string-no-properties 5 human-time) "0")))
 	(setq minute (string-to-number (or (match-string-no-properties 6 human-time) "0")))
 	(setq second (string-to-number (or (match-string-no-properties 8 human-time) "0")))
@@ -427,7 +441,7 @@ Other languages are not yet implemented."
 	(setq year   (string-to-number     (match-string-no-properties 1 human-time)))
 	(setq month  (string-to-number     (match-string-no-properties 2 human-time)))
 	(setq day    (string-to-number     (match-string-no-properties 3 human-time)))
-								    
+
 	(setq hour   (string-to-number (or (match-string-no-properties 5 human-time) "0")))
 	(setq minute (string-to-number (or (match-string-no-properties 6 human-time) "0")))
 	(setq second (string-to-number (or (match-string-no-properties 8 human-time) "0"))))
@@ -445,7 +459,7 @@ Other languages are not yet implemented."
 	(setq year   (string-to-number     (match-string-no-properties 3 human-time)))
 	(setq month  (string-to-number     (match-string-no-properties 1 human-time)))
 	(setq day    (string-to-number     (match-string-no-properties 2 human-time)))
-								    
+
 	(setq hour   (string-to-number (or (match-string-no-properties 5 human-time) "0")))
 	(setq minute (string-to-number (or (match-string-no-properties 6 human-time) "0")))
 	(setq second (string-to-number (or (match-string-no-properties 8 human-time) "0"))))
@@ -460,7 +474,7 @@ Other languages are not yet implemented."
 			      time-re
 			      "?\\'")
 		      human-time)
-	   
+
 	(setq year   (string-to-number     (match-string-no-properties 1 human-time)))
 	(setq month  (string-to-number     (match-string-no-properties 2 human-time)))
 	(setq day    (string-to-number     (match-string-no-properties 3 human-time)))
@@ -468,7 +482,7 @@ Other languages are not yet implemented."
 	(setq hour   (string-to-number (or (match-string-no-properties 5 human-time) "0")))
 	(setq minute (string-to-number (or (match-string-no-properties 6 human-time) "0")))
 	(setq second (string-to-number (or (match-string-no-properties 8 human-time) "0"))))
-       
+
        (t (message "Unknown format.")
 	  nil)))
     (if year
@@ -503,7 +517,7 @@ Other languages are not yet implemented."
 	     11)
 	    ((string-match "dec" (substring month-name 0 3))
 	     12)
-	    (t (message "%s(): Unknown month [[%s]]." fname month-name))))))
+	    (t (error "%s(): Unknown month [[%s]]." fname month-name))))))
 
 ;; HEREHERE Remove this before publishing or
 ;; figure out how to put it in test-generic.el.
@@ -581,7 +595,6 @@ Other languages are not yet implemented."
 
 
 
-		     
 
 		     "11 09 2018"
 		     "11 09 2018 9:53"
@@ -675,9 +688,9 @@ Other languages are not yet implemented."
     (goto-char (point-min))))
 
 
-;; 
+;;
 ;; Commands
-;; 
+;;
 
 
 (provide 'cpio-generic)
