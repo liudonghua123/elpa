@@ -31,6 +31,7 @@
 
 (require 'url)
 (require 'url-util)
+(require 'auth-source)
 
 
 (defvar rt-liber-rest-debug-buffer-name "*rt-liber-rest debug log*"
