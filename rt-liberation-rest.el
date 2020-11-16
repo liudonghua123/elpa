@@ -45,10 +45,10 @@
 (defvar rt-liber-rest-url ""
   "URL of RT installation.")
 
-(defvar rt-liber-rest-username ""
+(defvar rt-liber-rest-username nil
   "Username of RT account.")
 
-(defvar rt-liber-rest-password ""
+(defvar rt-liber-rest-password nil
   "Password of RT account.")
 
 (defvar rt-liber-rest-verbose-p t
@@ -64,6 +64,19 @@
 	(get-buffer-create rt-liber-rest-debug-buffer-name)
       (goto-char (point-max))
       (insert str))))
+
+(defun rt-liber-rest-auth ()
+  "Try to get the REST credentials."
+  (if (and (stringp rt-liber-rest-username)
+	   (stringp rt-liber-rest-password))
+      t
+    (message "rt-liber: no REST credentials set, so attempting auth-source")
+    (let ((auth-source-found-p
+	   (auth-source-search :host "rt-liberation" :require '(:user :secret) :create nil)))
+      (when (not auth-source-found-p)
+	(error "no auth-source found for login"))
+      (setq rt-liber-rest-password (funcall (plist-get (nth 0 auth-source-found-p) :secret))
+	    rt-liber-rest-username (plist-get (nth 0 auth-source-found-p) :user)))))
 
 (defun rt-liber-rest-search-string (scheme url username password query)
   "Return the search query string."
@@ -124,11 +137,11 @@
 	  str)
       (setq str
 	    (decode-coding-string
-	    (with-current-buffer response
-	      (buffer-substring-no-properties (point-min)
-					      (point-max)))
-	    'utf-8))
-      
+	     (with-current-buffer response
+	       (buffer-substring-no-properties (point-min)
+					       (point-max)))
+	     'utf-8))
+
       (rt-liber-rest-write-debug
        (format "outgoing rest call -->\n%s\n<-- incoming\n%s\n" url str))
       str)))
@@ -138,6 +151,7 @@
   (when (or (not (stringp op))
 	    (not (stringp query-string)))
     (error "bad arguments"))
+  (rt-liber-rest-auth)
   (cond ((string= op "ls")
 	 (rt-liber-rest-call
 	  (rt-liber-rest-search-string rt-liber-rest-scheme
@@ -215,6 +229,7 @@
   "Run edit comment to set FIELD to VALUE."
   (message "started edit command at %s..." (current-time-string))
   (message "ticket #%s, %s <- %s" ticket-id field value)
+  (rt-liber-rest-auth)
   (let ((request-data
 	 (format "content=%s: %s"
 		 (url-hexify-string field)
