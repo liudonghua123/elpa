@@ -3,6 +3,8 @@
 This is an outline of how to make a release for rt-liberation via GNU
 ELPA.
 
+* compile
+Check for and correct compile-time errors and warnings.
 
 * version
 In order for the ELPA system to trigger a release the version number
