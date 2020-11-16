@@ -116,14 +116,28 @@ file, or similar.
 
      (setq rt-liber-rest-url "rt.example.org")
 
+   In order to authenticate with the RT server instance you need to
+provide credentials.  rt-liberation looks for these in the variables
+RT-LIBER-REST-USERNAME and RT-LIBER-REST-PASSWORD.  You can set these
+directly:
+
+     (setq rt-liber-rest-username "someuser"
+           rt-liber-rest-password "somepassword")
+
+   You can also leave these values unset ('nil'), in which case
+rt-liberation will look for the credentials in a Netrc file via the
+auth-source library (see: *Note (auth)Top::), under the machine name
+"rt-liberation":
+
+     machine rt-liberation login someuser password somepassword
+
    rt-liberation can issue a command to "take" a ticket (that is, assign
 it to yourself).  For this the variable RT-LIBER-USERNAME must be set:
 
      (setq rt-liber-username "someuser")
 
-   rt-liberation can also launch a Web browser to visit a ticket.  For
-that to work the base URL needs to be set in RT-LIBER-BASE-URL.  For
-example:
+   rt-liberation can launch a Web browser to visit a ticket.  For that
+to work the base URL needs to be set in RT-LIBER-BASE-URL.  For example:
 
    (setq rt-liber-base-url "https://rt.foo.org/")
 
@@ -2019,24 +2033,24 @@ Tag Table:
 Node: Top680
 Node: Introduction2956
 Node: Installation3563
-Node: Queries4542
-Node: Query Compiler5104
-Node: Query Language5745
-Node: Ticket Browser8184
-Node: Ticket Browser Display10656
-Node: Ticket Browser Sorting12647
-Node: Ticket Browser Filtering14597
-Node: Multiple Ticket Browsers16140
-Node: Ticket Viewer17309
-Node: Gnus Integration19481
-Node: Tracking Updates21769
-Node: Batch Operations22846
-Node: Local Storage24026
-Node: Copying25104
-Node: The GNU FDL62653
-Node: Concept Index85045
-Node: Function Index86626
-Node: Variable Index89976
-Node: Keybinding Index90352
+Node: Queries5135
+Node: Query Compiler5697
+Node: Query Language6338
+Node: Ticket Browser8777
+Node: Ticket Browser Display11249
+Node: Ticket Browser Sorting13240
+Node: Ticket Browser Filtering15190
+Node: Multiple Ticket Browsers16733
+Node: Ticket Viewer17902
+Node: Gnus Integration20074
+Node: Tracking Updates22362
+Node: Batch Operations23439
+Node: Local Storage24619
+Node: Copying25697
+Node: The GNU FDL63246
+Node: Concept Index85638
+Node: Function Index87219
+Node: Variable Index90569
+Node: Keybinding Index90945
 
 End Tag Table

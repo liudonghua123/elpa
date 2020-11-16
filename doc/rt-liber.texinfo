@@ -140,6 +140,25 @@ Tell rt-liberation where to find the RT server's REST interface:
 (setq rt-liber-rest-url "rt.example.org")
 @end lisp
 
+In order to authenticate with the RT server instance you need to
+provide credentials. rt-liberation looks for these in the variables
+@var{rt-liber-rest-username} and @var{rt-liber-rest-password}. You can
+set these directly:
+
+@lisp
+(setq rt-liber-rest-username "someuser"
+      rt-liber-rest-password "somepassword")
+@end lisp
+
+You can also leave these values unset (@code{nil}), in which case
+rt-liberation will look for the credentials in a Netrc file via the
+auth-source library (see: @xref{Top,,, auth, Emacs auth-source}),
+under the machine name "rt-liberation":
+
+@example
+machine rt-liberation login someuser password somepassword
+@end example
+
 rt-liberation can issue a command to ``take'' a ticket (that is,
 assign it to yourself). For this the variable @var{rt-liber-username}
 must be set:
@@ -148,9 +167,9 @@ must be set:
 (setq rt-liber-username "someuser")
 @end lisp
 
-rt-liberation can also launch a Web browser to visit a ticket. For
-that to work the base URL needs to be set in
-@var{rt-liber-base-url}. For example:
+rt-liberation can launch a Web browser to visit a ticket. For that to
+work the base URL needs to be set in @var{rt-liber-base-url}. For
+example:
 
 (setq rt-liber-base-url "https://rt.foo.org/")
 
