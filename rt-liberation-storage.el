@@ -1,4 +1,4 @@
-;;; rt-liberation-storage.el --- Storage backend for rt-liberation
+;;; rt-liberation-storage.el --- Storage backend for rt-liberation  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010  Free Software Foundation, Inc.
 ;;

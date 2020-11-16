@@ -1,4 +1,4 @@
-;;; rt-liberation-rest.el --- Interface to the RT REST API
+;;; rt-liberation-rest.el --- Interface to the RT REST API  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014-2015  Free Software Foundation, Inc.
 ;;

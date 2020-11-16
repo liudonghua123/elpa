@@ -1,4 +1,4 @@
-;;; rt-liberation-report.el --- Emacs interface to RT
+;;; rt-liberation-report.el --- Emacs interface to RT  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015  Free Software Foundation, Inc.
 ;;

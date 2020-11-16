@@ -1,4 +1,4 @@
-;;; rt-liberation-gnus.el --- Gnus integration for rt-liberation
+;;; rt-liberation-gnus.el --- Gnus integration for rt-liberation  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2014  Free Software Foundation, Inc.
 ;;
