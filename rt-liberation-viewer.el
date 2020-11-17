@@ -76,7 +76,7 @@
 		    `((,(match-string-no-properties 1) .
 		       ,(match-string-no-properties 2)))))
       (forward-line))
-    (
+    section-field-alist))
 
 ;; According to:
 ;; "https://rt-wiki.bestpractical.com/wiki/REST#Ticket_History" is of
