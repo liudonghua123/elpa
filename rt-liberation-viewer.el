@@ -43,6 +43,38 @@
 	   'font-lock-comment-face)))
   "Expressions to font-lock for RT ticket viewer.")
 
+(defun rt-liber-viewer-reduce (section-list f acc)
+  "A Not Invented Here tail-recursive reduce function."
+  (cond ((null (cdr section-list)) acc)
+	(t (rt-liber-viewer-reduce (cdr section-list)
+				   f
+				   (append acc (list
+						(funcall f
+							 (car section-list)
+							 (cadr section-list))))))))
+
+;; According to:
+;; "https://rt-wiki.bestpractical.com/wiki/REST#Ticket_History" is of
+;; the form: "# <n>/<n> (id/<history-id>/total)"
+(defun rt-liber-viewer-parse-history (ticket-history)
+  "Parse the string TICKET-HISTORY."
+  (when (not (stringp ticket-history))
+    (error "invalid ticket-history"))
+  (with-temp-buffer
+    (insert ticket-history)
+    (goto-char (point-min))
+    ;; find history detail sections and procude a list of section
+    ;; (start . end) pairs
+    (let (section-point-list)
+      (while (re-search-forward "^# [0-9]+/[0-9]+ (id/[0-9]+/total)" (point-max) t)
+	(setq section-point-list (append section-point-list
+					 (list (point)))))
+      (when (not section-point-list)
+	(error "no history detail sections found"))
+      (setq section-point-list (append section-point-list
+				       (list (point-max)))
+	    section-point-list (rt-liber-viewer-reduce section-point-list #'cons nil))
+      section-point-list)))
 
 (defun rt-liber-display-ticket-history (ticket-alist &optional assoc-browser)
   "Display history for ticket.
