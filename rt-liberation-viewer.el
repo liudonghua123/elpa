@@ -70,11 +70,12 @@
     (save-excursion
       (setq section-field-end
 	    (re-search-forward "\n\n" end nil)))
-    (while (looking-at rt-liber-viewer-section-field-regexp)
-      (setq section-field-alist
-	    (append section-field-alist
-		    `((,(match-string-no-properties 1) .
-		       ,(match-string-no-properties 2)))))
+    (while (not (looking-at "^\n"))
+      (when (looking-at rt-liber-viewer-section-field-regexp)
+	(setq section-field-alist
+	      (append section-field-alist
+		      `((,(match-string-no-properties 1) .
+			 ,(match-string-no-properties 2))))))
       (forward-line))
     section-field-alist))
 
