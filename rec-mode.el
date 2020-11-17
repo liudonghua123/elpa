@@ -48,7 +48,9 @@
 (require 'calendar)
 (require 'hl-line)
 (require 'tabulated-list)
-(require 'subr-x)
+(eval-when-compile (require 'subr-x))
+(require 'seq)
+(require 'eieio)
 
 ;;;; Customization
 
@@ -259,10 +261,9 @@ including the leading #:
 If the point is not at the beginning of a comment then return nil"
   (when (and (equal (current-column) 0)
              (looking-at rec-comment-re))
-    (let ((comment (list 'comment
-                         (point)
-                         (buffer-substring-no-properties (match-beginning 0)
-                                                         (match-end 0)))))
+    (let ((comment (rec-comment :position (point)
+                                :value (buffer-substring-no-properties (match-beginning 0)
+                                                                       (match-end 0)))))
       (goto-char (match-end 0))
       ;; Skip a newline if needed
       (when (eolp) (forward-line 1))
@@ -304,24 +305,19 @@ nil"
       val)))
 
 (defun rec-parse-field ()
-  "Return a structure describing the field starting from the pointer.
+  "Return a `rec-field' describing the field starting from the pointer.
 
-The returned structure is a list whose first element is the
-symbol 'field', the second element is the name of the field and
-the second element is the value of the field:
-
-   (field POSITION FIELD-NAME FIELD-VALUE)
-
-If the pointer is not at the beginning of a field
-descriptor then return nil"
+If the pointer is not at the beginning of a field descriptor then
+return nil."
   (let ((there (point))
         field-name field-value)
-    (and (setq field-name (rec-parse-field-name))
-         (setq field-value (rec-parse-field-value)))
-    (when (and field-name field-value)
-        ;; Skip a newline if needed
-        (when (looking-at "\n") (goto-char (match-end 0)))
-        (list 'field there field-name field-value))))
+    (when (and (setq field-name (rec-parse-field-name))
+               (setq field-value (rec-parse-field-value)))
+      ;; Skip a newline if needed
+      (when (looking-at "\n") (goto-char (match-end 0)))
+      (rec-field :position there
+                 :name field-name
+                 :value field-value))))
 
 (defun rec-parse-record ()
   "Return a structure describing the record starting from the pointer.
@@ -334,22 +330,121 @@ The returned structure is a list of fields preceded by the symbol
 If the pointer is not at the beginning of a record, then return
 nil"
   (let ((there (point))
-        record field-or-comment)
+        (fields ()) field-or-comment)
     (while (setq field-or-comment (or (rec-parse-field)
                                       (rec-parse-comment)))
-      (setq record (cons field-or-comment record)))
-    (setq record (list 'record there (reverse record)))))
+      (push field-or-comment fields))
+    
+    (let* ((record (rec-record :position there
+                               :fields (reverse fields))))
+      (or (rec-record-to-descriptor record) record))))
 
-;;;; Writer functions (rec-insert-*)
+
+;;;; Operations on record structures
+;;
+;; Those functions retrieve or set properties of field structures.
+
+(defclass rec-record ()
+  ((position :initarg :position
+             :documentation "The position of the record in the recfile.")
+   (fields :initarg :fields
+           :documentation "The fields of the record."))
+  "A recfile record.")
+
+(defclass rec-record-descriptor (rec-record)
+  ((type :initarg :type
+         :documentation "The type described by the descriptor.")
+   (key :initarg :key
+        :initform nil
+        :documentation "The key field of the descriptor.")
+   (auto :initarg :auto
+         :initform nil
+         :documentation "The %auto field of the descriptor.")
+   (doc :initarg :doc
+        :initform ""
+        :documentation "The descriptor's %doc field."))
+  "A record descriptor.")
+
+(defclass rec-record-element ()
+  ((position :initarg :position)
+   (value :initarg :value))
+  "A record element, either a comment or field.")
+
+(cl-defgeneric rec-element-position (element)
+  "Return the position of ELEMENT.")
+
+(cl-defgeneric rec-element-value (element)
+  "Return the value of ELEMENT.")
+
+(cl-defmethod rec-element-position ((element rec-record-element))
+  "Return the position of ELEMENT."
+  (slot-value element 'position))
+
+(cl-defmethod rec-element-value ((element rec-record-element))
+  "Return the value of ELEMENT."
+  (slot-value element 'value))
+
+(defclass rec-comment (rec-record-element) ()
+  "A record comment.")
+
+(defclass rec-field (rec-record-element)
+  ((name :initarg :name)))
+
+(defun rec-field-name (field)
+  (when (rec-field-p field)
+    (slot-value field 'name)))
+
+(defun rec-field-position (field)
+  (when (rec-field-p field)
+    (rec-element-position field)))
+
+(defun rec-field-value (field)
+  (when (rec-field-p field)
+    (rec-element-value field)))
+
+(defun rec-map-fields (fun record)
+  "Map function FUN over the fields in RECORD."
+  (cl-loop for field in (slot-value record 'fields)
+           when (rec-field-p field)
+           collect (funcall fun field)))
+
+(cl-defmethod rec-record-assoc (name (record rec-record))
+  "Get a list with the values of the fields in RECORD named NAME.
+
+NAME shall be a field name.
+If no such field exists in RECORD then nil is returned."
+  (cl-loop for field in (slot-value record 'fields)
+           when (and (rec-field-p field)
+                     (equal name (rec-field-name field)))
+           collect (rec-field-value field)))
+
+(cl-defgeneric rec-record-names (record)
+  "Get a list of the field names in the RECORD.")
+
+(cl-defmethod rec-record-names ((record rec-record))
+  "Get a list of the field names in the RECORD."
+  (cl-loop for field in (slot-value record 'fields)
+           when (rec-field-p field)
+           collect (rec-field-name field)))
+
+(defun rec-record-values (record fields)
+  "Given a list of field names in FIELDS, return a list of the values of RECORD."
+  (when fields
+    (append (rec-record-assoc (car fields) record)
+            (rec-record-values record (cdr fields)))))
+
+;;;; Writer functions (rec-insert)
 ;;
 ;; Those functions dump the written representation of the parser
 ;; structures (field, comment, record, etc) into the current buffer
 ;; starting at the current position.
 
-(defun rec-insert-comment (comment)
+(cl-defgeneric rec-insert (element)
+  "Insert the written form of ELEMENT into the current buffer.")
+
+(cl-defmethod rec-insert ((comment rec-comment))
   "Insert the written form of COMMENT in the current buffer."
-  (when (rec-comment-p comment)
-    (insert (rec-comment-string comment))))
+  (insert (rec-element-value comment) "\n"))
 
 (defun rec-insert-field-name (field-name)
   "Insert the written form of FIELD-NAME in the current buffer."
@@ -365,127 +460,20 @@ nil"
       (insert (replace-regexp-in-string "\n" "\n+ " val)))
     (insert "\n")))
 
-(defun rec-insert-field (field)
+(cl-defmethod rec-insert ((field rec-field))
   "Insert the written form of FIELD in the current buffer."
-  (when (rec-field-p field)
-    (when (rec-insert-field-name (rec-field-name field))
+  (with-slots (name value) field
+    (when (rec-insert-field-name name)
       (insert " ")
-      (rec-insert-field-value (rec-field-value field)))))
+      (rec-insert-field-value value))))
 
-(defun rec-insert-record (record)
+(cl-defmethod rec-insert ((record rec-record))
   "Insert the written form of RECORD in the current buffer."
-  (when (rec-record-p record)
-    (mapcar (lambda (elem)
-              (cond
-               ((rec-comment-p elem) (rec-insert-comment elem))
-               ((rec-field-p elem) (rec-insert-field elem))))
-            (rec-record-elems record))))
-
-;;;; Operations on record structures
-;;
-;; Those functions retrieve or set properties of field structures.
-
-(defun rec-record-p (record)
-  "Determine if RECORD is a record."
-  (and (listp record)
-       (= (length record) 3)
-       (equal (car record) 'record)))
-
-(defun rec-record-position (record)
-  "Return the start position of the given RECORD."
-  (when (rec-record-p record)
-    (nth 1 record)))
-
-(defun rec-record-elems (record)
-  "Return a list with the elements of the given RECORD."
-  (when (rec-record-p record)
-    (nth 2 record)))
-
-(defun rec-record-descriptor-p (record)
-  "Determine if the given RECORD is a descriptor."
-  (not (null (rec-record-assoc rec-keyword-rec record))))
-
-(defun rec-record-assoc (name record)
-  "Get a list with the values of the fields in RECORD named NAME.
-
-NAME shall be a field name.
-If no such field exists in RECORD then nil is returned."
-  (when (rec-record-p record)
-    (let (result)
-      (mapc (lambda (field)
-              (when (and (rec-field-p field)
-                         (equal name (rec-field-name field)))
-                (setq result (cons (rec-field-value field) result))))
-            (rec-record-elems record))
-      (reverse result))))
-
-(defun rec-record-names (record)
-  "Get a list of the field names in the RECORD."
-  (when (rec-record-p record)
-    (let (result)
-      (mapc (lambda (field)
-              (when (rec-field-p field)
-                (setq result (cons (rec-field-name field) result))))
-            (rec-record-elems record))
-      (reverse result))))
-
-(defun rec-record-values (record fields)
-  "Given a list of field names in FIELDS, return a list of the values of RECORD."
-  (when fields
-    (append (rec-record-assoc (car fields) record)
-            (rec-record-values record (cdr fields)))))
-
-;;;; Operations on comment structures
-;;
-;; Those functions retrieve or set properties of comment structures.
-
-(defun rec-comment-p (comment)
-  "Determine if the provided COMMENT arg is a comment structure."
-  (and (listp comment)
-       (= (length comment) 3)
-       (equal (car comment) 'comment)))
-
-(defun rec-comment-position (comment)
-  "Return the start position of the given COMMENT."
-  (when (rec-comment-p comment)
-    (nth 1 comment)))
-
-(defun rec-comment-string (comment)
-  "Return the string composing the COMMENT, including the initial '#' character."
-  (when (rec-comment-p comment)
-    (nth 2 comment)))
-
+  (mapc #'rec-insert (slot-value record 'fields)))
+4
 ;;;; Operations on field structures
 ;;
 ;; Those functions retrieve or set properties of field structures.
-
-(defun rec-field-p (field)
-  "Determine if FIELD is a field."
-  (and (listp field)
-       (= (length field) 4)
-       (equal (car field) 'field)))
-
-(defun rec-field-position (field)
-  "Return the start position of the given FIELD."
-  (when (rec-field-p field)
-    (nth 1 field)))
-
-(defun rec-field-name (field)
-  "Return the name of the provided FIELD."
-  (when (rec-field-p field)
-    (nth 2 field)))
-
-(defun rec-field-value (field)
-  "Return the value of the provided FIELD."
-  (when (rec-field-p field)
-    (nth 3 field)))
-
-(defun rec-field-set-value (field value)
-  "Return FIELD with its value replaced by VALUE."
-  (list 'field
-        (rec-field-position field)
-        (rec-field-name field)
-        value))
 
 (defun rec-field-trim-value (field)
   "Return FIELD with its value trimmed."
@@ -506,7 +494,7 @@ If no such field exists in RECORD then nil is returned."
         (delete-region (point) (point-max))
         (setq value (buffer-substring-no-properties (point-min)
                                                     (point-max))))
-      (rec-field-set-value field value))))
+      (setf (rec-field-value field) value))))
 
 ;;;; Get entities under pointer
 ;;
@@ -564,17 +552,20 @@ If no such field exists in RECORD then nil is returned."
 
 (defun rec-beginning-of-record-pos ()
   "Return the position of the beginning of the current record, or nil if the pointer is not on a record."
-  (save-excursion
-    (let (field-pos)
-      (while (and (not (equal (point) (point-min)))
-                  (setq field-pos (or (rec-beginning-of-field-pos)
-                                      (rec-beginning-of-comment-pos))))
-        (goto-char field-pos)
-        (if (not (equal (point) (point-min)))
-            (backward-char)))
-      (unless (or (eobp)
-                  (looking-at rec-comment-field-re))
-          (forward-char))
+  (let (field-pos)
+    (save-excursion
+      (cl-block found
+        (while (not (equal (point) (point-min)))
+          (save-excursion
+            (backward-char)
+            (setq field-pos (or (rec-beginning-of-field-pos)
+                                (rec-beginning-of-comment-pos))))
+          (if field-pos
+              (goto-char field-pos)
+            (if (or (rec-beginning-of-field-pos)
+                    (rec-beginning-of-comment-pos))
+                (cl-return-from found)
+              (backward-char)))))
       (when (looking-at rec-comment-field-re)
         (point)))))
 
@@ -638,12 +629,6 @@ The current record is the record where the pointer is"
 ;; These functions perform the management of the collection of records
 ;; in the buffer.
 
-;; FIXME: The term "descriptor" is used for this object as well as for its
-;; first field, which is confusing.
-(cl-defstruct (rec--descriptor
-               (:constructor nil)
-               (:constructor rec--descriptor-make (descriptor marker)))
-  descriptor marker)
 
 (defvar rec-buffer-descriptors nil
   "List of `rec--descriptor's.")
@@ -663,7 +648,7 @@ The current record is the record where the pointer is"
   "Update buffer descriptors and check if there's a parse error.
 
 Switch to fundamental mode if there is a parse error.  If
-`DONT-GO-FUNDAMENTAL is non-nil, don't switch to fundamental."
+DONT-GO-FUNDAMENTAL is non-nil, don't switch to fundamental."
   (if (rec-buffer-valid-p)
       (progn
         (rec-update-buffer-descriptors)
@@ -690,6 +675,36 @@ Switch to fundamental mode if there is a parse error.  If
       (message (concat (buffer-name) ": " errmsg))
       nil)))
 
+(cl-defgeneric rec-record-to-descriptor (record)
+  "Try casting RECORD into a descriptor.")
+
+(cl-defmethod rec-record-to-descriptor ((record rec-record))
+  "Try casting RECORD into a descriptor."
+  (let ((type (car-safe (rec-record-assoc "%rec" record))))
+    (if type
+        (with-slots (position fields) record
+          (rec-record-descriptor :position position
+                                 :fields fields
+                                 :type type
+                                 :key (car-safe (rec-record-assoc "%key" record))
+                                 :auto (car-safe (rec-record-assoc "%auto" record))
+                                 :doc (car-safe (rec-record-assoc "%doc" record)))))))
+
+(cl-defmethod rec-record-to-descriptor ((record rec-record-descriptor))
+  rec-record-descriptor)
+
+(defun rec--parse-sexp-records (records)
+  "Parse a recinf sexp record in RECORDS."
+  (cl-loop for (nil pos fields) in records
+           for parsed-fields = (cl-loop for (nil pos name value) in fields
+                                        collect (rec-field :position pos
+                                                           :name name
+                                                           :value value))
+           for record = (rec-record :position pos
+                                    :fields parsed-fields)
+           collect (or (rec-record-to-descriptor record)
+                       record)))
+
 (defun rec-update-buffer-descriptors ()
   "Get a list of the record descriptors in the current buffer.
 
@@ -714,23 +729,10 @@ this function returns nil."
                        (goto-char (point-max))
                        (insert ")")
                        (unwind-protect
-                           (setq descriptors (read (point-min-marker)))
-                         (kill-buffer buffer)))
-                     (when descriptors
-                       (mapc (lambda (descriptor)
-                               ;; FIXME: The `rec-record-position' data comes
-                               ;; from the `recinf' tool.  Are these positions
-                               ;; counted in bytes or characters?  Do they
-                               ;; count positions starting from 0 or from 1?
-                               (let ((marker (copy-marker
-                                              (rec-record-position descriptor))))
-                                 ;; FIXME: Why do we need `marker' if the buffer
-                                 ;; position is already contained in
-                                 ;; `descriptor'?
-                                 (push (rec--descriptor-make descriptor marker)
-                                       records)))
-                             descriptors)
-                       (reverse records)))
+                           (setq descriptors
+                                 (seq-filter #'rec-record-descriptor-p
+                                             (rec--parse-sexp-records (read (point-min-marker)))))
+                         (kill-buffer buffer))))
             (kill-buffer buffer)
             nil))))
 
@@ -738,10 +740,9 @@ this function returns nil."
   "Return a list with the names of the record types in the existing buffer."
   ;; If a descriptor has more than a %rec field, then the first one is
   ;; used.  The rest are ignored.
-  (mapcar
-   (lambda (elem)
-     (car (rec-record-assoc rec-keyword-rec (rec--descriptor-descriptor elem))))
-   rec-buffer-descriptors))
+  (mapcar (lambda (descriptor)
+            (slot-value descriptor 'type))
+          rec-buffer-descriptors))
 
 (defun rec-type-p (type)
   "Determine if there are records of type TYPE in the current file."
@@ -774,11 +775,10 @@ this function returns nil."
           (descriptors rec-buffer-descriptors))
       (mapc
        (lambda (elem)
-         (when (equal (car (rec-record-assoc rec-keyword-rec
-                                             (rec--descriptor-descriptor elem)))
-                      type)
-           (setq found t)
-           (goto-char (rec--descriptor-marker elem))))
+         (with-slots ((rec-type type) position) elem
+           (when (equal rec-type type)
+             (setq found t)
+             (goto-char position))))
        descriptors)
       found)))
 
@@ -825,21 +825,23 @@ or the specified type does not exist, then return nil."
                (when (re-search-forward rec-comment-field-re nil t)
                  (match-beginning 0)))))
     (when pos
-        (goto-char pos)
-        t)))
+      (push-mark)
+      (goto-char pos)
+      t)))
 
 (defun rec-goto-previous-rec ()
   "Move the pointer to the end of the previous record in the file."
-    (let ((pos (save-excursion
-                 (rec-beginning-of-record)
-                 (if (not (= (point) (point-min)))
-                     (backward-char))
-                 (when (and (re-search-backward rec-record-re nil t)
-                            (rec-beginning-of-record))
-                   (point)))))
-      (when pos
-        (goto-char pos)
-        t)))
+  (let ((pos (save-excursion
+               (rec-beginning-of-record)
+               (if (not (= (point) (point-min)))
+                   (backward-char))
+               (when (and (re-search-backward rec-record-re nil t)
+                          (rec-beginning-of-record))
+                 (point)))))
+    (when pos
+      (push-mark)
+      (goto-char pos)
+      t)))
 
 (defun rec-type-first-rec-pos (type)
   "Return the position of the first record of the specified TYPE.
@@ -881,22 +883,22 @@ on top of the results."
     (with-temp-buffer
       (if (stringp type)
           (if (stringp sex)
-            (call-process rec-recsel
-                          nil ; infile
-                          t   ; output to current buffer.
-                          nil ; display
-                          "-t" type "-e" sex "-c" rec-file-name)
+              (call-process rec-recsel
+                            nil ; infile
+                            t   ; output to current buffer.
+                            nil ; display
+                            "-t" type "-e" sex "-c" rec-file-name)
             (call-process rec-recsel
                           nil ; infile
                           t   ; output to current buffer.
                           nil ; display
                           "-t" type "-c" rec-file-name))
         (if (stringp sex)
-          (call-process rec-recsel
-                        nil ; infile
-                        t   ; output to current buffer.
-                        nil ; display
-                        "-e" sex "-c" rec-file-name)
+            (call-process rec-recsel
+                          nil ; infile
+                          t   ; output to current buffer.
+                          nil ; display
+                          "-e" sex "-c" rec-file-name)
           (call-process rec-recsel
                         nil ; infile
                         t   ; output to current buffer.
@@ -917,17 +919,11 @@ Return nil otherwise."
   "Return the type of the record under point.
 
 If the record is of no known type, return nil."
-  (let ((descriptor (rec-record-descriptor)))
-    (cond
-     ((rec--descriptor-p descriptor)
-      (car (rec-record-assoc rec-keyword-rec
-                             (rec--descriptor-descriptor descriptor))))
-     ((equal descriptor "")
-      "")
-     (t
-      nil))))
+  (let ((descriptor (rec-current-record-descriptor)))
+    (when (rec-record-descriptor-p descriptor)
+      (slot-value descriptor 'type))))
 
-(defun rec-record-descriptor ()
+(defun rec-current-record-descriptor ()
   "Return the record descriptor of the record under point.
 
 Return \"\" if no proper record descriptor is found in the file.
@@ -942,17 +938,15 @@ Return nil if the point is not on a record."
              for curr in descriptors and
              next in next-descriptors
              
-             if (and (>= point (marker-position (rec--descriptor-marker curr)))
+             if (and (>= point (slot-value curr 'position))
                      (or (= index (- count 1))
-                         (< point (marker-position
-                                   (rec--descriptor-marker
-                                    next)))))
+                         (< point (slot-value next 'position))))
              
              return curr)))
 
 (defun rec-summary-fields ()
   "Return a list with the names of the summary fields in the current record set."
-  (let ((descriptor (rec--descriptor-descriptor (rec-record-descriptor))))
+  (let ((descriptor (rec-current-record-descriptor)))
     (when descriptor
       (let ((fields-str (rec-record-assoc rec-keyword-summary descriptor)))
         (when fields-str
@@ -960,7 +954,7 @@ Return nil if the point is not on a record."
 
 (defun rec-mandatory-fields ()
   "Return a list with the names of the mandatory fields in the current record set."
-  (let ((descriptor (rec--descriptor-descriptor (rec-record-descriptor))))
+  (let ((descriptor (rec-current-record-descriptor)))
     (when descriptor
       (let ((fields-str (rec-record-assoc rec-keyword-mandatory descriptor)))
         (when fields-str
@@ -970,9 +964,7 @@ Return nil if the point is not on a record."
   "Return the name of the field declared as the key of the current record set.
 
 Returns nil if no key is declared."
-  (let ((descriptor (rec--descriptor-descriptor (rec-record-descriptor))))
-    (when descriptor
-      (car (rec-record-assoc rec-keyword-key descriptor)))))
+  (slot-value (rec-current-record-descriptor) 'key))
 
 ;;;; Navigation
 
@@ -1016,8 +1008,8 @@ descriptor record.  If nil, the descriptor is skipped."
 (defun rec-hide-continuation-line-markers ()
   "Make continuation line markers look like indentation."
   (let ((record (rec-current-record)))
-    (when (rec-record-p record)
-      (mapcar
+    (when record
+      (mapc
        (lambda (field)
          (when (rec-field-p field)
            (let* ((pos (rec-field-position field))
@@ -1032,7 +1024,7 @@ descriptor record.  If nil, the descriptor is skipped."
                  (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
                    (overlay-put ov 'display '(space . (:width rec-continuation-line-markers-width)))
                    (push ov rec-continuation-line-markers-overlays)))))))
-       (rec-record-elems record)))))
+       (slot-value record 'fields)))))
 
 (defun rec-remove-continuation-line-marker-overlays ()
   "Delete all the continuation line markers overlays."
@@ -1062,7 +1054,7 @@ can then be used to toggle the visibility."
                  (goto-char (rec-field-position field))
                  (rec-fold-field))
                t))))
-       (rec-record-elems record)))))
+       (slot-value record 'fields)))))
 
 (defun rec-field-folded-p ()
   "Return whether the current field is folded."
@@ -1106,14 +1098,13 @@ can then be used to toggle the visibility."
 (defun rec-unfold-record-fields ()
   "Unfold any folded field in the current record."
   (let ((record (rec-current-record)))
-    (when (rec-record-p record)
-      (mapcar
-       (lambda (field)
-         (when (rec-field-p field)
-           (save-excursion
-             (goto-char (rec-field-position field))
-             (rec-unfold-field))))
-       (rec-record-elems record)))))
+    (mapcar
+     (lambda (field)
+       (when (rec-field-p field)
+         (save-excursion
+           (goto-char (rec-field-position field))
+           (rec-unfold-field))))
+     (slot-value record 'fields))))
 
 (defun rec-toggle-field-visibility ()
   "Toggle the visibility of the current field."
@@ -1250,9 +1241,8 @@ manual."
 
 If the field has no type, i.e. it is an unrestricted field which
 can contain any text, then nil is returned."
-  (let* ((descriptor (rec-record-descriptor))
-         (types (rec-record-assoc "%type"
-                                  (rec--descriptor-descriptor descriptor)))
+  (let* ((descriptor (rec-current-record-descriptor))
+         (types (rec-record-assoc "%type" descriptor))
          res-type)
     ;; Note that invalid %type entries are simply ignored.
     (mapc
@@ -1486,7 +1476,7 @@ Optional argument UNIQ when non-nil, returns only unique results."
         (kill-buffer buffer)))
     records))
 
-;;;; Selection of records
+;;;; SELECTION of records
 ;;
 ;; The following functions implement selection of records, which
 ;; maintains a subset of the records in the current buffer.
@@ -1501,7 +1491,7 @@ Optional argument UNIQ when non-nil, returns only unique results."
       (message "No current selection")
     (widen)
     (let* ((first-record (car rec-current-selection))
-           (pos (rec-record-position first-record)))
+           (pos (slot-value first-record 'position)))
       (goto-char pos)
       (rec-show-record))))
 
@@ -1539,7 +1529,6 @@ Argument SEX is the selection expression to use."
 ;;
 ;; The following functions implement interactive commands available in
 ;; the several modes defined in this file.
-
 (defvar rec-field-name)
 (make-variable-buffer-local 'rec-field-name)
 (defvar rec-buffer)
@@ -1629,10 +1618,10 @@ will be used for fields of any type."
                  fast-selection-data)
                 (rec-delete-field)
                 (save-excursion
-                  (rec-insert-field (list 'field
-                                          0
-                                          field-name
-                                          new-value)))
+                  (rec-insert
+                   (rec-field :position 0
+                              :name field-name
+                              :value new-value)))
                 (rec-finish-editing-move)))))
          ((and (equal field-type-kind 'date) rec-popup-calendar
                (null n))
@@ -1655,10 +1644,10 @@ will be used for fields of any type."
                 (let ((inhibit-read-only t))
                   (rec-delete-field)
                   (save-excursion
-                    (rec-insert-field (list 'field
-                                            0
-                                            rec-field-name
-                                            (format-time-string rec-time-stamp-format))))
+                    (rec-insert
+                     (rec-field :position 0
+                                :name rec-field-name
+                                :value (format-time-string rec-time-stamp-format))))
                   (rec-finish-editing-move))))
             (define-key map (kbd "RET")
               (lambda () (interactive)
@@ -1670,10 +1659,10 @@ will be used for fields of any type."
                   (let ((inhibit-read-only t))
                     (rec-delete-field)
                     (save-excursion
-                      (rec-insert-field (list 'field
-                                              0
-                                              rec-field-name
-                                              (format-time-string "%Y-%m-%d" time))))
+                      (rec-insert
+                       (rec-field :position 0
+                                  :name rec-field-name
+                                  :value (format-time-string "%Y-%m-%d" time))))
                     (rec-finish-editing-move)))))
             (use-local-map map)
             (message "[RET]: Select date [t]: Time-stamp     [q]: Exit")))
@@ -1734,10 +1723,9 @@ Prefix argument STAY means stay on the field we just edited."
       (kill-buffer edit-buffer)
       (goto-char marker)
       (rec-delete-field)
-      (rec-insert-field (list 'field
-                              0
-                              name
-                              value))
+      (rec-insert (rec-field :position 0
+                             :name name
+                             :value value))
       (goto-char prev-pointer)
       (unless (derived-mode-p 'rec-edit-mode)
         (rec-hide-continuation-line-markers))
@@ -2035,7 +2023,7 @@ This command is especially useful with enumerated types."
           (field (rec-current-field)))
       (setq field (rec-field-trim-value field))
       (rec-delete-field)
-      (rec-insert-field field))))
+      (rec-insert field))))
 
 (defun rec-cmd-compile ()
   "Compile the current file with recfix."
@@ -2153,10 +2141,12 @@ the user is prompted."
         (if (car summary-fields)
             (let* ((query (rec-query :fex (string-join summary-fields ",")))
                    (summary-list (mapcar (lambda (rec)
-                                           (let ((entry-marker (make-marker)))
-                                             (set-marker entry-marker (rec-record-position rec))
-                                             (list entry-marker (vconcat (rec-record-values rec summary-fields)))))
-                                         query)))
+                                           (let* ((entry-marker (make-marker)))
+                                             (set-marker entry-marker
+                                                         (slot-value rec 'position))
+                                             (list entry-marker
+                                                   (vconcat (rec-record-values rec summary-fields)))))
+                                         (rec--parse-sexp-records query))))
               ;; Create the summary window if it does not exist and populate
               ;; it.
               (let ((rec-buf (current-buffer))
@@ -2187,8 +2177,8 @@ function returns nil."
           (let ((values (rec-record-assoc key record)))
             (if values
                 (car values)
-              (rec-field-value (car (rec-record-elems record)))))
-        (rec-field-value (car (rec-record-elems record)))))))
+              (rec-field-value (car (slot-value record 'fields)))))
+        (rec-field-value (car (slot-value record 'fields)))))))
 
 ;;;; Definition of modes
 
@@ -2238,6 +2228,8 @@ function returns nil."
   (setq-local add-log-current-defun-function #'rec-log-current-defun)
   (setq-local font-lock-defaults '(rec-font-lock-keywords))
   (setq-local syntax-propertize-function rec-syntax-propertize-function)
+  (setq-local beginning-of-defun-function #'rec-beginning-of-record)
+  (setq-local end-of-defun-function #'rec-end-of-record)
   (add-to-invisibility-spec '(rec-hide-field . "..."))
 
   ;; Run some code later (i.e. after running the mode hook and setting the
