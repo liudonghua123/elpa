@@ -36,36 +36,13 @@
 				     "Type: " "Field: " "OldValue: "
 				     "NewValue: " "Data: "
 				     "Description: " "Created: "
-				     "Creator: " "Attachments: ") t)))
+				     "Creator: " "Attachments: ")
+				   t)))
     (list
      (list (concat "^" header-regexp ".*$") 0
 	   'font-lock-comment-face)))
   "Expressions to font-lock for RT ticket viewer.")
 
-
-(defun rt-liber-jump-to-latest-correspondence ()
-  "Move point to the newest correspondence section."
-  (interactive)
-  (let (latest-point)
-    (save-excursion
-      (goto-char (point-max))
-      (when (re-search-backward rt-liber-correspondence-regexp
-				(point-min) t)
-	(setq latest-point (point))))
-    (if latest-point
-	(progn
-	  (goto-char latest-point)
-	  (rt-liber-next-section-in-viewer))
-      (message "no correspondence found"))))
-
-(defun rt-liber-viewer-visit-in-browser ()
-  "Visit this ticket in the RT Web interface."
-  (interactive)
-  (let ((id (rt-liber-ticket-id-only rt-liber-ticket-local)))
-    (if id
-	(browse-url
-	 (concat rt-liber-base-url "Ticket/Display.html?id=" id))
-      (error "no ticket currently in view"))))
 
 (defun rt-liber-display-ticket-history (ticket-alist &optional assoc-browser)
   "Display history for ticket.
@@ -92,6 +69,34 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(set-buffer-modified-p nil)
 	(setq buffer-read-only t)))
     (switch-to-buffer new-ticket-buffer)))
+
+
+;;; ------------------------------------------------------------------
+;;; viewer mode functions
+;;; ------------------------------------------------------------------
+(defun rt-liber-jump-to-latest-correspondence ()
+  "Move point to the newest correspondence section."
+  (interactive)
+  (let (latest-point)
+    (save-excursion
+      (goto-char (point-max))
+      (when (re-search-backward rt-liber-correspondence-regexp
+				(point-min) t)
+	(setq latest-point (point))))
+    (if latest-point
+	(progn
+	  (goto-char latest-point)
+	  (rt-liber-next-section-in-viewer))
+      (message "no correspondence found"))))
+
+(defun rt-liber-viewer-visit-in-browser ()
+  "Visit this ticket in the RT Web interface."
+  (interactive)
+  (let ((id (rt-liber-ticket-id-only rt-liber-ticket-local)))
+    (if id
+	(browse-url
+	 (concat rt-liber-base-url "Ticket/Display.html?id=" id))
+      (error "no ticket currently in view"))))
 
 (defun rt-liber-viewer-mode-quit ()
   "Bury the ticket viewer."
@@ -129,6 +134,13 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
     (message "no previous section"))
   (goto-char (point-at-bol)))
 
+(defun rt-liber-refresh-ticket-history (&optional _ignore-auto _noconfirm)
+  (interactive)
+  (if rt-liber-ticket-local
+      (rt-liber-display-ticket-history rt-liber-ticket-local
+				       rt-liber-assoc-browser)
+    (error "not viewing a ticket")))
+
 (defconst rt-liber-viewer-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "q") 'rt-liber-viewer-mode-quit)
@@ -165,15 +177,8 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
     (rt-liber-jump-to-latest-correspondence))
   (run-hooks 'rt-liber-viewer-hook))
 
-(defun rt-liber-refresh-ticket-history (&optional _ignore-auto _noconfirm)
-  (interactive)
-  (if rt-liber-ticket-local
-      (rt-liber-display-ticket-history rt-liber-ticket-local
-				       rt-liber-assoc-browser)
-    (error "not viewing a ticket")))
 
 ;; wrapper functions around specific functions provided by a backend
-
 (declare-function
  rt-liber-gnus-compose-reply-to-requestor
  "rt-liberation-gnus.el")
