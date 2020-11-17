@@ -31,6 +31,12 @@
 (require 'rt-liberation)
 
 
+(defvar rt-liber-viewer-section-header-regexp
+  "^# [0-9]+/[0-9]+ (id/[0-9]+/total)")
+
+(defvar rt-liber-viewer-section-field-regexp
+  "^\\(.+\\): \\(.+\\)$")
+
 (defconst rt-liber-viewer-font-lock-keywords
   (let ((header-regexp (regexp-opt '("id: " "Ticket: " "TimeTaken: "
 				     "Type: " "Field: " "OldValue: "
@@ -53,6 +59,25 @@
 							 (car section-list)
 							 (cadr section-list))))))))
 
+(defun rt-liber-viewer-parse-section (start end)
+  (goto-char start)
+  (when (not (re-search-forward rt-liber-viewer-section-header-regexp
+				end t))
+    (error "invalid section"))
+  (forward-line 2)
+  (let (section-field-alist
+	section-field-end)
+    (save-excursion
+      (setq section-field-end
+	    (re-search-forward "\n\n" end nil)))
+    (while (looking-at rt-liber-viewer-section-field-regexp)
+      (setq section-field-alist
+	    (append section-field-alist
+		    `((,(match-string-no-properties 1) .
+		       ,(match-string-no-properties 2)))))
+      (forward-line))
+    (
+
 ;; According to:
 ;; "https://rt-wiki.bestpractical.com/wiki/REST#Ticket_History" is of
 ;; the form: "# <n>/<n> (id/<history-id>/total)"
@@ -65,16 +90,24 @@
     (goto-char (point-min))
     ;; find history detail sections and procude a list of section
     ;; (start . end) pairs
-    (let (section-point-list)
-      (while (re-search-forward "^# [0-9]+/[0-9]+ (id/[0-9]+/total)" (point-max) t)
+    (let (section-point-list
+	  section-list)
+      (while (re-search-forward rt-liber-viewer-section-header-regexp (point-max) t)
 	(setq section-point-list (append section-point-list
-					 (list (point)))))
+					 (list (point-at-bol)))))
       (when (not section-point-list)
 	(error "no history detail sections found"))
       (setq section-point-list (append section-point-list
 				       (list (point-max)))
 	    section-point-list (rt-liber-viewer-reduce section-point-list #'cons nil))
-      section-point-list)))
+      ;; collect the sections
+      (setq section-list
+	    (mapcar
+	     (lambda (section-points)
+	       (rt-liber-viewer-parse-section
+		(car section-points)
+		(cdr section-points)))
+	     section-point-list)))))
 
 (defun rt-liber-display-ticket-history (ticket-alist &optional assoc-browser)
   "Display history for ticket.
