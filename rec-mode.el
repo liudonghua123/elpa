@@ -6,7 +6,7 @@
 ;; Maintainer: Antoine Kalmbach <ane@iki.fi>
 ;; URL: https://www.gnu.org/software/recutils/
 ;; Package-Requires: ((emacs "25"))
-;; Version: 1.6
+;; Version: 1.7.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -62,7 +62,9 @@
 (defcustom rec-open-mode 'navigation
   "Default mode to use when switching a buffer to `rec-mode'.
 Valid values are `edit' and `navigation'.  The default is `navigation'"
-  :type 'symbol)
+  :type 'symbol
+  :safe (lambda (x) (member x '(edit navigation))))
+;;;###autoload (put rec-open-mode 'safe-local-variable (lambda (x) (member x '(edit navigation))
 
 (defcustom rec-popup-calendar t
   "Whether to use a popup calendar to select dates when editing field values.
@@ -77,8 +79,19 @@ The default is t."
   "Hook run when entering rec mode."
   :type 'hook)
 
+(defcustom rec-summary-window-height 10
+  "Height of the summary window."
+  :type 'integer)
+
+(defcustom rec-summary-deletes-other-windows nil
+  "Whether entering `rec-summary-mode' should kill other windows."
+  :type 'boolean)
+
+;;;; Faces and variables
+
 (defvar rec-max-lines-in-fields 15
   "Values of fields having more than the specified lines will be hidden by default in navigation mode.")
+(put 'rec-max-lines-in-fields 'safe-local-variable 'numberp)
 
 (defvar rec-recsel "recsel"
   "Name of the 'recsel' utility from the GNU recutils.")
@@ -97,6 +110,20 @@ The default is t."
 
 (defface rec-continuation-line-face '((t :weight bold))
   "Face for line continuations (+).")
+
+;;;; Utilities
+
+(defun rec-mode--syntax-highlight (str)
+  "Highlight STR using rec-mode's font-locking."
+  (with-temp-buffer
+    (insert str)
+    (delay-mode-hooks
+      (rec-mode)
+      (if (fboundp 'font-lock-ensure)
+          (font-lock-ensure)
+        (with-no-warnings
+          (font-lock-fontify-buffer)))
+      (buffer-string))))
 
 ;;;; Variables and constants that the user does not want to touch (really!)
 
@@ -192,14 +219,22 @@ The default is t."
     (define-key map (kbd "C-c C-%") 'rec-cmd-statistic)
     (define-key map (kbd "C-c C-f m") 'rec-cmd-trim-field-value)
     (define-key map (kbd "C-c C-k") 'rec-cmd-compile)
-    (define-key map (kbd "C-c C-s q") 'rec-cmd-select-fast)
-    (define-key map (kbd "C-c C-s s") 'rec-cmd-select-sex)
+    (define-key map (kbd "C-c C-/ s") 'rec-cmd-navigate-current-type-by-sex)
+    (define-key map (kbd "C-c C-/ C-k") 'rec-cmd-exit-selection)
+    (define-key map (kbd "C-c C-/ h") 'rec-cmd-show-summary-for-selection)
+    (define-key map (kbd "C-c M-s C-s") 'rec-cmd-new-buffer-from-sex)
+    (define-key map (kbd "C-c M-s C-q") 'rec-cmd-navigate-by-sex)
+    (define-key map (kbd "C-c C-x C-s") 'rec-cmd-xref-sex)
+    (define-key map (kbd "C-c C-x C-q") 'rec-cmd-xref-fast-string)
+    (define-key map (kbd "C-c C-s q") 'rec-cmd-jump-to-fast)
+    (define-key map (kbd "C-c C-s s") 'rec-cmd-jump-to-sex)
     (define-key map (kbd "C-c M-h") 'rec-cmd-show-summary)
     (define-key map (kbd "C-c C-i") 'rec-cmd-show-info)
     (define-key map (kbd "C-c C-f C-w") 'rec-cmd-kill-field)
     (define-key map (kbd "C-c C-f M-w") 'rec-cmd-copy-field)
     (define-key map (kbd "C-c C-r C-w") 'rec-cmd-kill-record)
     (define-key map (kbd "C-c C-r M-w") 'rec-cmd-copy-record)
+    (define-key map (kbd "C-c C-SPC") 'rec-cmd-toggle-field-visibility)
     (define-key map [tab] 'rec-cmd-goto-next-field)
     (define-key map (kbd "TAB") 'rec-cmd-goto-next-field)
     (define-key map (kbd "C-c C-b") 'rec-cmd-jump-back)
@@ -225,12 +260,20 @@ The default is t."
     (define-key map (kbd "t") 'rec-cmd-show-type)
     (define-key map (kbd "m") 'rec-cmd-trim-field-value)
     (define-key map (kbd "c") 'rec-cmd-compile)
+    (define-key map (kbd "/ s") 'rec-cmd-navigate-current-type-by-sex)
+    (define-key map (kbd "/ q") 'rec-cmd-navigate-current-type-by-fast-string)
+    (define-key map (kbd "/ /") 'rec-cmd-exit-selection)
+    (define-key map (kbd "/ h") 'rec-cmd-show-summary-for-selection)
+    (define-key map (kbd "X s") 'rec-cmd-xref-sex)
+    (define-key map (kbd "X q") 'rec-cmd-xref-fast-string)
     (define-key map (kbd "f C-w") 'rec-cmd-kill-field)
     (define-key map (kbd "f M-w") 'rec-cmd-copy-field)
     (define-key map (kbd "r C-w") 'rec-cmd-kill-record)
     (define-key map (kbd "r M-w") 'rec-cmd-copy-record)
-    (define-key map (kbd "s q") 'rec-cmd-select-fast)
-    (define-key map (kbd "s s") 'rec-cmd-select-sex)
+    (define-key map (kbd "s q") 'rec-cmd-jump-to-fast)
+    (define-key map (kbd "s s") 'rec-cmd-jump-to-sex)
+    (define-key map (kbd "S s") 'rec-cmd-new-buffer-from-sex)
+    (define-key map (kbd "S q") 'rec-cmd-new-buffer-from-fast-string)
     (define-key map (kbd "h") 'rec-cmd-show-summary)
     (define-key map (kbd "C-c C-t") 'rec-find-type)
     (define-key map [remap undo] 'rec-cmd-undo)
@@ -494,7 +537,8 @@ If no such field exists in RECORD then nil is returned."
         (delete-region (point) (point-max))
         (setq value (buffer-substring-no-properties (point-min)
                                                     (point-max))))
-      (setf (rec-field-value field) value))))
+      (setf (slot-value field 'value) value)
+      field)))
 
 ;;;; Get entities under pointer
 ;;
@@ -690,7 +734,7 @@ DONT-GO-FUNDAMENTAL is non-nil, don't switch to fundamental."
                                  :auto (car-safe (rec-record-assoc "%auto" record))
                                  :doc (car-safe (rec-record-assoc "%doc" record)))))))
 
-(cl-defmethod rec-record-to-descriptor ((record rec-record-descriptor))
+(cl-defmethod rec-record-to-descriptor ((_record rec-record-descriptor))
   rec-record-descriptor)
 
 (defun rec--parse-sexp-records (records)
@@ -712,7 +756,6 @@ If the contents of the current buffer are not valid rec data then
 this function returns nil."
   (setq rec-buffer-descriptors
 	(let* ((buffer (generate-new-buffer "Rec Inf "))
-	       descriptors records
 	       (status
 	        ;; Call 'recinf' to get the list of record descriptors in
 	        ;; sexp format.
@@ -729,9 +772,11 @@ this function returns nil."
                        (goto-char (point-max))
                        (insert ")")
                        (unwind-protect
-                           (setq descriptors
+                           (let* ((result (read (point-min-marker)))
+                                  (first (car-safe result)))
+                             (if (and first (seq-every-p #'listp result))
                                  (seq-filter #'rec-record-descriptor-p
-                                             (rec--parse-sexp-records (read (point-min-marker)))))
+                                             (rec--parse-sexp-records result))))
                          (kill-buffer buffer))))
             (kill-buffer buffer)
             nil))))
@@ -983,6 +1028,7 @@ descriptor record.  If nil, the descriptor is skipped."
            (save-excursion
              (let ((record-type (rec-record-type)))
                (and (rec-goto-next-rec)
+                    record-type
                     (equal (rec-record-type) record-type)))))
       (rec-goto-next-rec))
   (rec-show-record))
@@ -992,7 +1038,7 @@ descriptor record.  If nil, the descriptor is skipped."
   (setq buffer-read-only t)
   (rec-narrow-to-record)
   (rec-set-head-line nil)
-  (rec-set-mode-line (rec-record-type))
+  (rec-update-mode-line)
   ;; Hide the contents of big fields.
   (rec-hide-record-fields)
   ;; Change the appearance of continuation line markers to look like
@@ -1265,13 +1311,25 @@ can contain any text, then nil is returned."
 
 ;;;; Mode line and Head line
 
-(defun rec-set-mode-line (str)
-  "Set the modeline in rec buffers.
-Argument STR is the string to be displayed."
-  (when str
-    (setq mode-line-buffer-identification
-          (list 20
-                "%b " str))))
+(defun rec-update-mode-line ()
+  "Update the modeline in rec buffers.
+
+Argument STR is the string to be displayed.
+
+If `rec-selection-mode' is active, that string is displayed instead."
+  (let* ((message (cond ((derived-mode-p 'rec-edit-mode)
+                         (if rec-selection-mode
+                             (format "Edit %s / %s" rec-edit-mode-type selection-format)
+                           (format "Edit %s" (symbol-name rec-edit-mode-type))))
+                        
+                        (rec-selection-mode
+                         (rec-selection-stringify rec-selection-current-selection))
+
+                        (t (rec-record-type)))))
+    (when message
+      (setq mode-line-buffer-identification
+            (list 20 "%b "
+                  (propertize message 'face 'bold))))))
 
 (defun rec-set-head-line (str)
   "Set the headline in rec buffers to STR."
@@ -1340,14 +1398,31 @@ PROMPT is the prompt string to use."
 
 (defvar rec-summary-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map tabulated-list-mode-map)
-    (define-key map "\C-m" 'rec-summary-cmd-jump-to-record)
+    (define-key map [return] 'rec-summary-cmd-jump-to-record)
+    (define-key map (kbd "RET") 'rec-summary-cmd-jump-to-record)
+    (define-key map (kbd "n") 'rec-summary-cmd-next)
+    (define-key map (kbd "p") 'rec-summary-cmd-prev)
+    (define-key map (kbd "q") 'rec-summary-quit)
     map)
   "Local keymap for `rec-summary-mode' buffers.")
 
-(defvar rec-summary-rec-buffer nil
+(defun rec-summary-quit ()
+  "Quit the summary."
+  (interactive)
+  (let ((record-buffer rec-summary-rec-buffer))
+    (kill-buffer (current-buffer))
+    (if (not (eq (selected-window) (next-window nil 'no-minibuf)))
+        (delete-window)
+      (switch-to-buffer record-buffer))))
+
+(defvar rec-summary-buffer nil
+  "The `rec-summary-mode' buffer associated with the rec file.
+
+This variable is not buffer local, as there can be only one
+summary buffer open for the current buffer.")
+
+(defvar-local rec-summary-rec-buffer nil
   "The `rec-mode' buffer paired with this summary buffer.")
-(make-variable-buffer-local 'rec-summary-rec-buffer)
 
 (define-derived-mode rec-summary-mode tabulated-list-mode "Rec Summary"
   "Major mode for summarizing the contents of a recfile.
@@ -1356,7 +1431,8 @@ PROMPT is the prompt string to use."
   (setq tabulated-list-format nil)
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key nil)
-  (tabulated-list-init-header))
+  (tabulated-list-init-header)
+  (add-hook 'post-command-hook #'rec-summary-sync-rec-buffer nil t))
 
 (defun rec-summary-populate (headers entries)
   "Populate a `rec-mode' summary buffer with the data in ENTRIES.
@@ -1369,6 +1445,44 @@ Argument HEADERS specifies the headers to display."
   (tabulated-list-init-header)
   (setq tabulated-list-entries entries)
   (tabulated-list-print nil))
+
+(defvar rec-summary-inhibit-sync nil
+  "Whether to prevent syncing the rec buffer.")
+
+(defun rec-summary-sync-rec-buffer ()
+  "Make sure the rec buffer of the summary shows the currently selected record."
+  (when  (and (not rec-summary-inhibit-sync)
+              rec-summary-rec-buffer
+              (tabulated-list-get-id))
+    (if (eobp)
+        (forward-line -1))
+    (unless (eobp)
+      (save-excursion
+        (let ((there (marker-position (tabulated-list-get-id)))
+              (old (selected-window))
+              (window (get-buffer-window rec-summary-rec-buffer t)))
+          (if window
+              (unwind-protect
+                  (progn
+                    (select-window window)
+                    (rec-goto-position there t))
+                (select-window old))
+            (with-current-buffer rec-summary-rec-buffer
+              (rec-goto-position there t))))))))
+
+(defun rec-summary-cmd-next ()
+  "Move to the next line in the summary."
+  (interactive)
+  (forward-line 1)
+  (rec-summary-update-overlay)
+  (display-buffer rec-summary-rec-buffer))
+
+(defun rec-summary-cmd-prev ()
+  "Move to the next line in the summary."
+  (interactive)
+  (forward-line -1)
+  (rec-summary-update-overlay)
+  (display-buffer rec-summary-rec-buffer))
 
 (defun rec-summary-cmd-jump-to-record ()
   "Jump to the selected record in the `rec-mode' buffer."
@@ -1394,7 +1508,8 @@ Argument HEADERS specifies the headers to display."
 (cl-defun rec-query (&rest args
                            &key (type nil) (join nil) (index nil) (sex nil)
                            (fast-string nil) (random nil) (fex nil) (password nil)
-                           (group-by nil) (sort-by nil) (icase nil) (uniq nil))
+                           (group-by nil) (sort-by nil) (icase nil) (uniq nil) (no-sexps nil)
+                           (descriptor nil))
   "Perform a query in the current buffer using recsel.
 
 ARGS contains the arguments to pass to the program.
@@ -1421,9 +1536,13 @@ Optional argument SORT-BY sorts the output by given fields.
 
 Optional argument ICASE makes the selection case-insensitive.
 
-Optional argument UNIQ when non-nil, returns only unique results."
+Optional argument UNIQ when non-nil, returns only unique results.
+
+Optional argument NO-SEXPS when non-nil, returns the results in rec format.
+
+Optional argument DESCRIPTOR when non-nil, includes the record descriptor."
   (let ((buffer (generate-new-buffer "Rec Sel "))
-        args records status)
+        args status)
     (save-restriction
       (widen)
       (unwind-protect
@@ -1455,8 +1574,10 @@ Optional argument UNIQ when non-nil, returns only unique results."
               (setq args (cons "-i" args)))
             (when uniq
               (setq args (cons "-U" args)))
-            (when (and (not group-by) (not sort-by))
+            (when (and (not group-by) (not sort-by) (not no-sexps))
               (setq args (cons "--print-sexps" args)))
+            (when descriptor
+              (setq args (cons "-d" args)))
             ;; Call 'recsel' to perform the query.
             (setq status (apply #'call-process-region
                                 (point-min) (point-max)
@@ -1468,15 +1589,28 @@ Optional argument UNIQ when non-nil, returns only unique results."
             (if (/= status 0)
                 (error "Recsel returned error: %d" status))
             (with-current-buffer buffer
-              (goto-char (point-min))
-              (insert "(")
-              (goto-char (point-max))
-              (insert ")")
-              (setq records (read (point-min-marker)))))
-        (kill-buffer buffer)))
-    records))
+              (if (not no-sexps)
+                  (progn
+                    (goto-char (point-min))
+                    (insert "(")
+                    (goto-char (point-max))
+                    (insert ")")
+                    (read (point-min-marker)))
+                (buffer-substring-no-properties (point-min) (point-max)))))
+        (kill-buffer buffer)))))
 
-;;;; SELECTION of records
+;;;; Cross referencing
+
+(defun rec-mode--xref-after-jump-hook ()
+  "After jumping via Xref, narrow to the current record if necssary."
+  (unless (derived-mode-p 'rec-edit-mode)
+    (rec-show-record)))
+
+(defun rec-mode--xref-widen-before-return ()
+  "Widen the buffer before returning from xref."
+  (widen))
+
+;;;; Selection of records
 ;;
 ;; The following functions implement selection of records, which
 ;; maintains a subset of the records in the current buffer.
@@ -1502,28 +1636,395 @@ The result of the selection is stored in `rec-current-selection'."
   (interactive)
   (setq rec-current-selection (rec-query)))
 
-(defun rec-cmd-select-fast (prefix str)
-  "Perform a fast selection using a fast string search of STR.
+(defun rec-cmd-jump-to-fast (prefix fast-string)
+  "Jump to the first record matching FAST-STRING.
 
 Argument PREFIX when non-nil means to use a case-insensitive search."
   (interactive "P\nsFast string query: ")
   (when (not (equal str ""))
-    (setq rec-current-selection (rec-query :fast-string str
-                                           :icase prefix
-                                           :type (rec-record-type)))
+    (setq rec-current-selection
+          (rec--parse-sexp-records
+           (rec-query :fast-string fast-string
+                      :icase prefix
+                      :type (rec-record-type))))
     (rec-navigate-selection)))
 
-(defun rec-cmd-select-sex (prefix sex)
-  "Perform a selection on the current record set using a selection expression.
+(defun rec-cmd-jump-to-sex (prefix sex)
+  "Jump to the first record matching SEX.
 
 A PREFIX argument means to use a case-insensitive search.
 Argument SEX is the selection expression to use."
   (interactive "P\nsSelection expression: ")
   (when (not (equal sex ""))
-    (setq rec-current-selection (rec-query :sex sex
-                                           :icase prefix
-                                           :type (rec-record-type)))
+    (setq rec-current-selection
+          (rec--parse-sexp-records
+           (rec-query :sex sex
+                      :icase prefix
+                      :type (rec-record-type))))
     (rec-navigate-selection)))
+
+;;;;; Selecting into a new buffer
+
+(defun rec--new-buffer-for-selection (selection exp)
+  "Generate a new buffer for SELECTION and switch to it."
+  (when selection
+    (let* ((name (generate-new-buffer-name
+                  (format "*Selection of %s*" (buffer-name))))
+           (origin (buffer-name))
+           (buf (get-buffer-create name)))
+      (with-current-buffer buf
+        (insert
+         (format "# Generated from %s using expression %s" origin expr))
+        (newline)
+        (insert selection)
+        (goto-char (point-min))
+        (rec-edit-mode)
+        (run-hooks 'hack-local-variables-hook))
+      (rec-update-buffer-descriptors)
+      (switch-to-buffer buf))))
+
+(defun rec-cmd-new-buffer-from-sex (sex)
+  "Query the current buffer using SEX and insert the result into a new buffer."
+  (interactive
+   (list (read-string "Selection expression: "
+                      nil
+                      'rec-selection-sex-history)))
+  (when sex
+    (rec--new-buffer-for-selection
+     (rec-query :type (rec-record-type)
+                :sex sex
+                :descriptor t
+                :no-sexps t)
+     sex)))
+
+
+(defun rec-cmd-new-buffer-from-fast-string (fast-string)
+  "Query the current buffer using FAST-STRING and insert the result into a new buffer."
+  (interactive
+   (list (read-string "Fast string search: "
+                      nil
+                      'rec-selection-fast-history)))
+  (when fast-string
+    (rec--new-buffer-for-selection
+     (rec-query :type (rec-record-type)
+                :fast-string fast-string
+                :descriptor t
+                :no-sexps t)
+     fast-string)))
+
+
+;;;;; Record selection mode
+
+(defvar-local rec-selection-mode nil)
+
+;;;;;; Classes that represent the current selection
+
+(cl-defgeneric rec-selection-query (selection &optional fex)
+  "Query records on the current buffer using SELECTION.
+Optionally select only the fields in FEX.")
+
+(cl-defgeneric rec-selection-stringify (selection)
+  "Return a string representation of SELECTION.")
+
+(cl-defgeneric rec-selection-expr (selection)
+  "Return the actual expression used in the selection.")
+
+(defclass rec-selection ()
+  ((type :initarg :type
+         :initform nil)
+   (icase :initarg :icase))
+  "A query to restrict candidates for the current buffer.")
+
+(defclass rec-selection-fast (rec-selection)
+  ((fast :initarg :fast)))
+
+(cl-defmethod rec-selection-expr ((selection rec-selection-fast))
+  (slot-value selection 'fast))
+
+(cl-defmethod rec-selection-stringify ((selection rec-selection-fast))
+  (with-slots (type fast) selection
+    (format "%s[%s]" type fast)))
+
+(cl-defmethod rec-selection-query ((selection rec-selection-fast) &optional fex)
+  "Query records using a fast string search."
+  (with-slots (type icase fast) selection
+    (rec-query :type type
+               :fex fex
+               :icase icase
+               :fast-string fast)))
+
+(defclass rec-selection-sex (rec-selection)
+  ((sex :initarg :sex)))
+
+(cl-defmethod rec-selection-expr ((selection rec-selection-sex))
+  (slot-value selection 'sex))
+
+(cl-defmethod rec-selection-stringify ((selection rec-selection-sex))
+  (with-slots (type sex) selection
+    (format "%s / %s" type sex)))
+
+(cl-defmethod rec-selection-query ((selection rec-selection-sex) &optional fex)
+  "Query records using a selection expression."
+  (with-slots (type icase sex) selection
+    (rec-query :type type
+               :fex fex
+               :icase icase
+               :sex sex)))
+
+;;;;;; Variables for containing the selectionk
+
+(defvar-local rec-selection-current-selection nil
+  "The currently active selection expression.")
+
+(defvar-local rec-selection-current-record-type nil
+  "The record type being navigated in selection mode.")
+
+(defvar-local rec-selection-previous-mode-line nil
+  "The mode line text before the selection.")
+
+(defvar rec-selection-sex-history nil
+  "The history of record selection history.")
+
+;;;;;; Functions for entering selection mode
+
+(defun rec-begin-selection (selection)
+  "Enter `rec-selection-mode' via SELECTION."
+  (when (or (not rec-selection-mode)
+            (y-or-n-p "You are currently navigating a selection.  Do you want to quit navigation and start with another selection? "))
+    (let ((results (rec--parse-sexp-records
+                    (rec-selection-query selection))))
+      (if results
+          (progn
+            (setq rec-current-selection results)
+            (when rec-selection-mode
+              (rec-cmd-exit-selection))
+            (setq rec-selection-previous-mode-line mode-line-buffer-identification)
+            (setq rec-selection-current-selection selection)
+            (rec-selection-mode)
+            (rec-cmd-goto-next-selection-record 0))
+        (user-error "The search returned no results")))))
+
+(defun rec-cmd-navigate-current-type-by-sex (prefix sex)
+  "Query records with SEX and restrict navigation to those records.
+Prefix argument PREFIX if non-nil means ignore case.
+
+See `rec-selection-mode'."
+  (interactive
+   (let ((prev (if rec-selection-current-selection
+                   (rec-selection-expr rec-selection-current-selection))))
+     (list current-prefix-arg
+           (read-string
+            (format "Navigate %s records by selection expression%s: "
+                    (rec-record-type)
+                    (if prev
+                        (format " (default %s)" prev)
+                      ""))
+            nil 'rec-selection-sex-history prev))))
+  (when (not (equal sex ""))
+    (rec-begin-selection
+     (rec-selection-sex :sex sex
+                        :icase prefix
+                        :type (rec-record-type)))))
+
+(defvar rec-selection-fast-history nil
+  "The history of record selection history (fast search).")
+
+(defun rec-cmd-navigate-current-type-by-fast-string (prefix fast-string)
+  "Query records with fast-string  and restrict navigation to those records.
+
+Prefix argument PREFIX if non-nil means ignore case.
+
+See `rec-selection-mode'."
+  (interactive
+   (let ((prev (if rec-selection-current-selection
+                   (rec-selection-expr rec-selection-current-selection))))
+     (list current-prefix-arg
+           (read-string
+            (format "Navigate %s records by fast string search%s: "
+                    (rec-record-type)
+                    (if prev
+                        (format " (default %s)" prev)
+                      ""))
+            nil 'rec-selection-fast-history prev))))
+  (when (not (equal fast-string ""))
+    (rec-begin-selection
+     (rec-selection-fast :fast fast-string
+                         :type (rec-record-type)
+                         :icase prefix))))
+
+(defun rec-cmd-exit-selection ()
+  "Exit `rec-selection-mode'."
+  (interactive)
+  (when rec-selection-mode
+    (when (buffer-live-p rec-summary-buffer)
+      (rec-select-summary
+        ;; If the summary was active for a selection,
+        (when rec-summary-selection
+          (rec-summary-quit))))
+    (rec-selection-mode -1)
+    (setq mode-line-buffer-identification rec-selection-previous-mode-line)))
+
+(defvar rec-show-hook nil
+  "List of functions to call when a record is shown.")
+
+(defun rec-cmd-goto-next-selection-record (n)
+  "Goto the next record in the current selection.
+
+Prefix arguments N moves next by N records."
+  (interactive "P")
+  (if rec-current-selection
+      (let* ((record (rec-current-record))
+             (pos (slot-value record 'position))
+             (where-am-i
+              (cl-position-if
+               (lambda (rec)
+                 (= pos (byte-to-position (slot-value rec 'position))))
+               rec-current-selection))
+             (next (if (numberp where-am-i)
+                       (nth (+ where-am-i (or n 1)) rec-current-selection)
+                     (car rec-current-selection))))
+        (if (and next (or (/= pos (slot-value next 'position)) (zerop n)))
+            (rec-goto-record next)
+          (user-error
+           (if rec-selection-current-selection
+               (format "No more records of type %s in selection %s"
+                       (slot-value rec-selection-current-selection 'type)
+                       (rec-selection-expr rec-selection-current-selection))
+             (format "No more records in selection %s" (rec-selection-expr rec-selection-current-selection))))))
+    (user-error "No active selection")))
+
+(defun rec-cmd-goto-prev-selection-record (n)
+  "Goto the previous record in the current selection.
+
+Prefix arguments N moves next by N records."
+  (interactive "P")
+  (rec-cmd-goto-next-selection-record (- (or n 1))))
+
+(defun rec-cmd-show-summary-for-selection ()
+  "Show a summary for the records only in the currently active selection."
+  (interactive)
+  (when rec-selection-mode
+    (rec-cmd-show-summary t)))
+
+;;;;; Selection cross reference
+
+(cl-defgeneric rec--xref-summary-for-record (record type kind)
+  "Return a formated summary line for RECORD of type TYPE.")
+
+(cl-defgeneric rec--xref-truncate-fields (record kind)
+  "Truncate fields of RECORD of search KIND.")
+
+(cl-defgeneric rec--xref-truncate-fields (record (_kind (head sex)))
+  "Truncate fields from a selection expression SEX of RECORD.
+
+Takes up to the first three elements of a record and displays them, padded
+with four spaces."
+  (let* ((rec-fields (slot-value record 'fields))
+        (fields (mapconcat
+                 (lambda (field)
+                   (concat
+                    "    "
+                    (with-temp-buffer
+                      (rec-insert field)
+                      (string-trim-right
+                       (rec-mode--syntax-highlight (buffer-string))))))
+                 (cl-subseq rec-fields 0 3 )
+                 "\n")))
+    (if (< 3 (length rec-fields))
+                (concat fields "\n    ...")
+      fields)))
+
+(cl-defgeneric rec--xref-truncate-fields (record (kind (head fast)))
+  "Truncate fields for KIND fast string searches in RECORD."
+  (let* ((fields (slot-value record 'fields))
+         (matching (seq-filter
+                    (lambda (field)
+                      (string= (slot-value field 'value)
+                               (cdr kind)))
+                    fields)))
+    (mapconcat
+     (lambda (field)
+       (concat "    "
+               (let* ((full (rec-mode--syntax-highlight
+                             (with-temp-buffer
+                               (rec-insert field)
+                               (string-trim-right
+                                (buffer-string))))))
+                 (when (string-match (regexp-quote
+                                      (cdr kind))
+                                     full)
+                   (put-text-property (match-beginning 0)
+                                      (match-end 0)
+                                      'face
+                                      'highlight
+                                      full))
+                 full)))
+     matching
+     "\n")))
+
+(defun rec--xref-summary-for-record (record type kind)
+  "Base class method to do the rest of the formating."
+  (let* ((line-number (number-to-string
+                       (line-number-at-pos
+                        (slot-value record 'position) t)))
+         (heading (concat (propertize type 'face 'font-lock-type-face)
+                          " at line "
+                          line-number)))
+    
+    (add-face-text-property 0 (length heading) 'bold nil heading)
+    (format "%s\n%s"
+            heading
+            (rec--xref-truncate-fields record kind))))
+
+(defun rec--xref-query (query kind)
+  "Make a XREF results list using QUERY identified by KIND."
+  (let* ((results (rec--parse-sexp-records query))
+         (descriptor (cl-find-if #'rec-record-descriptor-p results))
+         (type (if descriptor
+                   (slot-value descriptor 'type)
+                 "Record")))
+    (when results
+      (xref--show-xrefs
+       (mapcar
+        (lambda (record)
+          (xref-make
+           (rec--xref-summary-for-record record type kind)
+           (xref-buffer-location :buffer (current-buffer)
+                                 :position (slot-value record 'position))))
+        (cdr results))
+       nil))))
+
+(defun rec-cmd-xref-sex (sex)
+  "Cross reference records for SEX.
+
+Creates an XREF buffer with entries of the current record type
+in the current buffer matching the selection expression."
+  (interactive
+   (list (read-string "Selection expression: "
+                      nil 'rec-selection-sex-history)))
+  (rec--xref-query
+   (rec-query :sex sex
+              :descriptor t
+              :icase t
+              :type (rec-record-type))
+   (cons 'sex sex)))
+
+
+(defun rec-cmd-xref-fast-string (fast-string)
+  "Cross reference records for FAST-STRING.
+
+Creates an XREF buffer with entries of the current record type
+in the current buffer matching the fast string search."
+  (interactive
+   (list (read-string "Fast string search: "
+                      nil 'rec-selection-sex-history)))
+  (rec--xref-query
+   (rec-query :fast-string fast-string
+              :descriptor t
+              :icase t
+              :type (rec-record-type))
+   (cons 'fast fast-string)))
+
 
 ;;;; Commands
 ;;
@@ -1822,7 +2323,8 @@ Optional argument N specifies number of records to skip."
 	  (message "%s" (concat "No more records of type "
 				(rec-record-type)))))))
   (unless (derived-mode-p 'rec-edit-mode)
-    (rec-show-record)))
+    (rec-show-record)
+    (rec-summary-move-to-record (rec-current-record))))
 
 (defun rec-cmd-goto-previous-rec (&optional n)
   "Move to the previous record of the same type.
@@ -1848,7 +2350,8 @@ Optional argument N specifies number of records to skip."
 	  (message "%s" (concat "No more records of type "
 				(rec-record-type)))))))
   (unless (derived-mode-p 'rec-edit-mode)
-    (rec-show-record)))
+    (rec-show-record))
+  (rec-summary-move-to-record (rec-current-record)))
 
 (defun rec-cmd-undo ()
   "Undo a change in the buffer when in navigation mode."
@@ -1868,6 +2371,11 @@ Optional argument N specifies number of records to skip."
         (setq rec-jump-back nil))
     (message "No previous position to jump")))
 
+(defvar-local rec-edit-mode-type nil
+  "The kind of thing we are navigating.
+
+One of ‘buffer‘, ‘record‘ or ‘type‘.")
+
 (defun rec-edit-record ()
   "Go to the record edition mode."
   (interactive)
@@ -1875,7 +2383,8 @@ Optional argument N specifies number of records to skip."
   (save-restriction
     (rec-edit-mode))
   (rec-set-head-line (substitute-command-keys "Editing record - use \\[rec-finish-editing] to return to navigation mode"))
-  (rec-set-mode-line "Edit record")
+  (setq rec-edit-mode-type 'record)
+  (rec-update-mode-line)
   (setq rec-update-p nil)
   (setq rec-preserve-last-newline t))
 
@@ -1890,7 +2399,8 @@ Optional argument N specifies number of records to skip."
   (rec-set-head-line (concat "Editing type "
                              "'" (rec-record-type) "'"
                              (substitute-command-keys " - use \\[rec-finish-editing] to return to navigation mode")))
-  (rec-set-mode-line "Edit type"))
+  (setq rec-edit-mode-type 'type)
+  (rec-update-mode-line))
 
 (defun rec-edit-buffer ()
   "Go to the buffer edition mode."
@@ -1900,7 +2410,8 @@ Optional argument N specifies number of records to skip."
   (widen)
   (setq rec-update-p t)
   (rec-set-head-line (substitute-command-keys "Editing buffer - use \\[rec-finish-editing] to return to navigation mode"))
-  (rec-set-mode-line "Edit buffer")
+  (setq rec-edit-mode-type 'buffer)
+  (rec-update-mode-line)
   (recenter-top-bottom))
 
 (defun rec-finish-editing ()
@@ -1923,7 +2434,7 @@ Optional argument N specifies number of records to skip."
     (setq rec-update-p nil)
     (rec-show-record)
     (rec-set-head-line nil)
-    (rec-set-mode-line (rec-record-type))
+    (rec-update-mode-line)
     (message "End of edition")))
 
 (defun rec-cmd-show-descriptor ()
@@ -2118,50 +2629,163 @@ This command is especially useful with enumerated types."
           (message "record copied to kill ring"))
       (message "Not in a record"))))
 
-(defun rec-cmd-show-summary ()
+;;;; Summary
+
+(defvar-local rec-summary-overlay nil
+  "The overlay on a highlighted record summary line.")
+
+(defun rec-summary-update-overlay ()
+  (unless rec-summary-overlay
+    (setq rec-summary-overlay (make-overlay (point) (point))))
+  (move-overlay rec-summary-overlay
+                (line-beginning-position)
+                (line-end-position))
+  (overlay-put rec-summary-overlay 'face 'highlight))
+
+(defmacro rec-select-summary (&rest body)
+  "Execute BODY in the rec summary, if it exists."
+  (declare (indent 0) (debug (&rest form)))
+  `(if (and rec-summary-buffer (get-buffer-window rec-summary-buffer t))
+       (let ((selected (selected-window)))
+         (save-excursion
+           (unwind-protect
+               (progn
+                 (pop-to-buffer rec-summary-buffer)
+                 ,@body)
+             (select-window selected))))
+     (with-current-buffer rec-summary-buffer
+       ,@body)))
+
+(defun rec-summary-move-to-record (record)
+  "Move the cursor in the summary buffer to the position of RECORD."
+  (when (buffer-live-p rec-summary-buffer)
+    (let ((target (slot-value record 'position))
+          (rec-summary-inhibit-sync t)
+          where)
+      (with-current-buffer rec-summary-buffer
+        (goto-char (point-min))
+        (cl-loop for current = (marker-position (tabulated-list-get-id))
+                 until (eq target current)
+                 do (forward-line 1)
+                 finally (setq where (point))))
+      (when (integer-or-marker-p where)
+        (rec-select-summary
+          (goto-char where)
+          (rec-summary-update-overlay))))))
+
+(defvar-local rec-summary-selection nil
+  "The selection that was used to display the summary.")
+
+(defun rec-cmd-show-summary (&optional use-selection)
   "Show a window with a summary of the contents of the current record set.
 
 The fields used to build the summary are determined in the
 following way: if there is a %summary field in the record
 descriptor of the current record set then it must contain a comma
 separated list of fields.  Otherwise the %key is used.  Otherwise
-the user is prompted."
+the user is prompted.
+
+When USE-SELECTION is non-nil, present the summary buffer for the currently
+active selection in `rec-selection-current-selection'."
   (interactive)
-  (let ((summary-buffer-name (concat (buffer-name (current-buffer)) " Summary")))
-    (if (buffer-live-p (get-buffer summary-buffer-name))
-        (progn
-          (delete-other-windows)
-          (split-window-vertically 10)
-          (switch-to-buffer summary-buffer-name))
+  (let* ((base-buffer-name (concat (buffer-name (current-buffer)) " Summary"))
+         (summary-buffer-name (if use-selection
+                                  (concat base-buffer-name
+                                          " for "
+                                          (rec-selection-stringify
+                                           rec-selection-current-selection))
+                                base-buffer-name))
+         (current-record (save-excursion
+                           (rec-beginning-of-record)
+                           (rec-current-record))))
+    (if (buffer-live-p (or rec-summary-buffer (get-buffer summary-buffer-name)))
+        (switch-to-buffer rec-summary-buffer)
       (let ((summary-fields (rec-summary-fields)))
         (unless summary-fields
           (setq summary-fields (list (rec-key)))
           (unless (car summary-fields)
             (setq summary-fields (split-string (read-from-minibuffer "Fields to use in the summary: ") "[ ,]"))))
         (if (car summary-fields)
-            (let* ((query (rec-query :type (rec-record-type)
-                                     :fex (string-join summary-fields ",")))
-                   (summary-list (mapcar (lambda (rec)
-                                           (let* ((entry-marker (make-marker)))
-                                             (set-marker entry-marker
-                                                         (slot-value rec 'position))
-                                             (list entry-marker
-                                                   (vconcat (rec-record-values rec summary-fields)))))
-                                         (rec--parse-sexp-records query))))
+            (let* ((fex (string-join summary-fields ","))
+                   (query (if (and use-selection rec-selection-current-selection)
+                              (rec-selection-query rec-selection-current-selection fex)
+                            (rec-query :type (rec-record-type)
+                                       :fex fex)))
+                   (summary-list
+                    (mapcar (lambda (rec)
+                              (let* ((entry-marker (make-marker)))
+                                (set-marker entry-marker
+                                            (byte-to-position (slot-value rec 'position)))
+                                (list entry-marker
+                                      (vconcat
+                                       (cl-loop for field in summary-fields
+                                                for value = (car (rec-record-assoc field rec ))
+                                                collect (or value ""))))))
+                            (rec--parse-sexp-records query))))
               ;; Create the summary window if it does not exist and populate
               ;; it.
               (let ((rec-buf (current-buffer))
-                    (buf (get-buffer-create (concat (buffer-name (current-buffer)) " Summary"))))
-                (delete-other-windows)
-                (split-window-vertically 10)
-                (switch-to-buffer buf)
-                (let ((inhibit-read-only t))
+                    (rec-summary-inhibit-sync t)
+                    (selection rec-selection-current-selection)
+                    (buf (get-buffer-create summary-buffer-name)))
+                (setq rec-summary-buffer buf)
+                (when rec-summary-deletes-other-windows
+                  (delete-other-windows))
+                ;; If there's just one window, split the buffer.
+                (let ((split-width-threshold nil)) ;; Forbid horiz split.
+                  (if (and (one-window-p)
+                           pop-up-windows
+                           (not pop-up-frames))
+                      (progn
+                        
+                        (split-window (selected-window) rec-summary-window-height)
+                        (select-window (next-window (frame-first-window)))
+                        (pop-to-buffer buf)
+                        (if (not (eq buf (window-buffer (frame-first-window))))
+                                 (delete-other-windows)))
+                    (pop-to-buffer buf))
+                  (set-buffer rec-buf)
+                  (rec-select-summary nil)
+                  (set-buffer buf))
+                (let ((inhibit-read-only t)
+                      (rec-summary-buffer buf))
                   (delete-region (point-min) (point-max))
-                  (setq rec-summary-rec-buffer rec-buf)
                   (rec-summary-mode)
+                  (setq rec-summary-selection selection)
+                  (setq rec-summary-rec-buffer rec-buf)
                   (rec-summary-populate (vconcat (mapcar (lambda (field) (list field 15 nil)) summary-fields)) summary-list)
-                  (hl-line-mode 1))))
+                  (rec-summary-move-to-record current-record))))
           (message "No fields to build the summary."))))))
+
+;;;; Record movement
+
+(defun rec-goto-position (pos &optional skip-summary)
+  "Move to POS, and highlight the record there.
+
+Optional argument SKIP-SUMMARY means do not sync buffer
+positions, this is useful when the callee of this function is the
+summary buffer."
+  (if (derived-mode-p 'rec-edit-mode)
+      (progn
+        (goto-char pos)
+        (pulse-momentary-highlight-region (rec-beginning-of-record-pos)
+                                          (rec-end-of-record-pos)
+                                          'next-error)
+        (rec-update-mode-line))
+    (progn
+      (widen)
+      (goto-char pos)
+      (rec-show-record)))
+  (unless skip-summary
+    (rec-summary-move-to-record (rec-current-record))))
+
+(defun rec-goto-record (record)
+  "Go to the position of RECORD.
+
+The record is assumed to have its position in bytes, not
+characters."
+  (rec-goto-position (slot-value record 'position)))
+
 
 ;;;; Interacting with other modes
 
@@ -2181,6 +2805,7 @@ function returns nil."
               (rec-field-value (car (slot-value record 'fields)))))
         (rec-field-value (car (slot-value record 'fields)))))))
 
+
 ;;;; Definition of modes
 
 (defvar font-lock-defaults)
@@ -2193,15 +2818,41 @@ function returns nil."
 (easy-menu-define rec-mode-menu (list rec-mode-map rec-edit-mode-map)
   "Menu for rec-mode."
   '("Rec"
-    ["Jump back"                    rec-cmd-jump-back rec-jump-back]
-    ["Next record of same type"     rec-cmd-goto-next-rec t]
-    ["Previous record of same type" rec-cmd-goto-previous-rec t]
-    ["Next field"                   rec-cmd-goto-next-field t]
-    ["Go to record descriptor"       rec-cmd-show-descriptor t]
+    ["Jump back"               rec-cmd-jump-back rec-jump-back]
+    ["Next record"             rec-cmd-goto-next-rec
+     :help "Go to the next record of the same type."]
+    ["Previous record"         rec-cmd-goto-previous-rec 
+     :help "Go to the previous record of the same type."]
+    ["Next field"              rec-cmd-goto-next-field t]
+    ["Go to record descriptor" rec-cmd-show-descriptor t]
     "---"
     ["Append field"       rec-cmd-append-field t]
     ["Toggle field visibility" rec-cmd-toggle-field-visibility t]
     ["Trim field value"   rec-cmd-trim-field-value t]
+    
+    "---"
+    ("Restrict navigation"
+     ["Matching selection expression..." rec-cmd-navigate-current-type-by-sex
+      :help "Restrict movement to records of the current type matching a selection expression."]
+     ["Matching fast string search..." rec-cmd-navigate-current-type-by-fast-string
+      :help "Restrict movement to records of the current type matching an fast string search."]
+     "---"
+     ["Show summary for selection" rec-cmd-show-summary-for-selection 
+      :help "Show a summary of the records matching the currently active selection."
+      :enable rec-selection-mode]
+     ["Exit selection navigation" rec-cmd-exit-selection rec-selection-mode])
+    ("Select records"
+     ["New buffer from selection expression..." rec-cmd-new-buffer-from-sex
+      :help "Run a selection expression on the file and copy the results to a new buffer."]
+     ["New buffer from fast string search..." rec-cmd-new-buffer-from-fast-string
+      :help "Run a fast string search on the file and copy the results to a new buffer."])
+    ("Cross reference"
+     
+     ["For selection expression..." rec-cmd-xref-sex
+      :help "Run a selection expression on the buffer and make an XREF list out of it."]
+     ["For fast string search..." rec-cmd-occur-from-sex
+      :help "Run a fast string search and copy the matching lines into a new buffer."])
+    
     "---"
     ["Edit field"         rec-cmd-edit-field t]
     ["Edit record"        rec-edit-record  (not (derived-mode-p 'rec-edit-mode))]
@@ -2233,6 +2884,9 @@ function returns nil."
   (setq-local end-of-defun-function #'rec-end-of-record)
   (add-to-invisibility-spec '(rec-hide-field . "..."))
 
+  (add-hook 'xref-after-jump-hook #'rec-mode--xref-after-jump-hook nil t)
+  (add-hook 'xref-after-return-hook #'rec-mode--xref-after-return-hook nil t)
+
   ;; Run some code later (i.e. after running the mode hook and setting the
   ;; file-local variables).
   (add-hook 'hack-local-variables-hook #'rec--after-major-mode nil t))
@@ -2252,7 +2906,8 @@ mode and show the output of recfix in a separated buffer."
           (rec-show-type (car (rec-buffer-types))))
       ;; Edit mode
       (rec-edit-mode)
-      (rec-set-mode-line "Edit buffer"))))
+      (setq rec-edit-mode-type 'buffer)
+      (rec-update-mode-line))))
 
 (define-derived-mode rec-edit-mode rec-mode "Rec Edit"
   "A major mode for editing recfiles in Edit Mode.
@@ -2273,6 +2928,29 @@ See Info node `(rec-mode)Editing Mode'.
 
 (define-derived-mode rec-edit-field-mode nil "Rec Edit"
   "A major mode for editing rec field values.")
+
+(defvar rec-selection-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap rec-cmd-goto-next-rec] #'rec-cmd-goto-next-selection-record)
+    (define-key map [remap rec-cmd-goto-previous-rec] #'rec-cmd-goto-prev-selection-record)
+    map))
+
+;;;###autoload
+(define-minor-mode rec-selection-mode
+  "A minor mode for navigating a selection of the current buffer.
+
+When a selection is entered via `\\[rec-cmd-filter-sex]', the
+minor mode is entered.  This minor mode alters the behaviour of
+the standard bindings of `rec-cmd-goto-next-rec' and
+`rec-cmd-goto-previous-rec'.  In the minor mode, only the records
+matching the currently active selection are available for
+navigation. The minor mode can be exited using
+`rec-selection-exit', bound to `\\[rec-cmd-exit-selection]'.
+
+\\{rec-selection-mode-map}."
+  :lighter " Selection"
+  :variable rec-selection-mode
+  :keymap rec-selection-mode-map)
 
 ;; Local variables:
 ;; outline-regexp: ";;;;"
