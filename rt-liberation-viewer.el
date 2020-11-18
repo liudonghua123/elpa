@@ -59,25 +59,55 @@
 							 (car section-list)
 							 (cadr section-list))))))))
 
+;; According to:
+;; "https://rt-wiki.bestpractical.com/wiki/REST#Ticket_History_Entry"
+;; id: <history-id>
+;; Ticket: <ticket-id>
+;; TimeTaken: <...>
+;; Type: <...>
+;; Field: <...>
+;; OldValue: <...>
+;; NewValue: <...>
+;; Data: <...>
+;; Description: <...>
+
+;; Content: <lin1-0>
+;;          <line-1>
+;;          ...
+;;          <line-n>
+
+;; Creator: <...>
+;; Created: <...>
+;; Attachments: <...>
 (defun rt-liber-viewer-parse-section (start end)
   (goto-char start)
-  (when (not (re-search-forward rt-liber-viewer-section-header-regexp
-				end t))
+  (when (not (re-search-forward
+	      rt-liber-viewer-section-header-regexp
+	      end t))
     (error "invalid section"))
   (forward-line 2)
   (let (section-field-alist
-	section-field-end)
-    (save-excursion
-      (setq section-field-end
-	    (re-search-forward "\n\n" end nil)))
-    (while (not (looking-at "^\n"))
-      (when (looking-at rt-liber-viewer-section-field-regexp)
-	(setq section-field-alist
-	      (append section-field-alist
-		      `((,(match-string-no-properties 1) .
-			 ,(match-string-no-properties 2))))))
-      (forward-line))
-    section-field-alist))
+	(rt-field-list
+	 '(id Ticket TimeTaken Type Field
+	      OldValue NewValue Data Description
+	      Creator Created)))
+    ;; definitely error out if any of this doesn't work
+    (setq section-field-alist
+	  (mapcar
+	   (lambda (field-symbol)
+	     (re-search-forward (format "^%s:" (symbol-name field-symbol)) end nil)
+	     (cons field-symbol (buffer-substring (1+ (point)) (point-at-eol))))
+	   rt-field-list))
+    ;; content
+    (goto-char start)
+    (let ((content-start (re-search-forward "^Content: " end nil))
+	  (content-end (progn
+			 (re-search-forward "^Creator: " end nil)
+			 (point-at-bol))))
+      (append section-field-alist
+	      `(,(cons 'Content
+		       (buffer-substring content-start
+					 content-end)))))))
 
 ;; According to:
 ;; "https://rt-wiki.bestpractical.com/wiki/REST#Ticket_History" is of
@@ -108,7 +138,8 @@
 	       (rt-liber-viewer-parse-section
 		(car section-points)
 		(cdr section-points)))
-	     section-point-list)))))
+	     section-point-list))
+      section-list)))
 
 (defun rt-liber-display-ticket-history (ticket-alist &optional assoc-browser)
   "Display history for ticket.
