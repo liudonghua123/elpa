@@ -2139,7 +2139,8 @@ the user is prompted."
           (unless (car summary-fields)
             (setq summary-fields (split-string (read-from-minibuffer "Fields to use in the summary: ") "[ ,]"))))
         (if (car summary-fields)
-            (let* ((query (rec-query :fex (string-join summary-fields ",")))
+            (let* ((query (rec-query :type (rec-record-type)
+                                     :fex (string-join summary-fields ",")))
                    (summary-list (mapcar (lambda (rec)
                                            (let* ((entry-marker (make-marker)))
                                              (set-marker entry-marker
