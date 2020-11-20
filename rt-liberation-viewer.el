@@ -171,6 +171,51 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	     section-point-list))
       section-list)))
 
+(defun rt-liber-viewer2-format-content (content)
+  (with-temp-buffer
+    (insert content)
+
+    ;; Convert the 9 leading whitespaces from RT's comment lines.
+    (goto-char (point-min))
+    (insert "    ")
+    (while (re-search-forward "^         " (point-max) t)
+      (replace-match "    "))
+
+    (fill-region (point-min)
+		 (point-max))
+
+    (buffer-substring (point-min)
+		      (point-max))))
+
+(defun rt-liber-viewer2-display-section (section)
+  (let ((ticket-id (alist-get 'Ticket section))
+	(creator   (alist-get 'Creator section))
+	(date      (alist-get 'Created section))
+	(type	   (alist-get 'Type section))
+	(content   (alist-get 'Content section)))
+    (insert
+     (format "Ticket %s by %s on %s (-N- days ago) (%s)\n"
+	     ticket-id
+	     creator
+	     date
+	     type))
+    (cond ((or (string= type "Status")
+	       (string= type "CustomField")
+	       ;; (string= type "EmailRecord")
+	       (string= type "Set"))
+	   'nop-for-now)
+	  (t (insert
+	      (format "\n%s\n"
+		      (rt-liber-viewer2-format-content content)))))))
+
+(defun rt-liber-viewer2-display-history (contents)
+  (let ((section-list (rt-liber-viewer-parse-history contents)))
+    (mapc
+     (lambda (section)
+       (rt-liber-viewer2-display-section section))
+     section-list)))
+
+;; Before release: move this back to the top
 (defconst rt-liber-viewer2-font-lock-keywords
   (let ((header-regexp (regexp-opt '("id: ")
 				   t)))
@@ -191,7 +236,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
     (with-current-buffer new-ticket-buffer
       (let ((inhibit-read-only t))
 	(erase-buffer)
-	(insert "watch this space for further development")
+	(rt-liber-viewer2-display-history contents)
 	(goto-char (point-min))
 	(rt-liber-viewer2-mode)
 	(set
