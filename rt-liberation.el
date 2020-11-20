@@ -645,6 +645,14 @@ If POINT is nil then called on (point)."
   (let ((ticket-alist (get-text-property (point) 'rt-ticket)))
     (rt-liber-display-ticket-history ticket-alist (current-buffer))))
 
+;; remove after release START
+(defun rt-liber-viewer2-display-ticket-at-point ()
+  "Display the contents of the ticket at point."
+  (interactive)
+  (let ((ticket-alist (get-text-property (point) 'rt-ticket)))
+    (rt-liber-viewer2-display-ticket-history ticket-alist (current-buffer))))
+;; remove after release END
+
 (defun rt-liber-browser-search (id)
   "Return point where ticket with ID is displayed or nil."
   (let ((p nil))

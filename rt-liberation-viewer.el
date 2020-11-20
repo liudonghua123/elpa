@@ -49,6 +49,36 @@
 	   'font-lock-comment-face)))
   "Expressions to font-lock for RT ticket viewer.")
 
+(defun rt-liber-display-ticket-history (ticket-alist &optional assoc-browser)
+  "Display history for ticket.
+
+TICKET-ALIST alist of ticket data.
+ASSOC-BROWSER if non-nil should be a ticket browser."
+  (let* ((ticket-id (rt-liber-ticket-id-only ticket-alist))
+	 (contents (rt-liber-rest-run-ticket-history-base-query ticket-id))
+	 (new-ticket-buffer (get-buffer-create
+			     (concat "*RT Ticket #" ticket-id "*"))))
+    (with-current-buffer new-ticket-buffer
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(insert contents)
+	(goto-char (point-min))
+	(rt-liber-viewer-mode)
+	(set
+	 (make-local-variable 'rt-liber-ticket-local)
+	 ticket-alist)
+	(when assoc-browser
+	  (set
+	   (make-local-variable 'rt-liber-assoc-browser)
+	   assoc-browser))
+	(set-buffer-modified-p nil)
+	(setq buffer-read-only t)))
+    (switch-to-buffer new-ticket-buffer)))
+
+
+;;; ------------------------------------------------------------------
+;;; viewer2 mode functions
+;;; ------------------------------------------------------------------
 (defun rt-liber-viewer-reduce (section-list f acc)
   "A Not Invented Here tail-recursive reduce function."
   (cond ((null (cdr section-list)) acc)
@@ -141,7 +171,15 @@
 	     section-point-list))
       section-list)))
 
-(defun rt-liber-display-ticket-history (ticket-alist &optional assoc-browser)
+(defconst rt-liber-viewer2-font-lock-keywords
+  (let ((header-regexp (regexp-opt '("id: ")
+				   t)))
+    (list
+     (list (concat "^" header-regexp ".*$") 0
+	   'font-lock-comment-face)))
+  "Expressions to font-lock for RT ticket viewer.")
+
+(defun rt-liber-viewer2-display-ticket-history (ticket-alist &optional assoc-browser)
   "Display history for ticket.
 
 TICKET-ALIST alist of ticket data.
@@ -149,13 +187,13 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (let* ((ticket-id (rt-liber-ticket-id-only ticket-alist))
 	 (contents (rt-liber-rest-run-ticket-history-base-query ticket-id))
 	 (new-ticket-buffer (get-buffer-create
-			     (concat "*RT Ticket #" ticket-id "*"))))
+			     (concat "*RT (Viewer) Ticket #" ticket-id "*"))))
     (with-current-buffer new-ticket-buffer
       (let ((inhibit-read-only t))
 	(erase-buffer)
-	(insert contents)
+	(insert "watch this space for further development")
 	(goto-char (point-min))
-	(rt-liber-viewer-mode)
+	(rt-liber-viewer2-mode)
 	(set
 	 (make-local-variable 'rt-liber-ticket-local)
 	 ticket-alist)
@@ -166,6 +204,47 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(set-buffer-modified-p nil)
 	(setq buffer-read-only t)))
     (switch-to-buffer new-ticket-buffer)))
+
+(defun rt-liber-viewer2-refresh-ticket-history (&optional _ignore-auto _noconfirm)
+  (interactive)
+  (if rt-liber-ticket-local
+      (rt-liber-viewer2-display-ticket-history rt-liber-ticket-local
+					       rt-liber-assoc-browser)
+    (error "not viewing a ticket")))
+
+(defconst rt-liber-viewer2-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "q") 'rt-liber-viewer-mode-quit)
+    (define-key map (kbd "n") 'rt-liber-next-section-in-viewer)
+    (define-key map (kbd "N") 'rt-liber-jump-to-latest-correspondence)
+    (define-key map (kbd "p") 'rt-liber-previous-section-in-viewer)
+    (define-key map (kbd "V") 'rt-liber-viewer-visit-in-browser)
+    (define-key map (kbd "m") 'rt-liber-viewer-answer)
+    (define-key map (kbd "M") 'rt-liber-viewer-answer-this)
+    (define-key map (kbd "t") 'rt-liber-viewer-answer-provisionally)
+    (define-key map (kbd "T") 'rt-liber-viewer-answer-provisionally-this)
+    (define-key map (kbd "F") 'rt-liber-viewer-answer-verbatim-this)
+    (define-key map (kbd "c") 'rt-liber-viewer-comment)
+    (define-key map (kbd "C") 'rt-liber-viewer-comment-this)
+    (define-key map (kbd "g") 'revert-buffer)
+    (define-key map (kbd "SPC") 'scroll-up)
+    (define-key map (kbd "DEL") 'scroll-down)
+    (define-key map (kbd "h") 'rt-liber-viewer-show-ticket-browser)
+    map)
+  "Key map for ticket viewer.")
+
+(define-derived-mode rt-liber-viewer2-mode nil
+  "RT Liberation Viewer"
+  "Major Mode for viewing RT tickets.
+\\{rt-liber-viewer-mode-map}"
+  (set
+   (make-local-variable 'font-lock-defaults)
+   '((rt-liber-viewer2-font-lock-keywords)))
+  (set (make-local-variable 'revert-buffer-function)
+       #'rt-liber-viewer2-refresh-ticket-history)
+  (set (make-local-variable 'buffer-stale-function)
+       (lambda (&optional _noconfirm) 'slow))
+  (run-hooks 'rt-liber-viewer-hook))
 
 
 ;;; ------------------------------------------------------------------
@@ -230,13 +309,6 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (when (not (re-search-backward rt-liber-content-regexp (point-min) t))
     (message "no previous section"))
   (goto-char (point-at-bol)))
-
-(defun rt-liber-refresh-ticket-history (&optional _ignore-auto _noconfirm)
-  (interactive)
-  (if rt-liber-ticket-local
-      (rt-liber-display-ticket-history rt-liber-ticket-local
-				       rt-liber-assoc-browser)
-    (error "not viewing a ticket")))
 
 (defconst rt-liber-viewer-mode-map
   (let ((map (make-sparse-keymap)))
