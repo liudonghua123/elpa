@@ -542,9 +542,9 @@
   ;; Chameleon slime.
   (when slime-volleyball-god-mode
     (setf (slime-volleyball-slime-color slime-volleyball-slime1)
-	  (elt '("Maroon" "Yellow" "Turquoise")
-	       (setq slime-volleyball-color-index
-		     (mod (1+ slime-volleyball-color-index) 3))))))
+          (elt '("Maroon" "Yellow" "Turquoise")
+               (setq slime-volleyball-color-index
+                     (mod (1+ slime-volleyball-color-index) 3))))))
 
 (defun slime-volleyball-initialize-globals ()
 
