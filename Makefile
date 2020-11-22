@@ -34,3 +34,5 @@ all: $(TARGET)
 
 clean:
 	-rm -f *~ *.elc
+
+neat: all clean
