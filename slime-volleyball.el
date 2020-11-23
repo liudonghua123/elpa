@@ -5,7 +5,7 @@
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Version: 1.1.3
 ;; Keywords: games
-;; Package-Requires: ((cl-lib . 0.5))
+;; Package-Requires: ((cl-lib "0.5"))
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -155,6 +155,7 @@
 (defmacro slime-volleyball-slime-move-function (number direction)
   "Define a function to move a slime NUMBER steps in direction DIRECTION."
   `(defun ,(intern (format "slime-volleyball-slime%d-%s" number direction)) ()
+     (interactive)
      (,(intern (format "slime-volleyball-slime-%s" direction))
       ,(intern (format "slime-volleyball-slime%d" number)))))
 
@@ -430,8 +431,11 @@
                 (forward-sexp)
                 (eval-region start (point))))))))))
 
+(defvar slime-volleyball-mode-map)
+
 (defun slime-volleyball-training-mode ()
   "Train a computer-controlled slime to play slime volleyball."
+  (interactive)
   (define-key slime-volleyball-mode-map
     (kbd "<left>")
     (lambda ()
@@ -463,18 +467,15 @@
 
 (defun slime-volleyball-two-player-mode ()
   "Start a two player game of slime volleyball."
+  (interactive)
   (define-key slime-volleyball-mode-map
-    (kbd "<left>")
-    (lambda () (interactive) (slime-volleyball-slime2-left)))
+    (kbd "<left>") #'slime-volleyball-slime2-left)
   (define-key slime-volleyball-mode-map
-    (kbd "<right>")
-    (lambda () (interactive) (slime-volleyball-slime2-right)))
+    (kbd "<right>") #'slime-volleyball-slime2-right)
   (define-key slime-volleyball-mode-map
-    (kbd "<up>")
-    (lambda () (interactive) (slime-volleyball-slime2-jump)))
+    (kbd "<up>") #'slime-volleyball-slime2-jump)
   (define-key slime-volleyball-mode-map
-    (kbd "<down>")
-    (lambda () (interactive) (slime-volleyball-slime2-stop)))
+    (kbd "<down>") #'slime-volleyball-slime2-stop)
   (setf (slime-volleyball-slime-controller slime-volleyball-slime2) nil)
   (setf (slime-volleyball-slime-color slime-volleyball-slime2) "Pink")
   (setq slime-volleyball-two-players t)
@@ -485,47 +486,27 @@
   (setq slime-volleyball-mode-map
         (let ((map (make-keymap)))
           (set-keymap-parent map special-mode-map)
-          (define-key map (kbd "a")
-            (lambda () (interactive) (slime-volleyball-slime1-left)))
-          (define-key map (kbd "C-b")
-            (lambda () (interactive) (slime-volleyball-slime1-left)))
-          (define-key map (kbd "<left>")
-            (lambda () (interactive) (slime-volleyball-slime1-left)))
-          (define-key map (kbd "d")
-            (lambda () (interactive) (slime-volleyball-slime1-right)))
-          (define-key map (kbd "C-f")
-            (lambda () (interactive) (slime-volleyball-slime1-right)))
-          (define-key map (kbd "<right>")
-            (lambda () (interactive) (slime-volleyball-slime1-right)))
-          (define-key map (kbd "w")
-            (lambda () (interactive) (slime-volleyball-slime1-jump)))
-          (define-key map (kbd "C-p")
-            (lambda () (interactive) (slime-volleyball-slime1-jump)))
-          (define-key map (kbd "<up>")
-            (lambda () (interactive) (slime-volleyball-slime1-jump)))
-          (define-key map (kbd "s")
-            (lambda () (interactive) (slime-volleyball-slime1-stop)))
-          (define-key map (kbd "C-n")
-            (lambda () (interactive) (slime-volleyball-slime1-stop)))
-          (define-key map (kbd "<down>")
-            (lambda () (interactive) (slime-volleyball-slime1-stop)))
-          (define-key map (kbd "G")
-            (lambda () (interactive) (slime-volleyball-toggle-god-mode)))
-          (define-key map (kbd "SPC")
-            (lambda () (interactive) (slime-volleyball-unpause)))
-          (define-key map (kbd "2")
-            (lambda () (interactive) (slime-volleyball-two-player-mode)))
-          (define-key map (kbd "t")
-            (lambda () (interactive) (slime-volleyball-training-mode)))
-          (define-key map (kbd "p")
-            (lambda () (interactive) (slime-volleyball-toggle-pause)))
-          (define-key map (kbd "q") 'slime-volleyball-quit)
+          (define-key map (kbd "a")       #'slime-volleyball-slime1-left)
+          (define-key map (kbd "C-b")     #'slime-volleyball-slime1-left)
+          (define-key map (kbd "<left>")  #'slime-volleyball-slime1-left)
+          (define-key map (kbd "d")       #'slime-volleyball-slime1-right)
+          (define-key map (kbd "C-f")     #'slime-volleyball-slime1-right)
+          (define-key map (kbd "<right>") #'slime-volleyball-slime1-right)
+          (define-key map (kbd "w")       #'slime-volleyball-slime1-jump)
+          (define-key map (kbd "C-p")     #'slime-volleyball-slime1-jump)
+          (define-key map (kbd "<up>")    #'slime-volleyball-slime1-jump)
+          (define-key map (kbd "s")       #'slime-volleyball-slime1-stop)
+          (define-key map (kbd "C-n")     #'slime-volleyball-slime1-stop)
+          (define-key map (kbd "<down>")  #'slime-volleyball-slime1-stop)
+          (define-key map (kbd "G")       #'slime-volleyball-toggle-god-mode)
+          (define-key map (kbd "SPC")     #'slime-volleyball-unpause)
+          (define-key map (kbd "2")       #'slime-volleyball-two-player-mode)
+          (define-key map (kbd "t")       #'slime-volleyball-training-mode)
+          (define-key map (kbd "p")       #'slime-volleyball-toggle-pause)
+          (define-key map (kbd "q")       #'slime-volleyball-quit)
           (define-key map (kbd "<f8>")
             (lambda () (interactive) (setq slime-volleyball-advance-frame t)))
-          (define-key map (kbd "<f9>")
-            (lambda () (interactive)
-              (setq slime-volleyball-frame-by-frame-mode
-                    (not slime-volleyball-frame-by-frame-mode))))
+          (define-key map (kbd "<f9>") #'slime-volleyball-frame-by-frame-mode)
           map)))
 
 ;; Something fun to try in god mode.
@@ -1138,10 +1119,12 @@
   "Draw the current scene to the screen."
   (when (not slime-volleyball-quitting)
     (with-current-buffer "*slime-volleyball*"
-      (erase-buffer)
-      (if slime-volleyball-starting
-          (insert-image slime-volleyball-title-screen)
-        (insert-image (create-image slime-volleyball-scene 'svg t))))))
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert-image
+         (if slime-volleyball-starting
+             slime-volleyball-title-screen
+           (create-image slime-volleyball-scene 'svg t)))))))
 
 (defun slime-volleyball-render-internal ()
   "Render the entire scene, checking if the game is over or paused."
@@ -1152,6 +1135,9 @@
       (slime-volleyball-set-ending-scene)
     (slime-volleyball-set-scene))
   (slime-volleyball-draw-scene))
+
+(define-minor-mode slime-volleyball-frame-by-frame-mode
+  "Stop the real-time behavior and only advance a step at a time upon request.")
 
 (defun slime-volleyball-render-maybe-wrapped ()
   "Render the scene, possibly only the next frame if in frame-by-frame mode."
@@ -1165,7 +1151,7 @@
 (defun slime-volleyball-render ()
   "Render the scene."
   (if slime-volleyball-god-mode
-      (let ((debug-on-error nil))
+      (let ((debug-on-error nil))       ;FIXME: Redundant with `ignore-errors'?
         (ignore-errors
           (slime-volleyball-render-maybe-wrapped)))
     ;; Don't paper over errors when not in god mode.
@@ -1700,6 +1686,7 @@
 
 (defun slime-volleyball-unpause ()
   "Unpause the game."
+  (interactive)
   (when slime-volleyball-paused
     (setq slime-volleyball-paused nil)
     (setq slime-volleyball-message nil)
@@ -1710,6 +1697,7 @@
 
 (defun slime-volleyball-toggle-god-mode ()
   "Toggle God mode on or off."
+  (interactive)
   (if slime-volleyball-god-mode
       (progn
         (delete-other-windows)
@@ -1727,6 +1715,7 @@
 
 (defun slime-volleyball-toggle-pause ()
   "Pause or unpause the game."
+  (interactive)
   (if slime-volleyball-paused
       (slime-volleyball-unpause)
     (slime-volleyball-pause)))
@@ -1786,6 +1775,14 @@
                                           slime-volleyball-level))))
     (setq slime-volleyball-unpause-function nil)))
 
+(define-derived-mode slime-volleyball-mode special-mode "Slime-Volleyball"
+  "Major mode for the `slime-volleyball' buffer."
+  (buffer-disable-undo)
+  (add-hook 'kill-buffer-hook
+            (lambda ()
+              (slime-volleyball-quit 'force-quit 'no-kill))
+            nil 'local))
+
 ;;;###autoload
 (defun slime-volleyball ()
   "Start a slime volleyball game."
@@ -1800,15 +1797,14 @@
   (load-file (expand-file-name "green-slime.el.gz"
                                (file-name-directory
                                 (symbol-file 'slime-volleyball-init))))
-  (slime-volleyball-initialize-globals)
-  (with-current-buffer (get-buffer-create "*slime-volleyball*")
-    (buffer-disable-undo))
-  (switch-to-buffer "*slime-volleyball*")
-  (delete-other-windows)
+  (pop-to-buffer-same-window (get-buffer-create "*slime-volleyball*"))
+  (slime-volleyball-initialize-globals) ;Should these be made buffer-local?
+  (slime-volleyball-mode)
+  (delete-other-windows)                ;FIXME: Why?
   (slime-volleyball-new-game)
   (slime-volleyball-scene-update)
-  (slime-volleyball-add-timer 0.03 'slime-volleyball-render)
-  (slime-volleyball-add-timer 0.5 'slime-volleyball-eval-god-mode-variables)
+  (slime-volleyball-add-timer 0.03 #'slime-volleyball-render)
+  (slime-volleyball-add-timer 0.5 #'slime-volleyball-eval-god-mode-variables)
   (sit-for 0.1)
   (slime-volleyball-play-music "start" nil)
   (sleep-for 4)
@@ -1816,14 +1812,8 @@
     (emms-stop))
   (setq slime-volleyball-starting nil)
   (setq slime-volleyball-unpause-function
-        'slime-volleyball-introduce-opponent)
-  (slime-volleyball-pause "Press SPC or 2 to Start")
-  (add-hook 'kill-buffer-hook
-            (lambda ()
-              (slime-volleyball-quit 'force-quit 'no-kill))
-            nil 'local)
-  (with-current-buffer (get-buffer-create "*slime-volleyball*")
-    (use-local-map slime-volleyball-mode-map)))
+        #'slime-volleyball-introduce-opponent)
+  (slime-volleyball-pause "Press SPC or 2 to Start"))
 
 (defun slime-volleyball-quit (&optional force-quit no-kill)
   "Quit a slime volleyball game.
