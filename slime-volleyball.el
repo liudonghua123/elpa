@@ -1,4 +1,4 @@
-;;; slime-volleyball.el --- An SVG Slime Volleyball Game
+;;; slime-volleyball.el --- An SVG Slime Volleyball Game -*- lexical-binding: nil -*-
 
 ;; Copyright (C) 2013 Thomas Fitzsimmons
 
@@ -304,7 +304,7 @@
 ;; Dynamically-scoped slime-volleyball-save-strategy helper function.
 (defun slime-volleyball-save-strategy-helper (key values)
   "Store KEY, VALUES in the strategy hash table."
-  (insert-string
+  (insert
    (format "(puthash \"%s\" '%s %s)\n"
            key
            (symbol-name (cadr (slime-volleyball-best-move values)))
@@ -314,7 +314,7 @@
   "Save a generated computer slime strategy in FILE-NAME with STRATEGY-NAME."
   (find-file file-name)
   (with-current-buffer (file-name-nondirectory file-name)
-    (insert-string
+    (insert
      (format "(setq %s (make-hash-table :test 'equal))\n"
              strategy-name))
     (maphash 'slime-volleyball-save-strategy-helper
@@ -1445,7 +1445,7 @@
 (defun slime-volleyball-adjust-ball-velocity-and-position-for-collisions (slime)
   "Adjust ball velocity and position if it has collided with SLIME."
   (if (setq bounce-vector (slime-volleyball-ball-slime-overlap slime))
-      (progn
+      (let (factor factor-sign)
         ;; Overlap detected.
         (slime-volleyball-resolve-collision slime)
         ;; Do bounce.
@@ -1518,9 +1518,9 @@
   (setq slime-volleyball-level -1)
   (slime-volleyball-next-level)
   (setf (slime-volleyball-slime-points slime-volleyball-slime1) 0)
-  (mapcar (lambda (opponent)
-            (setf (slime-volleyball-slime-points opponent) 0))
-          slime-volleyball-opponents)
+  (mapc (lambda (opponent)
+          (setf (slime-volleyball-slime-points opponent) 0))
+        slime-volleyball-opponents)
   (slime-volleyball-init slime-volleyball-slime1))
 
 (defun slime-volleyball-next-level ()
