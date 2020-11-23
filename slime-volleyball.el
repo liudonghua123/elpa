@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013 Thomas Fitzsimmons
 
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
-;; Version: 1.1.2
+;; Version: 1.1.3
 ;; Keywords: games
 
 ;; This program is free software: you can redistribute it and/or modify
