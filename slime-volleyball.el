@@ -1,10 +1,11 @@
 ;;; slime-volleyball.el --- An SVG Slime Volleyball Game -*- lexical-binding: nil -*-
 
-;; Copyright (C) 2013 Thomas Fitzsimmons
+;; Copyright (C) 2013  Free Software Foundation, Inc.
 
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Version: 1.1.3
 ;; Keywords: games
+;; Package-Requires: ((cl-lib . 0.5))
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -115,8 +116,7 @@
 
 ;;; Code:
 
-(unless (require 'cl-lib nil t)
-  (require 'cl))
+(require 'cl-lib)
 
 (defvar slime-volleyball-animation-timer nil)
 
@@ -1746,6 +1746,10 @@
   (dolist (timer timer-list)
     (when (eq (elt timer 5) timer-function)
       (cancel-timer timer))))
+
+(defvar emms-repeat-track)
+(defvar emms-info-asynchronously)
+(declare-function emms-stop "emms")
 
 (defun slime-volleyball-play-music (name repeat)
   "Play sound clip NAME, repeating indefinitely if REPEAT is non-nil."
