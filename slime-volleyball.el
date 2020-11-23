@@ -121,7 +121,7 @@
 (defvar slime-volleyball-animation-timer nil)
 
 (defcustom slime-volleyball-enable-sound nil
-  "Non-nil when slime-volleyball should play music."
+  "Non-nil enable music."
   :type 'boolean
   :group 'slime-volleyball)
 
@@ -153,6 +153,7 @@
   speed)
 
 (defmacro slime-volleyball-slime-move-function (number direction)
+  "Define a function to move a slime NUMBER steps in direction DIRECTION."
   `(defun ,(intern (format "slime-volleyball-slime%d-%s" number direction)) ()
      (,(intern (format "slime-volleyball-slime-%s" direction))
       ,(intern (format "slime-volleyball-slime%d" number)))))
@@ -167,14 +168,17 @@
 (slime-volleyball-slime-move-function 2 "stop")
 
 (defun slime-volleyball-blue-slime-maybe-right ()
+  "Move the blue slime to the right, with randomness."
   (when (not (eq (random 10) 3))
     (slime-volleyball-slime-right slime-volleyball-slime2)))
 
 (defun slime-volleyball-blue-slime-maybe-left ()
+  "Move the blue slime to the left, with randomness."
   (when (not (eq (random 10) 3))
     (slime-volleyball-slime-left slime-volleyball-slime2)))
 
 (defun slime-volleyball-blue-slime-controller ()
+  "Control the computer-controlled blue slime."
   (cond
    ((and (not slime-volleyball-blue-slime-serving)
          (< (abs slime-volleyball-ball-velocity-x) 0.001)
@@ -220,6 +224,7 @@
 ;; Arguments are expected values of moves.
 (defun slime-volleyball-training-maximum-expected-value
   (left right jump stop none)
+  "Calculate expected reward, based on LEFT, RIGHT, JUMP, STOP and NONE values."
   (let* ((max-val (max left right jump stop none))
          (max-list nil) (rand-max nil) (index 0))
     ;; Uncomment to make the learning slime more experimental.
@@ -273,6 +278,7 @@
 ;;
 ;; Expected value of going left: lp / (lp + lnp)
 (defun slime-volleyball-best-move (tallies)
+  "Return the best move, based on TALLIES."
   (let* ((left-points     (car  (elt tallies 0)))
          (left-no-points  (cadr (elt tallies 0)))
          (right-points    (car  (elt tallies 1)))
@@ -297,6 +303,7 @@
 
 ;; Dynamically-scoped slime-volleyball-save-strategy helper function.
 (defun slime-volleyball-save-strategy-helper (key values)
+  "Store KEY, VALUES in the strategy hash table."
   (insert-string
    (format "(puthash \"%s\" '%s %s)\n"
            key
@@ -304,6 +311,7 @@
            strategy-name)))
 
 (defun slime-volleyball-save-strategy (file-name strategy-name)
+  "Save a generated computer slime strategy in FILE-NAME with STRATEGY-NAME."
   (find-file file-name)
   (with-current-buffer (file-name-nondirectory file-name)
     (insert-string
@@ -314,10 +322,12 @@
     (save-buffer)))
 
 (defun slime-volleyball-training-quantize (value digits)
+  "Return VALUE converted to have DIGITS digits."
   (let ((tens (expt 10.0 digits)))
     (/ (fround (* value tens)) (float tens))))
 
 (defun slime-volleyball-training-hash-situation ()
+  "Return the current board situation as a string."
   (let* (;; Ball.
          (ball-x
           (slime-volleyball-training-quantize slime-volleyball-ball-x 0))
@@ -364,6 +374,7 @@
             slime2-x slime2-y slime2-v-x slime2-v-y)))
 
 (defun slime-volleyball-training-slime-controller ()
+  "A controller that controls the slime being trained."
   (let* ((situation (slime-volleyball-training-hash-situation))
          (tallies (gethash situation
                            slime-volleyball-training-slime-strategy
@@ -377,6 +388,7 @@
     (funcall (cadr best-move) slime-volleyball-slime2)))
 
 (defun slime-volleyball-training-slime-updater (point)
+  "Update the slime training session based on slime's location, POINT."
   (let ((index (if point 0 1))
         item value)
     (while (setq item (pop slime-volleyball-moves-list))
@@ -396,6 +408,7 @@
     (setq slime-volleyball-training-frame-count 0)))
 
 (defun slime-volleyball-eval-god-mode-variables ()
+  "Re-evaluate God mode global variables."
   (when slime-volleyball-god-mode
     (let ((debug-on-error nil))
       (ignore-errors
@@ -418,6 +431,7 @@
                 (eval-region start (point))))))))))
 
 (defun slime-volleyball-training-mode ()
+  "Train a computer-controlled slime to play slime volleyball."
   (define-key slime-volleyball-mode-map
     (kbd "<left>")
     (lambda ()
@@ -448,6 +462,7 @@
   (slime-volleyball-unpause))
 
 (defun slime-volleyball-two-player-mode ()
+  "Start a two player game of slime volleyball."
   (define-key slime-volleyball-mode-map
     (kbd "<left>")
     (lambda () (interactive) (slime-volleyball-slime2-left)))
@@ -466,6 +481,7 @@
   (slime-volleyball-unpause))
 
 (defun slime-volleyball-initialize-keymap ()
+  "Initialize the slime volleyball mode keymap."
   (setq slime-volleyball-mode-map
         (let ((map (make-keymap)))
           (set-keymap-parent map special-mode-map)
@@ -514,6 +530,7 @@
 
 ;; Something fun to try in god mode.
 (defun slime-volleyball-initialize-god-mode-globals ()
+  "Initialize God mode global variables."
   ;; Scene.
   (setq slime-volleyball-scene-width 1100)
   (setq slime-volleyball-scene-height 450)
@@ -547,7 +564,7 @@
                      (mod (1+ slime-volleyball-color-index) 3))))))
 
 (defun slime-volleyball-initialize-globals ()
-
+  "Initialize slime volleyball global variables."
   ;; Net.
   ;; This isn't a God mode variable because the intersection calculation uses
   ;; an idealized 1 pixel wide net width.
@@ -781,20 +798,24 @@
   (slime-volleyball-initialize-ending-variables))
 
 (defun slime-volleyball-slime-left (slime)
+  "Move SLIME left."
   (unless slime-volleyball-paused
     (setf (slime-volleyball-slime-v-x slime)
           (- (slime-volleyball-slime-speed slime)))))
 
 (defun slime-volleyball-slime-stop (slime)
+  "Stop moving SLIME."
   (unless slime-volleyball-paused
     (setf (slime-volleyball-slime-v-x slime) 0)))
 
 (defun slime-volleyball-slime-right (slime)
+  "Move SLIME right."
   (unless slime-volleyball-paused
     (setf (slime-volleyball-slime-v-x slime)
           (slime-volleyball-slime-speed slime))))
 
 (defun slime-volleyball-slime-jump (slime)
+  "Make SLIME jump."
   (unless slime-volleyball-paused
     (if (not (slime-volleyball-slime-jumping slime))
         (progn
@@ -803,9 +824,12 @@
           (setf (slime-volleyball-slime-v-y-f slime) -30)))))
 
 ;; Do not change the slime's movement.
-(defun slime-volleyball-slime-none (slime))
+(defun slime-volleyball-slime-none (slime)
+  "Make SLIME do nothing this frame."
+  nil)
 
 (defun slime-volleyball-init (slime)
+  "Initialize SLIME slots."
   (setf (slime-volleyball-slime-x slime-volleyball-slime1)
         (- (/ slime-volleyball-scene-width 4) slime-volleyball-slime-radius))
   (setf (slime-volleyball-slime-y slime-volleyball-slime1)
@@ -828,9 +852,11 @@
         slime-volleyball-prev-frame-ball-y 100))
 
 (defun slime-volleyball-warn (warning-message)
+  "Issue WARNING-MESSAGE with slime volleyball herald."
   (message "slime-volleyball warning: %s" warning-message))
 
 (defun slime-volleyball-arc-circle-overlap (x1 y1 r1 x2 y2 r2)
+  "Return t if an arc defined by X1, Y1 and R1 overlaps circle with X2, Y2, R2."
   (let* ((d-x (abs (- x1 x2)))
          (d-y (abs (- y1 y2)))
          (distance (sqrt (+ (expt d-x 2)
@@ -843,6 +869,7 @@
       nil)))
 
 (defun slime-volleyball-point-circles-left ()
+  "Draw point circles at the top left of the board."
   (let ((circles " "))
     (dotimes (i slime-volleyball-points-to-win)
       (setq circles
@@ -860,6 +887,7 @@
     circles))
 
 (defun slime-volleyball-point-circles-right ()
+  "Draw point circles at the top right of the board."
   (let ((circles " "))
     (dotimes (i slime-volleyball-points-to-win)
       (setq circles
@@ -878,14 +906,17 @@
     circles))
 
 (defun slime-volleyball-header (width height)
+  "Draw a board header with dimensions WIDTH and HEIGHT."
   (format slime-volleyball-template-header
           width height
           width height))
 
 (defun slime-volleyball-footer ()
+  "Draw a board footer."
   slime-volleyball-template-footer)
 
 (defun slime-volleyball-slime (slime x y)
+  "Create a vector graphic representing SLIME at X, Y."
   (format slime-volleyball-template-slime
           x y slime-volleyball-slime-radius slime-volleyball-slime-radius
           (* 2 slime-volleyball-slime-radius) (slime-volleyball-slime-color
@@ -898,22 +929,28 @@
           (slime-volleyball-slime-pupil-radius slime)))
 
 (defun slime-volleyball-ball (x y)
+  "Create a vector graphic representing the ball at X, Y."
   (format slime-volleyball-template-ball
           x y slime-volleyball-ball-radius))
 
 (defun slime-volleyball-net ()
+  "Create a vector graphic representing the net."
   (format slime-volleyball-template-net
           slime-volleyball-net-x slime-volleyball-net-y
           slime-volleyball-net-width slime-volleyball-net-height))
 
 (defun slime-volleyball-sky ()
+  "Create a vector graphic representing the sky."
   (format slime-volleyball-template-sky slime-volleyball-scene-width
           slime-volleyball-scene-height))
+
 (defun slime-volleyball-ground ()
+  "Create a vector graphic representing the ground."
   (format slime-volleyball-template-ground slime-volleyball-scene-height
-          slime-volleyball-scene-width slime-volleyball-floor-height)
-  )
+          slime-volleyball-scene-width slime-volleyball-floor-height))
+
 (defun slime-volleyball-message-box (message-string)
+  "Create a vector graphic of a text box containing MESSAGE-STRING."
   (concat slime-volleyball-template-message-box-start
           message-string
           slime-volleyball-template-message-box-middle
@@ -921,6 +958,7 @@
           slime-volleyball-template-message-box-end))
 
 (defun slime-volleyball-markup ()
+  "Generate debugging markup for the scene."
   (concat (format slime-volleyball-template-dot
                   slime-volleyball-prev-frame-ball-x
                   slime-volleyball-prev-frame-ball-y)
@@ -930,6 +968,7 @@
           (format slime-volleyball-template-dot x-f y-f)))
 
 (defun slime-volleyball-set-scene ()
+  "Concatenate vector graphics for the whole scene."
   (setq slime-volleyball-scene
         (concat
          (slime-volleyball-header slime-volleyball-scene-width
@@ -957,6 +996,7 @@
          (slime-volleyball-footer))))
 
 (defun slime-volleyball-initialize-ending-variables ()
+  "Initialize variables for ending scene."
   (setq slime-volleyball-offset 3)
   (setq slime-volleyball-ending-rate 10)
   (setq slime-volleyball-ending-num 0)
@@ -1051,6 +1091,7 @@
   (setq slime-volleyball-bg4-y -70))
 
 (defun slime-volleyball-set-ending-scene ()
+  "Concatenate vector graphics for ending scene."
   (setq slime-volleyball-ending-num (1- slime-volleyball-ending-num))
   (when (<= slime-volleyball-ending-num 0)
     (setq slime-volleyball-offset (- slime-volleyball-offset))
@@ -1094,6 +1135,7 @@
          (slime-volleyball-footer))))
 
 (defun slime-volleyball-draw-scene ()
+  "Draw the current scene to the screen."
   (when (not slime-volleyball-quitting)
     (with-current-buffer "*slime-volleyball*"
       (erase-buffer)
@@ -1102,6 +1144,7 @@
         (insert-image (create-image slime-volleyball-scene 'svg t))))))
 
 (defun slime-volleyball-render-internal ()
+  "Render the entire scene, checking if the game is over or paused."
   (slime-volleyball-check-game-over)
   (unless slime-volleyball-paused
     (slime-volleyball-scene-update))
@@ -1111,6 +1154,7 @@
   (slime-volleyball-draw-scene))
 
 (defun slime-volleyball-render-maybe-wrapped ()
+  "Render the scene, possibly only the next frame if in frame-by-frame mode."
   (if slime-volleyball-frame-by-frame-mode
       (when slime-volleyball-advance-frame
         (slime-volleyball-render-internal)
@@ -1119,6 +1163,7 @@
       (slime-volleyball-render-internal))))
 
 (defun slime-volleyball-render ()
+  "Render the scene."
   (if slime-volleyball-god-mode
       (let ((debug-on-error nil))
         (ignore-errors
@@ -1127,6 +1172,7 @@
     (slime-volleyball-render-maybe-wrapped)))
 
 (defun slime-volleyball-update-slime-velocity-and-position (slime time-delta)
+  "Update SLIME's position and velocity based on TIME-DELTA having elapsed."
   (setf (slime-volleyball-slime-v-y-f slime)
         (+ (slime-volleyball-slime-v-y-i slime) (* time-delta
                                                    slime-volleyball-force-y)))
@@ -1148,6 +1194,7 @@
 
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-update-ball-velocity-and-position (time-delta)
+  "Update ball velocity and position based on TIME-DELTA having elapsed."
   (setq v-y-f
         (+ v-y-i
            (* time-delta slime-volleyball-force-y)))
@@ -1160,6 +1207,7 @@
 
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-ball-slime-overlap (slime)
+  "Check if SLIME and the ball overlap."
   (and (slime-volleyball-arc-circle-overlap
         (+ (slime-volleyball-slime-x slime) slime-volleyball-slime-radius)
         (slime-volleyball-slime-y slime)
@@ -1184,6 +1232,7 @@
 ;;
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-ball-net-overlap ()
+  "Check if the ball and the net overlap."
   (let* ((y y-f)
          ;; Previous y
          (py slime-volleyball-ball-y)
@@ -1294,6 +1343,7 @@
 ;;
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-resolve-collision (slime)
+  "Resolve a collision between SLIME and another object."
   (let* (;; Convert to slime center co-ordinate system.
          ;; Slime center is (0, 0).
          (slime-x (+ (slime-volleyball-slime-x slime)
@@ -1366,6 +1416,7 @@
             (setq y-f (- slime-y y1))))))))
 
 (defun slime-volleyball-adjust-slime-pupils (slime)
+  "Keep SLIME's eye on the ball."
   (let* ((slime-eye-x (+ (slime-volleyball-slime-x slime)
                          (slime-volleyball-slime-eye-center-x slime)))
          (slime-eye-y (+ (slime-volleyball-slime-y slime)
@@ -1392,6 +1443,7 @@
 
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-adjust-ball-velocity-and-position-for-collisions (slime)
+  "Adjust ball velocity and position if it has collided with SLIME."
   (if (setq bounce-vector (slime-volleyball-ball-slime-overlap slime))
       (progn
         ;; Overlap detected.
@@ -1458,9 +1510,11 @@
         (setq x-f slime-volleyball-ball-radius))))))
 
 (defun slime-volleyball-report-point-and-reset-slimes ()
+  "Report that a point has been scored and reset the board."
   (slime-volleyball-init slime-volleyball-serving-slime))
 
 (defun slime-volleyball-new-game ()
+  "Start a new game."
   (setq slime-volleyball-level -1)
   (slime-volleyball-next-level)
   (setf (slime-volleyball-slime-points slime-volleyball-slime1) 0)
@@ -1470,6 +1524,7 @@
   (slime-volleyball-init slime-volleyball-slime1))
 
 (defun slime-volleyball-next-level ()
+  "Advance player to the next level."
   (setq slime-volleyball-level (1+ slime-volleyball-level))
   (setq slime-volleyball-slime2 (elt slime-volleyball-opponents
                                      slime-volleyball-level))
@@ -1478,6 +1533,7 @@
   (slime-volleyball-introduce-opponent))
 
 (defun slime-volleyball-check-win (slime)
+  "Check if SLIME has won the game."
   (when (eq (slime-volleyball-slime-points slime)
             slime-volleyball-points-to-win)
     (slime-volleyball-pause (format
@@ -1494,6 +1550,7 @@
       (setq slime-volleyball-game-over t))))
 
 (defun slime-volleyball-play-ending ()
+  "Play the ending of the game."
   (progn
     (define-key slime-volleyball-mode-map (kbd "SPC") nil)
     (define-key slime-volleyball-mode-map (kbd "p") nil)
@@ -1502,11 +1559,13 @@
       (slime-volleyball-play-music "end" t))))
 
 (defun slime-volleyball-say-game-over ()
+  "Tell the player that the game is over."
   (setq slime-volleyball-unpause-function
         'slime-volleyball-new-game)
   (slime-volleyball-pause "Game Over!"))
 
 (defun slime-volleyball-check-game-over ()
+  "Check if the game is over."
   (when slime-volleyball-game-over
     (setq slime-volleyball-game-over nil)
     (if slime-volleyball-two-players
@@ -1520,6 +1579,7 @@
         ))))
 
 (defun slime-volleyball-debug-dump ()
+  "Print a debugging message."
   (message "slime-volleyball-prev-frame-ball-x %f
             slime-volleyball-prev-frame-ball-y %f
             slime-volleyball-ball-x            %f
@@ -1541,6 +1601,7 @@
            slime-volleyball-slime1 slime-volleyball-slime2))
 
 (defun slime-volleyball-scene-update ()
+  "Update the scene."
   (let ((y-i slime-volleyball-ball-y)
         (v-y-i slime-volleyball-ball-velocity-y)
         (delta-y)
@@ -1633,10 +1694,12 @@
                                              slime-volleyball-ball-radius)))))))
 
 (defun slime-volleyball-pause (&optional message)
+  "Pause the game, issuing MESSAGE if it is provided."
   (setq slime-volleyball-paused t)
   (setq slime-volleyball-message (or message "Paused")))
 
 (defun slime-volleyball-unpause ()
+  "Unpause the game."
   (when slime-volleyball-paused
     (setq slime-volleyball-paused nil)
     (setq slime-volleyball-message nil)
@@ -1646,6 +1709,7 @@
       (funcall slime-volleyball-unpause-function))))
 
 (defun slime-volleyball-toggle-god-mode ()
+  "Toggle God mode on or off."
   (if slime-volleyball-god-mode
       (progn
         (delete-other-windows)
@@ -1662,11 +1726,13 @@
       (setq slime-volleyball-god-mode t))))
 
 (defun slime-volleyball-toggle-pause ()
+  "Pause or unpause the game."
   (if slime-volleyball-paused
       (slime-volleyball-unpause)
     (slime-volleyball-pause)))
 
 (defun slime-volleyball-add-timer (interval timer-function)
+  "Add a timer to call every INTERVAL TIMER-FUNCTION."
   (let ((add t))
     (dolist (timer timer-list)
       (if (eq (elt timer 5) timer-function)
@@ -1676,11 +1742,13 @@
                                                           timer-function)))))
 
 (defun slime-volleyball-scrub-timer-list (timer-function)
+  "Remove TIMER-FUNCTION from timer list."
   (dolist (timer timer-list)
     (when (eq (elt timer 5) timer-function)
       (cancel-timer timer))))
 
 (defun slime-volleyball-play-music (name repeat)
+  "Play sound clip NAME, repeating indefinitely if REPEAT is non-nil."
   ;; Ignore errors in case EMMS doesn't have ogg support.
   (ignore-errors
     (when slime-volleyball-enable-sound
@@ -1705,6 +1773,7 @@
           (emms-play-file temp-file))))))
 
 (defun slime-volleyball-introduce-opponent ()
+  "Display a message introducing a computer-controlled opponent slime."
   (when (and (not slime-volleyball-two-players)
              (not slime-volleyball-training-mode))
     (slime-volleyball-pause (format "Facing Off Against %s Slime!"
@@ -1715,6 +1784,7 @@
 
 ;;;###autoload
 (defun slime-volleyball ()
+  "Start a slime volleyball game."
   (interactive)
   (unless (image-type-available-p 'svg)
     (error "Sorry, this Emacs does not support SVG images"))
@@ -1752,6 +1822,9 @@
     (use-local-map slime-volleyball-mode-map)))
 
 (defun slime-volleyball-quit (&optional force-quit no-kill)
+  "Quit a slime volleyball game.
+If FORCE-QUIT is specified, do not prompt before quitting.  If
+NO-KILL is specified, do not kill the *slime-volleyball* buffer."
   (interactive)
   (when (or force-quit
             (y-or-n-p "Quit Slime Volleyball? "))
