@@ -53,7 +53,7 @@
 ;; * Two player face-off mode
 ;;   (press 2 on start-up)
 
-;; * God mode: instantly apply Elisp framents to hack the game environment
+;; * God mode: instantly apply Elisp fragments to hack the game environment
 ;;   (press G during the game)
 
 ;; * Slime training mode: a statistical learning algorithm for training
