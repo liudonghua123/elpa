@@ -303,8 +303,8 @@
      (/ none-points (float none-decisions)))))
 
 ;; Dynamically-scoped slime-volleyball-save-strategy helper function.
-(defun slime-volleyball-save-strategy-helper (key values)
-  "Store KEY, VALUES in the strategy hash table."
+(defun slime-volleyball-save-strategy-helper (key values strategy-name)
+  "Store KEY, VALUES in the strategy hash table named STRATEGY-NAME."
   (insert
    (format "(puthash \"%s\" '%s %s)\n"
            key
@@ -315,12 +315,13 @@
   "Save a generated computer slime strategy in FILE-NAME with STRATEGY-NAME."
   (find-file file-name)
   (with-current-buffer (file-name-nondirectory file-name)
-    (insert
-     (format "(setq %s (make-hash-table :test 'equal))\n"
-             strategy-name))
-    (maphash 'slime-volleyball-save-strategy-helper
-             slime-volleyball-training-slime-strategy)
-    (save-buffer)))
+      (insert
+       (format "(setq %s (make-hash-table :test 'equal))\n" strategy-name))
+      (maphash (lambda (key values)
+                 (slime-volleyball-save-strategy-helper
+                  key values strategy-name))
+               slime-volleyball-training-slime-strategy)
+      (save-buffer)))
 
 (defun slime-volleyball-training-quantize (value digits)
   "Return VALUE converted to have DIGITS digits."
