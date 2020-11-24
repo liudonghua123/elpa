@@ -1721,6 +1721,7 @@
 (defvar emms-repeat-track)
 (defvar emms-info-asynchronously)
 (declare-function emms-stop "emms")
+(declare-function emms-play-file "emms-source-file")
 
 (defun slime-volleyball-play-music (name repeat)
   "Play sound clip NAME, repeating indefinitely if REPEAT is non-nil."
