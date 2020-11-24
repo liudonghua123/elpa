@@ -133,7 +133,6 @@
 (defvar rt-liber-browser-default-filter-function
   'rt-liber-default-filter-f
   "Default filtering function.
-
 This is a function which accepts the ticket alist as a single
 argument and returns nil if the ticket needs to be filtered out,
 dropped or ignored (however you wish to put it.), otherwise the
@@ -203,7 +202,6 @@ server.")
     (status  . "Status")
     (priority  . "Priority"))
   "Mapping between field symbols and RT field strings.
-
 The field symbols provide the programmer with a consistent way of
 referring to RT fields.")
 
@@ -213,14 +211,12 @@ referring to RT fields.")
     (open     . "open")
     (new      . "new"))
   "Mapping between status symbols and status strings.
-
 The status symbols provide the programmer with a consistent way
 of referring to certain statuses. The status strings are the
 server specific strings.")
 
 (defvar rt-liber-debug-log-enable nil
   "If t then enable logging of communication to a buffer.
-
 Careful! This might create a sizable buffer.")
 
 (defvar rt-liber-debug-log-buffer-name "*rt-liber debug log*"
@@ -228,19 +224,16 @@ Careful! This might create a sizable buffer.")
 
 (defvar rt-liber-ticket-local nil
   "Buffer local storage for a ticket.
-
 This variable is made buffer local for the ticket history")
 
 (defvar rt-liber-assoc-browser nil
   "Browser associated with a ticket history.
-
 This variable is made buffer local for the ticket history")
 
 
 ;;; --------------------------------------------------------
 ;;; Debug log
 ;;; --------------------------------------------------------
-
 (defun rt-liber-debug-log-write (str)
   "Write STR to debug log."
   (when (not (stringp str))
@@ -254,7 +247,6 @@ This variable is made buffer local for the ticket history")
 ;;; --------------------------------------------------------
 ;;; TicketSQL compiler
 ;;; --------------------------------------------------------
-
 (defun rt-liber-bool-p (sym)
   "Return t if SYM is a boolean operator, otherwise nil."
   (member sym '(and or)))
@@ -362,7 +354,6 @@ AFTER  date after predicate."
 ;;; --------------------------------------------------------
 ;;; Parse Answer
 ;;; --------------------------------------------------------
-
 (defun rt-liber-parse-answer (answer-string parser-f)
   "Operate on ANSWER-STRING with PARSER-F."
   (with-temp-buffer
@@ -377,7 +368,6 @@ AFTER  date after predicate."
 ;;; --------------------------------------------------------
 ;;; Ticket list retriever
 ;;; --------------------------------------------------------
-
 (put 'rt-liber-no-result-from-query-error
      'error-conditions
      '(error rt-liber-errors rt-liber-no-result-from-query-error))
@@ -565,8 +555,6 @@ The ticket's priority is compared to the variable
 			 '(face font-lock-comment-face)))
   (newline))
 
-
-
 (defun rt-liber-ticketlist-browser-redraw (ticketlist &optional query)
   "Display TICKETLIST. Optionally display QUERY as well."
   (erase-buffer)
@@ -691,7 +679,6 @@ If POINT is nil then called on (point)."
 ;;; --------------------------------------------------------
 ;;; Ticket browser sorting
 ;;; --------------------------------------------------------
-
 (defun rt-liber-lex-lessthan-p (a b field)
   "Return t if A is lexicographically less than B in FIELD."
   (let ((field-a (cdr (assoc field a)))
