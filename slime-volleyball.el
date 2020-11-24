@@ -1,6 +1,6 @@
-;;; slime-volleyball.el --- An SVG Slime Volleyball Game -*- lexical-binding: nil -*-
+;;; slime-volleyball.el --- An SVG Slime Volleyball Game -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013  Free Software Foundation, Inc.
+;; Copyright (C) 2013-2020  Free Software Foundation, Inc.
 
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Version: 1.1.4
@@ -937,7 +937,7 @@
           (setf (slime-volleyball-slime-v-y-f slime) -30)))))
 
 ;; Do not change the slime's movement.
-(defun slime-volleyball-slime-none (slime)
+(defun slime-volleyball-slime-none (_slime)
   "Make SLIME do nothing this frame."
   nil)
 
@@ -1343,7 +1343,6 @@
          (px slime-volleyball-ball-x)
          (diff-x (- px x))
          (diff-y (- py y))
-         (m)
          (b)
          (intersection-y)
          ;; Debugging.
@@ -1528,8 +1527,7 @@
          (diff-x (- slime-eye-x slime-volleyball-ball-x))
          (diff-y (- slime-eye-y slime-volleyball-ball-y))
          (ball-distance (sqrt (+ (expt diff-x 2)
-                                 (expt diff-y 2))))
-         (eye-radius (* 0.9 (slime-volleyball-slime-eye-radius slime))))
+                                 (expt diff-y 2)))))
     (when (< (abs ball-distance) 0.1)
       (slime-volleyball-warn "Divide-by-zero danger 4"))
     (setf (slime-volleyball-slime-pupil-center-x slime)
@@ -1540,7 +1538,8 @@
     (setf (slime-volleyball-slime-pupil-center-y slime)
           (- (slime-volleyball-slime-eye-center-y slime)
              (sqrt (- (expt (- (slime-volleyball-slime-eye-radius slime)
-                               (slime-volleyball-slime-pupil-radius slime)) 2)
+                               (slime-volleyball-slime-pupil-radius slime))
+                            2)
                       (expt (- (slime-volleyball-slime-pupil-center-x slime)
                                (slime-volleyball-slime-eye-center-x slime))
                             2)))))))
@@ -1589,7 +1588,8 @@
         (if (< (slime-volleyball-slime-x slime) 0)
             (setf (slime-volleyball-slime-x slime) 0)
           (if (> (+ (slime-volleyball-slime-x slime)
-                    (* 2 slime-volleyball-slime-radius)) slime-volleyball-net-x)
+                    (* 2 slime-volleyball-slime-radius))
+                 slime-volleyball-net-x)
               (setf (slime-volleyball-slime-x slime)
                     (- slime-volleyball-net-x
                        (* 2 slime-volleyball-slime-radius)))))
@@ -1717,11 +1717,6 @@
         (slime-volleyball-x-i slime-volleyball-ball-x)
         (slime-volleyball-v-x-i slime-volleyball-ball-velocity-x)
         (slime-volleyball-v-x-f)
-        (speed)
-        (reflection)
-        (unit)
-        (factor)
-        (orig-size)
         (slime-volleyball-x-f slime-volleyball-ball-x)
         (point-for)
         (slime1 slime-volleyball-slime1)
