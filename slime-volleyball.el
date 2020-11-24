@@ -406,7 +406,7 @@
                      (car item) slime-volleyball-training-slime-strategy)))
       (setf (elt (elt value (cadr item)) index)
             (1+ (elt (elt value (cadr item)) index))))
-    (setq slime-volleyball-training-frame-count 0)))
+    0))
 
 (defun slime-volleyball-eval-god-mode-variables ()
   "Re-evaluate God mode global variables."
@@ -704,7 +704,6 @@
          :color "Red"))
 
   (setq slime-volleyball-training-slime-strategy (make-hash-table :test 'equal))
-  (setq slime-volleyball-training-frame-count 0)
 
   (setq slime-volleyball-opponents
         (list slime-volleyball-green-slime
