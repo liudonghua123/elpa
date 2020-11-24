@@ -451,13 +451,13 @@
   "Save a generated computer slime strategy in FILE-NAME with STRATEGY-NAME."
   (find-file file-name)
   (with-current-buffer (file-name-nondirectory file-name)
-      (insert
-       (format "(setq %s (make-hash-table :test 'equal))\n" strategy-name))
-      (maphash (lambda (key values)
-                 (slime-volleyball-save-strategy-helper
-                  key values strategy-name))
-               slime-volleyball-training-slime-strategy)
-      (save-buffer)))
+    (insert
+     (format "(setq %s (make-hash-table :test 'equal))\n" strategy-name))
+    (maphash (lambda (key values)
+               (slime-volleyball-save-strategy-helper
+                key values strategy-name))
+             slime-volleyball-training-slime-strategy)
+    (save-buffer)))
 
 (defun slime-volleyball-training-quantize (value digits)
   "Return VALUE converted to have DIGITS digits."
@@ -1389,7 +1389,7 @@
               ;; (message "%s bounce" dir-message)
               (when (< diff-y 0)
                 (setq slime-volleyball-y-f (- slime-volleyball-net-y
-                             slime-volleyball-ball-radius))
+                                              slime-volleyball-ball-radius))
                 (setq slime-volleyball-v-y-f (- slime-volleyball-v-y-f))))
           ;; No top-of-net bounce.
           (progn
@@ -1580,7 +1580,7 @@
         (when slime-volleyball-ball-bouncy-bouncy
           (progn
             (setq slime-volleyball-y-f (- slime-volleyball-scene-height
-                         slime-volleyball-ball-radius))
+                                          slime-volleyball-ball-radius))
             (when (> slime-volleyball-v-y-f 0)
               (setq slime-volleyball-v-y-f -50)))))
     ;; Walls.
@@ -1610,7 +1610,7 @@
       (progn
         (setq slime-volleyball-v-x-f (- slime-volleyball-v-x-f))
         (setq slime-volleyball-x-f (- slime-volleyball-scene-width
-                     slime-volleyball-ball-radius))))
+                                      slime-volleyball-ball-radius))))
      ((< slime-volleyball-x-f slime-volleyball-ball-radius)
       (progn
         (setq slime-volleyball-v-x-f (- slime-volleyball-v-x-f))
