@@ -118,8 +118,6 @@
 
 (require 'cl-lib)
 
-(defvar slime-volleyball-animation-timer nil)
-
 (defcustom slime-volleyball-enable-sound nil
   "Non-nil enable music."
   :type 'boolean
@@ -129,6 +127,144 @@
   "Non-nil when Slimes should compete on sand."
   :type 'boolean
   :group 'slime-volleyball)
+
+(defvar slime-volleyball-animation-timer nil "Game animation timer.")
+(defvar slime-volleyball-paused nil "Non-nil if the game is paused.")
+(defvar slime-volleyball-starting nil "Non-nil if the game is starting up.")
+(defvar slime-volleyball-slime1 nil "The left slime.")
+(defvar slime-volleyball-slime2 nil "The right slime.")
+(defvar slime-volleyball-advance-frame nil
+  "Non-nil to advance a frame of the animation.")
+(defvar slime-volleyball-ball-bouncy-bouncy nil
+  "Non-nil to bounce ball off floor.  See also `slime-volleyball-just-rally'.")
+(defvar slime-volleyball-just-rally nil "Non-nil means do not track points.")
+(defvar slime-volleyball-ball-radius nil "Radius of ball.")
+(defvar slime-volleyball-ball-velocity-x nil "Ball's velocity in X direction.")
+(defvar slime-volleyball-ball-velocity-y nil "Ball's velocity in Y direction.")
+(defvar slime-volleyball-ball-x nil "Ball's X position.")
+(defvar slime-volleyball-ball-y nil "Ball's Y position.")
+(defvar slime-volleyball-blue-slime-orig-x nil "Blue slime starting position.")
+(defvar slime-volleyball-blue-slime-serving nil
+  "Non-nil if Blue slime is serving.")
+(defvar slime-volleyball-blue-slime nil "Structure representing Blue slime.")
+(defvar slime-volleyball-color-index nil "Chameleon color index.")
+(defvar slime-volleyball-floor-height nil "The depth of the floor or sand.")
+(defvar slime-volleyball-force-y nil "Force of gravity.")
+(defvar slime-volleyball-frame-by-frame-mode nil
+  "Non-nil to step the animation frame-by-frame.")
+(defvar slime-volleyball-game-over nil "Non-nil if the match has ended.")
+(defvar slime-volleyball-god-mode nil "Non-nil to enable God mode.")
+(defvar slime-volleyball-green-slime nil "Structure representing Green slime.")
+(defvar slime-volleyball-grey-slime nil "Structure representing Grey slime.")
+(defvar slime-volleyball-last-level nil "The index of the final level.")
+(defvar slime-volleyball-level nil "The player's current level.")
+(defvar slime-volleyball-message nil
+  "A message to display in an in-game message box.")
+(defvar slime-volleyball-moves-list nil
+  "A list of moves made by the slime being trained.")
+(defvar slime-volleyball-net-height nil "The height of the net.")
+(defvar slime-volleyball-net-width nil "The width of the net.")
+(defvar slime-volleyball-net-x nil "The net's X position.")
+(defvar slime-volleyball-net-y nil "The net's Y position.")
+(defvar slime-volleyball-one-player-beat-the-game nil
+  "Non-nil if the player beat all opponent slimes.")
+(defvar slime-volleyball-opponents nil
+  "A list of computer-controlled slime opponents.")
+(defvar slime-volleyball-play-ending nil
+  "Non-nil to play the ending sequence.")
+(defvar slime-volleyball-point-circles-radius nil
+  "Radius of score-keeping circles.")
+(defvar slime-volleyball-point-circles-start-x nil
+  "X position of score-keeping circles.")
+(defvar slime-volleyball-point-circles-y nil
+  "Y position of score-keeping circles.")
+(defvar slime-volleyball-point-scored nil
+  "Non-nil to indicate that a point has been scored.")
+(defvar slime-volleyball-points-to-win nil
+  "Number of points required to win a match.")
+(defvar slime-volleyball-prev-frame-ball-x nil
+  "Ball's X position in previous animation frame.")
+(defvar slime-volleyball-prev-frame-ball-y nil
+  "Ball's Y position in previous animation frame.")
+(defvar slime-volleyball-quitting nil
+  "Non-nil if the user is quitting the game.")
+(defvar slime-volleyball-scene-height nil
+  "The height of the game scene not including the floor.")
+(defvar slime-volleyball-scene-total-height nil
+  "The height of the game scene including the floor.")
+(defvar slime-volleyball-scene-width nil
+  "The width of the game scene.")
+(defvar slime-volleyball-scene nil
+  "Vector graphics markup representing the current game scene.")
+(defvar slime-volleyball-serving-slime nil
+  "The slime that is currently serving or that most recently served the ball.")
+(defvar slime-volleyball-slime-radius nil
+  "The radius of the slime players.")
+(defvar slime-volleyball-template-ball nil
+  "Ball vector graphics markup template.")
+(defvar slime-volleyball-template-dot nil
+  "Dot vector graphics markup template.")
+(defvar slime-volleyball-template-footer nil
+  "Footer vector graphics markup template.")
+(defvar slime-volleyball-template-ground nil
+  "Ground vector graphics markup template.")
+(defvar slime-volleyball-template-header nil
+  "Header vector graphics markup template.")
+(defvar slime-volleyball-template-message-box-start nil
+  "Message box closing vector graphics markup template.")
+(defvar slime-volleyball-template-message-box-middle nil
+  "Message box main vector graphics markup template.")
+(defvar slime-volleyball-template-message-box-end nil
+  "Message box closing vector graphics markup template.")
+(defvar slime-volleyball-template-net nil
+  "Net vector graphics markup template.")
+(defvar slime-volleyball-template-point-circle nil
+  "Point circle vector graphics markup template.")
+(defvar slime-volleyball-template-sky nil
+  "Sky vector graphics markup template.")
+(defvar slime-volleyball-template-slime nil
+  "Slime vector graphics markup template.")
+(defvar slime-volleyball-time-delta nil
+  "The time elapsed since the last scene update.")
+(defvar slime-volleyball-title-screen nil
+  "The vector graphics representing the title screen.")
+(defvar slime-volleyball-training-mode nil
+  "Non-nil when the game is running in training mode.")
+(defvar slime-volleyball-training-slime-strategy nil
+  "The strategy of the slime being trained in training mode.")
+(defvar slime-volleyball-training-slime nil
+  "The slime being trained in training mode.")
+(defvar slime-volleyball-two-players nil
+  "Non-nil if both slimes are human-controlled.")
+(defvar slime-volleyball-unpause-function nil
+  "A function that when called will unpause the game.")
+(defvar slime-volleyball-x-i nil "Ball's initial X position.")
+(defvar slime-volleyball-y-i nil "Ball's initial Y position.")
+(defvar slime-volleyball-x-f nil "Ball's final X position.")
+(defvar slime-volleyball-y-f nil "Ball's final Y position.")
+(defvar slime-volleyball-v-x-i nil "Ball's initial velocity in X direction.")
+(defvar slime-volleyball-v-y-i nil "Ball's initial velocity in Y direction.")
+(defvar slime-volleyball-v-x-f nil "Ball's final velocity in X direction.")
+(defvar slime-volleyball-v-y-f nil "Ball's final velocity in Y direction.")
+(defvar slime-volleyball-delta-y nil "The change in the ball's Y position.")
+(defvar slime-volleyball-mode-map nil "Keymap for the game.")
+(defvar slime-volleyball-offset nil "Ending scene variable.")
+(defvar slime-volleyball-bg1-wrap nil "Ending scene variable.")
+(defvar slime-volleyball-bg1-x nil "Ending scene variable.")
+(defvar slime-volleyball-bg1-y nil "Ending scene variable.")
+(defvar slime-volleyball-bg2-wrap nil "Ending scene variable.")
+(defvar slime-volleyball-bg2-x nil "Ending scene variable.")
+(defvar slime-volleyball-bg2-y nil "Ending scene variable.")
+(defvar slime-volleyball-bg3-wrap nil "Ending scene variable.")
+(defvar slime-volleyball-bg3-x nil "Ending scene variable.")
+(defvar slime-volleyball-bg3-y nil "Ending scene variable.")
+(defvar slime-volleyball-bg4-wrap nil "Ending scene variable.")
+(defvar slime-volleyball-bg4-x nil "Ending scene variable.")
+(defvar slime-volleyball-bg4-y nil "Ending scene variable.")
+(defvar slime-volleyball-ending-num nil "Ending scene variable.")
+(defvar slime-volleyball-ending-rate nil "Ending scene variable.")
+(defvar slime-volleyball-endvar2 nil "Ending scene variable.")
+(defvar slime-volleyball-endvar nil "Ending scene variable.")
 
 (cl-defstruct slime-volleyball-slime
   "A player in the game of slime volleyball"
@@ -432,8 +568,6 @@
                 (forward-sexp)
                 (eval-region start (point))))))))))
 
-(defvar slime-volleyball-mode-map)
-
 (defun slime-volleyball-training-mode ()
   "Train a computer-controlled slime to play slime volleyball."
   (interactive)
@@ -586,8 +720,6 @@
   (setq slime-volleyball-frame-by-frame-mode nil)
 
   (slime-volleyball-initialize-keymap)
-
-  (setq slime-volleyball-jumping nil)
 
   (setq slime-volleyball-time-delta 0.6)
 
@@ -946,7 +1078,9 @@
           (format slime-volleyball-template-dot
                   slime-volleyball-ball-x
                   slime-volleyball-ball-y)
-          (format slime-volleyball-template-dot x-f y-f)))
+          (format slime-volleyball-template-dot
+                  slime-volleyball-x-f
+                  slime-volleyball-y-f)))
 
 (defun slime-volleyball-set-scene ()
   "Concatenate vector graphics for the whole scene."
@@ -1163,15 +1297,16 @@
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-update-ball-velocity-and-position (time-delta)
   "Update ball velocity and position based on TIME-DELTA having elapsed."
-  (setq v-y-f
-        (+ v-y-i
+  (setq slime-volleyball-v-y-f
+        (+ slime-volleyball-v-y-i
            (* time-delta slime-volleyball-force-y)))
-  (setq delta-y
-        (/ (- (expt v-y-f 2) (expt v-y-i 2))
+  (setq slime-volleyball-delta-y
+        (/ (- (expt slime-volleyball-v-y-f 2) (expt slime-volleyball-v-y-i 2))
            (* 2 slime-volleyball-force-y)))
-  (setq y-f (+ y-i delta-y))
-  (setq x-f (+ x-i (* v-x-i time-delta)))
-  (setq v-x-f v-x-i))
+  (setq slime-volleyball-y-f (+ slime-volleyball-y-i slime-volleyball-delta-y))
+  (setq slime-volleyball-x-f (+ slime-volleyball-x-i
+                                (* slime-volleyball-v-x-i time-delta)))
+  (setq slime-volleyball-v-x-f slime-volleyball-v-x-i))
 
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-ball-slime-overlap (slime)
@@ -1180,15 +1315,15 @@
         (+ (slime-volleyball-slime-x slime) slime-volleyball-slime-radius)
         (slime-volleyball-slime-y slime)
         slime-volleyball-slime-radius
-        x-f y-f slime-volleyball-ball-radius)
-       (< (- y-f slime-volleyball-ball-radius) (slime-volleyball-slime-y
-                                                slime))))
+        slime-volleyball-x-f slime-volleyball-y-f slime-volleyball-ball-radius)
+       (< (- slime-volleyball-y-f slime-volleyball-ball-radius)
+          (slime-volleyball-slime-y slime))))
 
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-net-ball-bounding-box-overlap ()
   "Check if ball (s1 e1) and net (s2 e2) x intervals overlap."
-  (let* ((s1 (- x-f slime-volleyball-ball-radius))
-         (e1 (+ x-f slime-volleyball-ball-radius))
+  (let* ((s1 (- slime-volleyball-x-f slime-volleyball-ball-radius))
+         (e1 (+ slime-volleyball-x-f slime-volleyball-ball-radius))
          (s2 slime-volleyball-net-x)
          (e2 (+ slime-volleyball-net-x (/ slime-volleyball-net-width 2))))
     (and (< s2 e1) (< s1 e2))))
@@ -1201,10 +1336,10 @@
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-ball-net-overlap ()
   "Check if the ball and the net overlap."
-  (let* ((y y-f)
+  (let* ((y slime-volleyball-y-f)
          ;; Previous y
          (py slime-volleyball-ball-y)
-         (x x-f)
+         (x slime-volleyball-x-f)
          (px slime-volleyball-ball-x)
          (diff-x (- px x))
          (diff-y (- py y))
@@ -1253,9 +1388,9 @@
               ;; Debugging.
               ;; (message "%s bounce" dir-message)
               (when (< diff-y 0)
-                (setq y-f (- slime-volleyball-net-y
+                (setq slime-volleyball-y-f (- slime-volleyball-net-y
                              slime-volleyball-ball-radius))
-                (setq v-y-f (- v-y-f))))
+                (setq slime-volleyball-v-y-f (- slime-volleyball-v-y-f))))
           ;; No top-of-net bounce.
           (progn
             ;; Check intersection with net's vertical center line.
@@ -1269,8 +1404,9 @@
                     (progn
                       ;; Debugging.
                       ;; (message "%s overlap" dir-message)
-                      (setq x-f (+ net-x adjust))
-                      (setq v-x-f (- v-x-f)))))))))))
+                      (setq slime-volleyball-x-f (+ net-x adjust))
+                      (setq slime-volleyball-v-x-f
+                            (- slime-volleyball-v-x-f)))))))))))
 
 ;; Calculate the line between last non-overlap frame position and new
 ;; position, then move the ball along that line until it just touches
@@ -1318,9 +1454,9 @@
                      slime-volleyball-slime-radius))
          (slime-y (slime-volleyball-slime-y slime))
          (ball-x1 (- slime-volleyball-prev-frame-ball-x slime-x))
-         (ball-x2 (- x-f slime-x))
+         (ball-x2 (- slime-volleyball-x-f slime-x))
          (ball-y1 (- slime-y slime-volleyball-prev-frame-ball-y))
-         (ball-y2 (- slime-y y-f))
+         (ball-y2 (- slime-y slime-volleyball-y-f))
          ;; 1- for a slight overlap.
          (r (1- (+ slime-volleyball-ball-radius slime-volleyball-slime-radius)))
          (a)
@@ -1351,8 +1487,8 @@
           (setq b (- ball-y1 (* a ball-x1))))))
     (if (eq a nil)
         (progn
-          ;; x-f stays the same.
-          (setq y-f
+          ;; slime-volleyball-x-f stays the same.
+          (setq slime-volleyball-y-f
                 (- slime-y
                    (abs (sqrt (- (expt r 2)
                                  (expt ball-x2 2)))))))
@@ -1375,13 +1511,13 @@
             (progn
               ;; Debugging.
               ;; (message "positive bounce")
-              (setq x-f (+ slime-x x2))
-              (setq y-f (- slime-y y2)))
+              (setq slime-volleyball-x-f (+ slime-x x2))
+              (setq slime-volleyball-y-f (- slime-y y2)))
           (progn
             ;; Debugging.
             ;; (message "negative bounce")
-            (setq x-f (+ slime-x x1))
-            (setq y-f (- slime-y y1))))))))
+            (setq slime-volleyball-x-f (+ slime-x x1))
+            (setq slime-volleyball-y-f (- slime-y y1))))))))
 
 (defun slime-volleyball-adjust-slime-pupils (slime)
   "Keep SLIME's eye on the ball."
@@ -1412,13 +1548,14 @@
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-adjust-ball-velocity-and-position-for-collisions (slime)
   "Adjust ball velocity and position if it has collided with SLIME."
-  (if (setq bounce-vector (slime-volleyball-ball-slime-overlap slime))
+  (if (slime-volleyball-ball-slime-overlap slime)
       (let (factor factor-sign)
         ;; Overlap detected.
         (slime-volleyball-resolve-collision slime)
         ;; Do bounce.
-        (setq factor (/ (- x-f (+ (slime-volleyball-slime-x slime)
-                                  slime-volleyball-slime-radius))
+        (setq factor (/ (- slime-volleyball-x-f
+                           (+ (slime-volleyball-slime-x slime)
+                              slime-volleyball-slime-radius))
                         (+ slime-volleyball-slime-radius
                            slime-volleyball-ball-radius)))
         (setq factor-sign (< factor 0.0))
@@ -1435,16 +1572,17 @@
         (when factor-sign
           (setq factor (- factor)))
 
-        (setq v-x-f (* factor 80))
-        (setq v-y-f (- 30)))
+        (setq slime-volleyball-v-x-f (* factor 80))
+        (setq slime-volleyball-v-y-f (- 30)))
     ;; Floor.
-    (if (> (+ y-f slime-volleyball-ball-radius) slime-volleyball-scene-height)
+    (if (> (+ slime-volleyball-y-f slime-volleyball-ball-radius)
+           slime-volleyball-scene-height)
         (when slime-volleyball-ball-bouncy-bouncy
           (progn
-            (setq y-f (- slime-volleyball-scene-height
+            (setq slime-volleyball-y-f (- slime-volleyball-scene-height
                          slime-volleyball-ball-radius))
-            (when (> v-y-f 0)
-              (setq v-y-f -50)))))
+            (when (> slime-volleyball-v-y-f 0)
+              (setq slime-volleyball-v-y-f -50)))))
     ;; Walls.
     (if (eq (slime-volleyball-slime-player slime) 1)
         ;; Left slime.
@@ -1467,15 +1605,16 @@
             (setf (slime-volleyball-slime-x slime)
                   (+ slime-volleyball-net-x slime-volleyball-net-width)))))
     (cond
-     ((> x-f (- slime-volleyball-scene-width slime-volleyball-ball-radius))
+     ((> slime-volleyball-x-f
+         (- slime-volleyball-scene-width slime-volleyball-ball-radius))
       (progn
-        (setq v-x-f (- v-x-f))
-        (setq x-f (- slime-volleyball-scene-width
+        (setq slime-volleyball-v-x-f (- slime-volleyball-v-x-f))
+        (setq slime-volleyball-x-f (- slime-volleyball-scene-width
                      slime-volleyball-ball-radius))))
-     ((< x-f slime-volleyball-ball-radius)
+     ((< slime-volleyball-x-f slime-volleyball-ball-radius)
       (progn
-        (setq v-x-f (- v-x-f))
-        (setq x-f slime-volleyball-ball-radius))))))
+        (setq slime-volleyball-v-x-f (- slime-volleyball-v-x-f))
+        (setq slime-volleyball-x-f slime-volleyball-ball-radius))))))
 
 (defun slime-volleyball-report-point-and-reset-slimes ()
   "Report that a point has been scored and reset the board."
@@ -1554,38 +1693,37 @@
             slime-volleyball-ball-y            %f
             slime-volleyball-ball-velocity-x   %f
             slime-volleyball-ball-velocity-y   %f
-            x-f                  %f
-            y-f                  %f
-            v-x-i                %f
-            v-x-f                %f
-            v-y-f                %f
+            slime-volleyball-x-f               %f
+            slime-volleyball-y-f               %f
+            slime-volleyball-v-x-i             %f
+            slime-volleyball-v-x-f             %f
+            slime-volleyball-v-y-f             %f
             slime-volleyball-slime1            %s
             slime-volleyball-slime2            %s"
            slime-volleyball-prev-frame-ball-x slime-volleyball-prev-frame-ball-y
            slime-volleyball-ball-x slime-volleyball-ball-y
            slime-volleyball-ball-velocity-x slime-volleyball-ball-velocity-y
-           x-f y-f
-           v-x-i v-x-f v-y-f
+           slime-volleyball-x-f slime-volleyball-y-f
+           slime-volleyball-v-x-i slime-volleyball-v-x-f slime-volleyball-v-y-f
            slime-volleyball-slime1 slime-volleyball-slime2))
 
 (defun slime-volleyball-scene-update ()
   "Update the scene."
-  (let ((y-i slime-volleyball-ball-y)
-        (v-y-i slime-volleyball-ball-velocity-y)
-        (delta-y)
-        (v-y-f)
-        (y-f)
-        (x-i slime-volleyball-ball-x)
-        (v-x-i slime-volleyball-ball-velocity-x)
-        (v-x-f)
+  (let ((slime-volleyball-y-i slime-volleyball-ball-y)
+        (slime-volleyball-v-y-i slime-volleyball-ball-velocity-y)
+        (slime-volleyball-delta-y)
+        (slime-volleyball-v-y-f)
+        (slime-volleyball-y-f)
+        (slime-volleyball-x-i slime-volleyball-ball-x)
+        (slime-volleyball-v-x-i slime-volleyball-ball-velocity-x)
+        (slime-volleyball-v-x-f)
         (speed)
         (reflection)
         (unit)
         (factor)
         (orig-size)
-        (x-f slime-volleyball-ball-x)
+        (slime-volleyball-x-f slime-volleyball-ball-x)
         (point-for)
-        (bounce-vector)
         (slime1 slime-volleyball-slime1)
         (slime2 slime-volleyball-slime2))
     (setf (slime-volleyball-slime-v-y-i slime1)
@@ -1606,8 +1744,9 @@
     (slime-volleyball-adjust-slime-pupils slime1)
     (slime-volleyball-adjust-slime-pupils slime2)
 
-    (if (> (+ slime-volleyball-ball-y slime-volleyball-ball-radius 1)
-           slime-volleyball-scene-height)
+    (if (and (not slime-volleyball-just-rally)
+             (> (+ slime-volleyball-ball-y slime-volleyball-ball-radius 1)
+                slime-volleyball-scene-height))
         ;; Score a point.
         (progn
           (if (> slime-volleyball-ball-x (/ slime-volleyball-scene-width 2))
@@ -1638,24 +1777,29 @@
         ;; Debugging.
         ;;(slime-volleyball-debug-dump)
 
-        ;; Sometimes v-x-f becomes nan.  I'm not sure why; I can't replicate it
-        ;; after-the-fact by plugging in all the slime and ball location and
-        ;; velocity data.  Just detect the condition and work around it here.
-        (when (and (floatp v-x-f) (isnan v-x-f))
-          (slime-volleyball-warn "v-x-f isnan condition detected")
-          (setq v-x-f slime-volleyball-ball-velocity-y))
-        (when (and (floatp x-f) (isnan x-f))
-          (slime-volleyball-warn "x-f isnan condition detected")
-          (setq x-f slime-volleyball-ball-x))
-        (when (and (floatp y-f) (isnan y-f))
-          (slime-volleyball-warn "y-f isnan condition detected")
-          (setq y-f slime-volleyball-ball-y))
+        ;; Sometimes slime-volleyball-v-x-f becomes nan.  I'm not sure
+        ;; why; I can't replicate it after-the-fact by plugging in all
+        ;; the slime and ball location and velocity data.  Just detect
+        ;; the condition and work around it here.
+        (when (and (floatp slime-volleyball-v-x-f)
+                   (isnan slime-volleyball-v-x-f))
+          (slime-volleyball-warn
+           "slime-volleyball-v-x-f isnan condition detected")
+          (setq slime-volleyball-v-x-f slime-volleyball-ball-velocity-y))
+        (when (and (floatp slime-volleyball-x-f) (isnan slime-volleyball-x-f))
+          (slime-volleyball-warn
+           "slime-volleyball-x-f isnan condition detected")
+          (setq slime-volleyball-x-f slime-volleyball-ball-x))
+        (when (and (floatp slime-volleyball-y-f) (isnan slime-volleyball-y-f))
+          (slime-volleyball-warn
+           "slime-volleyball-y-f isnan condition detected")
+          (setq slime-volleyball-y-f slime-volleyball-ball-y))
         (setq slime-volleyball-prev-frame-ball-x slime-volleyball-ball-x)
         (setq slime-volleyball-prev-frame-ball-y slime-volleyball-ball-y)
-        (setq slime-volleyball-ball-velocity-x v-x-f)
-        (setq slime-volleyball-ball-x x-f)
-        (setq slime-volleyball-ball-velocity-y v-y-f)
-        (setq slime-volleyball-ball-y y-f)
+        (setq slime-volleyball-ball-velocity-x slime-volleyball-v-x-f)
+        (setq slime-volleyball-ball-x slime-volleyball-x-f)
+        (setq slime-volleyball-ball-velocity-y slime-volleyball-v-y-f)
+        (setq slime-volleyball-ball-y slime-volleyball-y-f)
         (if (> (+ slime-volleyball-ball-y slime-volleyball-ball-radius 1)
                slime-volleyball-scene-height)
             (setq slime-volleyball-ball-y (- slime-volleyball-scene-height
