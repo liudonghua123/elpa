@@ -982,8 +982,6 @@
   (setq slime-volleyball-ending-rate 10)
   (setq slime-volleyball-ending-num 0)
   (setq slime-volleyball-endvar   "<g
-      inkscape:label=\"Layer 1\"
-      inkscape:groupmode=\"layer\"
       id=\"layer1\"
       transform=\"scale(0.48) translate(%f,%f)\">
       <rect
@@ -992,16 +990,8 @@
       width=\"105\"
       height=\"29\"
       x=\"113\"
-      y=\"180\"
-      inkscape:tile-cx=\"264.99285\"
-      inkscape:tile-cy=\"213.63089\"
-      inkscape:tile-w=\"302.14139\"
-      inkscape:tile-h=\"69.343925\"
-      inkscape:tile-x0=\"113.92216\"
-      inkscape:tile-y0=\"178.95892\" />
+      y=\"180\" />
       <rect
-      inkscape:tile-y0=\"178.95892\"
-      inkscape:tile-x0=\"113.92216\"
       y=\"208\"
       x=\"113\"
       height=\"29\"
@@ -1009,8 +999,6 @@
       id=\"use3821\"
       style=\"fill:#ff6600;fill-opacity:1;stroke:none\" />
       <rect
-      inkscape:tile-y0=\"178.95892\"
-      inkscape:tile-x0=\"113.92216\"
       y=\"237\"
       x=\"113\"
       height=\"29\"
@@ -1018,8 +1006,6 @@
       id=\"use3823\"
       style=\"fill:#ffff00;fill-opacity:1;stroke:none\" />
       <rect
-      inkscape:tile-y0=\"178.95892\"
-      inkscape:tile-x0=\"113.92216\"
       y=\"266\"
       x=\"113\"
       height=\"29\"
@@ -1027,8 +1013,6 @@
       id=\"use3825\"
       style=\"fill:#00ff00;fill-opacity:1;stroke:none\" />
       <rect
-      inkscape:tile-y0=\"178.95892\"
-      inkscape:tile-x0=\"113.92216\"
       y=\"295\"
       x=\"113\"
       height=\"29\"
@@ -1036,8 +1020,6 @@
       id=\"use3827\"
       style=\"fill:#0000ff;fill-opacity:1;stroke:none\" />
       <rect
-      inkscape:tile-y0=\"178.95892\"
-      inkscape:tile-x0=\"113.92216\"
       y=\"324\"
       x=\"113\"
       height=\"29\"
