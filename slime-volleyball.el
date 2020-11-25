@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013-2020  Free Software Foundation, Inc.
 
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
-;; Version: 1.1.4
+;; Version: 1.1.5
 ;; Keywords: games
 ;; Package-Requires: ((cl-lib "0.5"))
 
