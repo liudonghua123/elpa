@@ -1,4 +1,4 @@
-;;; slime-volleyball.el --- An SVG Slime Volleyball Game -*- lexical-binding:t -*-
+;;; slime-volleyball.el --- An SVG Slime Volleyball Game -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2013-2020  Free Software Foundation, Inc.
 
@@ -118,13 +118,16 @@
 
 (require 'cl-lib)
 
+(defconst slime-volleyball-base (file-name-directory load-file-name)
+  "The directory in which the slime volleyball package is installed.")
+
 (defcustom slime-volleyball-enable-sound nil
-  "Non-nil enable music."
+  "Music is enabled if this is non-nil."
   :type 'boolean
   :group 'slime-volleyball)
 
 (defcustom slime-volleyball-beach-mode nil
-  "Non-nil when Slimes should compete on sand."
+  "If this is non-nil, the slimes will compete on sand instead of concrete."
   :type 'boolean
   :group 'slime-volleyball)
 
@@ -846,9 +849,7 @@
 
   (setq slime-volleyball-title-screen
         (create-image
-         (expand-file-name "title-screen.svg"
-                           (file-name-directory
-                            (symbol-file 'slime-volleyball-init)))))
+         (expand-file-name "title-screen.svg" slime-volleyball-base)))
   (setq slime-volleyball-template-header
         (concat "<svg width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\""
                 " xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">")
@@ -1871,9 +1872,8 @@
             ;; This is not recommended.
             (large-file-warning-threshold 1000000000)
             (undo-outer-limit 60000000))
-        (find-file (expand-file-name (concat name ".b64")
-                                     (file-name-directory
-                                      (symbol-file 'slime-volleyball-init))))
+        (find-file
+         (expand-file-name (concat name ".b64") slime-volleyball-base))
         (with-current-buffer (concat name ".b64")
           (base64-decode-region (point-min) (point-max))
           (write-file temp-file)
@@ -1913,12 +1913,8 @@
     (error "Sorry, this Emacs does not support SVG images"))
   (setq slime-volleyball-starting t)
   (message "Loading slime strategies...")
-  (load-file (expand-file-name "grey-slime.el.gz"
-                               (file-name-directory
-                                (symbol-file 'slime-volleyball-init))))
-  (load-file (expand-file-name "green-slime.el.gz"
-                               (file-name-directory
-                                (symbol-file 'slime-volleyball-init))))
+  (load-file (expand-file-name "grey-slime.el.gz" slime-volleyball-base))
+  (load-file (expand-file-name "green-slime.el.gz" slime-volleyball-base))
   (pop-to-buffer-same-window (get-buffer-create "*slime-volleyball*"))
   (slime-volleyball-initialize-globals) ;Should these be made buffer-local?
   (slime-volleyball-mode)
