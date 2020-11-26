@@ -1196,7 +1196,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 
 
 ;;; ------------------------------------------------------------------
-;;; viewer2 functions
+;;; viewer2
 ;;; ------------------------------------------------------------------
 (defun rt-liber-viewer-reduce (section-list f acc)
   "A Not Invented Here tail-recursive reduce function."
@@ -1312,12 +1312,16 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(date      (alist-get 'Created section))
 	(type	   (alist-get 'Type section))
 	(content   (alist-get 'Content section)))
-    (insert
-     (format "Ticket %s by %s on %s (-N- days ago) (%s)\n"
-	     ticket-id
-	     creator
-	     date
-	     type))
+    (let ((start (point)))
+      (insert
+       (format "Ticket %s by %s on %s (-N- days ago) (%s)\n"
+	       ticket-id
+	       creator
+	       date
+	       type))
+      (add-text-properties start
+			   (point)
+                           `(font-lock-face font-lock-comment-face)))
     (cond ((or (string= type "Status")
 	       (string= type "CustomField")
 	       ;; (string= type "EmailRecord")
@@ -1383,24 +1387,24 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 
 (defconst rt-liber-viewer2-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "q") 'rt-liber-viewer-mode-quit)
-    (define-key map (kbd "n") 'rt-liber-next-section-in-viewer)
-    (define-key map (kbd "N") 'rt-liber-jump-to-latest-correspondence)
-    (define-key map (kbd "p") 'rt-liber-previous-section-in-viewer)
-    (define-key map (kbd "V") 'rt-liber-viewer-visit-in-browser)
-    (define-key map (kbd "m") 'rt-liber-viewer-answer)
-    (define-key map (kbd "M") 'rt-liber-viewer-answer-this)
-    (define-key map (kbd "t") 'rt-liber-viewer-answer-provisionally)
-    (define-key map (kbd "T") 'rt-liber-viewer-answer-provisionally-this)
-    (define-key map (kbd "F") 'rt-liber-viewer-answer-verbatim-this)
-    (define-key map (kbd "c") 'rt-liber-viewer-comment)
-    (define-key map (kbd "C") 'rt-liber-viewer-comment-this)
+    (define-key map (kbd "q") 'rt-liber-viewer2-mode-quit)
+    (define-key map (kbd "n") 'rt-liber-viewer2-next-section-in)
+    (define-key map (kbd "N") 'rt-liber-vewier2-jump-to-latest-correspondence)
+    (define-key map (kbd "p") 'rt-liber-vewier2-previous-section-in)
+    (define-key map (kbd "V") 'rt-liber-viewer2-visit-in-browser)
+    (define-key map (kbd "m") 'rt-liber-viewer2-answer)
+    (define-key map (kbd "M") 'rt-liber-viewer2-answer-this)
+    (define-key map (kbd "t") 'rt-liber-viewer2-answer-provisionally)
+    (define-key map (kbd "T") 'rt-liber-viewer2-answer-provisionally-this)
+    (define-key map (kbd "F") 'rt-liber-viewer2-answer-verbatim-this)
+    (define-key map (kbd "c") 'rt-liber-viewer2-comment)
+    (define-key map (kbd "C") 'rt-liber-viewer2-comment-this)
     (define-key map (kbd "g") 'revert-buffer)
     (define-key map (kbd "SPC") 'scroll-up)
     (define-key map (kbd "DEL") 'scroll-down)
     (define-key map (kbd "h") 'rt-liber-viewer-show-ticket-browser)
     map)
-  "Key map for ticket viewer.")
+  "Key map for ticket viewer2.")
 
 (define-derived-mode rt-liber-viewer2-mode nil
   "RT Liberation Viewer"
