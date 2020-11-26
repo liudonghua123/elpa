@@ -1209,7 +1209,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   "Face for less important text.")
 
 (defconst rt-liber-viewer2-font-lock-keywords
-  `(("^.*$" 0 'font-lock-comment-face))
+  `(("^Ticket.*$" 0 'rt-liber-ticket-subdued-face))
   "Expressions to font-lock for RT ticket viewer.")
 
 
