@@ -1198,18 +1198,6 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 ;;; ------------------------------------------------------------------
 ;;; viewer2
 ;;; ------------------------------------------------------------------
-(defconst rt-liber-viewer-font-lock-keywords
-  (let ((header-regexp (regexp-opt '("id: " "Ticket: " "TimeTaken: "
-				     "Type: " "Field: " "OldValue: "
-				     "NewValue: " "Data: "
-				     "Description: " "Created: "
-				     "Creator: " "Attachments: ")
-				   t)))
-    (list
-     (list (concat "^" header-regexp ".*$") 0
-	   'font-lock-comment-face)))
-  "Expressions to font-lock for RT ticket viewer.")
-
 (defface rt-liber-ticket-subdued-face
   '((((class color) (background dark))
      (:foreground "gray33"))
@@ -1219,6 +1207,10 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
      (:inverse-video t))
     (t (:background "Blue")))
   "Face for less important text.")
+
+(defconst rt-liber-viewer2-font-lock-keywords
+  `(("^.*$" 0 'font-lock-comment-face))
+  "Expressions to font-lock for RT ticket viewer.")
 
 
 (defun rt-liber-viewer-reduce (section-list f acc)
@@ -1360,15 +1352,6 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
      (lambda (section)
        (rt-liber-viewer2-display-section section))
      section-list)))
-
-;; Before release: move this back to the top
-(defconst rt-liber-viewer2-font-lock-keywords
-  (let ((header-regexp (regexp-opt '("id: ")
-				   t)))
-    (list
-     (list (concat "^" header-regexp ".*$") 0
-	   'font-lock-comment-face)))
-  "Expressions to font-lock for RT ticket viewer.")
 
 (defun rt-liber-viewer2-display-ticket-at-point ()
   "Display the contents of the ticket at point."
