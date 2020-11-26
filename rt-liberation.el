@@ -1198,6 +1198,29 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 ;;; ------------------------------------------------------------------
 ;;; viewer2
 ;;; ------------------------------------------------------------------
+(defconst rt-liber-viewer-font-lock-keywords
+  (let ((header-regexp (regexp-opt '("id: " "Ticket: " "TimeTaken: "
+				     "Type: " "Field: " "OldValue: "
+				     "NewValue: " "Data: "
+				     "Description: " "Created: "
+				     "Creator: " "Attachments: ")
+				   t)))
+    (list
+     (list (concat "^" header-regexp ".*$") 0
+	   'font-lock-comment-face)))
+  "Expressions to font-lock for RT ticket viewer.")
+
+(defface rt-liber-ticket-subdued-face
+  '((((class color) (background dark))
+     (:foreground "gray33"))
+    (((class color) (background light))
+     (:foreground "gray85"))
+    (((type tty) (class mono))
+     (:inverse-video t))
+    (t (:background "Blue")))
+  "Face for less important text.")
+
+
 (defun rt-liber-viewer-reduce (section-list f acc)
   "A Not Invented Here tail-recursive reduce function."
   (cond ((null (cdr section-list)) acc)
@@ -1321,7 +1344,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	       type))
       (add-text-properties start
 			   (point)
-                           `(font-lock-face font-lock-comment-face)))
+                           `(font-lock-face rt-liber-ticket-subdued-face)))
     (cond ((or (string= type "Status")
 	       (string= type "CustomField")
 	       ;; (string= type "EmailRecord")
