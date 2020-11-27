@@ -72,8 +72,8 @@
 ;; * Frame-by-frame debugging
 ;;   (F9 to enter/exit frame-by-frame mode, F8 to advance a frame)
 
-;; * Music: disabled by default due to EMMS requirement
-;;   (customize slime-volleyball-enable-sound)
+;; * Music (supported if ogg123, of vorbis-tools, is on the system
+;; * executable path, otherwise fails silently)
 
 ;; Controls
 ;; ========
@@ -124,7 +124,7 @@
 (defconst slime-volleyball-base (file-name-directory load-file-name)
   "The directory in which the slime volleyball package is installed.")
 
-(defcustom slime-volleyball-enable-sound nil
+(defcustom slime-volleyball-enable-sound t
   "Music is enabled if this is non-nil."
   :type 'boolean
   :group 'slime-volleyball)
@@ -271,6 +271,8 @@
 (defvar slime-volleyball-ending-rate nil "Ending scene variable.")
 (defvar slime-volleyball-endvar2 nil "Ending scene variable.")
 (defvar slime-volleyball-endvar nil "Ending scene variable.")
+(defvar slime-volleyball-music-player-process nil
+  "Object representing process playing music.")
 
 (cl-defstruct slime-volleyball-slime
   "A player in the game of slime volleyball"
@@ -1271,9 +1273,8 @@
 (defun slime-volleyball-render ()
   "Render the scene."
   (if slime-volleyball-god-mode
-      (let ((debug-on-error nil))       ;FIXME: Redundant with `ignore-errors'?
-        (ignore-errors
-          (slime-volleyball-render-maybe-wrapped)))
+      (ignore-errors
+        (slime-volleyball-render-maybe-wrapped))
     ;; Don't paper over errors when not in god mode.
     (slime-volleyball-render-maybe-wrapped)))
 
@@ -1861,11 +1862,6 @@
     (when (eq (elt timer 5) timer-function)
       (cancel-timer timer))))
 
-(defvar emms-repeat-track)
-(defvar emms-info-asynchronously)
-(declare-function emms-stop "emms")
-(declare-function emms-play-file "emms-source-file")
-
 (defun slime-volleyball-play-music (name repeat)
   "Play sound clip NAME, repeating indefinitely if REPEAT is non-nil."
   ;; Ignore errors in case EMMS doesn't have ogg support.
@@ -1877,18 +1873,19 @@
             (undo-outer-limit 60000000))
         (find-file
          (expand-file-name (concat name ".b64") slime-volleyball-base))
-        (with-current-buffer (concat name ".b64")
-          (base64-decode-region (point-min) (point-max))
-          (write-file temp-file)
-          ;; Clear mini-buffer.
-          (message nil)
-          (kill-buffer))
-        ;; Suppress message "EMMS: All track information loaded.".
-        (let ((emms-info-asynchronously nil))
-          ;; Doing this dynamically doesn't work for some reason, but
-          ;; repetition is required so messy measures must be taken.
-          (setq emms-repeat-track repeat)
-          (emms-play-file temp-file))))))
+        (save-excursion
+          (with-current-buffer (concat name ".b64")
+            (base64-decode-region (point-min) (point-max))
+            (let ((coding-system-for-write 'no-conversion))
+              (write-file temp-file))
+            ;; Clear mini-buffer.
+            (message nil)
+            (kill-buffer)))
+        (setq slime-volleyball-music-player-process
+              (ignore-errors
+                (start-process
+                 "slime-volleyball-music"
+                 nil "ogg123" (if repeat "-r" "") temp-file)))))))
 
 (defun slime-volleyball-introduce-opponent ()
   "Display a message introducing a computer-controlled opponent slime."
@@ -1921,7 +1918,6 @@
   (pop-to-buffer-same-window (get-buffer-create "*slime-volleyball*"))
   (slime-volleyball-initialize-globals) ;Should these be made buffer-local?
   (slime-volleyball-mode)
-  (delete-other-windows)                ;FIXME: Why?
   (slime-volleyball-new-game)
   (slime-volleyball-scene-update)
   (slime-volleyball-add-timer 0.03 #'slime-volleyball-render)
@@ -1930,7 +1926,7 @@
   (slime-volleyball-play-music "start" nil)
   (sleep-for 4)
   (when slime-volleyball-enable-sound
-    (emms-stop))
+    (kill-process slime-volleyball-music-player-process))
   (setq slime-volleyball-starting nil)
   (setq slime-volleyball-unpause-function
         #'slime-volleyball-introduce-opponent)
@@ -1945,7 +1941,7 @@ NO-KILL is specified, do not kill the *slime-volleyball* buffer."
             (y-or-n-p "Quit Slime Volleyball? "))
     (setq slime-volleyball-quitting t)
     (when slime-volleyball-enable-sound
-      (emms-stop))
+      (kill-process slime-volleyball-music-player-process))
     (slime-volleyball-scrub-timer-list 'slime-volleyball-render)
     (slime-volleyball-scrub-timer-list
      'slime-volleyball-eval-god-mode-variables)
