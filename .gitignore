@@ -1,3 +1,5 @@
+/bug-hunter-autoloads.el
+/bug-hunter-pkg.el
 /bug-hunter-test-dummy-file
 *.elc
 /.cask/
