@@ -1689,8 +1689,7 @@
           (setq slime-volleyball-unpause-function
                 'slime-volleyball-play-ending)
         (setq slime-volleyball-unpause-function
-              'slime-volleyball-say-game-over)
-        ))))
+              'slime-volleyball-say-game-over)))))
 
 (defun slime-volleyball-debug-dump ()
   "Print a debugging message."
@@ -1866,28 +1865,15 @@
 
 (defun slime-volleyball-play-music (name repeat)
   "Play sound clip NAME, repeating indefinitely if REPEAT is non-nil."
-  ;; Ignore errors in case EMMS doesn't have ogg support.
-  (ignore-errors
-    (when slime-volleyball-enable-sound
-      (let ((temp-file (make-temp-file name nil ".ogg"))
-            ;; This is not recommended.
-            (large-file-warning-threshold 1000000000)
-            (undo-outer-limit 60000000))
-        (find-file
-         (expand-file-name (concat name ".b64") slime-volleyball-base))
-        (save-excursion
-          (with-current-buffer (concat name ".b64")
-            (base64-decode-region (point-min) (point-max))
-            (let ((coding-system-for-write 'no-conversion))
-              (write-file temp-file))
-            ;; Clear mini-buffer.
-            (message nil)
-            (kill-buffer)))
-        (setq slime-volleyball-music-player-process
-              (ignore-errors
-                (start-process
-                 "slime-volleyball-music"
-                 nil "ogg123" (if repeat "-r" "") temp-file)))))))
+  (when slime-volleyball-enable-sound
+    (setq slime-volleyball-music-player-process
+          (ignore-errors
+            (start-process
+             (concat "slime-volleyball-" name "-music")
+             nil "ogg123" (if repeat "-r" "")
+             (expand-file-name
+              (concat "slime-volleyball-" name ".ogg")
+              slime-volleyball-base))))))
 
 (defun slime-volleyball-introduce-opponent ()
   "Display a message introducing a computer-controlled opponent slime."
@@ -1927,8 +1913,7 @@
   (sit-for 0.1)
   (slime-volleyball-play-music "start" nil)
   (sleep-for 4)
-  (when slime-volleyball-enable-sound
-    (kill-process slime-volleyball-music-player-process))
+  (ignore-errors (kill-process slime-volleyball-music-player-process))
   (setq slime-volleyball-starting nil)
   (setq slime-volleyball-unpause-function
         #'slime-volleyball-introduce-opponent)
@@ -1942,8 +1927,7 @@ NO-KILL is specified, do not kill the *slime-volleyball* buffer."
   (when (or force-quit
             (y-or-n-p "Quit Slime Volleyball? "))
     (setq slime-volleyball-quitting t)
-    (when slime-volleyball-enable-sound
-      (kill-process slime-volleyball-music-player-process))
+    (ignore-errors (kill-process slime-volleyball-music-player-process))
     (slime-volleyball-scrub-timer-list 'slime-volleyball-render)
     (slime-volleyball-scrub-timer-list
      'slime-volleyball-eval-god-mode-variables)
