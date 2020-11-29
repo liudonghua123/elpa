@@ -273,6 +273,8 @@
 (defvar slime-volleyball-endvar nil "Ending scene variable.")
 (defvar slime-volleyball-music-player-process nil
   "Object representing process playing music.")
+(defvar slime-volleyball-experimental-slime nil
+  "Non-nil to make the slime being trained more experimental.")
 
 (cl-defstruct slime-volleyball-slime
   "A player in the game of slime volleyball"
@@ -373,39 +375,39 @@
   (let* ((max-val (max left right jump stop none))
          (max-list nil) (rand-max nil) (index 0))
     ;; Uncomment to make the learning slime more experimental.
-    ;; (if (eq (random 10) 3)
-    ;;     (elt '((0 slime-volleyball-slime-left)
-    ;;            (1 slime-volleyball-slime-right)
-    ;;            (2 slime-volleyball-slime-jump)
-    ;;            (3 slime-volleyball-slime-stop)
-    ;;            (4 slime-volleyball-slime-none))
-    ;;          (random 3))
-    (dolist (check (list left right jump stop none))
-      (when (< (abs (- check max-val)) 0.001)
-        (push (list index
-                    (elt (list 'slime-volleyball-slime-left
-                               'slime-volleyball-slime-right
-                               'slime-volleyball-slime-jump
-                               'slime-volleyball-slime-stop
-                               'slime-volleyball-slime-none)
-                         index)) max-list))
-      (setq index (1+ index)))
-    (when (> (length max-list) 1)
-      (setq rand-max (elt max-list (random (length max-list)))))
-    (cond
-     (rand-max rand-max)
-     ((< (abs (- left max-val)) 0.001)
-      '(0 slime-volleyball-slime-left))
-     ((< (abs (- right max-val)) 0.001)
-      '(1 slime-volleyball-slime-right))
-     ((< (abs (- jump max-val)) 0.001)
-      '(2 slime-volleyball-slime-jump))
-     ((< (abs (- stop max-val)) 0.001)
-      '(3 slime-volleyball-slime-stop))
-     ((< (abs (- none max-val)) 0.001)
-      '(4 slime-volleyball-slime-none)))
-    ;;)
-    ))
+    (if (and slime-volleyball-experimental-slime
+             (eq (random 10) 3))
+        (elt '((0 slime-volleyball-slime-left)
+               (1 slime-volleyball-slime-right)
+               (2 slime-volleyball-slime-jump)
+               (3 slime-volleyball-slime-stop)
+               (4 slime-volleyball-slime-none))
+             (random 3))
+      (progn
+        (dolist (check (list left right jump stop none))
+          (when (< (abs (- check max-val)) 0.001)
+            (push (list index
+                        (elt (list 'slime-volleyball-slime-left
+                                   'slime-volleyball-slime-right
+                                   'slime-volleyball-slime-jump
+                                   'slime-volleyball-slime-stop
+                                   'slime-volleyball-slime-none)
+                             index)) max-list))
+          (setq index (1+ index)))
+        (when (> (length max-list) 1)
+          (setq rand-max (elt max-list (random (length max-list)))))
+        (cond
+         (rand-max rand-max)
+         ((< (abs (- left max-val)) 0.001)
+          '(0 slime-volleyball-slime-left))
+         ((< (abs (- right max-val)) 0.001)
+          '(1 slime-volleyball-slime-right))
+         ((< (abs (- jump max-val)) 0.001)
+          '(2 slime-volleyball-slime-jump))
+         ((< (abs (- stop max-val)) 0.001)
+          '(3 slime-volleyball-slime-stop))
+         ((< (abs (- none max-val)) 0.001)
+          '(4 slime-volleyball-slime-none)))))))
 
 ;; The following is from computer slime's perspective.
 ;;
