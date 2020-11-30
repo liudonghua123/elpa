@@ -34,6 +34,9 @@
 (require 'auth-source)
 
 
+;;; ------------------------------------------------------------------
+;;; variables and constants
+;;; ------------------------------------------------------------------
 (defvar rt-liber-rest-debug-buffer-name "*rt-liber-rest debug log*"
   "Buffer name of debug capture.")
 
@@ -56,6 +59,9 @@
   "If non-nil, be verbose about what's happening.")
 
 
+;;; ------------------------------------------------------------------
+;;; functions
+;;; ------------------------------------------------------------------
 (defun rt-liber-rest-write-debug (str)
   "Write to debug buffer."
   (when (not (stringp str))
