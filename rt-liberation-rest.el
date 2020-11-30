@@ -75,7 +75,9 @@
 (defun rt-liber-rest-auth ()
   "Try to get the REST credentials."
   (if (and (stringp rt-liber-rest-username)
-	   (stringp rt-liber-rest-password))
+	   (stringp rt-liber-rest-password)
+	   (< 0 (length rt-liber-rest-username))
+	   (< 0 (length rt-liber-rest-password)))
       t
     (message "rt-liber: no REST credentials set, so attempting auth-source")
     (let ((auth-source-found-p
