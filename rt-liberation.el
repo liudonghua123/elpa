@@ -1198,18 +1198,18 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 ;;; ------------------------------------------------------------------
 ;;; viewer2
 ;;; ------------------------------------------------------------------
-(defface rt-liber-ticket-subdued-face
+(defface rt-liber-ticket-emph-face
   '((((class color) (background dark))
-     (:foreground "gray33"))
+     (:foreground "gray53"))
     (((class color) (background light))
-     (:foreground "gray85"))
+     (:foreground "gray65"))
     (((type tty) (class mono))
      (:inverse-video t))
     (t (:background "Blue")))
-  "Face for less important text.")
+  "Face for important text.")
 
 (defconst rt-liber-viewer2-font-lock-keywords
-  `(("^Ticket.*$" 0 'rt-liber-ticket-subdued-face))
+  `(("^$" 0 'rt-liber-ticket-subdued-face))
   "Expressions to font-lock for RT ticket viewer.")
 
 
@@ -1336,7 +1336,10 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	       type))
       (add-text-properties start
 			   (point)
-                           `(font-lock-face rt-liber-ticket-subdued-face)))
+                           `(font-lock-face rt-liber-ticket-emph-face))
+      (add-text-properties start
+			   (point)
+                           `(rt-liberation-viewer-header t)))
     (cond ((or (string= type "Status")
 	       (string= type "CustomField")
 	       ;; (string= type "EmailRecord")
@@ -1391,12 +1394,31 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 					       rt-liber-assoc-browser)
     (error "not viewing a ticket")))
 
+(defun rt-liber-viewer2-next-section-in ()
+  (interactive)
+  (forward-line)
+  (let ((next (next-single-property-change
+	       (point)
+	       'rt-liberation-viewer-header)))
+    (when next
+      (goto-char next))))
+
+(defun rt-liber-viewer2-previous-section-in ()
+  (interactive)
+  (forward-line -1)
+  (let ((prev (previous-single-property-change
+	       (point-at-bol)
+	       'rt-liberation-viewer-header)))
+    (when prev
+      (goto-char prev)
+      (forward-line -1))))
+
 (defconst rt-liber-viewer2-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "q") 'rt-liber-viewer2-mode-quit)
     (define-key map (kbd "n") 'rt-liber-viewer2-next-section-in)
-    (define-key map (kbd "N") 'rt-liber-vewier2-jump-to-latest-correspondence)
-    (define-key map (kbd "p") 'rt-liber-vewier2-previous-section-in)
+    (define-key map (kbd "N") 'rt-liber-viewer2-jump-to-latest-correspondence)
+    (define-key map (kbd "p") 'rt-liber-viewer2-previous-section-in)
     (define-key map (kbd "V") 'rt-liber-viewer2-visit-in-browser)
     (define-key map (kbd "m") 'rt-liber-viewer2-answer)
     (define-key map (kbd "M") 'rt-liber-viewer2-answer-this)
