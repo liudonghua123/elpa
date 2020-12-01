@@ -23,7 +23,7 @@ This program makes several assumptions about the notes-file format.
 Current hurestics:
 
 1.  Before the first real entry, lines of the form
-"12-Jan-96 Friday" and "12 Jan 1996" are updated.
+"12-Jan-96 Friday", "12 Jan 1996", and "1996-01-12" are updated.
 
 2.  A "today" entry is brought forward each day.
 (Some people use this as a to-do list.)
@@ -153,7 +153,8 @@ sub mknew {
     #
     # Case 1:  dates at the beginning
     # This convetion in the format ``30-Apr-96 Tuesday'' is in use by johnh,
-    # and in the format ``30 Apr 1996'' by geoff.
+    # and in the format ``30 Apr 1996'' by geoff,
+    # and 2015-02-25 is johnh's new format.
     #
     # Case 1a:  DayName? DayNum Month Year DayName?
     @F = ($pre =~ /[\s\n]?
@@ -218,6 +219,20 @@ sub mknew {
 	print "" . ("-" x length($new_date)) . "\n\n"
 	    if ($F[9] =~ /\-/);
 	print $F[10];
+    };
+    # Sigh, reverse month and DayNum
+    # Case 1c:  ISO format
+    @F = ($pre =~ /[\s\n]?
+	    (\d{4})-(\d{2})-(\d{2})(\W+)?($all_days_regexp_switch)?[\n]
+	    [ ]?(\-+)?\n?
+	    (\n+)/xm);
+    if ($#F != -1) {
+	my($form) = "%Y-%m-%d" . $F[3] . &infer_day_form($F[4]);
+	my($new_date) = strftime_epoch($form, $date_epoch);
+	print "\n$new_date\n";
+	print "" . ("-" x length($new_date)) . "\n"
+	    if ($F[5] =~ /\-/);
+	print $F[6];
     };
 
     #

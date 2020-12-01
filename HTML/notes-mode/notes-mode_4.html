@@ -1,27 +1,33 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html401/loose.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on August, 8 2008 by texi2html 1.78 -->
-<!--
-Written by: Lionel Cons <Lionel.Cons@cern.ch> (original author)
+<!-- Created on June 6, 2018 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
             Olaf Bachmann <obachman@mathematik.uni-kl.de>
             and many others.
 Maintained by: Many creative people.
 Send bugs and suggestions to <texi2html-bug@nongnu.org>
-
 -->
 <head>
-<title>Notes-mode: 4. History</title>
+<title>Notes-mode: 4 History</title>
 
-<meta name="description" content="Notes-mode: 4. History">
-<meta name="keywords" content="Notes-mode: 4. History">
+<meta name="description" content="Notes-mode: 4 History">
+<meta name="keywords" content="Notes-mode: 4 History">
 <meta name="resource-type" content="document">
 <meta name="distribution" content="global">
-<meta name="Generator" content="texi2html 1.78">
+<meta name="Generator" content="texi2html 5.0">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <style type="text/css">
 <!--
 a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
 pre.display {font-family: serif}
 pre.format {font-family: serif}
 pre.menu-comment {font-family: serif}
@@ -30,9 +36,11 @@ pre.smalldisplay {font-family: serif; font-size: smaller}
 pre.smallexample {font-size: smaller}
 pre.smallformat {font-family: serif; font-size: smaller}
 pre.smalllisp {font-size: smaller}
-span.roman {font-family:serif; font-weight:normal;}
-span.sansserif {font-family:sans-serif; font-weight:normal;}
-ul.toc {list-style: none}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
 -->
 </style>
 
@@ -42,61 +50,59 @@ ul.toc {list-style: none}
 <body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
 
 <a name="History"></a>
-<a name="SEC22"></a>
-<table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="notes-mode_3.html#SEC21" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SEC23" title="Next section in reading order"> &gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="notes-mode_3.html#SEC14" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode.html#Top" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_5.html#SEC27" title="Next chapter"> &gt;&gt; </a>]</td>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="notes-mode_3.html#Advanced-Features" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_3.html#Notes_002dmode-configuration" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[ Up ]</td>
+<td valign="middle" align="left">[<a href="#Notes_002dmode-history" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_5.html#Installation" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="notes-mode.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode.html#Introduction" title="Cover (top) of document">Top</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_6.html#SEC28" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_6.html#Keystroke-index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<h1 class="chapter"> 4. History </h1>
+<a name="History-1"></a>
+<h1 class="chapter">4 History</h1>
 
 <p>More about notes-mode than you wanted to know,
 and some thanks.
 </p>
 <table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top"><a href="#SEC23">4.1 Notes-mode history</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">          
+<tr><td align="left" valign="top"><a href="#Notes_002dmode-history">4.1 Notes-mode history</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">          
 </td></tr>
-<tr><td align="left" valign="top"><a href="#SEC24">4.2 Credits</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">                     
+<tr><td align="left" valign="top"><a href="#Credits">4.2 Credits</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">                     
 </td></tr>
-<tr><td align="left" valign="top"><a href="#SEC25">4.3 Changes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">                     
+<tr><td align="left" valign="top"><a href="#Changes">4.3 Changes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">                     
 </td></tr>
-<tr><td align="left" valign="top"><a href="#SEC26">4.4 Suggested features</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">                     
+<tr><td align="left" valign="top"><a href="#Suggested-features">4.4 Suggested features</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">                     
 </td></tr>
 </table>
 
 
 
-<hr size="6">
+<hr>
 <a name="Notes_002dmode-history"></a>
-<a name="SEC23"></a>
-<table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#SEC22" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SEC24" title="Next section in reading order"> &gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SEC22" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SEC22" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_5.html#SEC27" title="Next chapter"> &gt;&gt; </a>]</td>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#History" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#History" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#History" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Credits" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_5.html#Installation" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="notes-mode.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode.html#Introduction" title="Cover (top) of document">Top</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_6.html#SEC28" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_6.html#Keystroke-index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<h2 class="section"> 4.1 Notes-mode history </h2>
+<a name="Notes_002dmode-history-1"></a>
+<h2 class="section">4.1 Notes-mode history</h2>
 
 <p>Briefly,
  I started keeping notes on-line shortly after I got a portable computer
@@ -119,31 +125,30 @@ Finally, in April, 1996 I wrote documentation,
  or the documentation will become out of date.
 </p>
 
-<hr size="6">
+<hr>
 <a name="Credits"></a>
-<a name="SEC24"></a>
-<table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#SEC23" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SEC25" title="Next section in reading order"> &gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SEC22" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SEC22" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_5.html#SEC27" title="Next chapter"> &gt;&gt; </a>]</td>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#History" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Notes_002dmode-history" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#History" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Changes" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_5.html#Installation" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="notes-mode.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode.html#Introduction" title="Cover (top) of document">Top</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_6.html#SEC28" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_6.html#Keystroke-index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<h2 class="section"> 4.2 Credits </h2>
+<a name="Credits-1"></a>
+<h2 class="section">4.2 Credits</h2>
 
 <p>I (John Heidemann, &lt;johnh@isi.edu&gt;)
  started, documented, and currently maintain notes-mode.
 I take ultimate responsibility for the code,
- especially for the ugly parts that I won't let others change.
+ especially for the ugly parts that I won&rsquo;t let others change.
 </p>
 <p>Ashvin Goel
  &lt;ashvin@ficus.cs.ucla.edu&gt;
@@ -160,7 +165,7 @@ and the ideas and initial implementations of
 In addition,
  he is an invaluable second opinion about
  what and how things should be done
- (even if I don't always agree with him).
+ (even if I don&rsquo;t always agree with him).
 </p>
 <p>Geoff Kuenning
  &lt;geoff@ficus.cs.ucla.edu&gt;
@@ -175,14 +180,14 @@ He is responsible for
 </p>
 <p>Ramesh Govindan &lt;govindan@isi.edu&gt; did the xemacs port.
 </p>
-<p>Since it's release on Usenet in April 1996 several
+<p>Since it&rsquo;s release on Usenet in April 1996 several
  other folks have contributed.
 Thanks to
  David Weisman &lt;weisman@app1.osf.org&gt;,
  Martin L. Smith &lt;martin@ner.com&gt;,
  Jason Bastek &lt;jason@aai.com&gt;,
  Ulrich Herbst &lt;Ulrich.Herbst@t-systems.com&gt;.
-See the next section (See section <a href="#SEC25">Changes</a>.) for details of their exploits.
+See the next section (See section <a href="#Changes">Changes</a>.) for details of their exploits.
 </p>
 <p>Thanks to Larry Ayers &lt;layers@marktwain.net&gt;
  for popularizing notes-mode with reviews in
@@ -190,26 +195,25 @@ See the next section (See section <a href="#SEC25">Changes</a>.) for details of 
  (at &lt;http://www.linuxgazette.com/issue22/notes-mode.html&gt; and
  &lt;http://www.linuxgazette.com/issue35/ayers.html&gt;).
 </p>
-<hr size="6">
+<hr>
 <a name="Changes"></a>
-<a name="SEC25"></a>
-<table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#SEC24" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SEC26" title="Next section in reading order"> &gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SEC22" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SEC22" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_5.html#SEC27" title="Next chapter"> &gt;&gt; </a>]</td>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#History" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Credits" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#History" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Suggested-features" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_5.html#Installation" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="notes-mode.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode.html#Introduction" title="Cover (top) of document">Top</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_6.html#SEC28" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_6.html#Keystroke-index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<h2 class="section"> 4.3 Changes </h2>
+<a name="Changes-1"></a>
+<h2 class="section">4.3 Changes</h2>
 
 <p>For the bored:
 </p>
@@ -217,7 +221,7 @@ See the next section (See section <a href="#SEC25">Changes</a>.) for details of 
  Shared a version with Ashvin and Geoff.
 </p>
 <p>Changed  6-Dec-95: version 0.3
- Ashvin's changes for note traversal added (C-c C-p and C-c C-n now
+ Ashvin&rsquo;s changes for note traversal added (C-c C-p and C-c C-n now
 move to the prev/next note in note-mode).
  URL parsing changed so that &quot;localhost&quot; is optional.
 </p>
@@ -230,7 +234,7 @@ lookups on notes names such as &quot;252A&quot;.
 </p>
 <p>Changed 20-Dec-95: version 0.5.
  Fixed a missing variable in notes-url.el.
- Added a work-around to a bug in emacs-19.30's define-derived-mode.
+ Added a work-around to a bug in emacs-19.30&rsquo;s define-derived-mode.
 </p>
 <p>Changed 24-Dec-95: version 0.6.
  Prev/next code re-re-written to be more robust.
@@ -242,10 +246,10 @@ lookups on notes names such as &quot;252A&quot;.
  Initialization code added to set up a new note.
 New variable:  notes-bin-dir.
 </p>
-<p> I'm skipping version 0.9 because I erroneously release version 0.1
+<p> I&rsquo;m skipping version 0.9 because I erroneously release version 0.1
 as version 0.9 (only on the web, not on Usenet).
 </p>
-<p> I'm bumping from version &quot;0&quot; to version &quot;1&quot; since the code is has been
+<p> I&rsquo;m bumping from version &quot;0&quot; to version &quot;1&quot; since the code is has been
 in production use for more than a year by several people.  Minor
 numbers are the same.
 </p>
@@ -259,7 +263,7 @@ not by copying.
  - catsubject added (bound to C-cC-s):  collect all notes about the
 current subject.
  - new notes-files are initialized with fields based on the prior
-day's notes; see mknew for details.
+day&rsquo;s notes; see mknew for details.
  - daily_work is gone; mkall is rewritten to use .notesrc.
 </p>
 <p>Changed 29-Apr-96: version 1.11.
@@ -279,7 +283,7 @@ Autoconf support.
 other than done when the file is needed (in elisp with slow regular
 expressions).  2000-line index files are now 1-2 seconds rather than
 15-30 on a 100MHz Pentium.  If necessary (the
-pre-computed version isn't up-to-date) we fall back on the slower
+pre-computed version isn&rsquo;t up-to-date) we fall back on the slower
 code.
 </p>
 <p>Related work improved (suggestion by David Weisman &lt;weisman@app1.osf.org&gt;).
@@ -346,7 +350,7 @@ Bug fix:  handling of electric-prevnext is better when there are
  existing prev/next links.
 </p> 
 <p>Clarification: I added some pointers in the code to the installation
- instructions.  (Apparently people can't RTF README.)
+ instructions.  (Apparently people can&rsquo;t RTF README.)
 </p>
 <p>Extension: mailcrypt-3.5.x suported including pgp, pgp5 and gpg.
 </p>
@@ -375,7 +379,7 @@ Bug fix: missing file notes-first.el added to the distribution.
 (Bug found by Michael Totschnig &lsquo;<tt>michaelt@supernet.ca</tt>&rsquo;.)
 </p>
 <p>Changed ( 5-Dec-01): version 1.21:
-(backed-out&mdash;didn't work with spaced URLs) 
+(backed-out&mdash;didn&rsquo;t work with spaced URLs) 
 URL lookup now uses thing-at-point.
 </p>
 <p>Fix to make notes-mode work with emacs-21.1
@@ -393,7 +397,7 @@ and to make it run cleanly more often.
 
 <p>Changed (20-Feb-05): version 1.23:
 Outline mode is now forcebly turned on to avoid interactions
-with user's text-mode hooks
+with user&rsquo;s text-mode hooks
 (bug and fix from Nils Ackermann &lsquo;<tt>nils@nieback.de</tt>&rsquo;).
 </p>
 <p>Install bug involving ordering of scripts and byte-compilation
@@ -416,7 +420,7 @@ by Torsten Bronger &lsquo;<tt>bronger@physik.rwth-aachen.de</tt>&rsquo;.
 <p>Fixed a bug in mkindexcache, triggered by subjects with percent signs
 in them.  Bug reported by Philip Austin &lsquo;<tt>paustin@eos.ubc.ca</tt>&rsquo;.
 </p>
-<p>We're a bit more robust about subjects, I hope.  Warnings should
+<p>We&rsquo;re a bit more robust about subjects, I hope.  Warnings should
 appear about embedded number signs, and leading spaces should be
 filtered.  Bug reported by Philip Austin &lsquo;<tt>paustin@eos.ubc.ca</tt>&rsquo;.
 </p>
@@ -456,27 +460,58 @@ have 4093 notes files, overflowing the Unix command line buffer.
 rather than forcing utf-8 (the Righteous Path).
 Bug report from Geoff Kuenning, a man with an older Unix environment than I.
 </p>
+<p>Changed (20-Jun-10): version 1.28:
+</p>
+<p>Changed a regular expression in &lsquo;<tt>notes-index-mode.el</tt>&rsquo; that was 
+causing emacs-v23 (a pre-release version)
+to regular expression infinite recursion.
+</p>
+<p>Changed (2012-04-04): version 1.29
+</p>
+<p>(2011-08-23) Changed <code>run-hooks</code> to <code>run-mode-hooks</code>.
+Bug report from Geoff Kuenning.
+</p>
+<p>Changed some handling of PGP encryption to account for 
+some apparent API changes.
+</p>
+<p>(2012-04-04) Fixed encyrption to handle encrypting empty notes at the end 
+of buffers without going into an infinite loop.
+Clearly wrong code, but you have to ask this guy for why he tried:
+Bug report from Geoff Kuenning.
+</p>
+<p>Changed (2014-12-19): version 1.30
+</p>
+<p>Added support for EasyPG.
+Support for mailcrypt remains, but that library has seen no progress since 2002.
+Support for npgp is gone.
+</p>
+<p>Changed (2018-06-06): version 1.31&mdash;not yet released
+</p>
+<p>Added support for ISO dates in the daily notes file&rsquo;s heading (2015-02-25).
+</p>
+<p>Updated to work with emacs-26.1 (2018-06-06).
+</p>
 
-<hr size="6">
+
+<hr>
 <a name="Suggested-features"></a>
-<a name="SEC26"></a>
-<table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#SEC25" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_5.html#SEC27" title="Next section in reading order"> &gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SEC22" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SEC22" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_5.html#SEC27" title="Next chapter"> &gt;&gt; </a>]</td>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#History" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Changes" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#History" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_5.html#Installation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_5.html#Installation" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="notes-mode.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode.html#Introduction" title="Cover (top) of document">Top</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_6.html#SEC28" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_6.html#Keystroke-index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<h2 class="section"> 4.4 Suggested features </h2>
+<a name="Suggested-features-1"></a>
+<h2 class="section">4.4 Suggested features</h2>
 
 <p>Features suggested by users but not yet implemented:
 </p>
@@ -485,24 +520,23 @@ are indexed but not date-based.
 </p>
 <p>21-Feb-08: (from John Heidemann): should switch all notes files to have an extension (maybe &lsquo;<tt>.notes</tt>&rsquo;).
 </p>
-
-<hr size="6">
-<table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#SEC22" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_5.html#SEC27" title="Next chapter"> &gt;&gt; </a>]</td>
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#History" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_5.html#Installation" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="notes-mode.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode.html#Introduction" title="Cover (top) of document">Top</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[<a href="notes-mode_6.html#SEC28" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="notes-mode_6.html#Keystroke-index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="notes-mode_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated by <em>John Heidemann</em> on <em>August, 8 2008</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.78</em></a>.
+  This document was generated on <i>June 6, 2018</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 

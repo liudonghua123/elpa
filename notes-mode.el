@@ -134,7 +134,8 @@ we go to the last note based upon the index file."
   (notes-follow-link 'prev))
 
 (defvar notes-complete-subject-abbrevs-alist
-  '(("FA2014" "USC/Classes/CS551/FA2014"))
+  '(("FA2015" "USC/Classes/CS551/FA2015")
+    ("SP2018" "USC/Classes/CS551/SP2018"))
   "Alist of simple substitution of subjects.
 If subject completion is requested, then subject that matches
 the left-side of an alist value is replaced by the right-side value.")
@@ -447,7 +448,7 @@ Use the mknew cache if possible."
     (cdr (mc-gpg-lookup-key mc-gpg-user-id)))
    (t (error "notes-encryption-decrypt-region: no pgp sub-library."))))
 
-(defvar notes-encryption-key-id nil
+(defvar notes-encryption-user-id nil
   "The PGP ID of the user's key (usually 8 hex digits).")
   
 (defvar notes-encryption-epg-key nil

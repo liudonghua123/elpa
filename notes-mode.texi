@@ -9,7 +9,7 @@
 @c FIXME: Figure out a way to keep these things up-to-date w/o RCS/CVS!
 @set EDITION $Revision: 1.40 $
 @c XXX: the next line should track the release file.
-@set VERSION 1.16
+@set VERSION 1.31
 @set UPDATED $Date: 2010/06/20 18:30:34 $
 
 @iftex
@@ -1487,6 +1487,12 @@ Changed (2014-12-19): version 1.30
 Added support for EasyPG.
 Support for mailcrypt remains, but that library has seen no progress since 2002.
 Support for npgp is gone.
+
+Changed (2018-06-06): version 1.31---not yet released
+
+Added support for ISO dates in the daily notes file's heading (2015-02-25).
+
+Updated to work with emacs-26.1 (2018-06-06).
 
 
 @c ----------------------------------------------------------------------
