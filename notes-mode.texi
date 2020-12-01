@@ -929,12 +929,10 @@ In such systems,
 Notes-mode encryption is based
  Phill Zimmerman's PGP (Pretty Good Privacy)
 (see @file{http://www.mantis.co.uk/pgp/pgp.html})
- and either
- with Rick Campbell's
- emacs interface, PAM (PGP Augmented Messaging)
-(from @file{ftp://h.gp.cs.cmu.edu/usr/rfb/pam/})
- (note that as of January 1997, PAM is no longer at this ftp site
- and appears to not be publicly available),
+ and requires either
+ EasyPG
+ (installed with emacs-24)
+ or
  or LoPresti and Choi's mailcrypt
 (from @file{http://cag-www.lcs.mit.edu/mailcrypt/}).
 @cindex PGP
@@ -958,11 +956,11 @@ Decrypt the current note
 @end table
 @kindex C-c C-d
 
-By default notes-mode determines your public key by looking 
- up your @code{user-full-name} in your PGP keyring.
+By default notes-mode determines your public key by
+ asking you.
 You can override this default by setting
  @code{notes-encryption-key-id}
- to the desired key-id.
+ to the desired key-id (usually 8 hex digits).
 @cindex key-id
 
 
@@ -1483,6 +1481,12 @@ some apparent API changes.
 of buffers without going into an infinite loop.
 Clearly wrong code, but you have to ask this guy for why he tried:
 Bug report from Geoff Kuenning.
+
+Changed (2014-12-19): version 1.30
+
+Added support for EasyPG.
+Support for mailcrypt remains, but that library has seen no progress since 2002.
+Support for npgp is gone.
 
 
 @c ----------------------------------------------------------------------

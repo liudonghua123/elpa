@@ -103,7 +103,8 @@ we go to the last note based upon the index file."
 		(goto-char beginning-of-note)))
 	  (if (re-search-forward (concat "^"
 					 (if (eq which 'next) "next" "prev")
-					 ":[ ]+<") end-of-note t)
+					 ":[ ]+<")
+				 end-of-note t)
 	      (progn ; link exists, just take it
 		(beginning-of-line)
 		(notes-w3-follow-link (point))
@@ -133,8 +134,7 @@ we go to the last note based upon the index file."
   (notes-follow-link 'prev))
 
 (defvar notes-complete-subject-abbrevs-alist
-  '(("SP2010" "USC/Classes/CS551/SP2010")
-    ("FA2011" "USC/Classes/CS551/FA2011"))
+  '(("FA2014" "USC/Classes/CS551/FA2014"))
   "Alist of simple substitution of subjects.
 If subject completion is requested, then subject that matches
 the left-side of an alist value is replaced by the right-side value.")
@@ -243,7 +243,11 @@ Currently this code only handles brand new entries."
 (defun notes-current-url-as-kill ()
   "* Put the notes-URL of the current entry into the kill ring."
   (interactive)
-  (kill-new (notes-current-url)))
+  (let ((url (notes-current-url)))
+    (message (concat "url to kill: " url))
+
+    (x-set-selection nil url)
+    (kill-new url)))
 
 (defun notes-goto-index-entry (&optional direction)
   "* Jump to the index entry corresponding to our current note entry.
@@ -419,7 +423,8 @@ Use the mknew cache if possible."
 ;;
 
 (defvar notes-encryption-library
-  'mailcrypt
+  'epg
+;  'mailcrypt
 ;  (cond
 ;   ((fboundp 'mc-encrypt-region) 'mailcrypt)
 ;   ((fboundp 'npgp:encrypt-region) 'npgp)
@@ -429,26 +434,6 @@ Use the mknew cache if possible."
 (defvar notes-encryption-sub-library
   'gpg
   "Variant of mailcrypt to use (`pgp', `pgp50', or `gpg').")
-
-(defvar notes-encryption-npgp-userid nil
-  "PGP key for the current user.")
-
-(defvar notes-encryption-npgp-key-id nil
-  "Keyid of PGP key for the current user.
-Useful if your \\[user-full-name] doesn't match a unique key.
-Should have a leading 0x.")
-
-(defun notes-encryption-npgp-userid ()
-  "Return notes-encryption-userid, initializing it if necessary."
-  (require 'pam)
-  (if (and notes-encryption-userid
-	   npgp:*pass-phrases*)
-      notes-encryption-userid
-    (setq notes-encryption-userid
-	  (list
-	   (if notes-encryption-key-id
-	       (npgp:get-key-by-key-id notes-encryption-key-id)
-	     (pam:read-name-key (user-full-name)))))))
 
 (defun notes-encryption-mailcrypt-keyid ()
   "Do the right thing."
@@ -461,6 +446,29 @@ Should have a leading 0x.")
    ((eq notes-encryption-sub-library 'gpg)
     (cdr (mc-gpg-lookup-key mc-gpg-user-id)))
    (t (error "notes-encryption-decrypt-region: no pgp sub-library."))))
+
+(defvar notes-encryption-key-id nil
+  "The PGP ID of the user's key (usually 8 hex digits).")
+  
+(defvar notes-encryption-epg-key nil
+  "A cached copy of the users epg key.")
+  
+(defun notes-encryption-epg-key (context)
+  "Pick a key-id, if not set."
+  (require 'epg)
+  (cond
+   (notes-encryption-epg-key notes-encryption-epg-key) ;; cache
+   ((null notes-encryption-user-id)
+    (require 'epa)
+    (setq notes-encryption-epg-key
+	  (epa-select-keys
+	   context
+	   "Select your key (or set epg-user-id).  "
+	   (user-login-name))))
+   ;; have notes-encryption-user-id, look it up
+   (t (setq notes-encryption-epg-key
+	    (epg-list-keys (epg-make-context 'OpenPGP) notes-encryption-user-id)))))
+   
 
 (defun notes-encryption-load-mailcrypt ()
   (require 'mailcrypt)
@@ -478,10 +486,16 @@ Should have a leading 0x.")
 
 (defun notes-encryption-decrypt-region (start end)
   (cond
-   ((eq notes-encryption-library 'npgp)
-    (require 'pam)
-    (require 'npgp)
-    (npgp:decrypt-region start end))
+   ((eq notes-encryption-library 'epg)
+    (let*
+	((context (epg-make-context 'OpenPGP))
+	 (plain
+	  (decode-coding-string
+	   (epg-decrypt-string context (buffer-substring start end))
+	   'utf-8)))
+      (delete-region start end)
+      (goto-char start)
+      (insert plain)))
    ((eq notes-encryption-library 'mailcrypt)
     (notes-encryption-load-mailcrypt)
     (cond
@@ -496,8 +510,17 @@ Should have a leading 0x.")
 
 (defun notes-encryption-encrypt-region (start end)
   (cond
-   ((eq notes-encryption-library 'npgp)
-    (npgp:encrypt-region (notes-encryption-npgp-userid) start end))
+   ((eq notes-encryption-library 'epg)
+    (let*
+	((context (epg-make-context 'OpenPGP t))
+	 (cipher
+	  (epg-encrypt-string
+	   context
+	   (encode-coding-string (buffer-substring start end) 'utf-8)
+	   (notes-encryption-epg-key context))))
+      (delete-region start end)
+      (goto-char start)
+      (insert cipher)))
    ((eq notes-encryption-library 'mailcrypt)
     (notes-encryption-load-mailcrypt)
     (let ((old-sign mc-pgp-always-sign)

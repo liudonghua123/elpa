@@ -152,7 +152,7 @@ html:
 texi: notes-mode.info notes-mode.dvi notes-mode.ps.gz html
 
 # Install_www is only for me.
-WWW_DIR=$$HOME/LIB/WWW/SOFTWARE/NOTES_MODE
+WWW_DIR=$$HOME/WORKING/JOHNH_WWW/SOFTWARE/NOTES_MODE
 install_www: texi
 	cp HTML/*.html $(WWW_DIR)
 	cp notes-mode.ps.gz $(WWW_DIR)
