@@ -1,6 +1,6 @@
 ;;; hook-helpers-use-package.el --- Support for use-package -*- lexical-binding: t; -*-
 
-;; Copyright (c) 2017 Ian Dunn
+;; Copyright (c) 2017 Free Software Foundation, Inc.
 
 ;; Author: Ian Dunn <scholar42@gmail.com>
 ;; Version: 1.0
