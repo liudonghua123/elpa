@@ -5,7 +5,7 @@
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 ;; Keywords: lisp, convenience
 
-;; Maintainer: Tino Calancha
+;; Maintainer: Tino Calancha <tino.calancha@gmail.com>
 ;; Created: Wed May 24 13:19:18 JST 2017
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "24.1"))
