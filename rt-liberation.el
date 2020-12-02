@@ -1309,6 +1309,12 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (with-temp-buffer
     (insert content)
 
+    (save-excursion
+      (goto-char (point-min))
+      (re-search-forward "[[:graph:]]" (point-max) t)
+      (forward-line -1)
+      (flush-lines "^[[:space:]]+$" (point-min) (point)))
+
     ;; Convert the 9 leading whitespaces from RT's comment lines.
     (goto-char (point-min))
     (insert "    ")
