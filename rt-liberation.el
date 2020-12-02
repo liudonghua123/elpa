@@ -1213,6 +1213,36 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   "Expressions to font-lock for RT ticket viewer.")
 
 
+(defun rt-liber-viewer2-vernacular-plural (time)
+  "Add an ess as needed."
+  (if (= time 1)
+      ""
+    "s"))
+
+(defun rt-liber-viewer2-vernacular-date (date)
+  "Return a vernacular time delta."
+  (let* ((now (format-time-string "%Y-%m-%dT%T%z" (current-time)))
+	 (days-ago (days-between now date)))
+    (cond ((= 0 days-ago)
+	   "today")
+	  ((< 0 days-ago 7)
+	   (format "%s day%s ago" days-ago
+		   (rt-liber-viewer2-vernacular-plural days-ago)))
+	  ((< 7 days-ago 30)
+	   (let ((weeks (floor (/ days-ago 7.0))))
+	     (format "%s week%s ago"
+		     weeks
+		     (rt-liber-viewer2-vernacular-plural weeks))))
+	  ((< 30 days-ago 365)
+	   (let ((months (floor (/ days-ago 30.0))))
+	     (format "%s month%s ago"
+		     months
+		     (rt-liber-viewer2-vernacular-plural months))))
+	  (t (let ((years (floor (/ days-ago 365.0))))
+	       (format "%s year%s ago"
+		       years
+		       (rt-liber-viewer2-vernacular-plural years)))))))
+
 (defun rt-liber-viewer2-mode-quit ()
   "Bury the ticket viewer."
   (interactive)
@@ -1343,15 +1373,16 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(field     (alist-get 'Field section)))
     (let ((start (point)))
       (insert
-       (format "Ticket %s by %s on %s (-N- days ago) (%s)%s\n"
+       (format "Ticket %s by %s, %s (%s) %s [%s]\n"
 	       ticket-id
 	       creator
-	       date
+	       (rt-liber-viewer2-vernacular-date date)
 	       type
 	       (if (and (string= type "Set")
 			(string= field "Owner"))
-		   " (owner change)"
-		 "")))
+		   "(owner change)"
+		 "")
+	       date))
       (add-text-properties start
 			   (point)
                            `(font-lock-face rt-liber-ticket-emph-face))
