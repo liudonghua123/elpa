@@ -1,8 +1,8 @@
-;;; quarter-plane.el --- Minor mode for quarter-plane style editing
+;;; quarter-plane.el --- Minor mode for quarter-plane style editing  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011  Free Software Foundation, Inc.
 
-;; Author: Peter J. Weisberg
+;; Author: Peter J. Weisberg <pj@irregularexpressions.net>
 ;; Version: 0.1
 ;; Keywords: convenience wp
 
