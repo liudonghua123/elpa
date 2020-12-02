@@ -1213,6 +1213,11 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   "Expressions to font-lock for RT ticket viewer.")
 
 
+(defun rt-liber-viewer2-mode-quit ()
+  "Bury the ticket viewer."
+  (interactive)
+  (bury-buffer))
+
 (defun rt-liber-viewer-reduce (section-list f acc)
   "A Not Invented Here tail-recursive reduce function."
   (cond ((null (cdr section-list)) acc)
@@ -1421,16 +1426,17 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (let ((next (next-single-property-change
 	       (point)
 	       'rt-liberation-viewer-header)))
-    (when next
-      (goto-char next))))
+    (if next
+	(goto-char next)
+      (message "no next section"))))
 
 (defun rt-liber-viewer2-previous-section-in ()
   (interactive)
-  (forward-line -1)
   (let ((prev (previous-single-property-change
 	       (point-at-bol)
 	       'rt-liberation-viewer-header)))
-    (when prev
+    (if (not prev)
+	(message "no previous section")
       (goto-char prev)
       (forward-line -1))))
 
