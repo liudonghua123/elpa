@@ -1332,28 +1332,43 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(creator   (alist-get 'Creator section))
 	(date      (alist-get 'Created section))
 	(type	   (alist-get 'Type section))
-	(content   (alist-get 'Content section)))
+	(content   (alist-get 'Content section))
+	(oldvalue  (alist-get 'OldValue section))
+	(newvalue  (alist-get 'NewValue section))
+	(field     (alist-get 'Field section)))
     (let ((start (point)))
       (insert
-       (format "Ticket %s by %s on %s (-N- days ago) (%s)\n"
+       (format "Ticket %s by %s on %s (-N- days ago) (%s)%s\n"
 	       ticket-id
 	       creator
 	       date
-	       type))
+	       type
+	       (if (and (string= type "Set")
+			(string= field "Owner"))
+		   " (owner change)"
+		 "")))
       (add-text-properties start
 			   (point)
                            `(font-lock-face rt-liber-ticket-emph-face))
       (add-text-properties start
 			   (point)
                            `(rt-liberation-viewer-header t)))
-    (cond ((or (string= type "Status")
-	       (string= type "CustomField")
-	       ;; (string= type "EmailRecord")
-	       (string= type "Set"))
-	   'nop-for-now)
-	  (t (insert
-	      (format "\n%s\n"
-		      (rt-liber-viewer2-format-content content)))))))
+    (cond ((or (string= type "CustomField")
+	       (string= type "EmailRecord")
+	       (string= type "Set")
+	       (string= type "SetWatcher"))
+	   (insert
+	    (format "\n" field oldvalue newvalue)))
+	  ((string= type "Status")
+	   (insert
+	    (format "\n%s: %s -> %s\n" field oldvalue newvalue)))
+	  ((or (string= type "Create")
+	       (string= type "Comment")
+	       (string= type "CommentEmailRecord"))
+
+	   (insert
+	    (format "\n%s\n"
+		    (rt-liber-viewer2-format-content content)))))))
 
 (defun rt-liber-viewer2-display-history (contents)
   (let ((section-list (rt-liber-viewer-parse-history contents)))
