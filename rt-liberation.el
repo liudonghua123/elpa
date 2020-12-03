@@ -1347,21 +1347,28 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
     (goto-char (point-min))
     (if (re-search-forward "^This transaction appears to have no content" (point-max) t)
 	""
+      ;; remove leading blank lines
       (save-excursion
 	(goto-char (point-min))
 	(re-search-forward "[[:graph:]]" (point-max) t)
 	(forward-line -1)
 	(flush-lines "^[[:space:]]+$" (point-min) (point)))
-
+      ;; remove trailing blank lines
+      (save-excursion
+	(goto-char (point-max))
+	(re-search-backward "[[:graph:]]" (point-min) t)
+	(forward-line 2)
+	(flush-lines "^[[:space:]]+$" (point-max) (point)))
       ;; Convert the 9 leading whitespaces from RT's comment lines.
       (goto-char (point-min))
       (insert "    ")
       (while (re-search-forward "^         " (point-max) t)
 	(replace-match "    "))
-
-      (fill-region (point-min)
-		   (point-max))
-
+      ;; fill
+      (let ((paragraph-separate "    >[[:space:]]+$"))
+	(fill-region (point-min)
+		     (point-max)))
+      ;; finally
       (buffer-substring (point-min)
 			(point-max)))))
 
