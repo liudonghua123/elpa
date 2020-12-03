@@ -1665,9 +1665,9 @@ Argument SEX is the selection expression to use."
 
 ;;;;; Selecting into a new buffer
 
-(defun rec--new-buffer-for-selection (selection exp)
+(defun rec--new-buffer-for-selection (selection expr)
   "Generate a new buffer for SELECTION and switch to it."
-  (when selection
+  (if selection
     (let* ((name (generate-new-buffer-name
                   (format "*Selection of %s*" (buffer-name))))
            (origin (buffer-name))
@@ -1681,7 +1681,8 @@ Argument SEX is the selection expression to use."
         (rec-edit-mode)
         (run-hooks 'hack-local-variables-hook))
       (rec-update-buffer-descriptors)
-      (switch-to-buffer buf))))
+      (switch-to-buffer buf))
+    (user-error "No results.")))
 
 (defun rec-cmd-new-buffer-from-sex (sex)
   "Query the current buffer using SEX and insert the result into a new buffer."
@@ -2806,6 +2807,129 @@ function returns nil."
         (rec-field-value (car (slot-value record 'fields)))))))
 
 
+;;;; Flymake support
+
+;; Tell the byte compiler this function is available.  This is new in Emacs 26,
+;; so as long as we support Emacs 25 this will remain.  Note that the hook
+;; `flymake-diagnostic-functions' is not in Flymake of Emacs 25, so this
+;; function never gets called on Emacs 25.  So Flymake is not going to work on
+;; Emacs <26, but the alternative would be to explicitly Package-Require a new,
+;; backported version of Flymake from ELPA, but we would like to limit these to
+;; a minimum.
+(declare-function flymake-make-diagnostic "flymake")
+
+(defvar-local rec-mode--recfix-process nil
+  "Buffer-local process for recfix'ing the buffer.")
+
+(defun rec-mode-flymake-recfix-diagnostics (source-buffer output-buffer)
+  "Read diagnostics for SOURCE-BUFFER using the results in OUTPUT-BUFFER."
+  (with-current-buffer source-buffer
+    (save-restriction
+      (set-buffer source-buffer)
+      (widen)
+      (with-current-buffer output-buffer
+        (goto-char (point-min))
+        (cl-loop
+         while (search-forward-regexp
+                "^.*?:\s*\\([0-9]+\\): .*?: \\(.*\\)$"
+                nil
+                t)
+         for (beg . end) = (flymake-diag-region
+                            source-buffer
+                            (string-to-number (match-string 1))
+                            nil)
+         for msg = (match-string 2)
+         collect (flymake-make-diagnostic source-buffer beg end :error msg))))))
+
+;;;###autoload
+(defun rec-mode-flymake-recfix (report-fn &rest _args)
+  "A Flymake backend for recfile compilation. 
+
+Defers to `recfix' for checking the buffer, calling REPORT-FN
+to report the errors."
+  (when (executable-find rec-recfix)
+    (when rec-mode--recfix-process
+      (when (process-live-p rec-mode--recfix-process)
+        (kill-process rec-mode--recfix-process)))
+    (let ((temp-file (make-temp-file "flymake-recfix"))
+          (source-buffer (current-buffer)))
+      (save-restriction
+        (widen)
+        (write-region (point-min) (point-max) temp-file nil 'nomessage))
+      (let* ((output-buffer (generate-new-buffer "*flymake-recfix*")))
+        (setq
+         rec-mode--recfix-process
+         (make-process
+          :name "rec-mode-flymake-recfix"
+          :stderr output-buffer
+          :buffer "*stdout of flymake-recfix*"
+          :command (list rec-recfix temp-file)
+          :connection-type 'pipe
+          :sentinel
+          (lambda (proc _event)
+            (when (eq (process-status proc) 'exit)
+              (unwind-protect
+                  (let ((diagnostics (rec-mode-flymake-recfix-diagnostics source-buffer output-buffer)))
+                    (if (or diagnostics (zerop (process-exit-status proc)))
+                        (funcall report-fn diagnostics)
+                      (funcall report-fn
+                               :panic
+                               :explanation
+                               (format "recfix process %s died" proc))))
+                (ignore-errors (delete-file temp-file))
+                (kill-buffer output-buffer))))
+          :noquery t))))))
+
+;;;###autoload
+(defun rec-mode-eldoc-function (&rest _ignore)
+  "ElDoc documentation function for `rec-mode'."
+  (when (rec-current-field)
+    (let* ((name (rec-field-name (rec-current-field)))
+           (field-type (rec-current-field-type))
+           (type (rec-type-kind field-type))
+           (data (rec-type-data field-type)))
+      (when (and (not (null name))
+                 (not (null type)))
+        (rec-mode--syntax-highlight
+         (format "%s: %s %s"
+                 name
+                 (symbol-name type)
+                 (if (listp data)
+                     (mapconcat (lambda (datum)
+                                  (if (stringp datum)
+                                      datum
+                                    (prin1-to-string datum))) data " ")
+                   data)))))))
+
+;;;; Imenu support
+
+(defun rec-mode-imenu-index-name-function ()
+  "Get an imenu index entry for the record at point."
+  (let ((type (rec-record-type))
+        (current (rec-current-record))
+        (record (propertize "Record" 'face 'font-lock-variable-name-face))
+        (desc (propertize "Descriptor" 'face 'font-lock-function-name-face)))
+    (if type
+        (cond ((rec-record-descriptor-p current)
+               (format "%s: %s" desc type))
+              ((not (null (rec-key)))
+               (let ((key-value (car-safe (rec-record-assoc
+                                           (rec-key)
+                                           current))))
+                 (format "%s: %s %s" record type (or key-value ""))))
+              (t
+               (format "%s: %s" record type)))
+      record)))
+
+(defun rec-mode-imenu-goto-function (name position &rest rest)
+  "Move to the chosen record.
+
+Calls function `imenu-default-goto-function' (which see), with
+NAME, POSITION and REST, but unlike that function, re-narrows
+onto the chosen record."
+  (apply 'imenu-default-goto-function name position rest)
+  (rec-show-record))
+
 ;;;; Definition of modes
 
 (defvar font-lock-defaults)
@@ -2889,7 +3013,14 @@ function returns nil."
 
   ;; Run some code later (i.e. after running the mode hook and setting the
   ;; file-local variables).
-  (add-hook 'hack-local-variables-hook #'rec--after-major-mode nil t))
+  (add-hook 'hack-local-variables-hook #'rec--after-major-mode nil t)
+  (setq-local eldoc-documentation-function #'rec-mode-eldoc-function)
+  (setq-local imenu-prev-index-position-function #'rec-goto-previous-rec)
+  (setq-local imenu-extract-index-name-function #'rec-mode-imenu-index-name-function)
+  (setq-local imenu-default-goto-function #'rec-mode-imenu-goto-function)
+
+
+  (add-hook 'flymake-diagnostic-functions #'rec-mode-flymake-recfix nil t))
 
 (defun rec--after-major-mode ()
   "Goto the first record of the first type (including the Unknown).
