@@ -1344,23 +1344,26 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (with-temp-buffer
     (insert content)
 
-    (save-excursion
-      (goto-char (point-min))
-      (re-search-forward "[[:graph:]]" (point-max) t)
-      (forward-line -1)
-      (flush-lines "^[[:space:]]+$" (point-min) (point)))
-
-    ;; Convert the 9 leading whitespaces from RT's comment lines.
     (goto-char (point-min))
-    (insert "    ")
-    (while (re-search-forward "^         " (point-max) t)
-      (replace-match "    "))
+    (if (re-search-forward "^This transaction appears to have no content" (point-max) t)
+	""
+      (save-excursion
+	(goto-char (point-min))
+	(re-search-forward "[[:graph:]]" (point-max) t)
+	(forward-line -1)
+	(flush-lines "^[[:space:]]+$" (point-min) (point)))
 
-    (fill-region (point-min)
-		 (point-max))
+      ;; Convert the 9 leading whitespaces from RT's comment lines.
+      (goto-char (point-min))
+      (insert "    ")
+      (while (re-search-forward "^         " (point-max) t)
+	(replace-match "    "))
 
-    (buffer-substring (point-min)
-		      (point-max))))
+      (fill-region (point-min)
+		   (point-max))
+
+      (buffer-substring (point-min)
+			(point-max)))))
 
 (defun rt-liber-viewer2-display-section (section)
   (let ((ticket-id (alist-get 'Ticket section))
@@ -1372,39 +1375,41 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(newvalue  (alist-get 'NewValue section))
 	(field     (alist-get 'Field section)))
     (let ((start (point)))
-      (insert
-       (format "Ticket %s by %s, %s (%s) %s [%s]\n"
-	       ticket-id
-	       creator
-	       (rt-liber-viewer2-vernacular-date date)
-	       type
-	       (if (and (string= type "Set")
-			(string= field "Owner"))
-		   "(owner change)"
-		 "")
-	       date))
-      (add-text-properties start
-			   (point)
-                           `(font-lock-face rt-liber-ticket-emph-face))
-      (add-text-properties start
-			   (point)
-                           `(rt-liberation-viewer-header t)))
-    (cond ((or (string= type "CustomField")
-	       (string= type "EmailRecord")
-	       (string= type "Set")
-	       (string= type "SetWatcher"))
-	   (insert
-	    (format "\n" field oldvalue newvalue)))
-	  ((string= type "Status")
-	   (insert
-	    (format "\n%s: %s -> %s\n" field oldvalue newvalue)))
-	  ((or (string= type "Create")
-	       (string= type "Comment")
-	       (string= type "CommentEmailRecord"))
-
-	   (insert
-	    (format "\n%s\n"
-		    (rt-liber-viewer2-format-content content)))))))
+      (when (not (or (string= type "CommentEmailRecord")
+		     (string= type "EmailRecord")))
+	(insert
+	 (format "Ticket %s by %s, %s (%s) [%s]\n"
+		 ticket-id
+		 creator
+		 (rt-liber-viewer2-vernacular-date date)
+		 date
+		 (format "%s%s%s"
+			 type
+			 (if (< 0 (length oldvalue))
+			     (concat " " oldvalue)
+			   "")
+			 (if (< 0 (length newvalue))
+			     (concat "->" newvalue)
+			   ""))))
+	(add-text-properties start
+			     (point)
+                             `(font-lock-face rt-liber-ticket-emph-face))
+	(add-text-properties start
+			     (point)
+                             `(rt-liberation-viewer-header t))
+	(cond ((string= type "Status")
+	       (insert
+		(format "\n    Status change from %s to %s\n\n" oldvalue newvalue)))
+	      ((and (string= type "Set")
+		    (string= field "Owner")
+		    (string= oldvalue "10"))
+	       (insert
+		(format "\n    Ticket assigned\n\n" oldvalue newvalue)))
+	      ;; catch-all
+	      (t
+	       (insert
+		(format "\n%s\n"
+			(rt-liber-viewer2-format-content content)))))))))
 
 (defun rt-liber-viewer2-display-history (contents)
   (let ((section-list (rt-liber-viewer-parse-history contents)))
