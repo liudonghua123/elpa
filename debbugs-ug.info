@@ -590,7 +590,9 @@ meaning of the control messages, *Note Mail Command Index::.
 'reassign'
      "reassign 12345 PACKAGE"
 
-     The package name on the GNU Debbugs server is read interactively.
+     The comma-separated package names on the GNU Debbugs server are
+     read interactively.  Reassigning to the pseudo package '"spam"'
+     let the bug disappear from the bug database.
 
 'reopen'
      "reopen 12345"
@@ -802,7 +804,7 @@ Variable Index
 * debbugs-gnu-mail-backend:              Tabulated Lists.   (line 104)
 * debbugs-gnu-persistency-file:          Tabulated Lists.   (line  98)
 * debbugs-gnu-read-commit-range-hook:    Posting Patches.   (line  11)
-* debbugs-gnu-send-mail-function:        Control Messages.  (line 133)
+* debbugs-gnu-send-mail-function:        Control Messages.  (line 135)
 * debbugs-gnu-suppress-closed:           Tabulated Lists.   (line 101)
 * debbugs-gnu-trunk-directory:           Applying Patches.  (line  18)
 * debbugs-org-severity-priority:         TODO Items.        (line  10)
@@ -1198,46 +1200,46 @@ Node: Presenting Bugs12909
 Node: Tabulated Lists13575
 Node: TODO Items18336
 Node: Control Messages19744
-Node: Applying Patches23259
-Node: Posting Patches24641
-Node: Customizing debbugs-gnu-pick-commits27126
-Node: Minor Mode27826
-Node: Command Index29100
-Node: Variable Index30370
-Node: Key Index31957
-Node: Mail Command Index33878
-Ref: Mail Command Index: reassign34031
-Ref: Mail Command Index: reopen34797
-Ref: Mail Command Index: found35951
-Ref: Mail Command Index: notfound37032
-Ref: Mail Command Index: fixed37441
-Ref: Mail Command Index: notfixed37887
-Ref: Mail Command Index: submitter38510
-Ref: Mail Command Index: forwarded38904
-Ref: Mail Command Index: notforwarded39522
-Ref: Mail Command Index: retitle39723
-Ref: Mail Command Index: severity40107
-Ref: Mail Command Index: clone40438
-Ref: Mail Command Index: merge41202
-Ref: Mail Command Index: forcemerge42589
-Ref: Mail Command Index: unmerge43033
-Ref: Mail Command Index: tags43736
-Ref: Mail Command Index: block44802
-Ref: Mail Command Index: unblock44839
-Ref: Mail Command Index: close45324
-Ref: Mail Command Index: package45974
-Ref: Mail Command Index: owner46586
-Ref: Mail Command Index: noowner46949
-Ref: Mail Command Index: archive47122
-Ref: Mail Command Index: unarchive47263
-Ref: Mail Command Index: #47556
-Ref: Mail Command Index: quit47816
-Ref: Mail Command Index: stop47823
-Ref: Mail Command Index: thank47830
-Ref: Mail Command Index: thanks47838
-Ref: Mail Command Index: thankyou47847
-Ref: Mail Command Index: thank you47858
-Ref: Mail Command Index: --47870
+Node: Applying Patches23376
+Node: Posting Patches24758
+Node: Customizing debbugs-gnu-pick-commits27243
+Node: Minor Mode27943
+Node: Command Index29217
+Node: Variable Index30487
+Node: Key Index32074
+Node: Mail Command Index33995
+Ref: Mail Command Index: reassign34148
+Ref: Mail Command Index: reopen34914
+Ref: Mail Command Index: found36068
+Ref: Mail Command Index: notfound37149
+Ref: Mail Command Index: fixed37558
+Ref: Mail Command Index: notfixed38004
+Ref: Mail Command Index: submitter38627
+Ref: Mail Command Index: forwarded39021
+Ref: Mail Command Index: notforwarded39639
+Ref: Mail Command Index: retitle39840
+Ref: Mail Command Index: severity40224
+Ref: Mail Command Index: clone40555
+Ref: Mail Command Index: merge41319
+Ref: Mail Command Index: forcemerge42706
+Ref: Mail Command Index: unmerge43150
+Ref: Mail Command Index: tags43853
+Ref: Mail Command Index: block44919
+Ref: Mail Command Index: unblock44956
+Ref: Mail Command Index: close45441
+Ref: Mail Command Index: package46091
+Ref: Mail Command Index: owner46703
+Ref: Mail Command Index: noowner47066
+Ref: Mail Command Index: archive47239
+Ref: Mail Command Index: unarchive47380
+Ref: Mail Command Index: #47673
+Ref: Mail Command Index: quit47933
+Ref: Mail Command Index: stop47940
+Ref: Mail Command Index: thank47947
+Ref: Mail Command Index: thanks47955
+Ref: Mail Command Index: thankyou47964
+Ref: Mail Command Index: thank you47975
+Ref: Mail Command Index: --47987
 
 End Tag Table
 

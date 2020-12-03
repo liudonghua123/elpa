@@ -300,21 +300,29 @@ If nil, the value of `send-mail-function' is used instead."
 	      (const "parted")
 	      (const "sed")
 	      (const ,(propertize
+		      "spam"
+		      'face 'debbugs-gnu-done
+		      'help-echo "This is a pseudo package for spam."))
+	      (const ,(propertize
 		      "test"
 		      'face 'debbugs-gnu-done
-		      'help-echo "This is a pseudo-package for test."))
+		      'help-echo "This is a pseudo package for test."))
 	      (const "vc-dwim")
 	      (const "woodchuck"))
-  :version "27.1")
+  :version "27.2")
 
 (defconst debbugs-gnu-all-packages
   (mapcar #'cadr (cdr (get 'debbugs-gnu-default-packages 'custom-type)))
   "List of all possible package names.")
 
+(defconst debbugs-gnu-applicable-packages
+  (remove "spam" debbugs-gnu-all-packages)
+  "List of all applicable package names.")
+
 (defcustom debbugs-gnu-default-suppress-bugs
   '((pending . "done"))
   "A list of specs for bugs to be suppressed.
-An element of this list is a cons cell \(KEY . REGEXP\), with key
+An element of this list is a cons cell (KEY . REGEXP), with key
 being returned by `debbugs-get-status', and REGEXP a regular
 expression matching the corresponding value, a string.  Showing
 suppressed bugs is toggled by `debbugs-gnu-toggle-suppress'."
@@ -400,7 +408,7 @@ It has the same format as `debbugs-gnu-default-suppress-bugs'.")
 It will be applied client-side, when parsing the results of
 `debbugs-get-status'.  It has a similar format as
 `debbugs-gnu-default-suppress-bugs'.  In case of keys representing
-a date, value is the cons cell \(BEFORE . AFTER\).")
+a date, value is the cons cell (BEFORE . AFTER).")
 
 (defvar debbugs-gnu-current-suppress nil
   "Whether bugs shall be suppressed.
@@ -514,7 +522,7 @@ depend on PHRASE being a string, or nil.  See Info node
 	   (setq
 	    packages
 	    (completing-read-multiple
-	     "Enter packages: " debbugs-gnu-all-packages nil t
+	     "Enter packages: " debbugs-gnu-applicable-packages nil t
 	     (string-join debbugs-gnu-default-packages ","))))
 
 	  ((equal key "archive")
@@ -655,7 +663,7 @@ Shall be bound in `debbugs-org-*' functions.")
       ;; The next parameters are asked only when there is a prefix.
       (if current-prefix-arg
 	  (completing-read-multiple
-	   "Packages: " debbugs-gnu-all-packages nil t
+	   "Packages: " debbugs-gnu-applicable-packages nil t
 	   (string-join debbugs-gnu-default-packages ","))
 	debbugs-gnu-default-packages)
       (when current-prefix-arg
@@ -743,7 +751,7 @@ Shall be bound in `debbugs-org-*' functions.")
     (cond
      ;; If the query is just a list of bug numbers, we return them.
      (bugs (cdr bugs))
-     ;; If the query contains the pseudo-severity "tagged", we return
+     ;; If the query contains the pseudo severity "tagged", we return
      ;; just the local tagged bugs.
      (local-tags (copy-sequence debbugs-gnu-local-tags))
      ;; A full text query.
@@ -1919,7 +1927,11 @@ removed instead."
         ((equal message "forwarded")
          (format "forwarded %d %s\n" bugid (read-string "Forward to: ")))
         ((equal message "reassign")
-         (format "reassign %d %s\n" bugid (read-string "Package(s): ")))
+         (format
+	  "reassign %d %s\n" bugid
+	  (completing-read-multiple
+	   "Package(s): " debbugs-gnu-all-packages nil nil
+	   (string-join (alist-get 'package status) ","))))
         ((equal message "close")
          (format "close %d %s\n" bugid version))
         ((equal message "done")
@@ -1941,8 +1953,7 @@ removed instead."
          (format "user %s\nusertag %d %s\n"
                  (completing-read
                   "Package name or email address: "
-                  (append
-                   debbugs-gnu-all-packages (list user-mail-address))
+                  (append debbugs-gnu-applicable-packages (list user-mail-address))
                   nil nil (car debbugs-gnu-default-packages))
                  bugid (read-string "User tag: ")))
 	;; "patch", "wontfix", "moreinfo", "unreproducible", "notabug",
@@ -2257,7 +2268,7 @@ successfully sent."
    (if current-prefix-arg
        (completing-read-multiple
 	"Package name(s) or email address: "
-	(append debbugs-gnu-all-packages (list user-mail-address)) nil nil
+	(append debbugs-gnu-applicable-packages (list user-mail-address)) nil nil
 	(string-join debbugs-gnu-default-packages ","))
      debbugs-gnu-default-packages))
 

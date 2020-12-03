@@ -683,7 +683,9 @@ of comma-separated bug numbers.
 @item reassign
 "reassign 12345 @var{package}"
 
-The package name on the GNU Debbugs server is read interactively.
+The comma-separated package names on the GNU Debbugs server are read
+interactively.  Reassigning to the pseudo package @code{"spam"} let
+the bug disappear from the bug database.
 
 @item reopen
 "reopen 12345"
