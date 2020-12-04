@@ -240,6 +240,12 @@ This variable is made buffer local for the ticket history")
   :type 'string
   :group 'rt-liber-gnus)
 
+(defvar rt-liber-display-ticket-at-point-f 'rt-liber-viewer2-display-ticket-at-point
+  "Function for displaying ticket at point in the browser.")
+
+(defvar rt-liber-viewer2-recenter 4
+  "Argument passed to `recenter' in the viewer.")
+
 
 ;;; --------------------------------------------------------
 ;;; Debug log
@@ -655,6 +661,11 @@ If POINT is nil then called on (point)."
   (let ((ticket-alist (get-text-property (point) 'rt-ticket)))
     (rt-liber-display-ticket-history ticket-alist (current-buffer))))
 
+(defun rt-liber-ticket-at-point ()
+  "Display the contents of the ticket at point."
+  (interactive)
+  (funcall rt-liber-display-ticket-at-point-f))
+
 (defun rt-liber-browser-search (id)
   "Return point where ticket with ID is displayed or nil."
   (let ((p nil))
@@ -796,7 +807,7 @@ returned as no associated text properties."
     (define-key map (kbd "q") 'rt-liber-browser-mode-quit)
     (define-key map (kbd "n") 'rt-liber-next-ticket-in-browser)
     (define-key map (kbd "p") 'rt-liber-previous-ticket-in-browser)
-    (define-key map (kbd "RET") 'rt-liber-display-ticket-at-point)
+    (define-key map (kbd "RET") 'rt-liber-ticket-at-point)
     (define-key map (kbd "g") 'revert-buffer)
     (define-key map (kbd "G") 'rt-liber-browser-refresh-and-return)
     (define-key map (kbd "a") 'rt-liber-browser-assign)
@@ -1211,6 +1222,10 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 ;;; ------------------------------------------------------------------
 ;;; viewer2
 ;;; ------------------------------------------------------------------
+
+;; Comment: The goal is to eventually break this code away to its own
+;; file.
+
 (defface rt-liber-ticket-emph-face
   '((((class color) (background dark))
      (:foreground "gray53"))
@@ -1510,9 +1525,10 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (let ((next (next-single-property-change
 	       (point)
 	       'rt-liberation-viewer-header)))
-    (if next
-	(goto-char next)
-      (message "no next section"))))
+    (if (not next)
+	(message "no next section")
+      (goto-char next)
+      (recenter rt-liber-viewer2-recenter))))
 
 (defun rt-liber-viewer2-previous-section-in ()
   (interactive)
@@ -1522,7 +1538,8 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
     (if (not prev)
 	(message "no previous section")
       (goto-char prev)
-      (forward-line -1))))
+      (forward-line -1)
+      (recenter rt-liber-viewer2-recenter))))
 
 (defun rt-liber-viewer2-answer ()
   (interactive)
