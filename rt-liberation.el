@@ -1350,19 +1350,19 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
     section))
 
 (defun rt-liber-viewer2-format-content (content)
+  "Wrangle RT's content format."
   (with-temp-buffer
     (insert content)
-
     (goto-char (point-min))
     (if (re-search-forward "^This transaction appears to have no content" (point-max) t)
-	""
-      ;; remove leading blank lines
+	"" ; make no content mean... no content
+      ;; trim leading blank lines
       (save-excursion
 	(goto-char (point-min))
 	(re-search-forward "[[:graph:]]" (point-max) t)
 	(forward-line -1)
 	(flush-lines "^[[:space:]]+$" (point-min) (point)))
-      ;; remove trailing blank lines
+      ;; trim trailing blank lines
       (save-excursion
 	(goto-char (point-max))
 	(re-search-backward "[[:graph:]]" (point-min) t)
@@ -1381,8 +1381,25 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (buffer-substring (point-min)
 			(point-max)))))
 
+(defun rt-liber-viewer2-clean-content (section)
+  "Format section content for email."
+  (with-temp-buffer
+    (insert (rt-liber-viewer2-format-content
+	     (alist-get 'Content section)))
+    (goto-char (point-min))
+    (while (re-search-forward "^    " (point-max) t)
+      (replace-match ""))
+    ;; fill
+    (let ((paragraph-separate ">[[:space:]]+$"))
+      (fill-region (point-min)
+		   (point-max)))
+    ;; finally
+    (buffer-substring (point-min)
+		      (point-max))))
+
 (defun rt-liber-viewer2-display-section (section)
-  (let ((ticket-id (alist-get 'Ticket section))
+  (let ((start     (point))
+	(ticket-id (alist-get 'Ticket section))
 	(creator   (alist-get 'Creator section))
 	(date      (alist-get 'Created section))
 	(type	   (alist-get 'Type section))
@@ -1390,7 +1407,8 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(oldvalue  (alist-get 'OldValue section))
 	(newvalue  (alist-get 'NewValue section))
 	(field     (alist-get 'Field section))
-	(start     (point)))
+	(s-content (rt-liber-viewer2-format-content
+		    (alist-get 'Content section))))
     (when (not (or (string= type "CommentEmailRecord")
 		   (string= type "EmailRecord")))
       (insert
@@ -1427,8 +1445,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	    ;; catch-all
 	    (t
 	     (insert
-	      (format "\n%s\n"
-		      (rt-liber-viewer2-format-content content))))))))
+	      (format "\n%s\n" s-content)))))))
 
 (defun rt-liber-viewer2-display-history (contents)
   (let ((section-list (rt-liber-viewer-parse-history contents)))
@@ -1494,6 +1511,18 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(message "no previous section")
       (goto-char prev)
       (forward-line -1))))
+
+(defun rt-liber-viewer2-answer ()
+  (interactive)
+  (let ((section (rt-liber-viewer2-get-section-data)))
+    (when (not section)
+      (error "no section found"))
+    (if (not (featurep 'rt-liberation-gnus))
+	(error "rt-liberation-gnus feature not found")
+      (rt-liber-gnus-compose
+       rt-liber-gnus-address
+       rt-liber-ticket-local
+       `((contents . ,(rt-liber-viewer2-clean-content section)))))))
 
 (defconst rt-liber-viewer2-mode-map
   (let ((map (make-sparse-keymap)))
