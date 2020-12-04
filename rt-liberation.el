@@ -1524,6 +1524,18 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
        rt-liber-ticket-local
        `((contents . ,(rt-liber-viewer2-clean-content section)))))))
 
+(defun rt-liber-viewer2-comment ()
+  (interactive)
+  (let ((section (rt-liber-viewer2-get-section-data)))
+    (when (not section)
+      (error "no section found"))
+    (if (not (featurep 'rt-liberation-gnus))
+	(error "rt-liberation-gnus feature not found")
+      (rt-liber-gnus-compose
+       rt-liber-gnus-comment-address
+       rt-liber-ticket-local
+       `((contents . ,(rt-liber-viewer2-clean-content section)))))))
+
 (defconst rt-liber-viewer2-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "q") 'rt-liber-viewer2-mode-quit)
