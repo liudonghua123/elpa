@@ -230,6 +230,16 @@ This variable is made buffer local for the ticket history")
   "Browser associated with a ticket history.
 This variable is made buffer local for the ticket history")
 
+(defcustom rt-liber-gnus-comment-address "no comment address set"
+  "*Email address for adding a comment."
+  :type 'string
+  :group 'rt-liber-gnus)
+
+(defcustom rt-liber-gnus-address "no reply address set"
+  "*Email address for replying to requestor."
+  :type 'string
+  :group 'rt-liber-gnus)
+
 
 ;;; --------------------------------------------------------
 ;;; Debug log
@@ -1124,6 +1134,9 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 
 ;; wrapper functions around specific functions provided by a backend
 (declare-function
+ rt-liber-gnus-compose
+ "rt-liberation-gnus.el")
+(declare-function
  rt-liber-gnus-compose-reply-to-requestor
  "rt-liberation-gnus.el")
 (declare-function
@@ -1403,7 +1416,6 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(creator   (alist-get 'Creator section))
 	(date      (alist-get 'Created section))
 	(type	   (alist-get 'Type section))
-	(content   (alist-get 'Content section))
 	(oldvalue  (alist-get 'OldValue section))
 	(newvalue  (alist-get 'NewValue section))
 	(field     (alist-get 'Field section))
@@ -1441,7 +1453,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 		  (string= field "Owner")
 		  (string= oldvalue "10"))
 	     (insert
-	      (format "\n    Ticket assigned\n\n" oldvalue newvalue)))
+	      (format "\n    Ticket assigned\n\n")))
 	    ;; catch-all
 	    (t
 	     (insert

@@ -32,16 +32,6 @@
   :prefix "rt-liber-gnus-"
   :group 'rt-liber-gnus)
 
-(defcustom rt-liber-gnus-comment-address "no comment address set"
-  "*Email address for adding a comment."
-  :type 'string
-  :group 'rt-liber-gnus)
-
-(defcustom rt-liber-gnus-address "no reply address set"
-  "*Email address for replying to requestor."
-  :type 'string
-  :group 'rt-liber-gnus)
-
 (defcustom rt-liber-gnus-subject-name "no subject name set"
   "*Subject name to be included in email header."
   :type 'string
