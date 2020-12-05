@@ -1,8 +1,8 @@
-;;; all.el --- Edit all lines matching a given regexp
+;;; all.el --- Edit all lines matching a given regexp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1987,1992,1994,2011-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2020  Free Software Foundation, Inc.
 
-;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
+;; Author: Per Abrahamsen <per.abrahamsen@gmail.com>
 ;; Version: 1.0
 ;; Keywords: matching
 
@@ -15,7 +15,7 @@
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -43,11 +43,11 @@
 ;; - Changes to the original buffer are not reflected in the *All* buffer.
 ;; - A single change in the *All* buffer must be limited to a single match.
 
-;;; Code: 
+;;; Code:
 
 (defvar all-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'all-mode-goto)
+    (define-key map "\C-c\C-c" #'all-mode-goto)
     map))
 
 (defvar all-buffer nil)
@@ -60,8 +60,8 @@ All changes made in this buffer will be propagated to the buffer where
 you ran \\[all].
 
 Press \\[all-mode-goto] to go to the same spot in the original buffer."
-  (add-hook 'before-change-functions 'all-before-change-function nil 'local)
-  (add-hook 'after-change-functions 'all-after-change-function nil 'local))
+  (add-hook 'before-change-functions #'all-before-change-function nil 'local)
+  (add-hook 'after-change-functions #'all-after-change-function nil 'local))
 
 (defun all-mode-find (pos)
   ;; Find position in original buffer corresponding to POS.
@@ -125,12 +125,12 @@ The lines are shown in a buffer named `*All*'.
 Any changes made in that buffer will be propagated to this buffer."
   (interactive
    (list (let* ((default (car regexp-history)))
-           (read-string
+           (read-regexp
             (if default
-                (format 
+                (format
                  "Edit lines matching regexp (default `%s'): " default)
               "Edit lines matching regexp: ")
-            nil 'regexp-history default))
+            default))
          current-prefix-arg))
   (setq nlines (if nlines (prefix-numeric-value nlines)
 		 list-matching-lines-default-context-lines))
