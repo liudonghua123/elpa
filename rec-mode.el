@@ -2848,37 +2848,36 @@ function returns nil."
 Defers to `recfix' for checking the buffer, calling REPORT-FN
 to report the errors."
   (when (executable-find rec-recfix)
-    (when rec-mode--recfix-process
-      (when (process-live-p rec-mode--recfix-process)
-        (kill-process rec-mode--recfix-process)))
-    (let ((temp-file (make-temp-file "flymake-recfix"))
-          (source-buffer (current-buffer)))
+    (when (process-live-p rec-mode--recfix-process)
+      (kill-process rec-mode--recfix-process))
+    (let ((source-buffer (current-buffer))
+          (output-buffer (generate-new-buffer " *flymake-recfix*")))
+      (setq
+       rec-mode--recfix-process
+       (make-process
+        :name "rec-mode-flymake-recfix"
+        :stderr output-buffer
+        :buffer "*stdout of flymake-recfix*"
+        :command (list rec-recfix)
+        :connection-type 'pipe
+        :sentinel
+        (lambda (proc _event)
+          (when (eq (process-status proc) 'exit)
+            (unwind-protect
+                (let ((diagnostics (rec-mode-flymake-recfix-diagnostics source-buffer output-buffer)))
+                  (if (or diagnostics (zerop (process-exit-status proc)))
+                      (funcall report-fn diagnostics)
+                    (funcall report-fn
+                             :panic
+                             :explanation
+                             (format "recfix process %s died" proc))))
+              (kill-buffer output-buffer))))
+        :noquery t))
       (save-restriction
         (widen)
-        (write-region (point-min) (point-max) temp-file nil 'nomessage))
-      (let* ((output-buffer (generate-new-buffer "*flymake-recfix*")))
-        (setq
-         rec-mode--recfix-process
-         (make-process
-          :name "rec-mode-flymake-recfix"
-          :stderr output-buffer
-          :buffer "*stdout of flymake-recfix*"
-          :command (list rec-recfix temp-file)
-          :connection-type 'pipe
-          :sentinel
-          (lambda (proc _event)
-            (when (eq (process-status proc) 'exit)
-              (unwind-protect
-                  (let ((diagnostics (rec-mode-flymake-recfix-diagnostics source-buffer output-buffer)))
-                    (if (or diagnostics (zerop (process-exit-status proc)))
-                        (funcall report-fn diagnostics)
-                      (funcall report-fn
-                               :panic
-                               :explanation
-                               (format "recfix process %s died" proc))))
-                (ignore-errors (delete-file temp-file))
-                (kill-buffer output-buffer))))
-          :noquery t))))))
+        (process-send-string rec-mode--recfix-process
+                             (buffer-substring-no-properties (point-min) (point-max)))
+        (process-send-eof rec-mode--recfix-process)))))
 
 ;;;###autoload
 (defun rec-mode-eldoc-function (&rest _ignore)
@@ -2906,20 +2905,17 @@ to report the errors."
 (defun rec-mode-imenu-index-name-function ()
   "Get an imenu index entry for the record at point."
   (let ((type (rec-record-type))
-        (current (rec-current-record))
-        (record (propertize "Record" 'face 'font-lock-variable-name-face))
-        (desc (propertize "Descriptor" 'face 'font-lock-function-name-face)))
+        (current (rec-current-record)))
     (if type
         (cond ((rec-record-descriptor-p current)
-               (format "%s: %s" desc type))
+               (propertize (format "%%%s" type) 'face 'font-lock-keyword-face))
               ((not (null (rec-key)))
                (let ((key-value (car-safe (rec-record-assoc
                                            (rec-key)
                                            current))))
-                 (format "%s: %s %s" record type (or key-value ""))))
-              (t
-               (format "%s: %s" record type)))
-      record)))
+                 (format "%s %s" type (or key-value ""))))
+              (t type))
+      "Record")))
 
 (defun rec-mode-imenu-goto-function (name position &rest rest)
   "Move to the chosen record.
@@ -2928,7 +2924,9 @@ Calls function `imenu-default-goto-function' (which see), with
 NAME, POSITION and REST, but unlike that function, re-narrows
 onto the chosen record."
   (apply 'imenu-default-goto-function name position rest)
-  (rec-show-record))
+  (unless (derived-mode-p 'rec-edit-mode)
+    (rec-show-record))
+  (rec-summary-move-to-record (rec-current-record)))
 
 ;;;; Definition of modes
 
