@@ -243,6 +243,9 @@ This variable is made buffer local for the ticket history")
 (defvar rt-liber-display-ticket-at-point-f 'rt-liber-viewer2-display-ticket-at-point
   "Function for displaying ticket at point in the browser.")
 
+(defvar rt-liber-viewer2-section-regexp "^Ticket [0-9]+ by "
+  "Regular expression to match a section in the viewer.")
+
 (defvar rt-liber-viewer2-recenter 4
   "Argument passed to `recenter' in the viewer.")
 
@@ -1521,25 +1524,29 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 
 (defun rt-liber-viewer2-next-section-in ()
   (interactive)
-  (forward-line)
-  (let ((next (next-single-property-change
-	       (point)
-	       'rt-liberation-viewer-header)))
-    (if (not next)
-	(message "no next section")
-      (goto-char next)
-      (recenter rt-liber-viewer2-recenter))))
+  (when (looking-at rt-liber-viewer2-section-regexp)
+    (goto-char (1+ (point))))
+  (let ((next (re-search-forward rt-liber-viewer2-section-regexp
+				 (point-max)
+				 t)))
+    (cond ((not next)
+	   (message "no next section"))
+	  (t
+	   (recenter rt-liber-viewer2-recenter)))
+    (goto-char (point-at-bol))))
 
 (defun rt-liber-viewer2-previous-section-in ()
   (interactive)
-  (let ((prev (previous-single-property-change
-	       (point-at-bol)
-	       'rt-liberation-viewer-header)))
-    (if (not prev)
-	(message "no previous section")
-      (goto-char prev)
-      (forward-line -1)
-      (recenter rt-liber-viewer2-recenter))))
+  (when (looking-at rt-liber-viewer2-section-regexp)
+    (goto-char (1- (point))))
+  (let ((prev (re-search-backward rt-liber-viewer2-section-regexp
+				  (point-min)
+				  t)))
+    (cond ((not prev)
+	   (message "no previous section"))
+	  (t
+	   (recenter rt-liber-viewer2-recenter)))
+    (goto-char (point-at-bol))))
 
 (defun rt-liber-viewer2-answer ()
   (interactive)
