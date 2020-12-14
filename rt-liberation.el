@@ -1535,6 +1535,17 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	   (recenter rt-liber-viewer2-recenter)))
     (goto-char (point-at-bol))))
 
+(defun rt-liber-viewer2-last-section-in ()
+  (interactive)
+  (goto-char (point-max))
+  (let ((last (re-search-backward rt-liber-viewer2-section-regexp
+				  (point-min)
+				  t)))
+    (if (not last)
+	(error "no sections found")
+      (recenter rt-liber-viewer2-recenter)
+      (goto-char (point-at-bol)))))
+
 (defun rt-liber-viewer2-previous-section-in ()
   (interactive)
   (when (looking-at rt-liber-viewer2-section-regexp)
@@ -1575,6 +1586,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 (defconst rt-liber-viewer2-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "q") 'rt-liber-viewer2-mode-quit)
+    (define-key map (kbd "N") 'rt-liber-viewer2-last-section-in)
     (define-key map (kbd "n") 'rt-liber-viewer2-next-section-in)
     (define-key map (kbd "p") 'rt-liber-viewer2-previous-section-in)
     (define-key map (kbd "V") 'rt-liber-viewer-visit-in-browser)
