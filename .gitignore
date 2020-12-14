@@ -1,0 +1,21 @@
+*.elc
+*.orig
+.dir-locals?.el
+*~
+\#*\#
+ChangeLog
+core
+/emacs
+
+# Generated during deployment
+/packages/
+/archive/
+/archive-devel/
+/admin/
+
+# Testing file
+*.log
+*.buildlog
+
+# generated html
+html/readme.html
