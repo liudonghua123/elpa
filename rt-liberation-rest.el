@@ -150,7 +150,6 @@
 	       (buffer-substring-no-properties (point-min)
 					       (point-max)))
 	     'utf-8))
-
       (rt-liber-rest-write-debug
        (format "outgoing rest call -->\n%s\n<-- incoming\n%s\n" url str))
       str)))
