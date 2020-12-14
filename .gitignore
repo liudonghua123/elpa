@@ -11,7 +11,8 @@ core
 /packages/
 /archive/
 /archive-devel/
-/admin/
+GNUmakefile
+/admin
 
 # Testing file
 *.log
