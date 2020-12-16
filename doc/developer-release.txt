@@ -29,11 +29,11 @@ Push these updates to the git repo.
 * tag
 Tag the release with the ELPA version number:
 
-    $ git tag -a 1.31 -m "1.31"
+    $ git tag -a 2.00 -m "2.00"
 
 Then push that tag to the VCS:
  
-    $ git push --tags origin "1.31"
+    $ git push --tags origin "2.00"
 
 * ELPA
 Push the changes to externals/rt-liberation on elpa.git with:
