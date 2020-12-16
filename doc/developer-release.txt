@@ -38,4 +38,4 @@ Then push that tag to the VCS:
 * ELPA
 Push the changes to externals/rt-liberation on elpa.git with:
 
-    $ git push elpa elpa:externals/rt-liberation
+    $ git push elpa elpa:refs/heads/externals/rt-liberation
