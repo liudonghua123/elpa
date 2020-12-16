@@ -190,7 +190,7 @@
 
 
 
-(defun auto-o-perform-self-cascades (_beg end)
+(defun auto-o-perform-self-cascades (beg end)
   ;; Perform any necessary self-overlay cascading before the text in the
   ;; buffer is modified. Called from `before-change-functions'.
 

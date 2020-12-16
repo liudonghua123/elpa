@@ -102,7 +102,7 @@
 
 
 
-(defun auto-o-make-nested (o-match &optional _unmatched)
+(defun auto-o-make-nested (o-match &optional unmatched)
   ;; Create a nested overlay for match overlay O-MATCH.
   ;; If UNMATCHED is nil, overlay will start and end at O-MATCH.
   ;; If non-nil, overlay will start or end from O-MATCH (depending on whether

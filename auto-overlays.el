@@ -2,12 +2,13 @@
 
 ;; Copyright (C) 2005-2020  Free Software Foundation, Inc
 
-;; Version: 0.10.9
+;; Version: 0.10.10
 ;; Author: Toby Cubitt <toby-predictive@dr-qubit.org>
 ;; Maintainer: Toby Cubitt <toby-predictive@dr-qubit.org>
 ;; Keywords: extensions
-;; URL: http://www.dr-qubit.org/emacs.php
+;; URL: http://www.dr-qubit.org/tags/computing-code-emacs.html
 ;; Repository: http://www.dr-qubit.org/git/predictive.git
+;; Package-Requires: ((cl-lib "0.5"))
 
 ;; This file is part of the Emacs.
 ;;
@@ -27,7 +28,7 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(eval-when-compile (require 'cl-lib))
 
 (defvar auto-overlay-regexps nil)
 (make-variable-buffer-local 'auto-overlay-regexps)
@@ -633,6 +634,9 @@ Only overlays that satisfy all property tests are returned."
 (cl-defun auto-overlays-at-point (&optional point
 				  &rest prop-tests
 				  &key inactive all-overlays &allow-other-keys)
+  ;; FIXME: Maybe we shouldn't use `&key' here: it just costs extra work at
+  ;; run-time to extract that info, then extra code below to silence the byte
+  ;; compiler warnings because we then "ignore" that data.
   "Return overlays overlapping POINT, defaulting to the point.
 
 If keyword argument :inactive is non-nil, both active and
@@ -662,7 +666,7 @@ followed by the other values as its arguments. The test is
 satisfied if the result is non-nil, otherwise it fails. Tests are
 evaluated in order, but only up to the first failure. Only
 overlays that satisfy all property tests are returned."
-
+  (ignore all-overlays inactive)
   (when (null point) (setq point (point)))
   (auto-overlay-trigger-update point)
 
@@ -685,10 +689,13 @@ overlays that satisfy all property tests are returned."
 
 
 ;;;###autoload
-(cl-defun auto-overlay-highest-priority-at-point (&optional point
-					          &rest prop-tests
-						  &key inactive all-overlays
-						  &allow-other-keys)
+(cl-defun auto-overlay-highest-priority-at-point ( &optional point
+					           &rest prop-tests
+						   &key inactive all-overlays
+						   &allow-other-keys)
+  ;; FIXME: Maybe we shouldn't use `&key' here: it just costs extra work at
+  ;; run-time to extract that info, then extra code below to silence the byte
+  ;; compiler warnings because we then "ignore" that data.
   "Return highest priority overlay at POINT, defaulting to the point.
 
 If two overlays have the same priority, the innermost one takes
@@ -696,7 +703,7 @@ precedence (i.e. the one that begins later, or if they begin at
 the same point the one that ends earlier).
 
 The remaining arguments are as for `auto-overlays-at' (which see)."
-
+  (ignore all-overlays inactive)
   (unless point (setq point (point)))
 
   ;; get all overlays at point with a non-nil SYMBOL property
@@ -1372,7 +1379,7 @@ overlays were saved."
 	(setq auto-o-pending-pre-suicide nil))
       ;; run pending suicides
       (when auto-o-pending-suicides
-	(mapc 'auto-o-suicide auto-o-pending-suicides)
+	(mapc #'auto-o-suicide auto-o-pending-suicides)
 	(setq auto-o-pending-suicides nil))
       ;; run pending post-suicide functions
       (when auto-o-pending-post-suicide

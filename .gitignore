@@ -1,0 +1,3 @@
+*.elc
+/auto-overlays-pkg.el
+/auto-overlays-autoloads.el
