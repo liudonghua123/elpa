@@ -17,6 +17,12 @@ Update the NEWS file to tell all of the people the Good News.
 Update the manual, compile it, and update the copy of the info file in
 the root directory so that ELPA can install it.
 
+Compile an HTML version of the manual and update it on the Website:
+
+    $ cvs commit -m "update manual" rt-liber.html
+
+    $ cvs commit -m "update website" index.html
+
 * push
 Push these updates to the git repo.
 
