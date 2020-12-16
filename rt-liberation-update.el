@@ -1,4 +1,4 @@
-;;; rt-liberation-update.el --- check updated tickets
+;;; rt-liberation-update.el --- check updated tickets  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009  Free Software Foundation, Inc.
 ;;

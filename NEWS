@@ -1,6 +1,13 @@
-New in version 1.0:
+New in version ...
+
+    * Support getting REST credentials from auth-source.
+
+
+New in versions 1.0 to 1.31:
 
     * Upgrade to GPLv3 (with the kind permission of the people from
       Best Practical).
 
     * Remove the CLI interface.
+
+    * Make sure the manual appears in ELPA.

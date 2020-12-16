@@ -1,4 +1,4 @@
-;;; rt-liberation-gnus.el --- Gnus integration for rt-liberation
+;;; rt-liberation-gnus.el --- Gnus integration for rt-liberation  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2014  Free Software Foundation, Inc.
 ;;
@@ -30,16 +30,6 @@
 (defgroup rt-liber-gnus nil
   "*Gnus integration for rt-liberation."
   :prefix "rt-liber-gnus-"
-  :group 'rt-liber-gnus)
-
-(defcustom rt-liber-gnus-comment-address "no comment address set"
-  "*Email address for adding a comment."
-  :type 'string
-  :group 'rt-liber-gnus)
-
-(defcustom rt-liber-gnus-address "no reply address set"
-  "*Email address for replying to requestor."
-  :type 'string
   :group 'rt-liber-gnus)
 
 (defcustom rt-liber-gnus-subject-name "no subject name set"

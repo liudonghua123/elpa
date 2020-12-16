@@ -48,7 +48,8 @@ This is the Manual for the rt-liberation system
 
 @menu
 * Introduction::                Introduction to rt-liberation.
-* Installation::                Setup rt-liberation to work on the system.
+* Installation::                Install rt-liberation on the system.
+* Configuration::               Setup rt-liberation to work on the system.
 
 Using rt-liberation
 * Queries::                     Retrieve particular tickets from the server.
@@ -117,10 +118,12 @@ operations on the tickets.
 @chapter Installation
 @cindex installation
 
-rt-liberation is available via GNU ELPA.
+rt-liberation is available via GNU ELPA. Invoke @kbd{M-x
+list-packages} and choose to install the rt-liberation package.
 
-If you install rt-liberation manually instead you'll need to tell
-Emacs where to find it, and tell Emacs to load the package:
+If you install rt-liberation manually, by copying the code to your
+machine, instead you'll need to tell Emacs where to find it, and then
+tell Emacs to load the package:
 
 @lisp
 (add-to-list 'load-path "/PATH/TO/rt-liberation/")
@@ -131,6 +134,11 @@ Emacs where to find it, and tell Emacs to load the package:
 @end lisp
 
 
+@c --------------------------------------------------
+@node Configuration
+@chapter Configuration
+@cindex configuration
+
 rt-liberation needs to be configured in your ~/.emacs, an ~/.rt-liber
 file, or similar.
 
@@ -140,6 +148,25 @@ Tell rt-liberation where to find the RT server's REST interface:
 (setq rt-liber-rest-url "rt.example.org")
 @end lisp
 
+In order to authenticate with the RT server instance you need to
+provide credentials. rt-liberation looks for these in the variables
+@var{rt-liber-rest-username} and @var{rt-liber-rest-password}. You can
+set these directly:
+
+@lisp
+(setq rt-liber-rest-username "someuser"
+      rt-liber-rest-password "somepassword")
+@end lisp
+
+You can also leave these values unset (@code{nil}), in which case
+rt-liberation will look for the credentials in a Netrc file via the
+auth-source library (see: @xref{Top,,, auth, Emacs auth-source}),
+under the machine name "rt-liberation":
+
+@example
+machine rt-liberation login someuser password somepassword
+@end example
+
 rt-liberation can issue a command to ``take'' a ticket (that is,
 assign it to yourself). For this the variable @var{rt-liber-username}
 must be set:
@@ -148,9 +175,9 @@ must be set:
 (setq rt-liber-username "someuser")
 @end lisp
 
-rt-liberation can also launch a Web browser to visit a ticket. For
-that to work the base URL needs to be set in
-@var{rt-liber-base-url}. For example:
+rt-liberation can launch a Web browser to visit a ticket. For that to
+work the base URL needs to be set in @var{rt-liber-base-url}. For
+example:
 
 (setq rt-liber-base-url "https://rt.foo.org/")
 
@@ -603,10 +630,8 @@ buffers will be created displaying the query results and named
 @chapter Ticket Viewer
 @cindex ticket viewer
 
-The ticket viewer is an interface for viewing the contents of a
-ticket. It provides font-locking to make reading the contents easier
-via @var{rt-liber-viewer-font-lock-keywords} and a number of
-key-bindings.
+The ticket viewer is an interface for viewing the contents of a ticket
+and for sending answers.
 
 The ticket viewer provides key-bindings to help compose emails to send
 to the RT email interface. The key-bindings for composing email
@@ -615,34 +640,26 @@ them depends on the email-backend system you have installed into
 rt-liberation. @file{rt-liberation-gnus.el} provides integration with
 Gnus, @xref{Gnus Integration}.
 
-Setting @var{rt-liber-jump-to-latest} to `t' will cause the viewer to
-automatically scroll to the latest comment in a ticket when that
-ticket is visited. By default @var{rt-liber-jump-to-latest} is set to
-`nil'.
-
-When in the ticket viewer buffer, invoking
-@dfn{rt-liber-viewer-take-ticket} will ``take'' the ticket.
-
 @table @kbd
 
 @item q
 @kindex q (ticket viewer)
-@findex rt-liber-viewer-mode-quit
+@findex rt-liber-viewer2-mode-quit
 Bury the ticket viewer buffer.
 
 @item n
 @kindex n (ticket viewer)
-@findex rt-liber-next-section-in-viewer
-Move point to the next section in ticket.
+@findex rt-liber-viewer2-next-section-in
+Move to the next section in ticket.
 
 @item N
 @kindex N (ticket viewer)
-@findex rt-liber-jump-to-latest-correspondence
-Move point to the newest correspondence section, if any.
+@findex rt-liber-viewer2-last-section-in
+Move to the last section.
 
 @item p
 @kindex p (ticket viewer)
-@findex rt-liber-previous-section-in-viewer
+@findex rt-liber-viewer2-previous-section-in
 Move point to the previous section in ticket.
 
 @item V
@@ -650,43 +667,15 @@ Move point to the previous section in ticket.
 @findex rt-liber-viewer-visit-in-browser
 Visit the current ticket in a Web browser.
 
-@item m
-@kindex m (ticket viewer)
-@findex rt-liber-viewer-answer
-Compose an answer to the current ticket.
-
 @item M
 @kindex M (ticket viewer)
-@findex rt-liber-viewer-answer-this
+@findex rt-liber-viewer2-answer
 Compose an answer to the current ticket. The content section around
 point will be inserted into the email body and commented out.
 
-@item t
-@kindex t (ticket viewer)
-@findex rt-liber-viewer-answer-provisionally
-Compose a provisional answer to the current ticket.
-
-@item T
-@kindex t (ticket viewer)
-@findex rt-liber-viewer-answer-provisionally-this
-Compose a provisional answer to the current ticket. The content
-section around point will be inserted into the email body and
-commented out.
-
-@item F
-@kindex F (ticket viewer)
-@findex rt-liber-viewer-answer-verbatim-this
-Compose an answer to the current ticket. The content section around
-point will be inserted into the email body verbatim.
-
-@item c
-@kindex c (ticket viewer)
-@findex rt-liber-viewer-comment
-Compose a comment for the current ticket.
-
 @item C
 @kindex C (ticket viewer)
-@findex rt-liber-viewer-comment-this
+@findex rt-liber-viewer2-comment
 Comment on the ticket using the current context
 
 @item g

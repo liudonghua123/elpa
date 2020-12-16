@@ -1,18 +1,41 @@
 -*- outline -*-
 
-* Notes for preparing a release for rt-liberation
+This is an outline of how to make a release for rt-liberation via GNU
+ELPA.
 
+* compile
+Check for and correct compile-time errors and warnings.
 
-** Version
+* version
 In order for the ELPA system to trigger a release the version number
 in the comment header of rt-liberation.el must be incremented.
 
+* Good News
+Update the NEWS file to tell all of the people the Good News.
 
-** Info
-After each manual update the info file needs to be copied into the
-root of the project so that ELPA can pick it up.
+* documentation
+Update the manual, compile it, and update the copy of the info file in
+the root directory so that ELPA can install it.
 
+Compile an HTML version of the manual and update it on the Website:
 
-** ELPA
-Updates to the Savannah repository that have been tested can be pushed
-to the ELPA repository at externals/rt-liberation.
+    $ cvs commit -m "update manual" rt-liber.html
+
+    $ cvs commit -m "update website" index.html
+
+* push
+Push these updates to the git repo.
+
+* tag
+Tag the release with the ELPA version number:
+
+    $ git tag -a 2.00 -m "2.00"
+
+Then push that tag to the VCS:
+ 
+    $ git push --tags origin "2.00"
+
+* ELPA
+Push the changes to externals/rt-liberation on elpa.git with:
+
+    $ git push elpa elpa:refs/heads/externals/rt-liberation
