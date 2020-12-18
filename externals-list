@@ -295,8 +295,8 @@
  ("tramp-theme"		:external nil)
  ("transcribe"		:external nil)
  ("transient"		:external "https://github.com/magit/transient"
-  ;; :main-file "lisp/transient.el"
-  ;; :renames (("lisp/" ""))
+  :main-file "lisp/transient.el"
+  :renames (("lisp/" ""))
   :doc "docs/transient.org")
  ("trie"		:external "http://www.dr-qubit.org/git/predictive.git")
  ("undo-tree"		:external "http://www.dr-qubit.org/git/undo-tree.git")
