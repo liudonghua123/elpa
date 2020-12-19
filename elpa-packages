@@ -1,0 +1,336 @@
+;; -*- lisp-data -*-
+
+;; List of packages that are maintained externally.
+;; The list is made of elements of the form (NAME KIND URL OPTS...).
+;;
+;; Where NAME is the name of the package;
+;;
+;; KIND can be one of:
+;;  :url = kept in a separate `externals/<name>' branch.
+;;  :core     = part of GNU Emacs repository.
+;;
+
+;; For KIND :url URL is the URL of the remote git repository that we want
+;; to track, or `nil' if there is no upstream, i.e., if development of this
+;; package takes place directly on the `externals/<name>' branch of the
+;; `elpa.git' repository.  For packages of KIND :core URL must be a list of:
+;;    STRING = A file-name to copy from Emacs repo.
+;;    (STRING STRING) = A file-name to copy renamed from Emacs repo.
+
+;; For packages consisting of a single file, a plain string is also allowed.
+;; All file-names must be relative to the Emacs repository root and the package
+;; directory.  When a file-name points to a directory all its files are copied
+;; recursively into the package root or specified destination.  A special
+;; :excludes key can be provided to specify files to exclude when copying
+;; directories, wildcards are supported, "*.elc" and "*~" are always excluded.
+;; Exclude matches must be against the full file-name, substring matches don't
+;; work unless wildcards are used (e.g. use "etc/*" instead of "etc/").
+
+;; The FIXMEs indicate that the branch can't be merged as is because it needs
+;; some manual intervention (typically, because the two branches have
+;; diverged).
+
+(("ace-window"		:url "https://github.com/abo-abo/ace-window")
+ ("ack"			:url "https://github.com/leoliu/ack-el")
+ ("ada-mode"		:url nil)
+ ("ada-ref-man"		:url nil)
+ ("adaptive-wrap"	:url nil)
+ ("adjust-parens"	:url nil)
+ ("advice-patch"	:url nil)
+ ("aggressive-indent"	:url "https://github.com/Malabarba/aggressive-indent-mode")
+ ("ahungry-theme"	:url "https://github.com/ahungry/color-theme-ahungry")
+ ("all"			:url nil)
+ ("ampc"		:url nil)
+ ("arbitools"		:url nil)
+ ("ascii-art-to-unicode" :url nil)
+ ("async"		:url "https://github.com/jwiegley/emacs-async")
+ ("auctex"		:url "git://git.sv.gnu.org/auctex.git")
+ ("aumix-mode"		:url nil)
+ ("auto-overlays"	:url "http://www.dr-qubit.org/git/predictive.git"
+  :doc "docs/auto-overlay-manual.texinfo")
+ ("auto-correct"	:url nil)
+ ("avy"			:url "https://github.com/abo-abo/avy")
+ ("bbdb"		:url "git://git.savannah.nongnu.org/bbdb.git")
+ ("beacon"		:url "https://github.com/Malabarba/beacon")
+ ("bluetooth"		:url "https://gitlab.com/rstocker/emacs-bluetooth")
+ ("bnf-mode"		:url "https://github.com/sergeyklay/bnf-mode")
+ ("brief"		:url nil)
+ ("buffer-expose"	:url "https://github.com/clemera/buffer-expose")
+ ("bug-hunter"		:url "https://github.com/Malabarba/elisp-bug-hunter")
+ ;;FIXME:("cedet"	:url "??")
+ ;; ("cc-mode"		:core ("lisp/progmodes/cc-align.el"
+ ;;                               "lisp/progmodes/cc-awk.el"
+ ;;                               "lisp/progmodes/cc-bytecomp.el"
+ ;;                               "lisp/progmodes/cc-cmds.el"
+ ;;                               "lisp/progmodes/cc-defs.el"
+ ;;                               "lisp/progmodes/cc-engine.el"
+ ;;                               "lisp/progmodes/cc-fonts.el"
+ ;;                               "lisp/progmodes/cc-guess.el"
+ ;;                               "lisp/progmodes/cc-langs.el"
+ ;;                               "lisp/progmodes/cc-menus.el"
+ ;;                               "lisp/progmodes/cc-mode.el"
+ ;;                               "lisp/progmodes/cc-styles.el"
+ ;;                               "lisp/progmodes/cc-vars.el"
+ ;;                               ;; FIXME: elpa.gnu.org doesn't know how to build
+ ;;                               ;; the .info file from this texi file!
+ ;;                               "doc/misc/cc-mode.texi"))
+ ("caps-lock"		:url nil)
+ ("captain"		:url nil)
+ ("chess"		:url nil) ;; Was https://github.com/jwiegley/emacs-chess.git
+ ("cl-generic"		:url nil)
+ ("cl-lib"		:url nil)
+ ("cobol-mode"          :url "https://gist.github.com/Edward-H/6768e7dc53ea3dd2adca")
+ ("cl-print"		:core "lisp/emacs-lisp/cl-print.el")
+ ("clipboard-collector" :url "https://github.com/clemera/clipboard-collector")
+ ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
+ ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings")
+ ("company"		:url "https://github.com/company-mode/company-mode.git")
+ ("company-ebdb"	:url nil)
+ ("company-math"	:url "https://github.com/vspinu/company-math.git")
+ ("company-statistics"	:url "https://github.com/company-mode/company-statistics")
+ ("context-coloring"	:url "https://github.com/jacksonrayhamilton/context-coloring.git")
+ ("counsel"		:url "https://github.com/abo-abo/swiper")
+ ("cpio-mode"		:url "https://github.com/dlewan/cpio-mode")
+ ("crisp"		:url nil)
+ ("csv-mode"		:url nil)
+ ("cycle-quotes"	:url nil)
+ ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
+ ("dash"                :url "https://github.com/magnars/dash.el.git")
+ ("dbus-codegen"	:url "https://github.com/ueno/dbus-codegen-el.git")
+ ("debbugs"		:url nil)
+ ("delight"		:url "https://git.savannah.gnu.org/r/delight.git")
+ ("dict-tree"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ("diffview"            :url "https://github.com/mgalgs/diffview-mode.git")
+ ("diff-hl"		:url "https://github.com/dgutov/diff-hl.git")
+ ("dired-du"		:url nil)
+ ("dired-git-info"	:url "https://github.com/clemera/dired-git-info")
+ ("disk-usage"		:url "https://gitlab.com/ambrevar/emacs-disk-usage")
+ ("dismal"		:url nil)
+ ("djvu"		:url nil)
+ ("docbook"		:url nil)
+ ("dts-mode"		:url "https://github.com/bgamari/dts-mode.git")
+ ("easy-kill"		:url "https://github.com/leoliu/easy-kill")
+ ("ebdb"                :url "https://github.com/girzel/ebdb.git")
+ ("ebdb-gnorb"		:url nil)
+ ("ebdb-i18n-chn"	:url nil)
+ ("ediprolog"		:url nil)
+ ("eev"			:url "https://github.com/edrx/eev.git") ;branch UTF-8
+ ("eglot"               :url "https://github.com/joaotavora/eglot.git")
+ ("el-search"		:url nil)
+ ("eldoc"		:core "lisp/emacs-lisp/eldoc.el")
+ ("eldoc-eval"		:url "https://github.com/thierryvolpiatto/eldoc-eval.git")
+ ("electric-spacing"	:url nil)
+ ("elisp-benchmarks"	:url nil)
+ ("emms"		:url "https://git.savannah.gnu.org/git/emms.git")
+ ("enwc"		:url "hg::https://hg.savannah.nongnu.org/hgweb/enwc/")
+ ("epoch-view"		:url nil)
+ ("ergoemacs-mode"	:url "https://github.com/ergoemacs/ergoemacs-mode.git")
+ ("excorporate"		:url nil)
+ ("expand-region"	:url "https://github.com/magnars/expand-region.el")
+ ("exwm"		:url "https://github.com/ch11ng/exwm.git")
+ ("f90-interface-browser" :url "https://github.com/wence-/f90-iface")
+ ("filladapt"		:url nil)
+ ("flylisp"		:url nil)
+ ("flymake"		:core "lisp/progmodes/flymake.el")
+ ("frame-tabs"		:url nil)
+ ("frog-menu"		:url "https://github.com/clemera/frog-menu")
+ ("fsm"			:url nil)
+ ("gcmh"		:url "https://gitlab.com/koral/gcmh")
+ ("ggtags"		:url "https://github.com/leoliu/ggtags")
+ ("gited"		:url nil)
+ ("gle-mode"		:url nil)
+ ("gnome-c-style"	:url "https://github.com/ueno/gnome-c-style.git")
+ ("gnorb"               :url nil) ;; Was "https://github.com/girzel/gnorb"
+ ("gnu-elpa"		:url nil)
+ ("gnu-elpa-keyring-update" :url nil)
+ ("gnugo"		:url nil)
+ ("gnus-mock"		:url nil)
+ ("gpastel"		:url "https://gitlab.petton.fr/DamienCassou/gpastel")
+ ("greader"		:url "https://gitlab.com/michelangelo-rodriguez/greader")
+ ("greenbar"		:url nil)
+ ("guess-language"	:url "https://github.com/tmalsburg/guess-language.el")
+ ("heap"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ("highlight-escape-sequences" :url "https://github.com/dgutov/highlight-escape-sequences/")
+ ("hook-helpers"	:url "https://git.savannah.nongnu.org/git/hook-helpers-el.git")
+ ("html5-schema"	:url nil)
+ ("hydra"		:url "https://github.com/abo-abo/hydra")
+ ("hyperbole"           :url "http://git.savannah.gnu.org/r/hyperbole.git")
+ ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git")
+ ("iterators"		:url nil)
+ ("ivy"			:url "https://github.com/abo-abo/swiper")
+ ("ivy-explorer"        :url "https://github.com/clemera/ivy-explorer")
+ ("ivy-posframe"        :url "https://github.com/tumashu/ivy-posframe")
+ ("javaimp"		:url nil)
+ ("jgraph-mode"		:url nil)
+ ("js2-mode"		:url "https://github.com/mooz/js2-mode.git")
+ ("json-mode"		:url nil)
+ ("jsonrpc"		:core "lisp/jsonrpc.el")
+ ("jumpc"		:url nil)
+ ("kmb"			:url nil)
+ ("landmark"		:url nil)
+ ("leaf"		:url "https://github.com/conao3/leaf.el")
+ ("let-alist"		:core "lisp/emacs-lisp/let-alist.el")
+ ("lex"			:url nil)
+ ("lmc"			:url nil)
+ ("load-dir"		:url nil)
+ ("load-relative"	:url "http://github.com/rocky/emacs-load-relative")
+ ("loc-changes"		:url "http://github.com/rocky/emacs-loc-changes")
+ ("loccur"		:url "https://github.com/fourier/loccur")
+ ("map"                 :core "lisp/emacs-lisp/map.el")
+ ("markchars"		:url nil)
+ ("math-symbol-lists" 	:url "https://github.com/vspinu/math-symbol-lists.git")
+ ("memory-usage"	:url nil)
+ ("metar"		:url nil)
+ ("midi-kbd"		:url nil)
+ ("mines"		:url "https://github.com/calancha/Minesweeper")
+ ("minibuffer-line"	:url nil)
+ ("minimap"		:url nil)
+ ("mmm-mode"            :url "https://github.com/purcell/mmm-mode.git")
+ ("modus-operandi-theme":url "https://gitlab.com/protesilaos/modus-themes")
+ ("modus-vivendi-theme"	:url "https://gitlab.com/protesilaos/modus-themes")
+ ("multishell"		:url "https://github.com/kenmanheimer/EmacsMultishell")
+ ("muse"		:url "https://github.com/alexott/muse") ;FIXME: Not nearly in-sync
+ ("myers"		:url nil)
+ ("nadvice"		:url nil)
+ ("nameless"		:url "https://github.com/Malabarba/Nameless")
+ ("names"		:url "http://github.com/Malabarba/names")
+ ("nhexl-mode"		:url nil)
+ ("nlinum"		:url nil)
+ ("notes-mode"		:url nil)
+ ("ntlm"		:core "lisp/net/ntlm.el")
+ ("num3-mode"		:url nil)
+ ("oauth2"		:url nil)
+ ("objed"        	:url "https://github.com/clemera/objed")
+ ("omn-mode"            :url nil)
+ ("on-screen"           :url "https://github.com/michael-heerdegen/on-screen.el.git")
+ ("org"
+  :url "https://code.orgmode.org/bzg/org-mode"
+  :main-file "lisp/org.el"
+  :release-branch "maint"
+  :ignored-files ("etc/schema" "contrib" "mk" "testing" "lisp/org-install.el")
+  :renames (("lisp/" ""))
+  :news "etc/ORG-NEWS"
+  :doc "doc/org-manual.org")
+ ("org-translate"	:url nil)
+ ("orgalist"            :url nil)
+ ("org-edna"		:url "https://savannah.nongnu.org/projects/org-edna-el") ;URL?
+ ("osc"			:url nil)
+ ("other-frame-window"	:url nil)
+ ("paced"		:url "bzr::bzr://bzr.savannah.nongnu.org/paced-el/trunk")
+ ("pabbrev"             :url "https://github.com/phillord/pabbrev.git")
+ ("package-fixes"	:url nil)
+ ("parsec"              :url "https://github.com/cute-jumper/parsec.el.git")
+ ("path-iterator"	:url nil)
+ ("peg"			:url) ;Was in "https://github.com/ellerh/peg.el"
+ ("persist"             :url "https://gitlab.com/phillord/persist.git")
+ ("phps-mode"		:url "https://github.com/cjohansson/emacs-phps-mode")
+ ("pinentry"		:url "https://github.com/ueno/pinentry-el.git")
+ ("poker"		:url nil)
+ ("posframe"		:url "https://github.com/tumashu/posframe")
+ ("prefixed-core"	:url nil)
+ ("project"		:core "lisp/progmodes/project.el")
+ ("psgml"               :url "https://github.com/lenst/psgml.git")
+ ;; FIXME: We actually used a filtered version of pspp.git using:
+ ;;     git filter-branch                                           \
+ ;;         --index-filter "git read-tree --empty;                  \
+ ;;                         git reset \$GIT_COMMIT -- pspp-mode.el" \
+ ;;         -- -- pspp-mode.el
+ ("pspp-mode"		:url nil) ;; Was "https://git.sv.gnu.org/r/pspp.git"
+ ("python"		:core "lisp/progmodes/python.el")
+ ("quarter-plane"	:url nil)
+ ("queue"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ("rainbow-mode"	:url nil)
+ ("rbit"		:url nil)
+ ("rcirc-color"		:url nil)
+ ("rcirc-menu"		:url nil)
+ ("realgud"             :url "https://github.com/realgud/realgud")
+ ("realgud-ipdb"        :url "https://github.com/realgud/realgud-ipdb")
+ ("realgud-jdb"         :url "https://github.com/realgud/jdb")
+ ("realgud-lldb"        :url "https://github.com/realgud/realgud-lldb")
+ ("realgud-node-debug"  :url "https://github.com/realgud/realgud-node-debug")
+ ("realgud-node-inspect" :url "https://github.com/realgud/realgud-node-inspect")
+ ("realgud-trepan-ni"   :url "https://github.com/realgud/realgud-ni")
+ ("rec-mode"		:url "https://git.savannah.gnu.org/git/recutils/rec-mode.git")
+ ("register-list"	:url nil)
+ ("relint"		:url "https://github.com/mattiase/relint")
+ ("rich-minority"	:url "https://github.com/Malabarba/rich-minority")
+ ("rnc-mode"		:url nil)
+ ("rt-liberation"	:url "https://git.savannah.nongnu.org/git/rtliber")
+ ("rudel"		:url nil) ;; Was bzr::bzr://rudel.bzr.sourceforge.net/bzrroot/rudel/trunk
+ ("scanner"		:url "https://gitlab.com/rstocker/scanner.git")
+ ("scroll-restore"	:url nil)
+ ("sed-mode"		:url nil)
+ ("seq"			:url nil)
+ ("shelisp"		:url nil)
+ ("shell-command+"	:url "https://git.sr.ht/~zge/bang/tree/shell-command+")
+ ("shell-quasiquote"	:url nil)
+ ("shen-mode"		:url nil)
+ ("sisu-mode"		:url nil)
+ ("slime-volleyball"	:url nil)
+ ("sm-c-mode" 		:url nil)
+ ("smalltalk-mode"	:url "git://git.sv.gnu.org/smalltalk")
+ ("smart-yank"		:url nil)
+ ("sml-mode"		:url nil)
+ ("so-long"             :core "lisp/so-long.el")
+ ("soap-client"		:core ("lisp/net/soap-client.el" "lisp/net/soap-inspect.el"))
+ ("sokoban"		:url nil)
+ ("sotlisp"		:url "https://github.com/Malabarba/speed-of-thought-lisp")
+ ("spinner"		:url "https://github.com/Malabarba/spinner.el")
+ ("sql-beeline"		:url nil)
+ ("sql-indent"          :url "https://github.com/alex-hhh/emacs-sql-indent")
+ ("sql-smie"            :url nil)
+ ("ssh-deploy"		:url "https://github.com/cjohansson/emacs-ssh-deploy")
+ ("stream"		:url nil)
+ ("svg"			:core ("lisp/svg.el"))
+ ("svg-clock"		:url nil)
+ ("swiper"		:url "https://github.com/abo-abo/swiper")
+ ("system-packages"	:url "https://gitlab.com/jabranham/system-packages")
+ ("systemd"		:url nil)
+ ("temp-buffer-browse"  :url "https://github.com/leoliu/temp-buffer-browse")
+ ("test-simple"         :url "https://github.com/rocky/emacs-test-simple")
+ ("timerfunctions"	:url nil)
+ ("tiny"		:url "https://github.com/abo-abo/tiny")
+ ("tNFA"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ("tramp"		:url "git://git.sv.gnu.org/tramp.git" :branch "elpa")
+ ("tramp-theme"		:url nil)
+ ("transcribe"		:url nil)
+ ("transient"		:url "https://github.com/magit/transient"
+  :main-file "lisp/transient.el"
+  :renames (("lisp/" ""))
+  :doc "docs/transient.org")
+ ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ("undo-tree"		:url "http://www.dr-qubit.org/git/undo-tree.git")
+ ("uni-confusables" 	:url nil)
+ ("uniquify-files"	:url nil)
+ ("url-http-ntlm" 	:url nil)
+ ("validate"		:url "https://github.com/Malabarba/validate.el")
+ ("valign"		:url "https://github.com/casouri/valign")
+ ("vcard"		:url nil)
+ ("vdiff"               :url "https://github.com/justbur/emacs-vdiff")
+ ("vcl-mode"	        :url "git://git.gnu.org.ua/vcl-mode")
+ ("vigenere" 		:url nil)
+ ("visual-filename-abbrev" :url nil)
+ ("visual-fill"		:url nil)
+ ("vlf"			:url "https://github.com/m00natic/vlfi")
+ ("verilog-mode"        :core "lisp/progmodes/verilog-mode.el")
+ ("wcheck-mode"		:url "https://github.com/tlikonen/wcheck-mode")
+ ("wconf"		:url "https://github.com/ilohmar/wconf")
+ ("web-server"		:url "https://github.com/eschulte/emacs-web-server.git")
+ ("webfeeder"		:url "https://gitlab.com/ambrevar/emacs-webfeeder.git")
+ ("websocket"		:url "https://github.com/ahyatt/emacs-websocket.git")
+ ("windower"		:url "https://gitlab.com/ambrevar/emacs-windower")
+ ("windresize"		:url nil)
+ ("wisi"		:url nil)
+ ("wisitoken-grammar-mode" :url nil)
+ ("which-key"           :url "https://github.com/justbur/emacs-which-key")
+ ("wpuzzle"		:url nil)
+ ("xclip"		:url nil)
+ ("xelb"		:url "https://github.com/ch11ng/xelb.git")
+ ("xpm"			:url nil)
+ ("xr"			:url "https://github.com/mattiase/xr")
+ ("xref"		:core "lisp/progmodes/xref.el")
+ ("yasnippet"		:url "https://github.com/capitaomorte/yasnippet.git")
+ ("yasnippet-classic-snippets" :url nil)
+ ("zones"		:url nil)  ;https://www.emacswiki.org/emacs/zones.el
+ ("ztree"		:url "https://github.com/fourier/ztree")
+ )
