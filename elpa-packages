@@ -298,8 +298,15 @@
  ("transcribe"		:url nil)
  ("transient"		:url "https://github.com/magit/transient"
   :main-file "lisp/transient.el"
-  :renames (("lisp/" ""))
-  :doc "docs/transient.org")
+  :renames (("docs/CHANGELOG" "CHANGELOG")
+	    ("docs/transient.org" "transient.org")
+	    ("lisp/transient.el" "transient.el"))
+  :ignored-files (".mailmap" "default.mk" "Makefile"
+		  "docs/htmlxref.cnf"
+		  "docs/Makefile"
+		  "docs/transient.texi"
+		  "lisp/Makefile")
+  :doc "docs/transient.texi")
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("undo-tree"		:url "http://www.dr-qubit.org/git/undo-tree.git")
  ("uni-confusables" 	:url nil)
