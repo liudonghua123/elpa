@@ -2,11 +2,12 @@
 
 ;; List of packages that are maintained externally.
 ;; The list is made of elements of the form (NAME KIND URL OPTS...).
+;; See `admin/README' for further documentation about the format.
 ;;
 ;; Where NAME is the name of the package;
 ;;
 ;; KIND can be one of:
-;;  :url = kept in a separate `externals/<name>' branch.
+;;  :url      = kept in a separate `externals/<name>' branch.
 ;;  :core     = part of GNU Emacs repository.
 ;;
 
@@ -211,8 +212,9 @@
   :ignored-files ("etc/schema" "contrib" "mk" "testing" "lisp/org-install.el")
   :renames (("lisp/" ""))
   :news "etc/ORG-NEWS"
-  :make ("lisp/org-loaddefs.el" "doc/org.texi")
-  :doc "doc/org.texi")
+  :shell-command "make autoloads info; mv doc/org org.info; mv doc/orgguide orgguide.info"
+  :doc ("org.info" "orgguide.info")
+  :auto-sync t)
  ("org-translate"	:url nil)
  ("orgalist"            :url nil)
  ("org-edna"		:url "https://savannah.nongnu.org/projects/org-edna-el") ;URL?
@@ -302,15 +304,9 @@
  ("transcribe"		:url nil)
  ("transient"		:url "https://github.com/magit/transient"
   :main-file "lisp/transient.el"
-  :renames (("docs/CHANGELOG" "CHANGELOG")
-	    ("docs/transient.org" "transient.org")
-	    ("lisp/transient.el" "transient.el"))
-  :ignored-files (".mailmap" "default.mk" "Makefile"
-		  "docs/htmlxref.cnf"
-		  "docs/Makefile"
-		  "docs/transient.texi"
-		  "lisp/Makefile")
-  :doc "docs/transient.texi")
+  :renames (("docs/" "") ("lisp/" ""))
+  :news "docs/CHANGELOG"
+  :doc "docs/transient.org")
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("undo-tree"		:url "http://www.dr-qubit.org/git/undo-tree.git")
  ("uni-confusables" 	:url nil)
