@@ -293,7 +293,11 @@
  ("timerfunctions"	:url nil)
  ("tiny"		:url "https://github.com/abo-abo/tiny")
  ("tNFA"		:url "http://www.dr-qubit.org/git/predictive.git")
- ("tramp"		:url "git://git.sv.gnu.org/tramp.git" :branch "elpa")
+ ("tramp"		:url "git://git.sv.gnu.org/tramp.git"
+  :branch "externals/tramp"
+  :main-file "trampver.el"
+  :make ("autoloads" "info")
+  :doc "tramp.info")
  ("tramp-theme"		:url nil)
  ("transcribe"		:url nil)
  ("transient"		:url "https://github.com/magit/transient"
