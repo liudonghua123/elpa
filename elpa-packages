@@ -212,7 +212,7 @@
   :ignored-files ("etc/schema" "contrib" "mk" "testing" "lisp/org-install.el")
   :renames (("lisp/" ""))
   :news "etc/ORG-NEWS"
-  :shell-command "make autoloads info; rm -f lisp/*.elc; mv doc/org org.info; mv doc/orgguide orgguide.info"
+  :shell-command "make autoloads info; mv doc/org org.info; mv doc/orgguide orgguide.info"
   :doc ("org.info" "orgguide.info")
   :auto-sync t)
  ("org-translate"	:url nil)
