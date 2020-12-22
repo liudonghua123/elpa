@@ -18,7 +18,9 @@
 
 EMACS		= emacs -Q -batch -L .
 LISP_FILES	= $(wildcard *.el)
+CLEAN_FILES	= .\\\#* \\\#* .*~ *~ *.elc *.log
 SOURCE_DIR	= ~/src/tramp
+
 
 .PHONY: all autoloads check info sync test
 
@@ -40,6 +42,12 @@ info:
 check test: autoloads
 	$(MAKE) -C test "TRAMP_TEST_ARGS=$(TRAMP_TEST_ARGS)" all
 
+clean:
+	$(RM) $(CLEAN_FILES)
+	for a in texi test; do				\
+	    $(MAKE) -C $$a clean;			\
+	done
+
 # This target is for the maintainer only.
 sync:
 	cp -p $(SOURCE_DIR)/lisp/tramp-adb.el tramp-adb.el
@@ -47,6 +55,7 @@ sync:
 	cp -p $(SOURCE_DIR)/lisp/tramp-cache.el tramp-cache.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-cmds.el tramp-cmds.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-compat.el tramp-compat.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-crypt.el tramp-crypt.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-ftp.el tramp-ftp.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-gvfs.el tramp-gvfs.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-integration.el tramp-integration.el

@@ -1,3 +1,5 @@
 tramp-autoloads.el
+tramp-loaddefs.el
 tramp-pkg.el
 *.elc
+tramp.info
