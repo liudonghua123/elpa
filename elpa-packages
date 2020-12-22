@@ -97,7 +97,7 @@
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
  ("dash"                :url "https://github.com/magnars/dash.el.git")
  ("dbus-codegen"	:url "https://github.com/ueno/dbus-codegen-el.git")
- ("debbugs"		:url nil)
+ ("debbugs"		:url nil :doc ("debbugs.texi" "debbugs-ug.texi"))
  ("delight"		:url "https://git.savannah.gnu.org/r/delight.git")
  ("dict-tree"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("diffview"            :url "https://github.com/mgalgs/diffview-mode.git")
