@@ -51,7 +51,10 @@
   :doc "docs/auto-overlay-manual.texinfo")
  ("auto-correct"	:url nil)
  ("avy"			:url "https://github.com/abo-abo/avy")
- ("bbdb"		:url "git://git.savannah.nongnu.org/bbdb.git")
+ ("bbdb"		:url "git://git.savannah.nongnu.org/bbdb.git"
+  :main-file "lisp/bbdb.el"
+  :renames (("lisp/" ""))
+  :doc "doc/bbdb.texi")
  ("beacon"		:url "https://github.com/Malabarba/beacon")
  ("bluetooth"		:url "https://gitlab.com/rstocker/emacs-bluetooth")
  ("bnf-mode"		:url "https://github.com/sergeyklay/bnf-mode")
