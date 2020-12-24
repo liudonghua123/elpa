@@ -52,8 +52,7 @@
  ("auto-correct"	:url nil)
  ("avy"			:url "https://github.com/abo-abo/avy")
  ("bbdb"		:url "git://git.savannah.nongnu.org/bbdb.git"
-  :main-file "lisp/bbdb.el"
-  :renames (("lisp/" ""))
+  :lisp-dir "lisp"
   :doc "doc/bbdb.texi")
  ("beacon"		:url "https://github.com/Malabarba/beacon")
  ("bluetooth"		:url "https://gitlab.com/rstocker/emacs-bluetooth")
@@ -210,10 +209,9 @@
  ("on-screen"           :url "https://github.com/michael-heerdegen/on-screen.el.git")
  ("org"
   :url "https://code.orgmode.org/bzg/org-mode"
-  :main-file "lisp/org.el"
+  :lisp-dir "lisp"
   :release-branch "maint"
   :ignored-files ("etc/schema" "contrib" "mk" "testing" "lisp/org-install.el")
-  :renames (("lisp/" ""))
   :news "etc/ORG-NEWS"
   :shell-command "make autoloads info; mv doc/org org.info; mv doc/orgguide orgguide.info"
   :doc ("org.info" "orgguide.info")
@@ -306,8 +304,8 @@
  ("tramp-theme"		:url nil)
  ("transcribe"		:url nil)
  ("transient"		:url "https://github.com/magit/transient"
-  :main-file "lisp/transient.el"
-  :renames (("docs/" "") ("lisp/" ""))
+  :lisp-dir "lisp"
+  :renames (("docs/" ""))
   :news "docs/CHANGELOG"
   :doc "docs/transient.org")
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
