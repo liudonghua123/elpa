@@ -211,7 +211,7 @@ Returns a list of contact objects."
     ;; the way it's supposed to be, but we could be a little kinder
     ;; with a `skip-syntax-forward' check.
 
-    (while (re-search-forward "^BEGIN:VCARD\n" (line-end-position 3) t)
+    (while (re-search-forward "^BEGIN:VCARD\n" (line-end-position 2) t)
       (when (setq card (condition-case nil
 			   ;; `vcard-parse-card' moves point past the
 			   ;; card.
@@ -336,6 +336,7 @@ properties -- and returning a card/contact object."
 	  (push (funcall prop-consumer prop value params)
 		card))
 	(forward-line)))
+    (forward-line)
     (if card-consumer
 	(funcall card-consumer (nreverse card))
       (nreverse card))))
