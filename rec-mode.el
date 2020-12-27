@@ -219,9 +219,9 @@ The default is t."
     (define-key map (kbd "C-c C-%") 'rec-cmd-statistic)
     (define-key map (kbd "C-c C-f m") 'rec-cmd-trim-field-value)
     (define-key map (kbd "C-c C-k") 'rec-cmd-compile)
+    (define-key map (kbd "C-c C-j") 'rec-cmd-jump-to-type)
     (define-key map (kbd "C-c C-/ s") 'rec-cmd-navigate-current-type-by-sex)
     (define-key map (kbd "C-c C-/ C-k") 'rec-cmd-exit-selection)
-    (define-key map (kbd "C-c C-/ h") 'rec-cmd-show-summary-for-selection)
     (define-key map (kbd "C-c M-s C-s") 'rec-cmd-new-buffer-from-sex)
     (define-key map (kbd "C-c M-s C-q") 'rec-cmd-navigate-by-sex)
     (define-key map (kbd "C-c C-x C-s") 'rec-cmd-xref-sex)
@@ -260,10 +260,10 @@ The default is t."
     (define-key map (kbd "t") 'rec-cmd-show-type)
     (define-key map (kbd "m") 'rec-cmd-trim-field-value)
     (define-key map (kbd "c") 'rec-cmd-compile)
+    (define-key map (kbd "J") 'rec-cmd-jump-to-type)
     (define-key map (kbd "/ s") 'rec-cmd-navigate-current-type-by-sex)
     (define-key map (kbd "/ q") 'rec-cmd-navigate-current-type-by-fast-string)
     (define-key map (kbd "/ /") 'rec-cmd-exit-selection)
-    (define-key map (kbd "/ h") 'rec-cmd-show-summary-for-selection)
     (define-key map (kbd "X s") 'rec-cmd-xref-sex)
     (define-key map (kbd "X q") 'rec-cmd-xref-fast-string)
     (define-key map (kbd "f C-w") 'rec-cmd-kill-field)
@@ -903,6 +903,8 @@ If there are no regular records in the file, return nil."
                  (rec-regular-p))
         (point)))))
 
+
+
 (defun rec-goto-type-first-rec (type)
   "Goto to the first record of type TYPE present in the file.
 If TYPE is nil then goto to the first Unknown record on the file.
@@ -912,6 +914,22 @@ If no such record exist then don't move and return nil."
   (let ((pos (rec-type-first-rec-pos type)))
     (when pos
       (goto-char pos))))
+
+(defvar-local rec-cmd-jump-to-type-history nil
+  "History of `rec-cmd-jump-to-type.'")
+
+(defun rec-cmd-jump-to-type (type)
+  "Jump to the first record of type TYPE.
+When called interactively, prompt for a type."
+  (interactive
+   (list
+    (let ((types (rec-buffer-types)))
+      (completing-read "Jump to type: " types nil t nil 'rec-cmd-jump-to-type-history))))
+  (when type
+    (widen)
+    (rec-goto-type-first-rec type)
+    (unless (derived-mode-p 'rec-edit-mode)
+      (rec-show-record))))
 
 (defun rec-count (&optional type sex)
   "Return number of record in the file.
@@ -1799,9 +1817,13 @@ Optionally select only the fields in FEX.")
             (setq rec-current-selection results)
             (when rec-selection-mode
               (rec-cmd-exit-selection))
+            
             (setq rec-selection-previous-mode-line mode-line-buffer-identification)
             (setq rec-selection-current-selection selection)
             (rec-selection-mode)
+            (save-window-excursion
+              (when (buffer-live-p rec-summary-buffer)
+                (rec-cmd-show-summary)))
             (rec-cmd-goto-next-selection-record 0))
         (user-error "The search returned no results")))))
 
@@ -1857,12 +1879,11 @@ See `rec-selection-mode'."
   "Exit `rec-selection-mode'."
   (interactive)
   (when rec-selection-mode
-    (when (buffer-live-p rec-summary-buffer)
-      (rec-select-summary
-        ;; If the summary was active for a selection,
-        (when rec-summary-selection
-          (rec-summary-quit))))
     (rec-selection-mode -1)
+    (save-window-excursion
+      (when (buffer-live-p rec-summary-buffer)
+        (rec-cmd-show-summary)))
+    (put 'rec-summary-buffer 'selection nil)
     (setq mode-line-buffer-identification rec-selection-previous-mode-line)))
 
 (defvar rec-show-hook nil
@@ -1901,11 +1922,7 @@ Prefix arguments N moves next by N records."
   (interactive "P")
   (rec-cmd-goto-next-selection-record (- (or n 1))))
 
-(defun rec-cmd-show-summary-for-selection ()
-  "Show a summary for the records only in the currently active selection."
-  (interactive)
-  (when rec-selection-mode
-    (rec-cmd-show-summary t)))
+
 
 ;;;;; Selection cross reference
 
@@ -2689,17 +2706,20 @@ the user is prompted.
 When USE-SELECTION is non-nil, present the summary buffer for the currently
 active selection in `rec-selection-current-selection'."
   (interactive)
-  (let* ((base-buffer-name (concat (buffer-name (current-buffer)) " Summary"))
-         (summary-buffer-name (if use-selection
-                                  (concat base-buffer-name
-                                          " for "
-                                          (rec-selection-stringify
-                                           rec-selection-current-selection))
-                                base-buffer-name))
+  (let* ((summary-buffer-name (concat (buffer-name (current-buffer)) " Summary"))
          (current-record (save-excursion
                            (rec-beginning-of-record)
-                           (rec-current-record))))
-    (if (buffer-live-p (or rec-summary-buffer (get-buffer summary-buffer-name)))
+                           (rec-current-record)))
+         (buffer (or rec-summary-buffer (get-buffer summary-buffer-name))))
+    (when (and (buffer-live-p buffer)
+               ;; Kill the buffer if we have a selection but
+               ;; the buffer is not on a selection and vice versa.
+               (or (and (get 'rec-summary-buffer 'selection)
+                        (not rec-selection-mode))
+                   (and (not (get 'rec-summary-buffer 'selection))
+                        rec-selection-mode)))
+      (kill-buffer buffer))
+    (if (buffer-live-p buffer)
         (switch-to-buffer rec-summary-buffer)
       (let ((summary-fields (rec-summary-fields)))
         (unless summary-fields
@@ -2708,7 +2728,7 @@ active selection in `rec-selection-current-selection'."
             (setq summary-fields (split-string (read-from-minibuffer "Fields to use in the summary: ") "[ ,]"))))
         (if (car summary-fields)
             (let* ((fex (string-join summary-fields ","))
-                   (query (if (and use-selection rec-selection-current-selection)
+                   (query (if (and rec-selection-mode rec-selection-current-selection)
                               (rec-selection-query rec-selection-current-selection fex)
                             (rec-query :type (rec-record-type)
                                        :fex fex)))
@@ -2730,6 +2750,8 @@ active selection in `rec-selection-current-selection'."
                     (selection rec-selection-current-selection)
                     (buf (get-buffer-create summary-buffer-name)))
                 (setq rec-summary-buffer buf)
+                (when rec-selection-mode
+                  (put 'rec-summary-buffer 'selection (rec-selection-stringify rec-selection-current-selection)))
                 (when rec-summary-deletes-other-windows
                   (delete-other-windows))
                 ;; If there's just one window, split the buffer.
@@ -2959,9 +2981,6 @@ onto the chosen record."
      ["Matching fast string search..." rec-cmd-navigate-current-type-by-fast-string
       :help "Restrict movement to records of the current type matching an fast string search."]
      "---"
-     ["Show summary for selection" rec-cmd-show-summary-for-selection 
-      :help "Show a summary of the records matching the currently active selection."
-      :enable rec-selection-mode]
      ["Exit selection navigation" rec-cmd-exit-selection rec-selection-mode])
     ("Select records"
      ["New buffer from selection expression..." rec-cmd-new-buffer-from-sex
