@@ -169,7 +169,8 @@
  ("json-mode"		:url nil)
  ("jsonrpc"		:core "lisp/jsonrpc.el")
  ("jumpc"		:url nil)
- ;; ("kiwix"		:url "https://github.com/stardiviner/kiwix.el")
+ ("kiwix"		:url "https://github.com/stardiviner/kiwix.el"
+  :ignored-files ("*.png" "LICENSE"))
  ("kmb"			:url nil)
  ("landmark"		:url nil)
  ("leaf"		:url "https://github.com/conao3/leaf.el")
@@ -244,6 +245,7 @@
  ("python"		:core "lisp/progmodes/python.el")
  ("quarter-plane"	:url nil)
  ("queue"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ;; ("rails-routes"	:url "https://github.com/otavioschwanck/emacs-rails-routes")
  ("rainbow-mode"	:url nil)
  ("rbit"		:url nil)
  ("rcirc-color"		:url nil)
