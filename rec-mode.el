@@ -219,7 +219,6 @@ The default is t."
     (define-key map (kbd "C-c C-%") 'rec-cmd-statistic)
     (define-key map (kbd "C-c C-f m") 'rec-cmd-trim-field-value)
     (define-key map (kbd "C-c C-k") 'rec-cmd-compile)
-    (define-key map (kbd "C-c C-j") 'rec-cmd-jump-to-type)
     (define-key map (kbd "C-c C-/ s") 'rec-cmd-navigate-current-type-by-sex)
     (define-key map (kbd "C-c C-/ C-k") 'rec-cmd-exit-selection)
     (define-key map (kbd "C-c M-s C-s") 'rec-cmd-new-buffer-from-sex)
@@ -260,7 +259,6 @@ The default is t."
     (define-key map (kbd "t") 'rec-cmd-show-type)
     (define-key map (kbd "m") 'rec-cmd-trim-field-value)
     (define-key map (kbd "c") 'rec-cmd-compile)
-    (define-key map (kbd "J") 'rec-cmd-jump-to-type)
     (define-key map (kbd "/ s") 'rec-cmd-navigate-current-type-by-sex)
     (define-key map (kbd "/ q") 'rec-cmd-navigate-current-type-by-fast-string)
     (define-key map (kbd "/ /") 'rec-cmd-exit-selection)
@@ -915,21 +913,6 @@ If no such record exist then don't move and return nil."
     (when pos
       (goto-char pos))))
 
-(defvar-local rec-cmd-jump-to-type-history nil
-  "History of `rec-cmd-jump-to-type.'")
-
-(defun rec-cmd-jump-to-type (type)
-  "Jump to the first record of type TYPE.
-When called interactively, prompt for a type."
-  (interactive
-   (list
-    (let ((types (rec-buffer-types)))
-      (completing-read "Jump to type: " types nil t nil 'rec-cmd-jump-to-type-history))))
-  (when type
-    (widen)
-    (rec-goto-type-first-rec type)
-    (unless (derived-mode-p 'rec-edit-mode)
-      (rec-show-record))))
 
 (defun rec-count (&optional type sex)
   "Return number of record in the file.
