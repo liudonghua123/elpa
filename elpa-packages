@@ -87,7 +87,9 @@
  ("clipboard-collector" :url "https://github.com/clemera/clipboard-collector")
  ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
  ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings")
- ("company"		:url "https://github.com/company-mode/company-mode.git")
+ ("company"
+  :url "https://github.com/company-mode/company-mode.git"
+  :auto-sync t)
  ("company-ebdb"	:url nil)
  ("company-math"	:url "https://github.com/vspinu/company-math.git")
  ("company-statistics"	:url "https://github.com/company-mode/company-statistics")
@@ -104,7 +106,9 @@
  ("delight"		:url "https://git.savannah.gnu.org/r/delight.git")
  ("dict-tree"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("diffview"            :url "https://github.com/mgalgs/diffview-mode.git")
- ("diff-hl"		:url "https://github.com/dgutov/diff-hl.git")
+ ("diff-hl"
+  :url "https://github.com/dgutov/diff-hl.git"
+  :auto-sync t)
  ("dired-du"		:url nil)
  ("dired-git-info"	:url "https://github.com/clemera/dired-git-info")
  ("disk-usage"		:url "https://gitlab.com/ambrevar/emacs-disk-usage")
@@ -153,7 +157,9 @@
  ("greenbar"		:url nil)
  ("guess-language"	:url "https://github.com/tmalsburg/guess-language.el")
  ("heap"		:url "http://www.dr-qubit.org/git/predictive.git")
- ("highlight-escape-sequences" :url "https://github.com/dgutov/highlight-escape-sequences/")
+ ("highlight-escape-sequences"
+  :url "https://github.com/dgutov/highlight-escape-sequences/"
+  :auto-sync t)
  ("hook-helpers"	:url "https://git.savannah.nongnu.org/git/hook-helpers-el.git")
  ("html5-schema"	:url nil)
  ("hydra"		:url "https://github.com/abo-abo/hydra")
@@ -165,7 +171,9 @@
  ("ivy-posframe"        :url "https://github.com/tumashu/ivy-posframe")
  ("javaimp"		:url nil)
  ("jgraph-mode"		:url nil)
- ("js2-mode"		:url "https://github.com/mooz/js2-mode.git")
+ ("js2-mode"
+  :url "https://github.com/mooz/js2-mode.git"
+  :auto-sync t)
  ("json-mode"		:url nil)
  ("jsonrpc"		:core "lisp/jsonrpc.el")
  ("jumpc"		:url nil)
@@ -190,7 +198,9 @@
  ("mines"		:url "https://github.com/calancha/Minesweeper")
  ("minibuffer-line"	:url nil)
  ("minimap"		:url nil)
- ("mmm-mode"            :url "https://github.com/purcell/mmm-mode.git")
+ ("mmm-mode"
+  :url "https://github.com/purcell/mmm-mode.git"
+  :auto-sync t)
  ("modus-operandi-theme":url "https://gitlab.com/protesilaos/modus-themes")
  ("modus-vivendi-theme"	:url "https://gitlab.com/protesilaos/modus-themes")
  ("multishell"		:url "https://github.com/kenmanheimer/EmacsMultishell")
