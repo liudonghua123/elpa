@@ -592,6 +592,11 @@ commands for next and previous records as described above do not
 behave the usual way: they navigate records that only match
 the currently active selection.
 
+When selection mode is entered, any associated summary buffer
+automatically updates its contents to match that of the current
+selection.  Once selection mode is turned off, the summary buffer
+reverts back to the previous selection.
+
 Record selection mode can be entered by the following commands:
 
 @table @kbd
@@ -607,11 +612,6 @@ Same as above, but with a fast string search.
 the following additional bindings are defined:
 
 @table @kbd
-
-@cindex summary, selection
-@reccmd{/ h, rec-cmd-show-summary-for-selection}
-Creates a summary buffer (@pxref{Summary mode}) with the contents from
-the selection instead of the current buffer.
 
 @reccmd{/ /, rec-cmd-exit-selection}
 Exits record selection mode and restores the normal navigation keybindings.
