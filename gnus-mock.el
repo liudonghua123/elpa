@@ -121,9 +121,12 @@ installation."
 (defconst gnus-mock-data-dir
   (file-name-as-directory (expand-file-name
 			   "data"
-			   (if load-file-name
-			       (file-name-directory load-file-name)
-			     default-directory)))
+			   (file-name-directory
+			    (or (bound-and-true-p
+				 byte-compile-current-file)
+				(and load-in-progress load-file-name)
+				buffer-file-name
+				default-directory))))
   "Source directory for Gnus mock data.")
 
 ;;;###autoload
