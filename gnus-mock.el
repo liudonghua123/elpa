@@ -5,7 +5,7 @@
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 ;; Maintainer: Eric Abrahamsen <eric@ericabrahamsen.net>
 ;; Package-Type: multi
-;; Version: 0.4.5
+;; Version: 0.5
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -306,6 +306,25 @@ will start a mock Gnus session."
 			(file-exists-p mock-tmp-dir))
 	       (delete-directory mock-tmp-dir t))
 	     (signal (car err) (cdr err))))))
+
+;;;###autoload
+(defun gnus-mock-resume (init-file)
+  "Resume a previous Gnus mock session.
+If your testing involves shutting Emacs down completely and
+restarting it, this command can be used to do that.  INIT-FILE
+should be the init file saved into the temporary directory
+created by the previous session.
+
+In order for this to work you'll have to prevent the previous
+Gnus mock session from deleting its temporary directory, either
+by setting `gnus-mock-cleanup-p' to nil before starting that
+session, or removing the cleanup lambda form from
+`kill-emacs-hook'."
+  (interactive "fInit file to resume from: ")
+  (make-process :name "gnus-mock" :buffer nil
+		:command (list gnus-mock-emacs-program
+			       "-Q" "--load" init-file)
+		:stderr "*gnus mock errors*"))
 
 (provide 'gnus-mock)
 ;;; gnus-mock.el ends here
