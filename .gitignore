@@ -8,6 +8,7 @@ core
 /emacs
 
 # Generated during deployment
+/.pkg-descs.mk
 /packages/
 /archive/
 /archive-devel/

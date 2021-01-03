@@ -52,7 +52,7 @@
  ("auto-correct"	:url nil)
  ("avy"			:url "https://github.com/abo-abo/avy")
  ("bbdb"		:url "git://git.savannah.nongnu.org/bbdb.git"
-  :lisp-dir "lisp"
+  ;; :lisp-dir "lisp"
   :doc "doc/bbdb.texi")
  ("beacon"		:url "https://github.com/Malabarba/beacon")
  ("bluetooth"		:url "https://gitlab.com/rstocker/emacs-bluetooth")
