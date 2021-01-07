@@ -1,12 +1,12 @@
 ;;; repology.el --- Repology API access via Elisp    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021  Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: web
-;; Package-Requires: ((emacs "25.1"))
-;; Version: 0.9
+;; Package-Requires: ((emacs "26.1"))
+;; Version: 0.10
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -33,23 +33,27 @@
 ;; `repology-project-lookup', and `repology-repository-problems'.
 ;; Projects-related requests are limited to `repology-projects-limit'.
 ;; All requests are cached during `repology-cache-duration' seconds.
+;;
+;; By default, projects including packages with a known non-free license
+;; are not included in the search results.  You can control this behavior
+;; with the variable `repology-ignore-non-free-projects'.
 
 ;; You can then access data from those various objects using dedicated
 ;; accessors.  See, for example, `repology-project-name',
-;; `repology-project-packages', `repology-package-field',
+;; `repology-project-packages', `repology-package-field', or
 ;; `repology-problem-field'.
 
 ;; You can also decide to display (a subset of) results in a tabulated
 ;; list.  See `repology-display-package', `repology-display-packages',
-;; `repology-display-projects' and `repology-display-problems'. You
+;; `repology-display-projects' and `repology-display-problems'.  You
 ;; can control various aspects of the display, like the colors used
 ;; (see `repology-status-faces'), or the columns shown (see
 ;; `repology-display-packages-columns',`repology-display-projects-columns',
-;; and `repology-display-problems-columns').  In projects and packages
-;; display, pressing <RET> gives you more information about the item
+;; and `repology-display-problems-columns').  When projects or packages
+;; are displayed, pressing <RET> gives you more information about the item
 ;; at point.
 
-;; For example, the following expressions display all outdated projects
+;; For example, the following expression displays all outdated projects
 ;; named after "emacs" and containing a package in GNU Guix repository
 ;; that I do not ignore:
 ;;
@@ -69,7 +73,7 @@
 ;;
 ;; - The library has no notion of distribution "family", since this
 ;;   doesn't appear in the API.  As a consequence, display functions
-;;   cannot compute the "Spread" of a project.  It fall-backs to the
+;;   cannot compute the "spread" of a project.  It falls back to the
 ;;   number of packages in the project instead.
 ;; - It does not handle "maintainers" queries.
 ;; - It is synchronous.  Don't go wild with `repology-projects-limit'!
@@ -78,9 +82,28 @@
 
 (require 'json)
 (require 'tabulated-list)
+(require 'url)
 
 
-;;; Upstream constants
+;;; Macros
+;; XXX: It is a macro because we need it to be available in defcustoms.
+(defmacro repology-display-sort-column (name predicate)
+  "Return a function comparing entries in column NAME.
+NAME is a string.  Compare entries using function PREDICATE, called on two
+objects of the column."
+  `(lambda (e1 e2)
+     (let ((column
+            ;; Find column's number
+            (or (seq-position tabulated-list-format
+                              ,name
+                              (pcase-lambda (`(,n . ,_) s) (equal n s)))
+                (error "Invalid column name %S" ,name))))
+       (let ((s1 (elt (cadr e1) column))
+             (s2 (elt (cadr e2) column)))
+         (funcall ,predicate s1 s2)))))
+
+
+;;; Constants
 (defconst repology-base-url "https://repology.org/api/v1/"
   "Base URL for Repology API.")
 
@@ -102,23 +125,8 @@ It is used as a source for all known repositories.")
   "Maximum number of projects Repology API can return.
 See URL `https://repology.org/api'.")
 
-
-;;; Macros
-(defmacro repology-display-compare-column (n)
-  "Build a function comparing entries by column N.
-Entries must follow the form defined in `tabulated-list-entries'.
-Compare values in collation order.  Case is ignored."
-  (unless (wholenump n)
-    (error "Invalid column number %S" n))
-  `(lambda (e1 e2)
-     (unless (< ,n (length repology-display-packages-columns))
-       (error "Invalid column number %S" ,n))
-     (let ((s1 (elt (cadr e1) ,n))
-           (s2 (elt (cadr e2) ,n)))
-       (string-collate-lessp s1 s2 nil t))))
-
 (defconst repology-project-filters-parameters
-  `((:search          "Name search (e.g. firefox): " nil)
+  `((:search          "Name search (e.g. emacs): " nil)
     (:maintainer      "Maintainer (e.g. foo@bar.com): " nil)
     (:category        "Category (e.g. games): " nil)
     (:inrepo          "In repository: " repology--query-repository)
@@ -139,6 +147,178 @@ When setting the value of FILTER interactively, QUERY is called with
 two arguments, PROMPT and an initial value.  It must return a string.  If QUERY
 is nil, `read-string' is used.")
 
+(defconst repology-version-zero-component '(1 . 0)
+  "Version component representing 0 or any missing component.")
+
+(defconst repology-version-pre-keywords '("alpha" "beta" "rc" "pre")
+  "List of pre-release keywords in version strings.")
+
+(defconst repology-version-post-keywords '("patch" "post" "pl" "errata")
+  "List of post-release keywords in version strings.")
+
+
+;;; Configuration
+(defgroup repology nil
+  "Repology API access from Emacs"
+  :group 'emacs)
+
+(defcustom repology-projects-limit 200
+  "Maximum number of results for a single projects search.
+
+One request to Repology API can return at most `repology-projects-hard-limit'
+projects.  Setting the variable to a value greater than this implies the library
+will sent multiple requests upstream to collect the desired number of results."
+  :type 'integer)
+
+(defcustom repology-cache-duration 3600
+  "Duration in seconds to cache Repology API requests.
+
+Repology claims to update its repository hourly.
+A value of 0 prevents any caching."
+  :type 'integer)
+
+(defcustom repology-ignore-non-free-projects t
+  "When non-nil, ignore projects with a non-free license from searches.
+
+See `repology-non-free-licenses-regexps' for information about how a project
+is assumed to be non-free.
+
+Projects with missing or erroneous licensing information may still be displayed.
+Use your judgement!"
+  :type 'boolean)
+
+(defcustom repology-non-free-licenses-regexps
+  '("commercial" "freeware" "google-chrome" "no modification permitted"
+    "microsoft" "nonfree" "proprietary" "restrictive" "skype" "unfree"
+    "valvesteamlicense")
+  "List of licenses field regexps known to match non-free licenses.
+
+Any project containing at least one package with a license matching one of these
+regexps is considered to be non-free.  Case is ignored.
+
+Feel free to contact the maintainer of this library to suggest additional
+default regexps."
+  :type '(repeat regexp))
+
+(defcustom repology-status-faces
+  '(("incorrect" . error)
+    ("newest" . highlight)
+    ("outdated" . warning)
+    ("noscheme" . shadow)
+    ("untrusted" . shadow)
+    ("ignored" . shadow))
+  "Association list of status values and faces.
+
+Each entry is a construct like (STATUS . FACE) where STATUS is
+a possible package status value, as detailed in `repology-package-field',
+and FACE is the face to be applied by `repology-package-colorize-status'
+and `repology-package-colorize-version'.
+
+Un-handled status values are associated to the `default' face."
+  :type
+  `(repeat
+    (cons :tag "Association"
+          (choice :tag "Status"
+                  ,@(mapcar (lambda (status) `(const ,status))
+                            repology-package-all-status))
+          face)))
+
+(defcustom repology-display-problems-columns
+  `(("Project" effname 20 t)
+    ("Package name" visiblename 20 t)
+    ("Problem" type 40 t)
+    ("Maintainer" maintainers 30 nil))
+  "Columns format rules used to display a list of packages.
+
+The value is an association list.  Each entry has the form
+
+  (NAME VALUE WIDTH SORT)
+
+where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'.
+VALUE is either a problem field, as a symbol, or a function called with a single
+problem argument.  Its return value is then turned into a string and displayed."
+  :type
+  '(repeat
+    (list :tag "Column definition"
+          (string :tag "Column name")
+          (choice symbol function)
+          (integer :tag "Width")
+          (choice (const :tag "Do not sort" nil)
+                  (const :tag "Sort" t)
+                  (function :tag "Custom sort predicate")))))
+
+(defcustom repology-display-packages-columns
+  `(("Repository"
+     repology-package-repository-full-name
+     20
+     ,(repology-display-sort-column "Repository" #'repology-compare-texts))
+    ("Name" visiblename 20 t)
+    ("Version"
+     repology-package-colorized-version
+     12
+     ,(repology-display-sort-column "Version" #'repology-compare-versions))
+    ("Category" categories 25 t)
+    ("Maintainer(s)" maintainers 30 t))
+  "Columns format rules used to display a list of packages.
+
+The value is an association list.  Each entry has the form
+
+  (NAME VALUE WIDTH SORT)
+
+where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'.
+VALUE is either a valid package field, or a function called with a single
+package argument.  Its return value will be turned into a string and displayed.
+
+This library provides a few functions useful as VALUE.  See, for example,
+`repology-package-repository-full-name' or `repology-package-colorized-version'.
+
+You may also want to look into `repology-display-sort-column', along with
+predicates like `repology-compare-texts', `repology-compare-numbers', or
+`repology-compare-versions' in order to build SORT values."
+  :type
+  `(repeat
+    (list :tag "Column definition"
+          (string :tag "Column name")
+          (choice ,@(mapcar (lambda (field) `(const ,field))
+                            repology-package-all-fields)
+                  function)
+          (integer :tag "Width")
+          (choice (const :tag "Do not sort" nil)
+                  (const :tag "Sort" t)
+                  (function :tag "Custom sort predicate")))))
+
+(defcustom repology-display-projects-columns #'repology-display-projects-default
+  "Columns format rules used to display a list of projects.
+
+The value is an association list.  Each entry has the form
+
+  (NAME VALUE WIDTH SORT)
+
+where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'.
+VALUE is a function called with a single package argument.  Its return value
+is then turned into a string and displayed.
+
+It can also be a function called with two arguments: the list of projects,
+and a selected repository, as a string, or nil.  It must return a list
+of the above form.
+
+This library provides a few functions useful as VALUE.  See, for example,
+`repology-project-newest-version' or `repology-project-outdated-versions'.
+
+You may also want to look into `repology-display-sort-column', along with
+predicates like `repology-compare-texts', `repology-compare-numbers', or
+`repology-compare-versions' in order to build SORT values."
+  :type '(choice
+          (repeat
+           (list :tag "Column definition"
+                 (string :tag "Column name")
+                 function
+                 (integer :tag "Width")
+                 (choice (const :tag "Do not sort" nil)
+                         (const :tag "Sort" t)
+                         (function :tag "Custom sort predicate"))))
+          (function :tag "Function describing columns")))
+
 
 ;;; Internal variables
 (defconst repology--project-filters
@@ -148,7 +328,7 @@ Other keywords are ignored when building the query string.")
 
 (defvar repology--cache (make-hash-table :test #'equal)
   "Hash table used to cache request to Repology API.
-Keys are triplets of arguments for `repology--get'. Values are
+Keys are triplets of arguments for `repology--get'.  Values are
 cons cells like (TIME . REQUEST-RESULT).")
 
 (defvar repology--repositories nil
@@ -262,7 +442,7 @@ the request."
               (forward-line))
             (forward-line)
             (unless (eobp)
-              (setf body
+              (setq body
                     (url-unhex-string
                      (buffer-substring (point) (point-max)))))
             (list :status status :header (nreverse header) :body body)))
@@ -271,7 +451,7 @@ the request."
 (defun repology--get (action value start)
   "Perform an HTTP GET request to Repology.
 
-ACTION is a symbol. If it is `projects', VALUE is a plist and START is a string.
+ACTION is a symbol.  If it is `projects', VALUE is a plist and START a string.
 Otherwise, VALUE is a string, and START is nil.
 
 Information is returned as parsed JSON."
@@ -302,9 +482,9 @@ Information is returned as parsed JSON."
   "Change VALUE object into a string suitable for display."
   (pcase value
     (`nil "-")
-    ((and (pred listp) l)
+    ((pred listp)
      (mapconcat (lambda (e) (format "%s" e))
-                (seq-uniq l)
+                (seq-uniq value)
                 " "))
     (_
      (format "%s" value))))
@@ -323,7 +503,7 @@ with one argument: an element from DATA."
   (let ((buffer (get-buffer-create buffer-name)))
     (with-current-buffer buffer
       (funcall mode)
-      (setf tabulated-list-entries
+      (setq tabulated-list-entries
             (mapcar (lambda (datum)
                       (list datum
                             (apply #'vector
@@ -373,14 +553,14 @@ where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'."
   "Repology/Package"
   "Major mode used to display packages returned by Repology API.
 \\{tabulated-list-mode-map}"
-  (setf tabulated-list-format [("Field" 15 t) ("Value" 0 t)])
+  (setq tabulated-list-format [("Field" 15 t) ("Value" 0 t)])
   (tabulated-list-init-header))
 
 (define-derived-mode repology--display-packages-mode tabulated-list-mode
   "Repology/Packages"
   "Major mode used to display packages returned by Repology API.
 \\{repology--display-packages-mode-map}"
-  (setf tabulated-list-format
+  (setq tabulated-list-format
         (repology--columns-to-header repology-display-packages-columns))
   (tabulated-list-init-header))
 
@@ -388,7 +568,7 @@ where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'."
   "Repology/Project"
   "Major mode used to display projects returned by Repology API.
 \\{repology--display-projects-mode-map}"
-  (setf tabulated-list-format
+  (setq tabulated-list-format
         (repology--columns-to-header repology-display-projects-columns))
   (tabulated-list-init-header))
 
@@ -396,7 +576,7 @@ where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'."
   "Repology/Problems"
   "Major mode used to display problems returned by Repology API.
 \\{tabulated-list-mode-map}"
-  (setf tabulated-list-format
+  (setq tabulated-list-format
         (repology--columns-to-header repology-display-problems-columns))
   (tabulated-list-init-header))
 
@@ -482,125 +662,48 @@ a first suggestion, or nil.  Return the answer as a string."
     (other
      (error "Invalid value: %S" other))))
 
-
-;;; Configuration
-(defgroup repology nil
-  "Repology API access from Emacs"
-  :group 'emacs)
-
-(defcustom repology-projects-limit 200
-  "Maximum number of results for a single projects search.
-
-One request to Repology API can return at most `repology-projects-hard-limit'
-projects.  Setting the variable to a value greater than this implies the library
-will sent multiple requests upstream to collect the desired number results."
-  :type 'integer)
-
-(defcustom repology-cache-duration 3600
-  "Duration in seconds to cache Repology API requests.
-
-Repology claims to update its repository hourly.
-A value of 0 prevents any caching."
-  :type 'integer)
-
-(defcustom repology-status-faces
-  '(("incorrect" . error)
-    ("newest" . highlight)
-    ("outdated" . warning)
-    ("noscheme" . shadow)
-    ("untrusted" . shadow)
-    ("ignored" . shadow))
-  "Association list of status values and faces.
-
-Each entry is a construct like (STATUS . FACE) where STATUS is
-a possible package status value, as detailed in `repology-package-field',
-and FACE is the face to be applied by `repology-package-colorize-status'
-and `repology-package-colorize-version'.
-
-Un-handled status values are associated to the `default' face."
-  :type
-  `(repeat
-    (cons :tag "Association"
-          (choice :tag "Status"
-                  ,@(mapcar (lambda (status) `(const ,status))
-                            repology-package-all-status))
-          face)))
-
-(defcustom repology-display-problems-columns
-  `(("Project" effname 20 t)
-    ("Package name" visiblename 20 t)
-    ("Problem" type 40 t)
-    ("Maintainer" maintainers 0 nil))
-  "Columns format rules used to display a list of packages.
-
-The value is an association list.  Each entry has the form
-
-  (NAME VALUE WIDTH SORT)
-
-where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'.
-VALUE is either a problem field, as a symbol, or a function called with a single
-problem argument.  Its return value is then turned into a string and displayed."
-  :type
-  '(repeat
-    (list :tag "Column definition"
-     (string :tag "Column name")
-     (choice symbol function)
-     (integer :tag "Width")
-     (choice (const :tag "Do not sort" nil)
-             (const :tag "Sort" t)
-             (function :tag "Custom sort predicate")))))
-
-(defcustom repology-display-packages-columns
-  `(("Repository" repology-package-repository-full-name 20
-     ,(repology-display-compare-column 0))
-    ("Name" visiblename 20 t)
-    ("Version" repology-package-colorized-version 12 nil)
-    ("Category" categories 25 t)
-    ("Maintainer(s)" maintainers 0 t))
-  "Columns format rules used to display a list of packages.
-
-The value is an association list.  Each entry has the form
-
-  (NAME VALUE WIDTH SORT)
-
-where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'.
-VALUE is either a valid package field, or a function called with a single
-package argument.  Its return value will be changed into a string and displayed."
-  :type
-  `(repeat
-    (list :tag "Column definition"
-     (string :tag "Column name")
-     (choice ,@(mapcar (lambda (field) `(const ,field))
-                       repology-package-all-fields)
-             function)
-     (integer :tag "Width")
-     (choice (const :tag "Do not sort" nil)
-             (const :tag "Sort" t)
-             (function :tag "Custom sort predicate")))))
-
-(defcustom repology-display-projects-columns #'repology-display-projects-default
-  "Columns format rules used to display a list of projects.
-
-The value is an association list.  Each entry has the form
-
-  (NAME VALUE WIDTH SORT)
-
-where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'.
-VALUE is a function called with a single package argument.  Its return value
-is then turned into a string and displayed.
-
-It can also be a function called with two arguments: the list of projects,
-and a selected repository, as a string, or nil.  It must return a list
-of the above form."
-  :type '(choice
-          (repeat
-           (list (string :tag "Column name")
-                 function
-                 (integer :tag "Width")
-                 (choice (const :tag "Do not sort" nil)
-                         (const :tag "Sort" t)
-                         (function :tag "Custom sort predicate"))))
-          (function :tag "Function describing columns")))
+(defun repology--string-to-version (s)
+  "Return version associated to string S.
+Version is a list of components (RANK . VALUE) suitable for comparison, with
+the function `repology-compare-versions'."
+  (let ((split nil))
+    ;; Explode string into numeric and alphabetic components.
+    ;; Intermediate SPLIT result is in reverse order.
+    (let ((regexp (rx (or (group (one-or-more digit)) (one-or-more alpha))))
+          (start 0))
+      (while (string-match regexp s start)
+        (let ((component (match-string 0 s)))
+          (push (if (match-beginning 1) ;numeric component?
+                    (string-to-number component)
+                  ;; Version comparison ignores case.
+                  (downcase component))
+                split))
+        (setq start (match-end 0))))
+    ;; Attach ranks to components.  NUMERIC-FLAG is used to catch
+    ;; trailing alphabetic components, which get a special rank.
+    ;; However, if there is no numeric component, no alphabetic
+    ;; component ever gets this rank, hence the initial value.
+    (let ((numeric-flag (seq-every-p #'stringp split))
+          (result nil))
+      (dolist (component split)
+        (let ((rank
+               (cond
+                ;; 0 gets "zero" (1) rank.
+                ((equal 0 component) 1)
+                ;; Other numeric components get "nonzero" (3) rank.
+                ((wholenump component) 3)
+                ;; Pre-release keywords get "pre_release" (0) rank.
+                ((member component repology-version-pre-keywords) 0)
+                ;; Post-release keywords get "post_release" (2) rank.
+                ((member component repology-version-post-keywords) 2)
+                ;; Alphabetic components after the last numeric
+                ;; component get the "letter_suffix" (4) rank.
+                ((not numeric-flag) 4)
+                ;; Any other alphabetic component is "pre_release".
+                (t 0))))
+          (when (wholenump component) (setq numeric-flag t))
+          (push (cons rank component) result)))
+      result)))
 
 
 ;;; Utilities
@@ -618,8 +721,7 @@ of the above form."
   "Return t if OBJECT is a project."
   (pcase object
     (`(,(pred symbolp) . ,packages)
-     (seq-every-p #'repology-package-p packages)
-     t)
+     (seq-every-p #'repology-package-p packages))
     (_ nil)))
 
 (defun repology-project-name (project)
@@ -643,15 +745,18 @@ of the above form."
     (and newest (repology-package-field newest 'version))))
 
 (defun repology-project-outdated-versions (project)
-  "Return a list of outdated versions for packages in PROJECT."
+  "Return a list of outdated versions for packages in PROJECT, or nil.
+Versions are sorted in descending order."
   (let ((outdated
          (seq-filter
           (lambda (package)
             (equal "outdated"
                    (repology-package-field package 'status)))
           (repology-project-packages project))))
-    (mapcar (lambda (p) (repology-package-field p 'version))
-            outdated)))
+    (sort (mapcar (lambda (p) (repology-package-field p 'version))
+                  outdated)
+          ;; Return versions in decreasing order.
+          (lambda (s1 s2) (repology-compare-versions s2 s1)))))
 
 (defun repology-package-field (package field)
   "Return PACKAGE's FIELD.
@@ -727,7 +832,8 @@ Return nil if PACKAGE has no status field."
 
 (defun repology-package-colorized-version (package)
   "Return colorized version string for PACKAGE.
-The version string is emphasized according to PACKAGE's status."
+The version string is emphasized according to PACKAGE's status.
+See `repology-status-faces'."
   (propertize (repology-package-field package 'version)
               'face
               (repology--package-status-face package)))
@@ -760,8 +866,8 @@ following ones:
 (defun repology-list-repositories (&optional full-name)
   "Return repositories known to Repology.
 
-Return value is a list of strings.  When option argument FULL-NAME is non-nil,
-list the repositories with their full name instead of their internal name."
+Return a list of strings.  When option argument FULL-NAME is non-nil, list
+the repositories with their full name instead of their internal name."
   (unless repology--repositories
     (let ((request (repology--request repology-statistics-url)))
       (pcase (plist-get (plist-get request :status) :reason)
@@ -770,7 +876,7 @@ list the repositories with their full name instead of their internal name."
                (repositories nil)
                (start 0))
            (while (string-match "id=\"\\(.+?\\)\"" body start)
-             (setf start (match-end 0))
+             (setq start (match-end 0))
              (let* ((repo (match-string 1 body))
                     (regexp
                      (rx "href=\"/repository/"
@@ -782,14 +888,14 @@ list the repositories with their full name instead of their internal name."
                      (and (string-match regexp body start)
                           (match-string 1 body))))
                (push (cons repo true-name) repositories)))
-           (setf repology--repositories (nreverse repositories))))
+           (setq repology--repositories (nreverse repositories))))
         (status
          (error "Cannot retrieve information: %S" status)))))
   (mapcar (if full-name #'cdr #'car) repology--repositories))
 
 (defun repology-refresh-repositories ()
   "Refresh list of repositories known to Repology."
-  (setf repology--repositories nil)
+  (setq repology--repositories nil)
   (repology-list-repositories))
 
 (defun repology-repository-name (full-name)
@@ -809,11 +915,72 @@ Raise an error if REPOSITORY is unknown to Repology."
   (or (alist-get repository repology--repositories nil nil #'equal)
       (error "Corrupted repository list!")))
 
+(defun repology-compare-texts (s1 s2)
+  "Compare strings S1 and S2 in collation order.
+Return t if S1 is less than S2.  Case is ignored."
+  (string-collate-lessp s1 s2 nil t))
+
+(defun repology-compare-numbers (s1 s2)
+  "Compare strings S1 and S2 numerically.
+Return t if S1 is less than S2."
+  (< (string-to-number s1) (string-to-number s2)))
+
+(defun repology-compare-versions (s1 s2)
+  "Compare package versions associated to strings S1 and S2.
+
+Return t if version S1 is lower than version S2.
+
+See URL `https://github.com/repology/libversion/blob/master/doc/ALGORITHM.md'."
+  (let ((v1 (repology--string-to-version s1))
+        (v2 (repology--string-to-version s2)))
+    (catch :less?
+      (while (or v1 v2)
+        (pcase-let ((`(,r1 . ,v1)
+                     (or (pop v1) repology-version-zero-component))
+                    (`(,r2 . ,v2)
+                     (or (pop v2) repology-version-zero-component)))
+          (cond
+           ;; First compare ranks, then values.
+           ((/= r1 r2) (throw :less? (< r1 r2)))
+           ;; Components are equal.  Try next component.
+           ((equal v1 v2) nil)
+           ;; Numeric components are compared... numerically.
+           ((= r1 3) (throw :less? (< v1 v2)))
+           ;; Alphabetic components are compared by case insensitively
+           ;; comparing their first letters.
+           (t (throw :less?
+                     (string-lessp (substring v1 0 1) (substring v2 0 1)))))))
+      ;; Strings S1 and S2 represent equal versions.
+      nil)))
+
+(defun repology-non-free-p (datum)
+  "Return a non-nil value when DATUM is non-free.
+
+DATUM is a project or a package.  A package is non-free when one of its licenses
+is recognized as non-free.  A project is non-free when at least one of its
+packages is non-free.  See `repology-non-free-licenses-regexps' for a list of
+regexps known to match non-free licenses."
+  (let ((case-fold-search t))
+    ;; Non-nil whenever one of the packages in the list...
+    (seq-some (lambda (package)
+                ;; ... contains at least one license...
+                (seq-some (lambda (license)
+                            (message "License: %s" license)
+                            ;; ... matching a non-free license regexp.
+                            (seq-some (lambda (regexp)
+                                        (string-match regexp license))
+                                      repology-non-free-licenses-regexps))
+                          (repology-package-field package 'licenses)))
+              (pcase datum
+                ((pred repology-project-p) (repology-project-packages datum))
+                ((pred repology-package-p) (list datum))
+                (_ (user-error "Wrong argument type: %S" datum))))))
+
 
 ;;; Search functions
 (defun repology-project-lookup (name)
   "List packages for project NAME.
-NAME is a string.  Return value is a list of packages."
+NAME is a string.  Return a list of packages."
   (repology--get 'project name nil))
 
 (defun repology-projects-search (&rest filters)
@@ -868,7 +1035,8 @@ FILTERS helps refining the search with the following keywords:
   `has_related'
      return projects which have related ones (may require merging)
 
-Return value is a list of projects."
+Return a list of projects.  Projects with a known non-free license are removed
+from output, unless `repology-ignore-non-free-projects' is nil."
   (let ((result nil)
         (name nil))
     (catch :exit
@@ -877,26 +1045,33 @@ Return value is a list of projects."
           ;; If we are resuming a previous search, drop the first
           ;; match since it was also the last match in the previous
           ;; search.
-          (setf result (if result (append result (cdr request))
+          (setq result (if result
+                           (append result (cdr request))
                          request))
           (cond
            ;; Too many matches: drop those above limit and exit.
            ((<= repology-projects-limit (length result))
-            (throw :exit (seq-subseq result 0 repology-projects-limit)))
+            (setq result (seq-subseq result 0 repology-projects-limit))
+            (throw :exit nil))
            ;; Matches exhausted: exit and return result.
            ((> repology-projects-hard-limit (length request))
             (throw :exit result))
            ;; Resume search starting from the last project found.
            (t
-            (setf name
+            (setq name
                   (pcase (last request)
                     (`(,(and (pred repology-project-p) project))
                      (repology-project-name project))
-                    (other (error "Invalid request result: %S" other)))))))))))
+                    (other (error "Invalid request result: %S" other)))))))))
+    ;; Trim non-free projects.
+    (if (not repology-ignore-non-free-projects)
+        result
+      (seq-filter (lambda (project) (not (repology-non-free-p project)))
+                  result))))
 
 (defun repology-repository-problems (repository)
   "List problems related to REPOSITORY.
-REPOSITORY is a string.  Return value is a list of problems."
+REPOSITORY is a string.  Return a list of problems."
   (unless (member repository (repology-list-repositories))
     (user-error "Unknown repository: %S" repository))
   (repology--get 'repository repository nil))
@@ -921,9 +1096,15 @@ or nil.  This is the default value for `repology-display-projects-columns'."
                   (repology-package-colorized-version current)))
               20
               nil)))
-    ("#" (lambda (p) (length (repology-project-packages p))) 5 t)
-    ("Newest" repology-project-newest-version 12 nil)
-    ("Outdated" repology-project-outdated-versions 0 t)))
+    ("#"
+     (lambda (p) (length (repology-project-packages p)))
+     5
+     ,(repology-display-sort-column "#" #'repology-compare-numbers))
+    ("Newest"
+     repology-project-newest-version
+     12
+     ,(repology-display-sort-column "Newest" #'repology-compare-versions))
+    ("Outdated" repology-project-outdated-versions 30 nil)))
 
 (defun repology-display-package (package)
   "Display PACKAGE as a tabulated list."
@@ -972,18 +1153,35 @@ Columns are displayed according to `repology-display-problems-columns'."
 ;;; Interactive query
 ;;;###autoload
 (defun repology ()
-  "Query Repology interactively."
+  "Query Repology interactively.
+
+This function interacts with Repology API in three ways.  You can:
+
+1. List all packages associated to a given project.  See function
+   `repology-project-lookup'.
+
+2. Find potential problems related to packages in a repository, using
+   `repology-repository-problems'.  The function provides the list of
+   repositories to choose from.
+
+3. Search for projects matching some criteria.  Here, you build incrementally
+   a filter by selecting properties from a list.  See `repology-projects-search'
+   for more information.  Select \"OK\" to actually send the request.
+
+   During the filter creation, you may change the maximum number of projects
+   displayed by selecting \"limit\" from the list of properties.  The default
+   value is `repology-projects-limit'."
   (interactive)
-  (pcase (read-char "Action: (s)earch projects  (l)ookup project  \
-\(f)ind repository problems")
-    (?f
+  (pcase (read-char "Action: [S]earch projects  [L]ookup project  \
+\[B]rowse repository problems")
+    ((or ?b ?B)
      (repology-display-problems
       (repology-repository-problems
        (repology--query-repository "Repository: " nil))))
-    (?l
+    ((or ?l ?L)
      (repology-display-packages
       (repology-project-lookup (read-string "Project: "))))
-    (?s
+    ((or ?s ?S)
      (let* ((query nil)
             (limit repology-projects-limit)
             (answers
@@ -997,7 +1195,7 @@ Columns are displayed according to `repology-display-problems-columns'."
              (lambda (p)
                ;; Ask user for a filter.  P is the property list
                ;; built so far.  Return associated keyword.
-               (let ((prompt (format "Filters %s [limit:%d]: "
+               (let ((prompt (format "Filter %s [limit:%d]: "
                                      (if p (format "%S" p) "()")
                                      limit)))
                  (read
