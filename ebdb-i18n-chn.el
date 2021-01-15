@@ -4,7 +4,7 @@
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 ;; Maintainer: Eric Abrahamsen <eric@ericabrahamsen.net>
-;; Version: 1.3.1
+;; Version: 1.3.2
 ;; Package-Requires: ((pyim "1.6.0") (ebdb "0.6.17"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -48,7 +48,7 @@
 	 (format "X%d" extension)
        ""))))
 
-(cl-defmethod ebdb-parse-i18n ((class (subclass ebdb-field-phone))
+(cl-defmethod ebdb-parse-i18n ((_class (subclass ebdb-field-phone))
 			       (str string)
 			       (_cc (eql 86))
 			       &optional slots)
@@ -92,7 +92,7 @@
   "A list of Chinese surnames that are longer than one
   character.")
 
-(cl-defmethod ebdb-parse-i18n ((class (subclass ebdb-field-name-complex))
+(cl-defmethod ebdb-parse-i18n ((_class (subclass ebdb-field-name-complex))
 			       (string string)
 			       (_script (eql han))
 			       &optional _slots)
@@ -137,20 +137,16 @@ searches via pinyin will find the record."
 		(concat (ebdb-name-last field)
 			" "
 			(ebdb-name-given field t))))
-	(name-string (ebdb-string field))
-	hashfunc listfunc)
+	(name-string (ebdb-string field)))
     (if (eql add-or-del 'add)
-	(progn
-	  (setq hashfunc #'ebdb-puthash
-		listfunc #'ebdb-add-to-list))
-      (setq hashfunc #'ebdb-remhash
-	    listfunc #'ebdb-remove-from-list))
-    (funcall hashfunc fl-py record)
-    (funcall hashfunc lf-py record)
-    (funcall hashfunc name-string record)
-    (funcall listfunc (ebdb-record-alt-names record) fl-py)
-    (funcall listfunc (ebdb-record-alt-names record) name-string)
-    (funcall listfunc (ebdb-record-alt-names record) lf-py)))
+	(dolist (str (list fl-py name-string lf-py))
+	  (cl-pushnew str (ebdb-record-alt-names record)
+		      :test #'equal)
+	  (ebdb-puthash str record))
+      (dolist (str (list fl-py name-string lf-py))
+	(setf (ebdb-record-alt-names record)
+	      (remove str (ebdb-record-alt-names record)))
+	(ebdb-remhash str record)))))
 
 (cl-defmethod ebdb-china-handle-name ((field ebdb-field-name-simple)
 				      (record ebdb-record)
@@ -159,16 +155,15 @@ searches via pinyin will find the record."
   ;; We use `pyim-hanzi2pinyin-simple' because it's cheaper, and
   ;; because checking for multiple character pronunciations isn't
   ;; really helpful in people's names.
-  (let ((name-string (ebdb-string field))
-	hashfunc listfunc)
+  (let ((name-string (ebdb-string field)))
     (if (eql add-or-del 'add)
 	(progn
-	  (setq hashfunc #'ebdb-puthash
-		listfunc #'ebdb-add-to-list))
-      (setq hashfunc #'ebdb-remhash
-	    listfunc #'ebdb-remove-from-list))
-    (funcall hashfunc name-string record)
-    (funcall listfunc (ebdb-record-alt-names record) name-string)))
+	  (cl-pushnew name-string (ebdb-record-alt-names record)
+		      :test #'equal)
+	  (ebdb-puthash name-string record))
+      (setf (ebdb-record-alt-names record)
+	    (remove name-string (ebdb-record-alt-names record)))
+      (ebdb-remhash name-string record))))
 
 (cl-defmethod ebdb-init-field-i18n ((field ebdb-field-name)
 				    record
