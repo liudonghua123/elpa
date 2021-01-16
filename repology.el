@@ -6,7 +6,7 @@
 ;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: web
 ;; Package-Requires: ((emacs "26.1"))
-;; Version: 0.10
+;; Version: 0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -29,14 +29,14 @@
 ;; The results of a query revolve around three types of objects:
 ;; projects, packages and problems.  Using this library, you can find
 ;; projects matching certain criteria, packages in a given project,
-;; and possible problems in some repository.  See `repology-projects-search',
-;; `repology-project-lookup', and `repology-repository-problems'.
+;; and possible problems in some repository.  See `repology-search-projects',
+;; `repology-lookup-project', and `repology-report-problems'.
 ;; Projects-related requests are limited to `repology-projects-limit'.
 ;; All requests are cached during `repology-cache-duration' seconds.
 ;;
 ;; By default, projects including packages with a known non-free license
 ;; are not included in the search results.  You can control this behavior
-;; with the variable `repology-ignore-non-free-projects'.
+;; with the variable `repology-free-only-projects'.
 
 ;; You can then access data from those various objects using dedicated
 ;; accessors.  See, for example, `repology-project-name',
@@ -61,7 +61,7 @@
 ;;     (seq-filter (lambda (project)
 ;;                   (not (member (repology-project-name project)
 ;;                                my-ignored-projects)))
-;;                 (repology-projects-search
+;;                 (repology-search-projects
 ;;                  :search "emacs" :inrepo "gnuguix" :outdated "on")))
 
 ;; Eventually, this library provides an interactive function with
@@ -83,6 +83,8 @@
 (require 'json)
 (require 'tabulated-list)
 (require 'url)
+
+(require 'repology-license)
 
 
 ;;; Macros
@@ -177,28 +179,13 @@ Repology claims to update its repository hourly.
 A value of 0 prevents any caching."
   :type 'integer)
 
-(defcustom repology-ignore-non-free-projects t
-  "When non-nil, ignore projects with a non-free license from searches.
+(defcustom repology-free-only-projects t
+  "When non-nil, return only free projects from searches.
 
-See `repology-non-free-licenses-regexps' for information about how a project
-is assumed to be non-free.
-
-Projects with missing or erroneous licensing information may still be displayed.
-Use your judgement!"
+Declaring a project as free the consequence of a very conservative process.
+Free projects with missing licensing information, or too confidential, may be
+ignored.  See `repology-free-p' for more information."
   :type 'boolean)
-
-(defcustom repology-non-free-licenses-regexps
-  '("commercial" "freeware" "google-chrome" "no modification permitted"
-    "microsoft" "nonfree" "proprietary" "restrictive" "skype" "unfree"
-    "valvesteamlicense")
-  "List of licenses field regexps known to match non-free licenses.
-
-Any project containing at least one package with a license matching one of these
-regexps is considered to be non-free.  Case is ignored.
-
-Feel free to contact the maintainer of this library to suggest additional
-default regexps."
-  :type '(repeat regexp))
 
 (defcustom repology-status-faces
   '(("incorrect" . error)
@@ -442,10 +429,8 @@ the request."
               (forward-line))
             (forward-line)
             (unless (eobp)
-              (setq body
-                    (url-unhex-string
-                     (buffer-substring (point) (point-max)))))
-            (list :status status :header (nreverse header) :body body)))
+              (setq body (buffer-substring (point) (point-max))))
+            (append status (list :header (nreverse header) :body body))))
       (kill-buffer process-buffer))))
 
 (defun repology--get (action value start)
@@ -460,7 +445,7 @@ Information is returned as parsed JSON."
         (let ((request (repology--request
                         (repology--build-url action value start)
                         '(("Content-Type" . "application/json")))))
-          (pcase (plist-get (plist-get request :status) :reason)
+          (pcase (plist-get request :reason)
             ("OK"
              (let ((body (repology--parse-json (plist-get request :body))))
                (repology--cache-put key body)
@@ -870,7 +855,7 @@ Return a list of strings.  When option argument FULL-NAME is non-nil, list
 the repositories with their full name instead of their internal name."
   (unless repology--repositories
     (let ((request (repology--request repology-statistics-url)))
-      (pcase (plist-get (plist-get request :status) :reason)
+      (pcase (plist-get request :reason)
         ("OK"
          (let ((body (plist-get request :body))
                (repositories nil)
@@ -953,37 +938,14 @@ See URL `https://github.com/repology/libversion/blob/master/doc/ALGORITHM.md'."
       ;; Strings S1 and S2 represent equal versions.
       nil)))
 
-(defun repology-non-free-p (datum)
-  "Return a non-nil value when DATUM is non-free.
-
-DATUM is a project or a package.  A package is non-free when one of its licenses
-is recognized as non-free.  A project is non-free when at least one of its
-packages is non-free.  See `repology-non-free-licenses-regexps' for a list of
-regexps known to match non-free licenses."
-  (let ((case-fold-search t))
-    ;; Non-nil whenever one of the packages in the list...
-    (seq-some (lambda (package)
-                ;; ... contains at least one license...
-                (seq-some (lambda (license)
-                            (message "License: %s" license)
-                            ;; ... matching a non-free license regexp.
-                            (seq-some (lambda (regexp)
-                                        (string-match regexp license))
-                                      repology-non-free-licenses-regexps))
-                          (repology-package-field package 'licenses)))
-              (pcase datum
-                ((pred repology-project-p) (repology-project-packages datum))
-                ((pred repology-package-p) (list datum))
-                (_ (user-error "Wrong argument type: %S" datum))))))
-
 
 ;;; Search functions
-(defun repology-project-lookup (name)
+(defun repology-lookup-project (name)
   "List packages for project NAME.
 NAME is a string.  Return a list of packages."
   (repology--get 'project name nil))
 
-(defun repology-projects-search (&rest filters)
+(defun repology-search-projects (&rest filters)
   "Retrieve results of an advanced search in Repology.
 
 FILTERS helps refining the search with the following keywords:
@@ -1036,18 +998,13 @@ FILTERS helps refining the search with the following keywords:
      return projects which have related ones (may require merging)
 
 Return a list of projects.  Projects with a known non-free license are removed
-from output, unless `repology-ignore-non-free-projects' is nil."
+from output, unless `repology-free-only-projects' is nil."
   (let ((result nil)
         (name nil))
     (catch :exit
       (while t
         (let ((request (repology--get 'projects filters name)))
-          ;; If we are resuming a previous search, drop the first
-          ;; match since it was also the last match in the previous
-          ;; search.
-          (setq result (if result
-                           (append result (cdr request))
-                         request))
+          (setq result (append result (cdr request)))
           (cond
            ;; Too many matches: drop those above limit and exit.
            ((<= repology-projects-limit (length result))
@@ -1056,20 +1013,21 @@ from output, unless `repology-ignore-non-free-projects' is nil."
            ;; Matches exhausted: exit and return result.
            ((> repology-projects-hard-limit (length request))
             (throw :exit result))
-           ;; Resume search starting from the last project found.
+           ;; Resume search starting from an imaginary project located
+           ;; right after the last project found, alphabetically.
            (t
             (setq name
                   (pcase (last request)
                     (`(,(and (pred repology-project-p) project))
-                     (repology-project-name project))
+                     (concat (repology-project-name project) "-"))
                     (other (error "Invalid request result: %S" other)))))))))
     ;; Trim non-free projects.
-    (if (not repology-ignore-non-free-projects)
+    (if (not repology-free-only-projects)
         result
-      (seq-filter (lambda (project) (not (repology-non-free-p project)))
+      (seq-filter (lambda (project) (repology-free-p project))
                   result))))
 
-(defun repology-repository-problems (repository)
+(defun repology-report-problems (repository)
   "List problems related to REPOSITORY.
 REPOSITORY is a string.  Return a list of problems."
   (unless (member repository (repology-list-repositories))
@@ -1116,7 +1074,7 @@ or nil.  This is the default value for `repology-display-projects-columns'."
 
 (defun repology-display-packages (packages)
   "Display PACKAGES as a tabulated list.
-PACKAGES is a list of packages, as returned by `repology-project-lookup'.
+PACKAGES is a list of packages, as returned by `repology-lookup-project'.
 Columns are displayed according to `repology-display-packages-columns'."
   (repology--make-display packages
                           "*Repology Packages*"
@@ -1126,7 +1084,7 @@ Columns are displayed according to `repology-display-packages-columns'."
 (defun repology-display-projects (projects &optional selected)
   "Display PROJECTS as a tabulated list.
 
-PROJECTS is a list of projects, as returned by `repology-projects-search'.
+PROJECTS is a list of projects, as returned by `repology-search-projects'.
 Optional argument SELECTED, when non-nil, is the name of a repository to which
 all projects are related.
 
@@ -1142,7 +1100,7 @@ Columns are displayed according to `repology-display-projects-columns'."
 
 (defun repology-display-problems (problems)
   "Display PROBLEMS as a tabulated list.
-PROBLEMS is a list of problems, as returned by `repology-repository-problems'.
+PROBLEMS is a list of problems, as returned by `repology-report-problems'.
 Columns are displayed according to `repology-display-problems-columns'."
   (repology--make-display problems
                           "*Repology Problems*"
@@ -1158,14 +1116,14 @@ Columns are displayed according to `repology-display-problems-columns'."
 This function interacts with Repology API in three ways.  You can:
 
 1. List all packages associated to a given project.  See function
-   `repology-project-lookup'.
+   `repology-lookup-project'.
 
 2. Find potential problems related to packages in a repository, using
-   `repology-repository-problems'.  The function provides the list of
+   `repology-report-problems'.  The function provides the list of
    repositories to choose from.
 
 3. Search for projects matching some criteria.  Here, you build incrementally
-   a filter by selecting properties from a list.  See `repology-projects-search'
+   a filter by selecting properties from a list.  See `repology-search-projects'
    for more information.  Select \"OK\" to actually send the request.
 
    During the filter creation, you may change the maximum number of projects
@@ -1173,14 +1131,14 @@ This function interacts with Repology API in three ways.  You can:
    value is `repology-projects-limit'."
   (interactive)
   (pcase (read-char "Action: [S]earch projects  [L]ookup project  \
-\[B]rowse repository problems")
-    ((or ?b ?B)
+\[R]eport repository problems")
+    ((or ?r ?R)
      (repology-display-problems
-      (repology-repository-problems
+      (repology-report-problems
        (repology--query-repository "Repository: " nil))))
     ((or ?l ?L)
      (repology-display-packages
-      (repology-project-lookup (read-string "Project: "))))
+      (repology-lookup-project (read-string "Project: "))))
     ((or ?s ?S)
      (let* ((query nil)
             (limit repology-projects-limit)
@@ -1215,10 +1173,10 @@ This function interacts with Repology API in three ways.  You can:
                   (setq query (plist-put query filter value))))))))
        ;; Eventually send complete request to Repology API.
        (repology-display-projects (let ((repology-projects-limit limit))
-                                    (apply #'repology-projects-search query))
+                                    (apply #'repology-search-projects query))
                                   ;; Selected repository, or nil.
                                   (plist-get query :inrepo))))
-    (c (user-error "Unknown answer: %c.  Aborting" c))))
+    (_ (user-error "Unknown answer.  Aborting"))))
 
 
 (provide 'repology)
