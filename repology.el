@@ -848,8 +848,7 @@ from output, unless `repology-free-only-projects' is nil."
     ;; Possibly keep only free projects.
     (if repology-free-only-projects
         (with-temp-message "Repology: Filtering out non-free projects..."
-          (seq-filter (lambda (project) (repology-free-p project))
-                      result))
+          (seq-filter #'repology-free-p result))
       result)))
 
 (defun repology-report-problems (repository)
