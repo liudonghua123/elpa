@@ -29,6 +29,15 @@
 ;; In order to see the results of each vote, and possibly debug the
 ;; process, you can set `repology-license-debug' to a non-nil value.
 
+;;; Code:
+
+(declare-function repology-request "repology" (url &optional extra-headers))
+(declare-function repology-package-field "repology" (package field))
+(declare-function repology-project-name "repology" (project))
+(declare-function repology-package-p "repology" (object))
+(declare-function repology-project-p "repology" (object))
+(declare-function repology-project-packages "repology" (project))
+
 
 ;;; Constants
 (defconst repology-license-reference-repositories
@@ -53,10 +62,13 @@ This is a list of triplets (REPO SUBREPO PREDICATE) where:
  SUBREPO is a regexp matching a sub-repository or nil;
  PREDICATE is either a boolean or a function called with one string argument.
 
-When PREDICATE is a function, it must return a non-nil value if the argument
-is a free license according to the repository.  If PREDICATE is t, we trust
-the repository to provide only free software.  Conversely, PREDICATE is nil
-when the repository is known to reference only non-free software.
+When PREDICATE is a function, a return value of t means the argument is a free
+license according to the repository, whereas nil means it is non-free.  Any
+other value means the repository cannot decide, and pass.
+
+If PREDICATE is t, we trust the repository to provide only free software.
+Conversely, PREDICATE is nil when the repository is known to reference only
+non-free software.
 
 A repository with a PREDICATE function is expected to have the following
 properties:
@@ -68,13 +80,22 @@ properties:
 (defconst repology-license-poll-threshold 0.5
   "Ratio of votes above which a package is declared to be free.")
 
+(defconst repology--license-identifiers-url:gentoo
+  "https://gitweb.gentoo.org/repo/gentoo.git/plain/profiles/license_groups"
+  "URL referencing Gentoo free license identifiers.")
+
+(defconst repology--license-categories:gentoo
+  '("GPL-COMPATIBLE" "FSF-APPROVED" "OSI-APPROVED" "MISC-FREE"
+    "FSF-APPROVED-OTHER" "MISC-FREE-DOCS")
+  "List of free license categories according to Gentoo.")
+
 
 ;;; Tools
 (defun repology--license-interpret-vote (free votes)
   "Return freedom vote result as a boolean.
 FREE is the number of \"Free\" votes.  VOTES is the total number of votes."
   (and (> votes 0)
-       (>= (/ (float free) votes) repology-license-poll-threshold)))
+       (> (/ (float free) votes) repology-license-poll-threshold)))
 
 
 ;;; Reference Repository: Fedora
@@ -83,82 +104,43 @@ FREE is the number of \"Free\" votes.  VOTES is the total number of votes."
 See URL \
 `https://docs.fedoraproject.org/en-US/packaging-guidelines/LicensingGuidelines/'"
   (let ((case-fold-search t)
-        ;; Anything in Fedora is free, unless its license contains the
-        ;; following.
+        ;; Anything in Fedora is considered to be free, unless its
+        ;; license contains the following.
         (non-free-license-re
          (rx word-start "Redistributable, no modification permitted" word-end)))
     (not (string-match non-free-license-re license))))
 
 
 ;;; Reference Repository: Gentoo
-(defconst repology--license-identifiers:gentoo
-  (list
-   ;; GPL-COMPATIBLE
-   "AGPL-3" "AGPL-3+" "Apache-2.0" "Apache-2.0-with-LLVM-exceptions"
-   "Artistic-2" "Boost-1.0" "BSD" "BSD-2" "CC0-1.0" "CeCILL-2"
-   "Clarified-Artistic" "Clear-BSD"  "ECL-2.0" "FTL"
-   "gcc-runtime-library-exception-3.1" "GPL-1" "GPL-1+" "GPL-2" "GPL-2+" "GPL-3"
-   "GPL-3+" "GPL-2-with-classpath-exception" "GPL-2-with-exceptions"
-   "GPL-2-with-font-exception" "GPL-2-with-linking-exception"
-   "GPL-2-with-MySQL-FLOSS-exception" "GPL-2+-with-openssl-exception"
-   "GPL-3+-with-cuda-exception" "GPL-3+-with-cuda-openssl-exception"
-   "GPL-3-with-font-exception" "GPL-3+-with-opencl-exception"
-   "GPL-3+-with-opencl-openssl-exception" "GPL-3-with-openssl-exception"
-   "Transmission-OpenSSL-exception" "UPX-exception" "HPND" "IJG" "ISC" "LGPL-2"
-   "LGPL-2+" "LGPL-2.1" "LGPL-2.1+" "LGPL-3" "LGPL-3+"
-   "LGPL-2-with-linking-exception" "LGPL-2.1-with-linking-exception"
-   "LGPL-3-with-linking-exception" "Nokia-Qt-LGPL-Exception-1.1" "libgcc"
-   "libstdc++" "metapackage" "MIT" "MPL-2.0" "OPENLDAP" "PSF-2" "PSF-2.2"
-   "PSF-2.3" "PSF-2.4" "public-domain" "PYTHON" "qwt" "Ruby" "Ruby-BSD"
-   "SGI-B-2.0" "Sleepycat" "tanuki-community" "unicode" "Unlicense" "UoI-NCSA"
-   "vim" "W3C" "WTFPL-2" "wxWinLL-3.1" "ZLIB" "ZPL"
-   ;; FSF-APPROVED
-   "AFL-2.1" "AFL-3.0" "Apache-1.0" "Apache-1.1" "APSL-2" "BSD-4" "CDDL" "CNRI"
-   "CPAL-1.0" "CPL-1.0" "EPL-1.0" "EPL-2.0" "EUPL-1.1" "gnuplot" "IBM"
-   "LPPL-1.2" "MPL-1.0" "MPL-1.1" "Ms-PL" "NPL-1.1" "openssl" "OSL-1.1"
-   "OSL-2.0" "OSL-2.1" "PHP-3.01" "QPL" "QPL-1.0" "Zend-2.0"
-   ;; OSI-APPROVED
-   "AFL-3.0" "AGPL-3" "AGPL-3" "Apache-1.1" "Apache-2.0" "APL-1.0" "APSL-2"
-   "Artistic" "Artistic-2" "Boost-1.0" "BSD" "BSD-2" "CDDL" "CNRI" "CPAL-1.0"
-   "CPL-1.0" "ECL-2.0" "EPL-1.0" "EPL-2.0" "EUPL-1.1" "GPL-1" "GPL-2" "GPL-2"
-   "GPL-3" "GPL-3" "HPND" "IBM" "IPAfont" "ISC" "LGPL-2" "LGPL-2.1" "LGPL-2.1"
-   "LGPL-3" "LGPL-3" "LPPL-1.3c" "MIT" "MPL-1.0" "MPL-1.1" "MPL-2.0" "Ms-PL"
-   "nethack" "NOSA" "OFL-1.1"  "OSL-2.1" "PHP-3" "PHP-3.01" "POSTGRESQL" "PSF-2"
-   "QPL" "Sleepycat" "UoI-NCSA" "W3C" "Watcom-1.0" "wxWinLL-3" "ZLIB" "ZPL"
-   ;; MISC-FREE
-   "Allegro" "alternate" "AMPAS" "bea.ri.jsr173" "BEER-WARE" "boehm-gc" "BSD-1"
-   "BSD-with-attribution" "BSD-with-disclosure" "buddy" "bufexplorer.vim"
-   "BZIP2" "canfep" "CAOSL" "CDDL-Schily" "CeCILL-C" "CLX" "CMake" "CPL-0.5"
-   "CRACKLIB" "Crypt-IDEA" "DES" "docbook" "dom4j" "DUMB-0.9.3"
-   "eGenixPublic-1.1" "ElementTree" "Emacs" "ErlPL-1.1" "FastCGI" "feh"
-   "File-MMagic" "Flashpix" "FLEX" "flexmock" "FLTK" "freetts" "FVWM" "gd"
-   "gsm" "HTML-Tidy" "htmlc" "iASL" "icu" "IDPL" "imagemagick" "Info-ZIP"
-   "inner-net" "Interbase-1.0" "ipadic" "ipx-utils" "Ispell" "JasPer2.0" "JDOM"
-   "JNIC" "JOVE" "Khronos-CLHPP" "LambdaMOO" "LIBGLOSS" "libmng" "libpng"
-   "libpng2" "libtiff" "LLVM-Grant" "LPPL-1.3" "LPPL-1.3b" "lsof"
-   "Mail-Sendmail" "mapm-4.9.5" "matplotlib" "Mini-XML" "minpack"
-   "MIT-with-advertising" "mm" "mpich2" "NCSA-HDF" "netcat" "NEWLIB" "ngrep"
-   "Old-MIT" "openafs-krb5-a" "Openwall" "otter" "PCRE" "perforce" "photopc"
-   "PHP-2.02" "pngcrush" "pngnq" "Princeton" "psutils" "qmail-nelson" "rc"
-   "rdisc" "regexp-UofT" "repoze" "RSA" "rwpng" "scanlogd" "Sendmail"
-   "Sendmail-Open-Source" "shrimp" "SMAIL" "Snd" "SNIA" "SSLeay" "Subversion"
-   "SVFL" "symlinks" "tablelist" "tcltk" "tcp_wrappers_license" "TeX"
-   "TeX-other-free" "the-Click-license" "Time-Format" "Time-modules" "tm-align"
-   "torque-2.5" "totd" "Toyoda" "UCAR-Unidata" "URT" "VTK" "w3m" "x2x" "xbatt"
-   "xboing" "XC" "Xdebug" "xtrs" "xvt" "YaTeX" "yuuji" "ZSH"
-   ;; FSF-APPROVED-OTHER.
-   "Arphic" "CC-BY-2.0" "CC-BY-2.5" "CC-BY-3.0" "CC-BY-4.0" "CC-BY-SA-2.0"
-   "CC-BY-SA-2.5" "CC-BY-SA-3.0" "CC-BY-SA-4.0" "FDL-1.1" "FDL-1.1+" "FDL-1.2"
-   "FDL-1.2+" "FDL-1.3" "FDL-1.3+" "FreeArt" "GPL-1" "GPL-1+" "GPL-2" "GPL-2+"
-   "GPL-3" "GPL-3+" "IPAfont" "OFL" "OFL-1.1" "OPL"
-   ;; MISC-FREE-DOCS.
-   "BitstreamVera" "CC-PD" "CC-BY-SA-1.0" "CC-SA-1.0" "LDP-1" "LDP-1a"
-   "man-pages" "man-pages-posix" "man-pages-posix-2013" "MaxMind2" "mplus-fonts"
-   "myspell-en_CA-KevinAtkinson" "quake1-textures" "Texinfo-manual"
-   "UbuntuFontLicense-1.0" "Unicode_Fonts_for_Ancient_Scripts" "vlgothic"
-   "wxWinFDL-3")
-  "List of identifiers considered as free licenses by Gentoo
-See URL `https://wiki.gentoo.org/wiki/License_groups'.")
+(defvar repology--license-identifiers:gentoo nil
+  "List of identifiers considered as free licenses by Gentoo.
+See URL `https://wiki.gentoo.org/wiki/License_groups'.
+This list is populated with `repology--license-get-identifiers:gentoo'.")
+
+(defun repology--license-get-identifiers:gentoo ()
+  "Return list of free license identifiers according to Gentoo."
+  (unless repology--license-identifiers:gentoo
+    (with-temp-message "Repology: Fetching license identifiers for Gentoo..."
+      (let ((request
+              (repology-request repology--license-identifiers-url:gentoo)))
+        (pcase (plist-get request :reason)
+          ("OK"
+           (let ((identifiers nil))
+             (with-temp-buffer
+               (insert (plist-get request :body))
+               (dolist (category repology--license-categories:gentoo)
+                 (goto-char 1)
+                 (when (re-search-forward (concat "^" category " +"))
+                   (let ((line (buffer-substring (point) (line-end-position))))
+                     (setq identifiers
+                           (nconc (split-string line) identifiers)))))
+               (dolist (category repology--license-categories:gentoo)
+                 (setq identifiers (delete (concat "@" category) identifiers))))
+             (setq repology--license-identifiers:gentoo identifiers)))
+          (_
+           (message
+            "Repology: Cannot fetch Gentoo licenses.  \
+Ignoring repository")))))))
 
 (defun repology--license-gentoo:skip-whitespace ()
   "Skip past the whitespace at point."
@@ -172,8 +154,8 @@ See URL `https://wiki.gentoo.org/wiki/License_groups'.")
   "Advance N characters forward."
   (forward-char n))
 
-(defun repology--license-gentoo:peek (&optional n)
-  "Advance N characters forward."
+(defun repology--license-gentoo:peek ()
+  "Return the character at point."
   (following-char))
 
 (defun repology--license-gentoo:and ()
@@ -234,15 +216,17 @@ See URL `https://wiki.gentoo.org/wiki/License_groups'.")
 
 (defun repology--license-check:gentoo (license)
   "Return a non-nil value if LICENSE is free, according to Gentoo."
-  (with-temp-buffer
-    (insert license)
-    (goto-char 1)
-    (repology--license-gentoo:skip-whitespace)
-    (let ((value (not (eobp))))         ;blank string check
-      (while (and value (/= (repology--license-gentoo:peek) 0))
-        (unless (repology--license-gentoo:read-next)
-          (setq value nil)))
-      value)))
+  (if (null (repology--license-get-identifiers:gentoo))
+      'pass                             ;no license to check
+    (with-temp-buffer
+      (insert license)
+      (goto-char 1)
+      (repology--license-gentoo:skip-whitespace)
+      (let ((value (not (eobp))))       ;blank string check
+        (while (and value (/= (repology--license-gentoo:peek) 0))
+          (unless (repology--license-gentoo:read-next)
+            (setq value nil)))
+        value))))
 
 
 ;;; Reference Repository: OpenSUSE (OSS)
@@ -250,8 +234,8 @@ See URL `https://wiki.gentoo.org/wiki/License_groups'.")
   "Return a non-nil value if LICENSE is free, according to OpenSUSE (OSS).
 See URL `https://en.opensuse.org/openSUSE:Packaging_guidelines#Licensing'."
   (let ((case-fold-search t)
-        ;; Anything in Fedora is free, unless its license contains the
-        ;; following.
+        ;; Anything in OSS sub-repository from OpenSUSE is considered
+        ;; to be free, unless its license contains the following.
         (non-free-license-re
          (rx word-start "SUSE-Firmware" word-end)))
     (not (string-match non-free-license-re license))))
@@ -295,7 +279,7 @@ from reference repositories in PROJECT."
 ;;; Main Function
 (defun repology--license-find-reference-repository (package)
   "Return the reference repository containing PACKAGE, or nil.
-Return value is a triplet per `repology-license-reference-repositories'."
+Return value is a triplet from `repology-license-reference-repositories'."
   (let ((repo (repology-package-field package 'repo))
         (subrepo (repology-package-field package 'subrepo)))
     (seq-find (pcase-lambda (`(,r ,s ,_))
@@ -304,33 +288,38 @@ Return value is a triplet per `repology-license-reference-repositories'."
                          (and subrepo (string-match s subrepo)))))
               repology-license-reference-repositories)))
 
-(defun repology--license-free-p (package &optional repository)
-  "Return a non-nil value when PACKAGE is free.
-A package is free when any reference repository can attest it uses only free
-licenses.  When optional argument REPOSITORY is non-nil, use it as a reference."
+(defun repology--license-check (package repository)
+  "Check if PACKAGE is free according to REPOSITORY.
+REPOSITORY is an element from `repology-license-reference-repositories'.
+PACKAGE is free when REPOSITORY can attest it uses only free licenses."
   (pcase (or repository (repology--license-find-reference-repository package))
-    ('nil nil)
     (`(,_ ,_ ,(and (pred functionp) p))
      (seq-every-p p (repology-package-field package 'licenses)))
     (`(,_ ,_ ,boolean) boolean)
     (other (error "Wrong repository definition: %S" other))))
 
 (defun repology-free-p (datum)
-  "Return a non-nil value when DATUM is free.
-
-DATUM is a project or a package.
+  "Return t when project or package DATUM is free.
 
 A package is free when any reference repository can attest it uses only free
 licenses.  See `repology-license-reference-repositories' for a list of such
-repositories.
+repositories.  If the package does not belong to any of these repositories,
+or if there is not enough information to decide, return `unknown'.  Otherwise,
+return nil.
 
 A project is free if the ratio of free packages among the packages from
 reference repositories is above `repology-license-poll-threshold'.
-A project without any package from these repositories is declared as non-free.
+In any other case, return nil.  In particular, a project without any package
+from reference repositories is declared non-free.
 
-Of course, it is not a legal statement, merely an indicator."
+Of course, it is not a legal statement, merely an indication."
   (pcase datum
-    ((pred repology-package-p) (repology--license-free-p datum))
+    ((pred repology-package-p)
+     (pcase (repology--license-find-reference-repository datum)
+       ('nil 'unknown)
+       (repository
+        (let ((decision (repology--license-check datum repository)))
+          (if (booleanp decision) decision 'unknown)))))
     ((pred repology-project-p)
      (let ((votes 0)
            (yes 0)
@@ -343,11 +332,12 @@ Of course, it is not a legal statement, merely an indicator."
             (unless (member repository voters)
               (cl-incf votes)
               (push repository voters)  ;a repository votes only once
-              (let ((free (repology--license-free-p package repository)))
-                (when free (cl-incf yes))
-                (when repology-license-debug
-                  (push (repology--license-debug-line package free)
-                        reports)))))))
+              (let ((free (repology--license-check package repository)))
+                (when (booleanp free)   ;has repository an opinion?
+                  (when free (cl-incf yes))
+                  (when repology-license-debug
+                    (push (repology--license-debug-line package free)
+                          reports))))))))
        ;; Maybe display vote reports as debugging information.
        (when repology-license-debug
          (repology--license-debug-display datum reports yes votes))

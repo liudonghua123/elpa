@@ -34,9 +34,10 @@
 ;; Projects-related requests are limited to `repology-projects-limit'.
 ;; All requests are cached during `repology-cache-duration' seconds.
 ;;
-;; By default, projects including packages with a known non-free license
-;; are not included in the search results.  You can control this behavior
-;; with the variable `repology-free-only-projects'.
+;; By default, only projects recognized as free are included in the search
+;; results.  You can control this behavior with the variable
+;; `repology-free-only-projects'.  The function `repology-free-p' is responsible
+;; for guessing if a project, or a package, is free or not.
 
 ;; You can then access data from those various objects using dedicated
 ;; accessors.  See, for example, `repology-project-name',
@@ -51,7 +52,7 @@
 ;; `repology-display-packages-columns',`repology-display-projects-columns',
 ;; and `repology-display-problems-columns').  When projects or packages
 ;; are displayed, pressing <RET> gives you more information about the item
-;; at point.
+;; at point, whereas pressing <F> reports their "freedom" status.
 
 ;; For example, the following expression displays all outdated projects
 ;; named after "emacs" and containing a package in GNU Guix repository
@@ -105,12 +106,12 @@ objects of the column."
          (funcall ,predicate s1 s2)))))
 
 
-;;; Constants
+;;; Upstream Constants
 (defconst repology-base-url "https://repology.org/api/v1/"
   "Base URL for Repology API.")
 
 (defconst repology-statistics-url "https://repology.org/repositories/statistics"
-  "Base URL for \"Statistics\" page in Repology website.
+  "URL for \"Statistics\" page in Repology website.
 It is used as a source for all known repositories.")
 
 (defconst repology-package-all-fields
@@ -126,37 +127,6 @@ It is used as a source for all known repositories.")
 (defconst repology-projects-hard-limit 200
   "Maximum number of projects Repology API can return.
 See URL `https://repology.org/api'.")
-
-(defconst repology-project-filters-parameters
-  `((:search          "Name search (e.g. emacs): " nil)
-    (:maintainer      "Maintainer (e.g. foo@bar.com): " nil)
-    (:category        "Category (e.g. games): " nil)
-    (:inrepo          "In repository: " repology--query-repository)
-    (:notinrepo       "Not in repository: " repology--query-repository)
-    (:repos           "Repositories (e.g. 1 or 2- or 3-5): " nil)
-    (:families        "Families (e.g. 1 or 2- or 3-5): " nil)
-    (:repos_newest    "Repositories newest (e.g. 1 or 2- or 3-5): " nil)
-    (:families_newest "Families newest (e.g. 1 or 2- or 3-5): " nil)
-    (:newest          "Newest? " repology--query-y-or-n-p)
-    (:outdated        "Outdated? " repology--query-y-or-n-p)
-    (:problematic     "Problematic? " repology--query-y-or-n-p)
-    (:vulnerable      "Potentially vulnerable? " repology--query-y-or-n-p)
-    (:has_related     "Has related? " repology--query-y-or-n-p))
-  "Association list between project filters and query data.
-Each entry is a triplet (FILTER PROMPT QUERY) where FILTER is a keyword, PROMPT
-is a string, and QUERY is a function used to prompt the user, or nil.
-When setting the value of FILTER interactively, QUERY is called with
-two arguments, PROMPT and an initial value.  It must return a string.  If QUERY
-is nil, `read-string' is used.")
-
-(defconst repology-version-zero-component '(1 . 0)
-  "Version component representing 0 or any missing component.")
-
-(defconst repology-version-pre-keywords '("alpha" "beta" "rc" "pre")
-  "List of pre-release keywords in version strings.")
-
-(defconst repology-version-post-keywords '("patch" "post" "pl" "errata")
-  "List of post-release keywords in version strings.")
 
 
 ;;; Configuration
@@ -307,391 +277,41 @@ predicates like `repology-compare-texts', `repology-compare-numbers', or
           (function :tag "Function describing columns")))
 
 
-;;; Internal variables
+;;; Global Internal Variables
+(defconst repology-project-filters-parameters
+  `((:search          "Name search (e.g. emacs): " nil)
+    (:maintainer      "Maintainer (e.g. foo@bar.com): " nil)
+    (:category        "Category (e.g. games): " nil)
+    (:inrepo          "In repository: " repology--query-repository)
+    (:notinrepo       "Not in repository: " repology--query-repository)
+    (:repos           "Repositories (e.g. 1 or 2- or 3-5): " nil)
+    (:families        "Families (e.g. 1 or 2- or 3-5): " nil)
+    (:repos_newest    "Repositories newest (e.g. 1 or 2- or 3-5): " nil)
+    (:families_newest "Families newest (e.g. 1 or 2- or 3-5): " nil)
+    (:newest          "Newest? " repology--query-y-or-n-p)
+    (:outdated        "Outdated? " repology--query-y-or-n-p)
+    (:problematic     "Problematic? " repology--query-y-or-n-p)
+    (:vulnerable      "Potentially vulnerable? " repology--query-y-or-n-p)
+    (:has_related     "Has related? " repology--query-y-or-n-p))
+  "Association list between project filters and query data.
+Each entry is a triplet (FILTER PROMPT QUERY) where FILTER is a keyword, PROMPT
+is a string, and QUERY is a function used to prompt the user, or nil.
+When setting the value of FILTER interactively, QUERY is called with
+two arguments, PROMPT and an initial value.  It must return a string.  If QUERY
+is nil, `read-string' is used.")
+
 (defconst repology--project-filters
   (mapcar #'car repology-project-filters-parameters)
   "List of known filters for projects.
 Other keywords are ignored when building the query string.")
 
-(defvar repology--cache (make-hash-table :test #'equal)
-  "Hash table used to cache request to Repology API.
-Keys are triplets of arguments for `repology--get'.  Values are
-cons cells like (TIME . REQUEST-RESULT).")
-
+
+;;; Utilities
 (defvar repology--repositories nil
   "List of repositories known to Repology.
 The list is populated by `repology-list-repositories'.  Call that function
 instead of using this variable.")
 
-
-;;; Internal functions
-(defun repology--cache-key (action value start)
-  "Return a cache key for current query.
-See `repology--get' for precision about ACTION, VALUE, and START."
-  (list action
-        (if (not (eq action 'projects)) value
-          ;; VALUE is a p-list.  Sort it in a fixed order so p-lists
-          ;; sorted differently are cached the same way.  Also ignore
-          ;; unknown filters.
-          (let ((normalized nil))
-            (dolist (prop repology--project-filters)
-              (when (plist-member value prop)
-                (setq normalized
-                      (plist-put normalized prop (plist-get value prop)))))
-            normalized))
-        start))
-
-(defun repology--cache-get (key)
-  "Return cached value associated to KEY, or nil.
-If the cached value is too old according to `repology-cache-duration',
-reset the cache and return nil."
-  (pcase (gethash key repology--cache)
-    (`(,time . ,value)
-     ;; Check if cached value is still valid.
-     (if (> repology-cache-duration (time-to-seconds (time-since time)))
-         value
-       ;; Time is over: reset cache and return nil.
-       (remhash key repology--cache)))
-    (_ nil)))
-
-(defun repology--cache-put (key value)
-  "Cache KEY with VALUE."
-  (puthash key (cons (current-time) value) repology--cache))
-
-(defun repology--parse-json (json-string)
-  "Parse a JSON string and returns an object.
-JSON objects become alists and JSON arrays become lists."
-  (if (null json-string)
-      nil
-    (let ((json-object-type 'alist)
-          (json-array-type 'list))
-      (condition-case err
-          (json-read-from-string json-string)
-        (json-readtable-error
-         (message "%s: Could not parse string into an object.  See %S"
-                  (error-message-string err)
-                  json-string))))))
-
-(defun repology--build-query-string (filters)
-  "Build a filter string from a given FILTERS plist."
-  (let ((query nil))
-    (dolist (keyword repology--project-filters)
-      (let ((value (plist-get filters keyword)))
-        (when value
-          (let ((key (substring (symbol-name keyword) 1)))
-            (push (format "%s=%s"
-                          (url-hexify-string key)
-                          (url-hexify-string value))
-                  query)))))
-    (if (null query) ""
-      (concat "?" (mapconcat #'identity query "&")))))
-
-(defun repology--build-url (action value start)
-  "Build a URL from an ACTION symbol.
-Value is a plist if ACTION is `projects', or a string otherwise."
-  (concat repology-base-url
-          (symbol-name action)
-          "/"
-          (pcase action
-            ('project value)
-            ('repository (concat value "/problems"))
-            ('projects
-             (concat (and start (concat start "/"))
-                     (repology--build-query-string value)))
-            (_ (error "Unknown action: %S" action)))))
-
-(defun repology--request (url &optional extra-headers)
-  "Perform a raw HTTP request on URL.
-EXTRA-HEADERS is an assoc list of headers/contents to send with
-the request."
-  (let* ((url-request-method "GET")
-         (url-request-extra-headers extra-headers)
-         (process-buffer (url-retrieve-synchronously url)))
-    (unwind-protect
-        (with-current-buffer process-buffer
-          (goto-char (point-min))
-          (let* ((status-line-regexp
-                  (rx bol
-                      (one-or-more (not (any " "))) " "
-                      (group (in "1-5") (= 2 digit)) " "
-                      (group (one-or-more (in "A-Z" "a-z" " ")))
-                      eol))
-                 (status
-                  (and (looking-at status-line-regexp)
-                       (list :code (string-to-number (match-string 1))
-                             :reason (match-string 2))))
-                 (header nil)
-                 (body nil))
-            (forward-line)
-            (while (looking-at "^\\([^:]+\\): \\(.*\\)")
-              (push (match-string 1) header)
-              (push (match-string 2) header)
-              (forward-line))
-            (forward-line)
-            (unless (eobp)
-              (setq body (buffer-substring (point) (point-max))))
-            (append status (list :header (nreverse header) :body body))))
-      (kill-buffer process-buffer))))
-
-(defun repology--get (action value start)
-  "Perform an HTTP GET request to Repology.
-
-ACTION is a symbol.  If it is `projects', VALUE is a plist and START a string.
-Otherwise, VALUE is a string, and START is nil.
-
-Information is returned as parsed JSON."
-  (let ((key (repology--cache-key action value start)))
-    (or (repology--cache-get key)
-        (let ((request (repology--request
-                        (repology--build-url action value start)
-                        '(("Content-Type" . "application/json")))))
-          (pcase (plist-get request :reason)
-            ("OK"
-             (let ((body (repology--parse-json (plist-get request :body))))
-               (repology--cache-put key body)
-               ;; Information from `projects' is a list of projects,
-               ;; so, we can also cache each of them for a future
-               ;; project lookup.
-               (when (eq action 'projects)
-                 (dolist (project body)
-                   (let ((key (repology--cache-key
-                               'project (repology-project-name project) nil))
-                         (packages (repology-project-packages project)))
-                     (repology--cache-put key packages))))
-               ;; Return information.
-               body))
-            (status
-             (error "Cannot retrieve information: %S" status)))))))
-
-(defun repology--value-to-string (value)
-  "Change VALUE object into a string suitable for display."
-  (pcase value
-    (`nil "-")
-    ((pred listp)
-     (mapconcat (lambda (e) (format "%s" e))
-                (seq-uniq value)
-                " "))
-    (_
-     (format "%s" value))))
-
-(defun repology--package-status-face (package)
-  "Return face associated to status from PACKAGE."
-  (let ((status (repology-package-field package 'status)))
-    (alist-get status repology-status-faces 'default nil #'equal)))
-
-(defun repology--make-display (data buffer-name mode format-descriptors)
-  "Display DATA in a buffer named after BUFFER-NAME string.
-DATA is displayed in a major mode derived from `tabulated-list-mode', and set
-by function MODE.  Each entry is identified by the element from DATA, and
-formatted according to FORMAT-DESCRIPTORS function.  This function is called
-with one argument: an element from DATA."
-  (let ((buffer (get-buffer-create buffer-name)))
-    (with-current-buffer buffer
-      (funcall mode)
-      (setq tabulated-list-entries
-            (mapcar (lambda (datum)
-                      (list datum
-                            (apply #'vector
-                                   (funcall format-descriptors datum))))
-                    data))
-      (tabulated-list-print))
-    (pop-to-buffer buffer)))
-
-(defun repology--show-current-package ()
-  "Display packages associated to project at point."
-  (interactive)
-  (repology-display-package (tabulated-list-get-id)))
-
-(defun repology--show-current-project ()
-  "Display packages associated to project at point."
-  (interactive)
-  (repology-display-packages
-   (repology-project-packages (tabulated-list-get-id))))
-
-(defvar repology--display-projects-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map tabulated-list-mode-map)
-    (define-key map (kbd "RET") 'repology--show-current-project)
-    map)
-  "Local keymap for `repology--display-projects-mode' buffers.")
-
-(defvar repology--display-packages-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map tabulated-list-mode-map)
-    (define-key map (kbd "RET") 'repology--show-current-package)
-    map)
-  "Local keymap for `repology--display-packages-mode' buffers.")
-
-(defun repology--columns-to-header (specs)
-  "Return vector of column names according to SPECS.
-SPECS is an association list.  Each entry has the form (NAME _ WIDTH SORT)
-where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'."
-  (apply #'vector
-         (mapcar (lambda (format)
-                   (pcase format
-                     (`(,name ,_ ,width ,sort) (list name width sort))
-                     (other
-                      (user-error "Invalid package column format: %S" other))))
-                 specs)))
-
-(define-derived-mode repology--display-package-mode tabulated-list-mode
-  "Repology/Package"
-  "Major mode used to display packages returned by Repology API.
-\\{tabulated-list-mode-map}"
-  (setq tabulated-list-format [("Field" 15 t) ("Value" 0 t)])
-  (tabulated-list-init-header))
-
-(define-derived-mode repology--display-packages-mode tabulated-list-mode
-  "Repology/Packages"
-  "Major mode used to display packages returned by Repology API.
-\\{repology--display-packages-mode-map}"
-  (setq tabulated-list-format
-        (repology--columns-to-header repology-display-packages-columns))
-  (tabulated-list-init-header))
-
-(define-derived-mode repology--display-projects-mode tabulated-list-mode
-  "Repology/Project"
-  "Major mode used to display projects returned by Repology API.
-\\{repology--display-projects-mode-map}"
-  (setq tabulated-list-format
-        (repology--columns-to-header repology-display-projects-columns))
-  (tabulated-list-init-header))
-
-(define-derived-mode repology--display-problems-mode tabulated-list-mode
-  "Repology/Problems"
-  "Major mode used to display problems returned by Repology API.
-\\{tabulated-list-mode-map}"
-  (setq tabulated-list-format
-        (repology--columns-to-header repology-display-problems-columns))
-  (tabulated-list-init-header))
-
-(defun repology--column-to-descriptor (datum specs &optional symbol-handler)
-  "Return list of descriptors for DATUM according to SPECS.
-
-DATUM is a package, a problem, or a project.  SPECS is an association
-list.  Each entry has the form (_ VALUE _ _).
-
-VALUE is a function called with DATUM as its sole argument.  When VALUE is
-a symbol, and optional argument SYMBOL-HANDLER is a function, SYMBOL-HANDLER
-is called with two arguments: DATUM and VALUE.  In any case, the return value
-is then turned into a string and displayed."
-  (mapcar (lambda (spec)
-            (pcase spec
-              ;; Contents as a function.
-              (`(,_ ,(and (pred functionp) f) ,_ ,_)
-               (repology--value-to-string (funcall f datum)))
-              ;; Contents as a symbol.
-              ((and (guard symbol-handler)
-                    `(,_ ,(and (pred symbolp) field) ,_ ,_))
-               (repology--value-to-string (funcall symbol-handler datum field)))
-              ;; Invalid contents.
-              (other (user-error "Invalid format type: %S" other))))
-          specs))
-
-(defun repology--format-field-descriptors (field)
-  "Format an entry from FIELD.
-Format follows `repology-display-packages-columns' specifications.
-Return a list of descriptors."
-  (pcase field
-    (`(,name . ,value)
-     (list (symbol-name name)
-           (repology--value-to-string value) ))
-    (_
-     (error "Invalid field: %S" field))))
-
-(defun repology--format-package-descriptors (package)
-  "Format an entry from PACKAGE.
-Format follows `repology-display-packages-columns' specifications.
-Return a list of descriptors."
-  (repology--column-to-descriptor package
-                                  repology-display-packages-columns
-                                  #'repology-package-field))
-
-(defun repology--format-project-descriptors (project)
-  "Format an entry for PROJECT.
-Format follows `repology-display-packages-columns' specifications.
-Return a list of descriptors."
-  (repology--column-to-descriptor project repology-display-projects-columns))
-
-
-(defun repology--format-problem-descriptors (problem)
-  "Format an entry from PROBLEM.
-Format follows `repology-display-problems-columns' specifications.
-Return a list of descriptors."
-  (repology--column-to-descriptor problem
-                                  repology-display-problems-columns
-                                  #'repology-problem-field))
-
-(defun repology--query-y-or-n-p (prompt _)
-  "Ask user a \"y or n\" question, displaying PROMPT.
-Return \"on\" or \"off\"."
-  (if (y-or-n-p prompt) "on" "off"))
-
-(defun repology--query-repository (prompt initial)
-  "Ask user an existing repository by its full name, displaying PROMPT.
-INITIAL is the initial input.  Return a repository internal name."
-  (repology-repository-name
-   (completing-read prompt (repology-list-repositories t) nil t initial)))
-
-(defun repology--query-filter-value (filter initial)
-  "Ask user for FILTER value.
-FILTER is a project filter, as a keyword.  INITIAL is a string inserted as
-a first suggestion, or nil.  Return the answer as a string."
-  (pcase (assq filter repology-project-filters-parameters)
-    (`nil
-     (error "Unknown filter: %S" filter))
-    (`(,_ ,prompt nil)
-     (read-string prompt initial))
-    (`(,_ ,prompt ,(and (pred functionp) collection))
-     (funcall collection prompt initial))
-    (other
-     (error "Invalid value: %S" other))))
-
-(defun repology--string-to-version (s)
-  "Return version associated to string S.
-Version is a list of components (RANK . VALUE) suitable for comparison, with
-the function `repology-compare-versions'."
-  (let ((split nil))
-    ;; Explode string into numeric and alphabetic components.
-    ;; Intermediate SPLIT result is in reverse order.
-    (let ((regexp (rx (or (group (one-or-more digit)) (one-or-more alpha))))
-          (start 0))
-      (while (string-match regexp s start)
-        (let ((component (match-string 0 s)))
-          (push (if (match-beginning 1) ;numeric component?
-                    (string-to-number component)
-                  ;; Version comparison ignores case.
-                  (downcase component))
-                split))
-        (setq start (match-end 0))))
-    ;; Attach ranks to components.  NUMERIC-FLAG is used to catch
-    ;; trailing alphabetic components, which get a special rank.
-    ;; However, if there is no numeric component, no alphabetic
-    ;; component ever gets this rank, hence the initial value.
-    (let ((numeric-flag (seq-every-p #'stringp split))
-          (result nil))
-      (dolist (component split)
-        (let ((rank
-               (cond
-                ;; 0 gets "zero" (1) rank.
-                ((equal 0 component) 1)
-                ;; Other numeric components get "nonzero" (3) rank.
-                ((wholenump component) 3)
-                ;; Pre-release keywords get "pre_release" (0) rank.
-                ((member component repology-version-pre-keywords) 0)
-                ;; Post-release keywords get "post_release" (2) rank.
-                ((member component repology-version-post-keywords) 2)
-                ;; Alphabetic components after the last numeric
-                ;; component get the "letter_suffix" (4) rank.
-                ((not numeric-flag) 4)
-                ;; Any other alphabetic component is "pre_release".
-                (t 0))))
-          (when (wholenump component) (setq numeric-flag t))
-          (push (cons rank component) result)))
-      result)))
-
-
-;;; Utilities
 (defun repology-package-p (object)
   "Return t if OBJECT is a package."
   (and (consp object)
@@ -854,28 +474,29 @@ following ones:
 Return a list of strings.  When option argument FULL-NAME is non-nil, list
 the repositories with their full name instead of their internal name."
   (unless repology--repositories
-    (let ((request (repology--request repology-statistics-url)))
-      (pcase (plist-get request :reason)
-        ("OK"
-         (let ((body (plist-get request :body))
-               (repositories nil)
-               (start 0))
-           (while (string-match "id=\"\\(.+?\\)\"" body start)
-             (setq start (match-end 0))
-             (let* ((repo (match-string 1 body))
-                    (regexp
-                     (rx "href=\"/repository/"
-                         (+? anychar)
-                         "\">"
-                         (group (+? anychar))
-                         "<"))
-                    (true-name
-                     (and (string-match regexp body start)
-                          (match-string 1 body))))
-               (push (cons repo true-name) repositories)))
-           (setq repology--repositories (nreverse repositories))))
-        (status
-         (error "Cannot retrieve information: %S" status)))))
+    (with-temp-message "Repology: Fetching list of repositories..."
+      (let ((request (repology-request repology-statistics-url)))
+       (pcase (plist-get request :reason)
+         ("OK"
+          (let ((body (plist-get request :body))
+                (repositories nil)
+                (start 0))
+            (while (string-match "id=\"\\(.+?\\)\"" body start)
+              (setq start (match-end 0))
+              (let* ((repo (match-string 1 body))
+                     (regexp
+                      (rx "href=\"/repository/"
+                          (+? anychar)
+                          "\">"
+                          (group (+? anychar))
+                          "<"))
+                     (true-name
+                      (and (string-match regexp body start)
+                           (match-string 1 body))))
+                (push (cons repo true-name) repositories)))
+            (setq repology--repositories (nreverse repositories))))
+         (status
+          (error "Cannot retrieve information: %S" status))))))
   (mapcar (if full-name #'cdr #'car) repology--repositories))
 
 (defun repology-refresh-repositories ()
@@ -910,6 +531,60 @@ Return t if S1 is less than S2.  Case is ignored."
 Return t if S1 is less than S2."
   (< (string-to-number s1) (string-to-number s2)))
 
+
+;;; Version Comparison
+(defconst repology-version-zero-component '(1 . 0)
+  "Version component representing 0 or any missing component.")
+
+(defconst repology-version-pre-keywords '("alpha" "beta" "rc" "pre")
+  "List of pre-release keywords in version strings.")
+
+(defconst repology-version-post-keywords '("patch" "post" "pl" "errata")
+  "List of post-release keywords in version strings.")
+
+(defun repology--string-to-version (s)
+  "Return version associated to string S.
+Version is a list of components (RANK . VALUE) suitable for comparison, with
+the function `repology-compare-versions'."
+  (let ((split nil))
+    ;; Explode string into numeric and alphabetic components.
+    ;; Intermediate SPLIT result is in reverse order.
+    (let ((regexp (rx (or (group (one-or-more digit)) (one-or-more alpha))))
+          (start 0))
+      (while (string-match regexp s start)
+        (let ((component (match-string 0 s)))
+          (push (if (match-beginning 1) ;numeric component?
+                    (string-to-number component)
+                  ;; Version comparison ignores case.
+                  (downcase component))
+                split))
+        (setq start (match-end 0))))
+    ;; Attach ranks to components.  NUMERIC-FLAG is used to catch
+    ;; trailing alphabetic components, which get a special rank.
+    ;; However, if there is no numeric component, no alphabetic
+    ;; component ever gets this rank, hence the initial value.
+    (let ((numeric-flag (seq-every-p #'stringp split))
+          (result nil))
+      (dolist (component split)
+        (let ((rank
+               (cond
+                ;; 0 gets "zero" (1) rank.
+                ((equal 0 component) 1)
+                ;; Other numeric components get "nonzero" (3) rank.
+                ((wholenump component) 3)
+                ;; Pre-release keywords get "pre_release" (0) rank.
+                ((member component repology-version-pre-keywords) 0)
+                ;; Post-release keywords get "post_release" (2) rank.
+                ((member component repology-version-post-keywords) 2)
+                ;; Alphabetic components after the last numeric
+                ;; component get the "letter_suffix" (4) rank.
+                ((not numeric-flag) 4)
+                ;; Any other alphabetic component is "pre_release".
+                (t 0))))
+          (when (wholenump component) (setq numeric-flag t))
+          (push (cons rank component) result)))
+      result)))
+
 (defun repology-compare-versions (s1 s2)
   "Compare package versions associated to strings S1 and S2.
 
@@ -940,10 +615,156 @@ See URL `https://github.com/repology/libversion/blob/master/doc/ALGORITHM.md'."
 
 
 ;;; Search functions
+(defvar repology--cache (make-hash-table :test #'equal)
+  "Hash table used to cache requests to Repology API.
+Keys are triplets of arguments for `repology--get'.  Values are
+cons cells like (TIME . REQUEST-RESULT).")
+
+(defun repology--cache-key (action value start)
+  "Return a cache key for current query.
+See `repology--get' for precision about ACTION, VALUE, and START."
+  (list action
+        (if (not (eq action 'projects)) value
+          ;; VALUE is a p-list.  Sort it in a fixed order so p-lists
+          ;; sorted differently are cached the same way.  Also ignore
+          ;; unknown filters.
+          (let ((normalized nil))
+            (dolist (prop repology--project-filters)
+              (when (plist-member value prop)
+                (setq normalized
+                      (plist-put normalized prop (plist-get value prop)))))
+            normalized))
+        start))
+
+(defun repology--cache-get (key)
+  "Return cached value associated to KEY, or nil.
+If the cached value is too old according to `repology-cache-duration',
+reset the cache and return nil."
+  (pcase (gethash key repology--cache)
+    (`(,time . ,value)
+     ;; Check if cached value is still valid.
+     (if (> repology-cache-duration (time-to-seconds (time-since time)))
+         value
+       ;; Time is over: reset cache and return nil.
+       (remhash key repology--cache)))
+    (_ nil)))
+
+(defun repology--cache-put (key value)
+  "Cache KEY with VALUE."
+  (puthash key (cons (current-time) value) repology--cache))
+
+(defun repology--parse-json (json-string)
+  "Parse a JSON string and returns an object.
+JSON objects become alists and JSON arrays become lists."
+  (if (null json-string)
+      nil
+    (let ((json-object-type 'alist)
+          (json-array-type 'list))
+      (condition-case err
+          (json-read-from-string json-string)
+        (json-readtable-error
+         (message "%s: Could not parse string into an object.  See %S"
+                  (error-message-string err)
+                  json-string))))))
+
+(defun repology--build-query-string (filters)
+  "Build a filter string from a given FILTERS plist."
+  (let ((query nil))
+    (dolist (keyword repology--project-filters)
+      (let ((value (plist-get filters keyword)))
+        (when value
+          (let ((key (substring (symbol-name keyword) 1)))
+            (push (format "%s=%s"
+                          (url-hexify-string key)
+                          (url-hexify-string value))
+                  query)))))
+    (if (null query) ""
+      (concat "?" (mapconcat #'identity query "&")))))
+
+(defun repology--build-url (action value start)
+  "Build a URL from an ACTION symbol.
+Value is a plist if ACTION is `projects', or a string otherwise."
+  (concat repology-base-url
+          (symbol-name action)
+          "/"
+          (pcase action
+            ('project value)
+            ('repository (concat value "/problems"))
+            ('projects
+             (concat (and start (concat start "/"))
+                     (repology--build-query-string value)))
+            (_ (error "Unknown action: %S" action)))))
+
+(defun repology-request (url &optional extra-headers)
+  "Perform a raw HTTP request on URL.
+EXTRA-HEADERS is an assoc list of headers/contents to send with
+the request."
+  (let* ((url-request-method "GET")
+         (url-request-extra-headers extra-headers)
+         (process-buffer (url-retrieve-synchronously url t)))
+    (unwind-protect
+        (with-current-buffer process-buffer
+          (goto-char (point-min))
+          (let* ((status-line-regexp
+                  (rx bol
+                      (one-or-more (not (any " "))) " "
+                      (group (in "1-5") (= 2 digit)) " "
+                      (group (one-or-more (in "A-Z" "a-z" " ")))
+                      eol))
+                 (status
+                  (and (looking-at status-line-regexp)
+                       (list :code (string-to-number (match-string 1))
+                             :reason (match-string 2))))
+                 (header nil)
+                 (body nil))
+            (forward-line)
+            (while (looking-at "^\\([^:]+\\): \\(.*\\)")
+              (push (match-string 1) header)
+              (push (match-string 2) header)
+              (forward-line))
+            (forward-line)
+            (unless (eobp)
+              (setq body (buffer-substring (point) (point-max))))
+            (append status (list :header (nreverse header) :body body))))
+      (kill-buffer process-buffer))))
+
+(defun repology--get (action value start)
+  "Perform an HTTP GET request to Repology API.
+
+ACTION is a symbol.  If it is `projects', VALUE is a plist and START a string.
+Otherwise, VALUE is a string, and START is nil.
+
+Information is returned as parsed JSON."
+  (let ((key (repology--cache-key action value start)))
+    (or (repology--cache-get key)
+        (let ((request
+                (repology-request
+                 (repology--build-url action value start)
+                 '(("Content-Type" . "application/json")))))
+          (pcase (plist-get request :reason)
+            ("OK"
+             (let ((body (repology--parse-json (plist-get request :body))))
+               (repology--cache-put key body)
+               ;; Information from `projects' is a list of projects,
+               ;; so, we can also cache each of them for a future
+               ;; project lookup.
+               (when (eq action 'projects)
+                 (dolist (project body)
+                   (let ((key (repology--cache-key
+                               'project (repology-project-name project) nil))
+                         (packages (repology-project-packages project)))
+                     (repology--cache-put key packages))))
+               ;; Return information.
+               body))
+            (status
+             (error "Cannot retrieve information: %S" status)))))))
+
 (defun repology-lookup-project (name)
   "List packages for project NAME.
 NAME is a string.  Return a list of packages."
-  (repology--get 'project name nil))
+  (with-temp-message
+      (format-message "Repology: Requesting information about `%s'..." name)
+    (repology--get 'project name nil)))
 
 (defun repology-search-projects (&rest filters)
   "Retrieve results of an advanced search in Repology.
@@ -1001,41 +822,217 @@ Return a list of projects.  Projects with a known non-free license are removed
 from output, unless `repology-free-only-projects' is nil."
   (let ((result nil)
         (name nil))
-    (catch :exit
-      (while t
-        (let ((request (repology--get 'projects filters name)))
-          (setq result (append result (cdr request)))
-          (cond
-           ;; Too many matches: drop those above limit and exit.
-           ((<= repology-projects-limit (length result))
-            (setq result (seq-subseq result 0 repology-projects-limit))
-            (throw :exit nil))
-           ;; Matches exhausted: exit and return result.
-           ((> repology-projects-hard-limit (length request))
-            (throw :exit result))
-           ;; Resume search starting from an imaginary project located
-           ;; right after the last project found, alphabetically.
-           (t
-            (setq name
-                  (pcase (last request)
-                    (`(,(and (pred repology-project-p) project))
-                     (concat (repology-project-name project) "-"))
-                    (other (error "Invalid request result: %S" other)))))))))
-    ;; Trim non-free projects.
-    (if (not repology-free-only-projects)
-        result
-      (seq-filter (lambda (project) (repology-free-p project))
-                  result))))
+    (with-temp-message "Repology: Querying API..."
+      (catch :exit
+        (while t
+          (let ((request (repology--get 'projects filters name)))
+            (setq result (append result request))
+            (cond
+             ;; Too many matches: drop those above limit and exit.
+             ((<= repology-projects-limit (length result))
+              (setq result (seq-subseq result 0 repology-projects-limit))
+              (throw :exit nil))
+             ;; Matches exhausted: exit and return result.
+             ((> repology-projects-hard-limit (length request))
+              (throw :exit result))
+             ;; Resume search starting from an imaginary project
+             ;; located right after the last project found,
+             ;; alphabetically. This is done by appending an hyphen to
+             ;; the name of the last project found.
+             (t
+              (setq name
+                    (pcase (last request)
+                      (`(,(and (pred repology-project-p) project))
+                       (concat (repology-project-name project) "-"))
+                      (other (error "Invalid request result: %S" other))))))))))
+    ;; Possibly keep only non projects.
+    (if repology-free-only-projects
+        (with-temp-message "Repology: Filtering out non-free projects..."
+          (seq-filter (lambda (project) (repology-free-p project))
+                      result))
+      result)))
 
 (defun repology-report-problems (repository)
   "List problems related to REPOSITORY.
 REPOSITORY is a string.  Return a list of problems."
   (unless (member repository (repology-list-repositories))
     (user-error "Unknown repository: %S" repository))
-  (repology--get 'repository repository nil))
+  (with-temp-message
+      (message "Repology: Fetching problems reports about %s"
+               (repology-repository-full-name repository))
+    (repology--get 'repository repository nil)))
 
 
 ;;; Display functions
+(defvar repology--display-projects-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map tabulated-list-mode-map)
+    (define-key map (kbd "RET") 'repology--show-current-project)
+    (define-key map (kbd "F") 'repology--check-freedom)
+    map)
+  "Local keymap for `repology--display-projects-mode' buffers.")
+
+(defvar repology--display-packages-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map tabulated-list-mode-map)
+    (define-key map (kbd "RET") 'repology--show-current-package)
+    (define-key map (kbd "F") 'repology--check-freedom)
+    map)
+  "Local keymap for `repology--display-packages-mode' buffers.")
+
+(defun repology--show-current-package ()
+  "Display packages associated to package at point."
+  (interactive)
+  (repology-display-package (tabulated-list-get-id)))
+
+(defun repology--check-freedom ()
+  "Check if package or project at point is free."
+  (interactive)
+  (message "Freedom status: %s"
+           (pcase (repology-free-p (tabulated-list-get-id))
+             ('unknown (propertize "Unknown" 'face 'shadow))
+             ('nil (propertize "Non-Free" 'face 'warning))
+             (_ (propertize "Free" 'face 'highlight)))))
+
+(defun repology--show-current-project ()
+  "Display packages associated to project at point."
+  (interactive)
+  (repology-display-packages
+   (repology-project-packages (tabulated-list-get-id))))
+
+(define-derived-mode repology--display-package-mode tabulated-list-mode
+  "Repology/Package"
+  "Major mode used to display packages returned by Repology API.
+\\{tabulated-list-mode-map}"
+  (setq tabulated-list-format [("Field" 15 t) ("Value" 0 t)])
+  (tabulated-list-init-header))
+
+(define-derived-mode repology--display-packages-mode tabulated-list-mode
+  "Repology/Packages"
+  "Major mode used to display packages returned by Repology API.
+\\{repology--display-packages-mode-map}"
+  (setq tabulated-list-format
+        (repology--columns-to-header repology-display-packages-columns))
+  (tabulated-list-init-header))
+
+(define-derived-mode repology--display-projects-mode tabulated-list-mode
+  "Repology/Projects"
+  "Major mode used to display projects returned by Repology API.
+\\{repology--display-projects-mode-map}"
+  (setq tabulated-list-format
+        (repology--columns-to-header repology-display-projects-columns))
+  (tabulated-list-init-header))
+
+(define-derived-mode repology--display-problems-mode tabulated-list-mode
+  "Repology/Problems"
+  "Major mode used to display problems returned by Repology API.
+\\{tabulated-list-mode-map}"
+  (setq tabulated-list-format
+        (repology--columns-to-header repology-display-problems-columns))
+  (tabulated-list-init-header))
+
+(defun repology--value-to-string (value)
+  "Change VALUE object into a string suitable for display."
+  (pcase value
+    (`nil "-")
+    ((pred listp)
+     (mapconcat (lambda (e) (format "%s" e))
+                (seq-uniq value)
+                " "))
+    (_
+     (format "%s" value))))
+
+(defun repology--package-status-face (package)
+  "Return face associated to status from PACKAGE."
+  (let ((status (repology-package-field package 'status)))
+    (alist-get status repology-status-faces 'default nil #'equal)))
+
+(defun repology--make-display (data buffer-name mode format-descriptors)
+  "Display DATA in a buffer named after BUFFER-NAME string.
+DATA is displayed in a major mode derived from `tabulated-list-mode', and set
+by function MODE.  Each entry is identified by the element from DATA, and
+formatted according to FORMAT-DESCRIPTORS function.  This function is called
+with one argument: an element from DATA."
+  (let ((buffer (get-buffer-create buffer-name)))
+    (with-current-buffer buffer
+      (funcall mode)
+      (setq tabulated-list-entries
+            (mapcar (lambda (datum)
+                      (list datum
+                            (apply #'vector
+                                   (funcall format-descriptors datum))))
+                    data))
+      (tabulated-list-print))
+    (pop-to-buffer buffer)))
+
+(defun repology--columns-to-header (specs)
+  "Return vector of column names according to SPECS.
+SPECS is an association list.  Each entry has the form (NAME _ WIDTH SORT)
+where NAME, WIDTH and SORT are of the expected type in `tabulated-list-format'."
+  (apply #'vector
+         (mapcar (lambda (format)
+                   (pcase format
+                     (`(,name ,_ ,width ,sort) (list name width sort))
+                     (other
+                      (user-error "Invalid package column format: %S" other))))
+                 specs)))
+
+(defun repology--column-to-descriptor (datum specs &optional symbol-handler)
+  "Return list of descriptors for DATUM according to SPECS.
+
+DATUM is a package, a problem, or a project.  SPECS is an association
+list.  Each entry has the form (_ VALUE _ _).
+
+VALUE is a function called with DATUM as its sole argument.  When VALUE is
+a symbol, and optional argument SYMBOL-HANDLER is a function, SYMBOL-HANDLER
+is called with two arguments: DATUM and VALUE.  In any case, the return value
+is then turned into a string and displayed."
+  (mapcar (lambda (spec)
+            (pcase spec
+              ;; Contents as a function.
+              (`(,_ ,(and (pred functionp) f) ,_ ,_)
+               (repology--value-to-string (funcall f datum)))
+              ;; Contents as a symbol.
+              ((and (guard symbol-handler)
+                    `(,_ ,(and (pred symbolp) field) ,_ ,_))
+               (repology--value-to-string (funcall symbol-handler datum field)))
+              ;; Invalid contents.
+              (other (user-error "Invalid format type: %S" other))))
+          specs))
+
+(defun repology--format-field-descriptors (field)
+  "Format an entry from FIELD.
+Format follows `repology-display-packages-columns' specifications.
+Return a list of descriptors."
+  (pcase field
+    (`(,name . ,value)
+     (list (symbol-name name)
+           (repology--value-to-string value) ))
+    (_
+     (error "Invalid field: %S" field))))
+
+(defun repology--format-package-descriptors (package)
+  "Format an entry from PACKAGE.
+Format follows `repology-display-packages-columns' specifications.
+Return a list of descriptors."
+  (repology--column-to-descriptor package
+                                  repology-display-packages-columns
+                                  #'repology-package-field))
+
+(defun repology--format-project-descriptors (project)
+  "Format an entry for PROJECT.
+Format follows `repology-display-packages-columns' specifications.
+Return a list of descriptors."
+  (repology--column-to-descriptor project repology-display-projects-columns))
+
+(defun repology--format-problem-descriptors (problem)
+  "Format an entry from PROBLEM.
+Format follows `repology-display-problems-columns' specifications.
+Return a list of descriptors."
+  (repology--column-to-descriptor problem
+                                  repology-display-problems-columns
+                                  #'repology-problem-field))
+
 (defun repology-display-projects-default (_ selected)
   "Return columns format rules appropriate for projects display.
 SELECTED is a selected repository, i.e., the value of `:inrepo' filter,
@@ -1109,6 +1106,47 @@ Columns are displayed according to `repology-display-problems-columns'."
 
 
 ;;; Interactive query
+(defconst repology--main-prompt
+  (format-message
+   "Action: [S]earch projects  [L]ookup project  \
+\[R]eport repository problems    (`q' to quit)")
+  "Main prompt used if `repology' UI.")
+
+(defun repology--select-key (allowed-keys msg)
+  "Keep requesting user to press a key until it belongs to ALLOWED-KEYS.
+ALLOWED-KEYS is a list of characters.  MSG is the message used as the prompt."
+  (let ((key (read-char msg)))
+    (while (not (memq key allowed-keys))
+      (message "Invalid key")
+      (sit-for 0.5)
+      (setq key (read-char msg)))
+    key))
+
+(defun repology--query-y-or-n-p (prompt _)
+  "Ask user a \"y or n\" question, displaying PROMPT.
+Return \"on\" or \"off\"."
+  (if (y-or-n-p prompt) "on" "off"))
+
+(defun repology--query-repository (prompt initial)
+  "Ask user an existing repository by its full name, displaying PROMPT.
+INITIAL is the initial input.  Return a repository internal name."
+  (repology-repository-name
+   (completing-read prompt (repology-list-repositories t) nil t initial)))
+
+(defun repology--query-filter-value (filter initial)
+  "Ask user for FILTER value.
+FILTER is a project filter, as a keyword.  INITIAL is a string inserted as
+a first suggestion, or nil.  Return the answer as a string."
+  (pcase (assq filter repology-project-filters-parameters)
+    (`nil
+     (error "Unknown filter: %S" filter))
+    (`(,_ ,prompt nil)
+     (read-string prompt initial))
+    (`(,_ ,prompt ,(and (pred functionp) collection))
+     (funcall collection prompt initial))
+    (other
+     (error "Invalid value: %S" other))))
+
 ;;;###autoload
 (defun repology ()
   "Query Repology interactively.
@@ -1130,8 +1168,7 @@ This function interacts with Repology API in three ways.  You can:
    displayed by selecting \"limit\" from the list of properties.  The default
    value is `repology-projects-limit'."
   (interactive)
-  (pcase (read-char "Action: [S]earch projects  [L]ookup project  \
-\[R]eport repository problems")
+  (pcase (repology--select-key '(?s ?S ?l ?L ?r ?R ?q ?Q) repology--main-prompt)
     ((or ?r ?R)
      (repology-display-problems
       (repology-report-problems
@@ -1176,7 +1213,10 @@ This function interacts with Repology API in three ways.  You can:
                                     (apply #'repology-search-projects query))
                                   ;; Selected repository, or nil.
                                   (plist-get query :inrepo))))
-    (_ (user-error "Unknown answer.  Aborting"))))
+    ((or ?q ?Q)
+     (message "Repology: Quitting"))
+    (_
+     (error "This should not happen"))))
 
 
 (provide 'repology)
