@@ -123,7 +123,17 @@ replaced in this string.")
 
 (defun org-babel-execute:haxe (body params)
   "Execute a haxe source block with BODY code and PARAMS params."
-  (let* (;; if true, run from babel temp directory
+  (let* (;; allow header overrides
+         (org-babel-haxe-compiler
+          (or (cdr (assq :haxe params))
+              org-babel-haxe-compiler))
+         (org-babel-neko-command
+          (or (cdr (assq :neko params))
+              org-babel-neko-command))
+         (org-babel-hashlink-command
+          (or (cdr (assq :hashlink params))
+              org-babel-hashlink-command))
+         ;; if true, run from babel temp directory
          (run-from-temp (not (alist-get :dir params)))
          ;; class and package
          (fullclassname (or (cdr (assq :classname params))
