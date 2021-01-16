@@ -47,6 +47,14 @@ path name, like /usr/local/bin/neko."
   :package-version '(Org . "9.5")
   :type 'string)
 
+(defcustom org-babel-hashlink-command "hl"
+  "Name of the neko command.
+May be either a command in the path, like neko or an absolute
+path name, like /usr/local/bin/neko."
+  :group 'org-babel
+  :package-version '(Org . "9.5")
+  :type 'string)
+
 (defcustom org-babel-haxe-compiler "haxe"
   "Name of the haxe compiler.
 May be either a command in the path, like haxe or an absolute
@@ -145,11 +153,11 @@ replaced in this string.")
          (target-name (cdr (assq :target params)))
          (target (pcase target-name
                    ("neko"
-                    (format "-neko %smain.n -cmd \"neko %smain.n %s\""
-                            basedir-processed basedir-processed cmdline))
+                    (format "-neko %smain.n -cmd \"%s %smain.n %s\""
+                            basedir-processed org-babel-neko-command basedir-processed cmdline))
                    ("hashlink"
-                    (format "-hl %smain.hl -cmd \"hl %smain.hl %s\""
-                            basedir-processed basedir-processed cmdline))
+                    (format "-hl %smain.hl -cmd \"%s %smain.hl %s\""
+                            basedir-processed org-babel-hashlink-command basedir-processed cmdline))
                    (_
                     (if (> (length cmdline) 0)
                         (error "Cmdline args not allowed for interp target")
