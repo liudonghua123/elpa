@@ -865,7 +865,7 @@ REPOSITORY is a string.  Return a list of problems."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map tabulated-list-mode-map)
     (define-key map (kbd "RET") 'repology--show-current-project)
-    (define-key map (kbd "F") 'repology--check-freedom)
+    (define-key map (kbd "F") 'repology--check-freedom-at-point)
     map)
   "Local keymap for `repology--display-projects-mode' buffers.")
 
@@ -873,7 +873,7 @@ REPOSITORY is a string.  Return a list of problems."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map tabulated-list-mode-map)
     (define-key map (kbd "RET") 'repology--show-current-package)
-    (define-key map (kbd "F") 'repology--check-freedom)
+    (define-key map (kbd "F") 'repology--check-freedom-at-point)
     map)
   "Local keymap for `repology--display-packages-mode' buffers.")
 
@@ -882,7 +882,7 @@ REPOSITORY is a string.  Return a list of problems."
   (interactive)
   (repology-display-package (tabulated-list-get-id)))
 
-(defun repology--check-freedom ()
+(defun repology--check-freedom-at-point ()
   "Check if package or project at point is free."
   (interactive)
   (message "Freedom status: %s"
