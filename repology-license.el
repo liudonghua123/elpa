@@ -290,10 +290,10 @@ Return value is a triplet from `repology-license-reference-repositories'."
                          (and subrepo (string-match s subrepo)))))
               repology-license-reference-repositories)))
 
-(defun repology--license-check (package repository)
-  "Check if PACKAGE is free according to REPOSITORY.
+(defun repology--license-vote (repository package)
+  "Return REPOSITORY vote concerning PACKAGE freedom.
 REPOSITORY is an element from `repology-license-reference-repositories'.
-PACKAGE is free when REPOSITORY can attest it uses only free licenses."
+PACKAGE is a package object."
   (pcase (or repository (repology--license-find-reference-repository package))
     (`(,_ ,_ ,(and (pred functionp) p))
      (seq-every-p p (repology-package-field package 'licenses)))
@@ -320,7 +320,7 @@ Of course, it is not a legal statement, merely an indication."
      (pcase (repology--license-find-reference-repository datum)
        ('nil 'unknown)
        (repository
-        (let ((decision (repology--license-check datum repository)))
+        (let ((decision (repology--license-vote repository datum)))
           (if (booleanp decision) decision 'unknown)))))
     ((pred repology-project-p)
      (let ((votes 0)
@@ -334,7 +334,7 @@ Of course, it is not a legal statement, merely an indication."
             (unless (member repository voters)
               (cl-incf votes)
               (push repository voters)  ;a repository votes only once
-              (let ((free (repology--license-check package repository)))
+              (let ((free (repology--license-vote repository package)))
                 (when (booleanp free)   ;has repository an opinion?
                   (when free (cl-incf yes))
                   (when repology-license-debug
