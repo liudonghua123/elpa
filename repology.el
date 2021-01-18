@@ -1119,7 +1119,7 @@ Columns are displayed according to `repology-display-problems-columns'."
   (format-message
    "Action: [S]earch projects  [L]ookup project  \
 \[R]eport repository problems    (`q' to quit)")
-  "Main prompt used if `repology' UI.")
+  "Main prompt used in `repology' UI.")
 
 (defun repology--select-key (allowed-keys msg)
   "Keep requesting user to press a key until it belongs to ALLOWED-KEYS.
