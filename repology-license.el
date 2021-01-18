@@ -301,8 +301,8 @@ PACKAGE is a package object."
     (`(,_ ,_ ,boolean) boolean)
     (other (error "Wrong repository definition: %S" other))))
 
-(defun repology-check-freedom (datum)
-  "Return t when project or package DATUM is free.
+(defun repology-check-freedom (object)
+  "Return t when project or package OBJECT is free.
 
 A package is free when any reference repository can attest it uses only free
 licenses.  See `repology-license-reference-repositories' for a list of such
@@ -316,19 +316,19 @@ If the project does not contain any package from such repositories, or if those
 repositories cannot decide, return `unknown'.  In any other case, return nil.
 
 Of course, it is not a legal statement, merely an indication."
-  (pcase datum
+  (pcase object
     ((pred repology-package-p)
-     (pcase (repology--license-find-reference-repository datum)
+     (pcase (repology--license-find-reference-repository object)
        ('nil 'unknown)
        (repository
-        (let ((decision (repology--license-vote repository datum)))
+        (let ((decision (repology--license-vote repository object)))
           (if (booleanp decision) decision 'unknown)))))
     ((pred repology-project-p)
      (let ((votes 0)
            (yes 0)
            (reports nil)
            (voters nil))
-       (dolist (package (repology-project-packages datum))
+       (dolist (package (repology-project-packages object))
          (pcase (repology--license-find-reference-repository package)
            ('nil nil)
            (repository
@@ -343,10 +343,10 @@ Of course, it is not a legal statement, merely an indication."
                           reports))))))))
        ;; Maybe display vote reports as debugging information.
        (when repology-license-debug
-         (repology--license-debug-display datum reports yes votes))
+         (repology--license-debug-display object reports yes votes))
        ;; Return value.
        (repology--license-interpret-vote yes votes)))
-    (_ (user-error "Wrong argument type: %S" datum))))
+    (_ (user-error "Wrong argument type: %S" object))))
 
 (provide 'repology-license)
 ;;; repology-license.el ends here
