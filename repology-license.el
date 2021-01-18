@@ -245,9 +245,10 @@ See URL `https://en.opensuse.org/openSUSE:Packaging_guidelines#Licensing'."
   "When non-nil, display explanations when a project declared non-free.
 Information is displayed in \"*Repology: License Debug*\" buffer.")
 
-(defun repology--license-debug-line (package free)
+(defun repology--license-debug-line (package freedom)
   "Format license debug information for PACKAGE.
-When FREE is non-nil, declare PACKAGE was reported as free."
+When FREEDOM is t, declare PACKAGE was reported as free.  If it is nil,
+declare it as non-free.  Otherwise report an unknown status."
   (let ((repo (repology-package-field package 'repo))
         (subrepo (repology-package-field package 'subrepo))
         (name (repology-package-field package 'visiblename)))
@@ -255,7 +256,10 @@ When FREE is non-nil, declare PACKAGE was reported as free."
             name
             repo
             (if subrepo (concat "/" subrepo) "")
-            (if free "Free" "Non-Free"))))
+            (pcase freedom
+              ('unknown "Unknown")
+              ('nil "Non-Free")
+              (_ "Free")))))
 
 (defun repology--license-debug-display (project reports free votes)
   "Print license check output for non-free PROJECT.
@@ -265,9 +269,10 @@ from reference repositories in PROJECT."
   (with-current-buffer (get-buffer-create "*Repology: License Debug*")
     (insert (format "=== Project %S: %s (ratio: %.2f) ===\n"
                     (repology-project-name project)
-                    (if (repology--license-interpret-vote free votes)
-                        "FREE"
-                      "NON-FREE")
+                    (pcase (repology--license-interpret-vote free votes)
+                      ('unknown "UNKNOWN")
+                      ('nil "NON-FREE")
+                      (_ "FREE"))
                     (if (= votes 0)
                         0
                       (/ (float free) votes))))
