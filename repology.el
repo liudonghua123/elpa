@@ -150,12 +150,21 @@ A value of 0 prevents any caching."
   :type 'integer)
 
 (defcustom repology-free-only-projects t
-  "When non-nil, return only free projects from searches.
+  "When t, return only free projects from searches.
 
 Declaring a project as free the consequence of a very conservative process.
 Free projects with missing licensing information, or too confidential, may be
-ignored.  See `repology-check-freedom' for more information."
-  :type 'boolean)
+ignored.  You can circumvent this by setting the value to `include-unknown'.
+In this case searches also include every project not clearly identified as
+non-free.
+
+A value of nil includes all projects.
+
+See `repology-check-freedom' for more information."
+  :type '(choice
+          (const :tag "Only free projects" t)
+          (const :tag "Free and unknown projects" include-unknown)
+          (const :tag "Every project" nil)))
 
 (defcustom repology-status-faces
   '(("incorrect" . error)
@@ -847,7 +856,10 @@ from output, unless `repology-free-only-projects' is nil."
                       (other (error "Invalid request result: %S" other))))))))))
     (if (not repology-free-only-projects) result
       (with-temp-message "Repology: Filtering out non-free projects..."
-        (seq-filter (lambda (p) (eq t (repology-check-freedom p))) result)))))
+        (seq-filter (if (eq repology-free-only-projects 'include-unknown)
+                        #'repology-check-freedom
+                      (lambda (p) (eq t (repology-check-freedom p))))
+                    result)))))
 
 (defun repology-report-problems (repository)
   "List problems related to REPOSITORY.
