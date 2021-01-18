@@ -867,8 +867,8 @@ REPOSITORY is a string.  Return a list of problems."
   (unless (member repository (repology-list-repositories))
     (user-error "Unknown repository: %S" repository))
   (with-temp-message
-      (message "Repology: Fetching problems reports about %s"
-               (repology-repository-full-name repository))
+      (format "Repology: Fetching problems reports about %s"
+              (repology-repository-full-name repository))
     (repology--get 'repository repository nil)))
 
 
