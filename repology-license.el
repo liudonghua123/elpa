@@ -47,7 +47,7 @@
     ("trisquel"  nil        t)
     ("gnu_elpa"  nil        t)
     ("^fedora"   nil        repology--license-check:fedora)
-    ("^gentoo"   nil        repology--license-check:gentoo)
+    ("^gentoo$"  nil        repology--license-check:gentoo)
     ("^opensuse" "/oss"     repology--license-check:opensuse-oss)
     ("debian"    "non-free" nil)
     ("^mageia"   "nonfree"  nil)
