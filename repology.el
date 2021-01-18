@@ -36,8 +36,8 @@
 ;;
 ;; By default, only projects recognized as free are included in the search
 ;; results.  You can control this behavior with the variable
-;; `repology-free-only-projects'.  The function `repology-free-p' is responsible
-;; for guessing if a project, or a package, is free or not.
+;; `repology-free-only-projects'.  The function `repology-check-freedom'
+;; is responsible for guessing if a project, or a package, is free.
 
 ;; You can then access data from those various objects using dedicated
 ;; accessors.  See, for example, `repology-project-name',
@@ -154,7 +154,7 @@ A value of 0 prevents any caching."
 
 Declaring a project as free the consequence of a very conservative process.
 Free projects with missing licensing information, or too confidential, may be
-ignored.  See `repology-free-p' for more information."
+ignored.  See `repology-check-freedom' for more information."
   :type 'boolean)
 
 (defcustom repology-status-faces
@@ -845,11 +845,9 @@ from output, unless `repology-free-only-projects' is nil."
                       (`(,(and (pred repology-project-p) project))
                        (concat (repology-project-name project) "-"))
                       (other (error "Invalid request result: %S" other))))))))))
-    ;; Possibly keep only free projects.
-    (if repology-free-only-projects
-        (with-temp-message "Repology: Filtering out non-free projects..."
-          (seq-filter #'repology-free-p result))
-      result)))
+    (if (not repology-free-only-projects) result
+      (with-temp-message "Repology: Filtering out non-free projects..."
+        (seq-filter (lambda (p) (eq t (repology-check-freedom p))) result)))))
 
 (defun repology-report-problems (repository)
   "List problems related to REPOSITORY.
@@ -888,7 +886,7 @@ REPOSITORY is a string.  Return a list of problems."
   "Check if package or project at point is free."
   (interactive)
   (message "Freedom status: %s"
-           (pcase (repology-free-p (tabulated-list-get-id))
+           (pcase (repology-check-freedom (tabulated-list-get-id))
              ('unknown (propertize "Unknown" 'face 'shadow))
              ('nil (propertize "Non-Free" 'face 'warning))
              (_ (propertize "Free" 'face 'highlight)))))

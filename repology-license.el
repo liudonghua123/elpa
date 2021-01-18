@@ -17,17 +17,17 @@
 
 ;;; Commentary:
 
-;; This library provides the `repology-free-p' function, which returns
-;; a non-nil value when a package or a project can be considered as
-;; free.
+;; This library provides the `repology-check-freedom' function, which returns
+;; t when a package or a project can be considered as free, nil it is
+;; identified as being non-free, and `unknown' otherwise.
 
-;; The decision is made by polling a number of "Reference
-;; repositories", defined in `repology-license-reference-repositories'.
-;; If the ratio of "Free" votes is equal or above
-;; `repology-license-poll-threshold', the project is declared as free.
+;; The decision is made by polling a number of "Reference repositories",
+;; defined in `repology-license-reference-repositories'.  If the ratio of
+;; "Free" votes is above `repology-license-poll-threshold', the project is
+;; declared as free.
 
-;; In order to see the results of each vote, and possibly debug the
-;; process, you can set `repology-license-debug' to a non-nil value.
+;; In order to see the results of each vote, and possibly debug the process,
+;; you can set `repology-license-debug' to a non-nil value.
 
 ;;; Code:
 
@@ -94,10 +94,11 @@ properties:
 
 ;;; Tools
 (defun repology--license-interpret-vote (free votes)
-  "Return freedom vote result as a boolean.
+  "Return freedom vote result as nil, t or `unknown'.
 FREE is the number of \"Free\" votes.  VOTES is the total number of votes."
-  (and (> votes 0)
-       (> (/ (float free) votes) repology-license-poll-threshold)))
+  (cond ((= votes 0) 'unknown)
+        ((> (/ (float free) votes) repology-license-poll-threshold) t)
+        (t nil)))
 
 
 ;;; Reference Repository: Fedora
@@ -300,7 +301,7 @@ PACKAGE is a package object."
     (`(,_ ,_ ,boolean) boolean)
     (other (error "Wrong repository definition: %S" other))))
 
-(defun repology-free-p (datum)
+(defun repology-check-freedom (datum)
   "Return t when project or package DATUM is free.
 
 A package is free when any reference repository can attest it uses only free
@@ -309,10 +310,10 @@ repositories.  If the package does not belong to any of these repositories,
 or if there is not enough information to decide, return `unknown'.  Otherwise,
 return nil.
 
-A project is free if the ratio of free packages among the packages from
-reference repositories is above `repology-license-poll-threshold'.
-In any other case, return nil.  In particular, a project without any package
-from reference repositories is declared non-free.
+A project is free if the ratio of free packages among the packages in project
+from reference repositories is above `repology-license-poll-threshold'.
+If the project does not contain any package from such repositories, or if those
+repositories cannot decide, return `unknown'.  In any other case, return nil.
 
 Of course, it is not a legal statement, merely an indication."
   (pcase datum
@@ -332,10 +333,10 @@ Of course, it is not a legal statement, merely an indication."
            ('nil nil)
            (repository
             (unless (member repository voters)
-              (cl-incf votes)
               (push repository voters)  ;a repository votes only once
               (let ((free (repology--license-vote repository package)))
                 (when (booleanp free)   ;has repository an opinion?
+                  (cl-incf votes)
                   (when free (cl-incf yes))
                   (when repology-license-debug
                     (push (repology--license-debug-line package free)
