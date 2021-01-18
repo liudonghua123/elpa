@@ -30,13 +30,7 @@
 ;; you can set `repology-license-debug' to a non-nil value.
 
 ;;; Code:
-
-(declare-function repology-request "repology" (url &optional extra-headers))
-(declare-function repology-package-field "repology" (package field))
-(declare-function repology-project-name "repology" (project))
-(declare-function repology-package-p "repology" (object))
-(declare-function repology-project-p "repology" (object))
-(declare-function repology-project-packages "repology" (project))
+(require 'repology-utils)
 
 
 ;;; Constants
