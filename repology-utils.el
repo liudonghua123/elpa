@@ -27,26 +27,6 @@
 ;;; Code:
 
 
-;;; Macro
-
-;; XXX: We need it to be a macro because it is required early, e.g.,
-;; in `repology-display-packages-columns'.
-(defmacro repology-display-sort-column (name predicate)
-  "Return a function comparing entries in column NAME.
-NAME is a string.  Compare entries using function PREDICATE, called on two
-objects of the column."
-  `(lambda (e1 e2)
-     (let ((column
-            ;; Find column's number
-            (or (seq-position tabulated-list-format
-                              ,name
-                              (pcase-lambda (`(,n . ,_) s) (equal n s)))
-                (error "Invalid column name %S" ,name))))
-       (let ((s1 (elt (cadr e1) column))
-             (s2 (elt (cadr e2) column)))
-         (funcall ,predicate s1 s2)))))
-
-
 ;;; Packages
 (defun repology-package-p (object)
   "Return t if OBJECT is a package."
@@ -387,16 +367,39 @@ V1 and V2 are strings."
       nil)))
 
 
-;;; Other Comparisons
-(defun repology-compare-texts (s1 s2)
-  "Compare strings S1 and S2 in collation order.
-Return t if S1 is less than S2.  Case is ignored."
-  (string-collate-lessp s1 s2 nil t))
+;;; Sort Functions
+(defun repology--display-sort-generic (e1 e2 predicate)
+  "Compare entries E1 and E2 according to PREDICATE.
+E1 and E2 are elements of `tabulated-list-entries'.  PREDICATE is called on the
+values from E1 and E2 at the column being sorted."
+  (let ((column
+         ;; Find number of column being sorted.
+         (seq-position tabulated-list-format
+                       (car tabulated-list-sort-key)
+                       (pcase-lambda (`(,n . ,_) s) (equal n s)))))
+    ;; Call PREDICATE on values instead of entries.
+    (let ((val1 (elt (cadr e1) column))
+          (val2 (elt (cadr e2) column)))
+      (funcall predicate val1 val2))))
 
-(defun repology-compare-numbers (s1 s2)
-  "Compare strings S1 and S2 numerically.
-Return t if S1 is less than S2."
-  (< (string-to-number s1) (string-to-number s2)))
+(defun repology-display-sort-numbers (e1 e2)
+  "Return t if E1 is numerically less than E2.
+E1 and E2 are elements of `tabulated-list-entries'."
+  (repology--display-sort-generic
+   e1 e2
+   (lambda (s1 s2) (< (string-to-number s1) (string-to-number s2)))))
+
+(defun repology-display-sort-texts (e1 e2)
+  "Return t if E1 is before E2, in collation order.
+E1 and E2 are elements of `tabulated-list-entries'.  Case is ignored."
+  (repology--display-sort-generic
+   e1 e2
+   (lambda (s1 s2) (string-collate-lessp s1 s2 nil t))))
+
+(defun repology-display-sort-versions (e1 e2)
+  "Return t if E1 is older than E2.
+E1 and E2 are elements of `tabulated-list-entries'."
+  (repology--display-sort-generic e1 e2 #'repology-version-<))
 
 
 (provide 'repology-utils)
