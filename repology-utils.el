@@ -19,10 +19,12 @@
 
 ;;; Commentary:
 
-;; This library provides various tools used throughout the code base.  It
-;; includes accessors and predicates for packages, projects and problems
-;; objects.  It also provides functions useful in configuration variables.
-;; Eventually, it implements `repology-request'.
+;; This library provides various user-facing tools.  They include accessors and
+;; predicates for package, project and problem objects, in addition to more
+;; specialized functions useful in configuration variables.
+
+;; The library also provides the low-level `repology-request', used to
+;; perform a raw HTTP request on a given URL.
 
 ;;; Code:
 
