@@ -305,7 +305,7 @@ PACKAGE is a package object."
          ;; For a vote to be "Free", every license string must be
          ;; free.  However, we stop at first "Unknown" or "Non-Free"
          ;; result.
-         (pcase (funcall p t)
+         (pcase (funcall p l)
            ('t nil)
            (other (throw :vote other))))
        t))
