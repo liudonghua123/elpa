@@ -300,7 +300,15 @@ REPOSITORY is an element from `repology-license-reference-repositories'.
 PACKAGE is a package object."
   (pcase (or repository (repology--license-find-reference-repository package))
     (`(,_ ,_ ,(and (pred functionp) p))
-     (seq-every-p p (repology-package-field package 'licenses)))
+     (catch :vote
+       (dolist (l (repology-package-field package 'licenses))
+         ;; For a vote to be "Free", every license string must be
+         ;; free.  However, we stop at first "Unknown" or "Non-Free"
+         ;; result.
+         (pcase (funcall p t)
+           ('t nil)
+           (other (throw :vote other))))
+       t))
     (`(,_ ,_ ,boolean) boolean)
     (other (error "Wrong repository definition: %S" other))))
 
