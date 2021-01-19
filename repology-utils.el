@@ -179,7 +179,7 @@ Versions are sorted in descending order."
     (sort (mapcar (lambda (p) (repology-package-field p 'version))
                   outdated)
           ;; Return versions in decreasing order.
-          (lambda (s1 s2) (repology-compare-versions s2 s1)))))
+          (lambda (s1 s2) (repology-version-< s2 s1)))))
 
 
 ;;; Problems
@@ -321,7 +321,7 @@ the request."
 (defun repology--string-to-version (s)
   "Return version associated to string S.
 Version is a list of components (RANK . VALUE) suitable for comparison, with
-the function `repology-compare-versions'."
+the function `repology-version-<'."
   (let ((split nil))
     ;; Explode string into numeric and alphabetic components.
     ;; Intermediate SPLIT result is in reverse order.
@@ -361,11 +361,11 @@ the function `repology-compare-versions'."
           (push (cons rank component) result)))
       result)))
 
-(defun repology-compare-versions (s1 s2)
-  "Compare package versions associated to strings S1 and S2.
-Return t if version S1 is lower than version S2."
-  (let ((v1 (repology--string-to-version s1))
-        (v2 (repology--string-to-version s2)))
+(defun repology-version-< (v1 v2)
+  "Return t if version V1 is lower (older) than version V2.
+V1 and V2 are strings."
+  (let ((v1 (repology--string-to-version v1))
+        (v2 (repology--string-to-version v2)))
     (catch :less?
       (while (or v1 v2)
         (pcase-let ((`(,r1 . ,v1)
@@ -383,7 +383,7 @@ Return t if version S1 is lower than version S2."
            ;; comparing their first letters.
            (t (throw :less?
                      (string-lessp (substring v1 0 1) (substring v2 0 1)))))))
-      ;; Strings S1 and S2 represent equal versions.
+      ;; Strings V1 and V2 represent equal versions.
       nil)))
 
 

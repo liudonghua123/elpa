@@ -208,7 +208,7 @@ problem argument.  Its return value is then turned into a string and displayed."
     ("Version"
      repology-package-colorized-version
      12
-     ,(repology-display-sort-column "Version" #'repology-compare-versions))
+     ,(repology-display-sort-column "Version" #'repology-version-<))
     ("Category" categories 25 t)
     ("Maintainer(s)" maintainers 30 t))
   "Columns format rules used to display a list of packages.
@@ -226,7 +226,7 @@ This library provides a few functions useful as VALUE.  See, for example,
 
 You may also want to look into `repology-display-sort-column', along with
 predicates like `repology-compare-texts', `repology-compare-numbers', or
-`repology-compare-versions' in order to build SORT values."
+`repology-version-<' in order to build SORT values."
   :type
   `(repeat
     (list :tag "Column definition"
@@ -259,7 +259,7 @@ This library provides a few functions useful as VALUE.  See, for example,
 
 You may also want to look into `repology-display-sort-column', along with
 predicates like `repology-compare-texts', `repology-compare-numbers', or
-`repology-compare-versions' in order to build SORT values."
+`repology-version-<' in order to build SORT values."
   :type '(choice
           (repeat
            (list :tag "Column definition"
@@ -712,7 +712,7 @@ or nil.  This is the default value for `repology-display-projects-columns'."
     ("Newest"
      repology-project-newest-version
      12
-     ,(repology-display-sort-column "Newest" #'repology-compare-versions))
+     ,(repology-display-sort-column "Newest" #'repology-version-<))
     ("Outdated" repology-project-outdated-versions 30 nil)))
 
 (defun repology-display-package (package)
