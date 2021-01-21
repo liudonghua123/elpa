@@ -1,1 +1,3 @@
 *.elc
+/ob-haxe-pkg.el
+/ob-haxe-autoloads.el

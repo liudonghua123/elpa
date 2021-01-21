@@ -2,9 +2,10 @@
 
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
-;; Author: Ian Martins
+;; Author: Ian Martins <ianxm@jhu.edu>
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: https://orgmode.org
+;; Version: 0
 
 ;; This file is not part of GNU Emacs.
 
@@ -41,39 +42,36 @@
 
 (defcustom org-babel-neko-command "neko"
   "Name of the neko command.
-May be either a command in the path, like neko or an absolute
-path name, like /usr/local/bin/neko."
+May be either a command in the path, like \"neko\" or the full
+path to the executable, like \"/usr/local/bin/neko\".  Double
+quotes must be escaped.  This is run in a shell."
   :group 'org-babel
-  :package-version '(Org . "9.5")
   :type 'string)
 
 (defcustom org-babel-hashlink-command "hl"
-  "Name of the neko command.
-May be either a command in the path, like neko or an absolute
-path name, like /usr/local/bin/neko."
+  "Name of the hashlink command.
+May be either a command in the path, like \"hl\" or the full path
+to the executable, like \"/usr/local/bin/hl\".  Double quotes
+must be escaped.  This is run in a shell."
   :group 'org-babel
-  :package-version '(Org . "9.5")
   :type 'string)
 
 (defcustom org-babel-haxe-compiler "haxe"
   "Name of the haxe compiler.
-May be either a command in the path, like haxe or an absolute
-path name, like /usr/local/bin/haxe.  Parameters may be used,
-like haxe --verbose."
+May be either a command in the path like \"haxe\", or an absolute
+file name, like \"/usr/local/bin/haxe\".  This is used in a shell
+command, so parameters may be used, like \"haxe --verbose\"."
   :group 'org-babel
-  :package-version '(Org . "9.5")
   :type 'string)
 
 (defcustom org-babel-haxe-hline-to "null"
   "Replace hlines in incoming tables with this when translating to haxe."
   :group 'org-babel
-  :package-version '(Org . "9.5")
   :type 'string)
 
 (defcustom org-babel-haxe-null-to 'hline
   "Replace `null' in haxe tables with this before returning."
   :group 'org-babel
-  :package-version '(Org . "9.5")
   :type 'symbol)
 
 (defconst org-babel-haxe--package-re (rx line-start (0+ space) "package"
@@ -155,7 +153,7 @@ replaced in this string.")
          ;; the dir to write the source file
          (packagedir (if (and (not run-from-temp) packagename)
                          (file-name-as-directory
-                          (concat basedir (replace-regexp-in-string "\\\." "/" packagename)))
+                          (concat basedir (replace-regexp-in-string "\\." "/" packagename)))
                        basedir))
          ;; runtime flags
          (cmdline (or (cdr (assq :cmdline params)) ""))
@@ -175,7 +173,8 @@ replaced in this string.")
          ;; the command to compile and run
          (cmd (concat org-babel-haxe-compiler
                       " -p " basedir
-                      " -main " (if run-from-temp classname fullclassname) " " target))
+                      " -main " (if run-from-temp classname fullclassname)
+                      " " target))
          ;; header args for result processing
          (result-type (cdr (assq :result-type params)))
          (result-params (cdr (assq :result-params params)))
@@ -328,7 +327,7 @@ is simplest to expand the code block from the inside out."
       (when var-lines
         (goto-char (point-min))
         (org-babel-haxe--move-past org-babel-haxe--class-re)   ; move inside class
-        (insert (mapconcat 'identity var-lines "\n"))
+        (insert (mapconcat #'identity var-lines "\n"))
         (insert "\n"))
 
       ;; add imports from source block headers

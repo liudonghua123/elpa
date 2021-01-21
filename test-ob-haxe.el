@@ -1,4 +1,4 @@
-;;; test-ob-haxe.el --- tests for ob-haxe.el
+;;; test-ob-haxe.el --- tests for ob-haxe.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (c) 2020-2021 Free Software Foundation, Inc.
 ;; Author: Ian Martins
@@ -19,8 +19,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
-(require 'org-test)
-
+(if t (require 'org-test))      ; Don't fail compilation if `org-test' absent.
 (require 'ob-core)
 (defvar org-babel-temporary-directory ; from ob-core
   (if (boundp 'org-babel-temporary-directory)
@@ -30,8 +29,6 @@
 (org-test-for-executable "haxe")
 (org-test-for-executable "neko")
 (org-test-for-executable "hl")
-(unless (featurep 'ob-haxe)
-  (signal 'missing-test-dependency "Support for haxe code blocks"))
 
 ; simple tests
 
