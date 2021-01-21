@@ -82,9 +82,9 @@
  ("chess"		:url nil) ;; Was https://github.com/jwiegley/emacs-chess.git
  ("cl-generic"		:url nil)
  ("cl-lib"		:url nil)
- ("cobol-mode"          :url "https://gist.github.com/Edward-H/6768e7dc53ea3dd2adca")
  ("cl-print"		:core "lisp/emacs-lisp/cl-print.el")
  ("clipboard-collector" :url "https://github.com/clemera/clipboard-collector")
+ ("cobol-mode"          :url "https://gist.github.com/Edward-H/6768e7dc53ea3dd2adca")
  ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
  ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings")
  ("company"
@@ -97,6 +97,7 @@
  ("counsel"		:url "https://github.com/abo-abo/swiper")
  ("cpio-mode"		:url "https://github.com/dlewan/cpio-mode")
  ("crisp"		:url nil)
+ ;; ("crossword"		:url "https://github.com/Boruch-Baum/emacs-crossword")
  ("csv-mode"		:url nil)
  ("cycle-quotes"	:url nil)
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
@@ -215,6 +216,7 @@
  ("ntlm"		:core "lisp/net/ntlm.el")
  ("num3-mode"		:url nil)
  ("oauth2"		:url nil)
+ ("ob-haxe"		:url "https://github.com/ianxm/ob-haxe.el")
  ("objed"        	:url "https://github.com/clemera/objed")
  ("omn-mode"            :url nil)
  ("on-screen"           :url "https://github.com/michael-heerdegen/on-screen.el.git")
