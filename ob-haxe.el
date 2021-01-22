@@ -43,16 +43,16 @@
 (defcustom org-babel-neko-command "neko"
   "Name of the neko command.
 May be either a command in the path, like \"neko\" or the full
-path to the executable, like \"/usr/local/bin/neko\".  Double
-quotes must be escaped.  This is run in a shell."
+path to the executable, like \"/usr/local/bin/neko\".  This is
+run in a shell."
   :group 'org-babel
   :type 'string)
 
 (defcustom org-babel-hashlink-command "hl"
   "Name of the hashlink command.
 May be either a command in the path, like \"hl\" or the full path
-to the executable, like \"/usr/local/bin/hl\".  Double quotes
-must be escaped.  This is run in a shell."
+to the executable, like \"/usr/local/bin/hl\".  This is run in a
+shell."
   :group 'org-babel
   :type 'string)
 
@@ -126,11 +126,13 @@ replaced in this string.")
           (or (cdr (assq :haxe params))
               org-babel-haxe-compiler))
          (org-babel-neko-command
-          (or (cdr (assq :neko params))
-              org-babel-neko-command))
+          (replace-regexp-in-string "\\([ \"]\\)" "\\\\\\1" ; escape double quotes or spaces
+                                    (or (cdr (assq :neko params))
+                                        org-babel-neko-command)))
          (org-babel-hashlink-command
-          (or (cdr (assq :hashlink params))
-              org-babel-hashlink-command))
+          (replace-regexp-in-string "\\([ \"]\\)" "\\\\\\1" ; escape double quotes or spaces
+                                    (or (cdr (assq :hashlink params))
+                                        org-babel-hashlink-command)))
          ;; if true, run from babel temp directory
          (run-from-temp (not (alist-get :dir params)))
          ;; class and package
