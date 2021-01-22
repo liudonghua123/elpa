@@ -36,7 +36,7 @@
 ;;
 ;; By default, only projects recognized as free are included in the search
 ;; results.  You can control this behavior with the variable
-;; `repology-free-only-projects'.  The function `repology-check-freedom'
+;; `repology-free-projects-only'.  The function `repology-check-freedom'
 ;; is responsible for guessing if a project, or a package, is free.
 
 ;; You can then access data from those various objects using dedicated
@@ -135,7 +135,7 @@ Repology claims to update its repository hourly.
 A value of 0 prevents any caching."
   :type 'integer)
 
-(defcustom repology-free-only-projects t
+(defcustom repology-free-projects-only t
   "When t, return only free projects from searches.
 
 Declaring a project as free the consequence of a very conservative process.
@@ -495,7 +495,7 @@ FILTERS helps refining the search with the following keywords:
      return projects which have related ones (may require merging)
 
 Return a list of projects.  Non-free projects may be removed from output
-according to the value of `repology-free-only-projects'."
+according to the value of `repology-free-projects-only'."
   (let ((result nil)
         (name nil))
     (with-temp-message "Repology: Querying API..."
@@ -521,9 +521,9 @@ according to the value of `repology-free-only-projects'."
                       (`(,(and (pred repology-project-p) project))
                        (concat (repology-project-name project) "-"))
                       (other (error "Invalid request result: %S" other))))))))))
-    (if (not repology-free-only-projects) result
+    (if (not repology-free-projects-only) result
       (with-temp-message "Repology: Filtering out non-free projects..."
-        (seq-filter (if (eq repology-free-only-projects 'include-unknown)
+        (seq-filter (if (eq repology-free-projects-only 'include-unknown)
                         #'repology-check-freedom
                       (lambda (p) (eq t (repology-check-freedom p))))
                     result)))))
