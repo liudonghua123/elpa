@@ -1,6 +1,6 @@
 ;;; debbugs-gnu.el --- interface for the GNU bug tracker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -1060,7 +1060,8 @@ Used instead of `tabulated-list-print-entry'."
     (define-key-after menu-map [debbugs-gnu-make-control-message]
       '(menu-item "Make Control Message"
 		  debbugs-gnu-make-control-message
-		  :help "Make (but don't yet send) a control message to debbugs.gnu.org")
+		  :help (concat "Make (but don't yet send) "
+				"a control message to debbugs.gnu.org"))
       'debbugs-gnu-send-control-message)
 
     (define-key-after menu-map [debbugs-gnu-separator1]
@@ -1929,9 +1930,11 @@ removed instead."
         ((equal message "reassign")
          (format
 	  "reassign %d %s\n" bugid
-	  (completing-read-multiple
-	   "Package(s): " debbugs-gnu-all-packages nil nil
-	   (string-join (alist-get 'package status) ","))))
+          (string-join
+	   (completing-read-multiple
+	    "Package(s): " debbugs-gnu-all-packages nil nil
+	    (string-join (alist-get 'package status) ","))
+	   ",")))
         ((equal message "close")
          (format "close %d %s\n" bugid version))
         ((equal message "done")
@@ -1953,7 +1956,8 @@ removed instead."
          (format "user %s\nusertag %d %s\n"
                  (completing-read
                   "Package name or email address: "
-                  (append debbugs-gnu-applicable-packages (list user-mail-address))
+                  (append
+		   debbugs-gnu-applicable-packages (list user-mail-address))
                   nil nil (car debbugs-gnu-default-packages))
                  bugid (read-string "User tag: ")))
 	;; "patch", "wontfix", "moreinfo", "unreproducible", "notabug",
