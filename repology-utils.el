@@ -111,7 +111,7 @@ Return PACKAGE's repository internal name if the full name is unknown."
         (intern (format "repology-%s-status" status))
       ;; If package status list is not up-to-date, fall back to
       ;; `default' face.
-      (warn "Repology: Unknown package status: %S; Using `default' face" other)
+      (warn "Repology: Unknown package status: %S; Using `default' face" status)
       'default)))
 
 (defun repology-package-colorized-status (package)
