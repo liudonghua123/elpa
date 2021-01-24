@@ -86,10 +86,6 @@
 (defconst repology-base-url "https://repology.org/api/v1/"
   "Base URL for Repology API.")
 
-(defconst repology-statistics-url "https://repology.org/repositories/statistics"
-  "URL for \"Statistics\" page in Repology website.
-It is used as a source for all known repositories.")
-
 (defconst repology-package-all-fields
   '(repo subrepo name srcname binname visiblename version origversion status
          summary categories licenses maintainers www downloads)

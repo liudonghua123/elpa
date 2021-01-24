@@ -201,6 +201,10 @@ following ones:
 
 
 ;;; Repositories
+(defconst repology-statistics-url "https://repology.org/repositories/statistics"
+  "URL for \"Statistics\" page in Repology website.
+It is used as a source for all known repositories.")
+
 (defvar repology--repositories nil
   "List of repositories known to Repology.
 The list is populated by `repology-list-repositories'.  Call that function
