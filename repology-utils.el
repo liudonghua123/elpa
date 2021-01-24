@@ -1,4 +1,4 @@
-;;; repology-utils.el --- Utilitaries for Repology   -*- lexical-binding: t; -*-
+;;; repology-utils.el --- Utilities for Repology   -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2021  Free Software Foundation, Inc.
 
