@@ -82,33 +82,23 @@
 ;;; Code:
 
 
+;;; Load Libraries
+(require 'json)
+(require 'seq)
+(require 'tabulated-list)
+(require 'url)
+
+(require 'repology-utils)
+(require 'repology-license)
+
+
 ;;; Upstream Constants
 (defconst repology-base-url "https://repology.org/api/v1/"
   "Base URL for Repology API.")
 
-(defconst repology-package-all-fields
-  '(repo subrepo name srcname binname visiblename version origversion status
-         summary categories licenses maintainers www downloads)
-  "List of known package fields.")
-
-(defconst repology-package-all-status
-  '("newest" "devel" "unique" "outdated" "legacy" "rolling" "noscheme"
-    "incorrect" "untrusted" "ignored")
-  "List of known status values.")
-
 (defconst repology-projects-hard-limit 200
   "Maximum number of projects Repology API can return.
 See URL `https://repology.org/api'.")
-
-
-;;; Load Libraries
-(require 'json)
-(require 'tabulated-list)
-(require 'url)
-
-;; These need to be loaded after upstream constants.
-(require 'repology-utils)
-(require 'repology-license)
 
 
 ;;; Configuration

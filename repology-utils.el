@@ -28,6 +28,21 @@
 
 ;;; Code:
 
+(require 'seq)
+(require 'url)
+
+
+;;; Constants
+(defconst repology-package-all-fields
+  '(repo subrepo name srcname binname visiblename version origversion status
+         summary categories licenses maintainers www downloads)
+  "List of known package fields.")
+
+(defconst repology-package-all-status
+  '("newest" "devel" "unique" "outdated" "legacy" "rolling" "noscheme"
+    "incorrect" "untrusted" "ignored")
+  "List of known status values.")
+
 
 ;;; Packages
 (defun repology-package-p (object)
