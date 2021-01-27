@@ -32,7 +32,7 @@
 ;; and commands.  It also defines a source to retrieve puzzles of
 ;; the hidden quote type, created by myself.
 ;;
-;; Usage:
+;;;; Usage:
 ;; (require 'hiddenquote)
 ;; M-x hiddenquote
 ;; Select the source you want to retrieve the puzzle from.
