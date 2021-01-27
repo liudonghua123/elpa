@@ -1,0 +1,532 @@
+{
+  "version": "http://ipuz.org/v2",
+  "kind": [
+    "http://mauroaranda.com/puzzles/hiddenquote#1",
+    "http://ipuz.org/crossword#1"
+  ],
+  "copyright": "Copyright (C) 2021 Mauro Aranda",
+  "publisher": "MauroAranda",
+  "url": "http://mauroaranda.com/puzzles/hidden-quote-puzzle/2",
+  "uniqueid": "2",
+  "title": "Grid Nº2",
+  "author": "Mauro Aranda",
+  "editor": "Mauro Aranda",
+  "date": "01/17/2021",
+  "origin": "GNU Emacs",
+  "intro": "Find a quote from Ovid.",
+  "dimensions": {
+    "width": 15,
+    "height": 17
+  },
+  "puzzle": [
+    [
+      "1",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "2",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "3",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "4",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "5",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "6",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "7",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null
+    ],
+    [
+      "8",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "9",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "10",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "11",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "12",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "13",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "14",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "15",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "16",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "17",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  ],
+  "clues": {
+    "Clues": [
+      {
+        "number": 1,
+        "clue": "Loosed from any limitation or condition",
+        "answer": "absolute",
+        "enumeration": 8
+      },
+      {
+        "number": 2,
+        "clue": "Without a name",
+        "answer": "nameless",
+        "enumeration": 8
+      },
+      {
+        "number": 3,
+        "clue": "A former country of southeastern Europe bordering the Adriatic Sea",
+        "answer": "yugoslavia",
+        "enumeration": 10
+      },
+      {
+        "number": 4,
+        "clue": "One who teaches or instructs",
+        "answer": "teacher",
+        "enumeration": 7
+      },
+      {
+        "number": 5,
+        "clue": "Of or pertaining to hydraulics, or to fluids in motion",
+        "answer": "hydraulic",
+        "enumeration": 9
+      },
+      {
+        "number": 6,
+        "clue": "The state or quality of being identical, or the same",
+        "answer": "identity",
+        "enumeration": 8
+      },
+      {
+        "number": 7,
+        "clue": "The manipulation or construction of objects with sizes in the nanometer range or smaller",
+        "answer": "nanotechnology",
+        "enumeration": 14
+      },
+      {
+        "number": 8,
+        "clue": "A piece of ground appropriated to the cultivation of herbs, fruits, flowers, or vegetables",
+        "answer": "garden",
+        "enumeration": 6
+      },
+      {
+        "number": 9,
+        "clue": "An orthopterous insect of the genus Blatta, and allied genera",
+        "answer": "cockroach",
+        "enumeration": 9
+      },
+      {
+        "number": 10,
+        "clue": "Violent or riotous behavior",
+        "answer": "rampage",
+        "enumeration": 7
+      },
+      {
+        "number": 11,
+        "clue": "The act of adding two or more things together",
+        "answer": "addition",
+        "enumeration": 8
+      },
+      {
+        "number": 12,
+        "clue": "Someone injured or killed or captured or missing in a military engagement",
+        "answer": "casualty",
+        "enumeration": 8
+      },
+      {
+        "number": 13,
+        "clue": "Chemical element, symbol Kr",
+        "answer": "krypton",
+        "enumeration": 7
+      },
+      {
+        "number": 14,
+        "clue": "One employed by another",
+        "answer": "employee",
+        "enumeration": 8
+      },
+      {
+        "number": 15,
+        "clue": "That causes disgust",
+        "answer": "disgusting",
+        "enumeration": 10
+      },
+      {
+        "number": 16,
+        "clue": "A person who cuts wood",
+        "answer": "woodcutter",
+        "enumeration": 10
+      },
+      {
+        "number": 17,
+        "clue": "A man born in Ireland or of the Irish race",
+        "answer": "irishman",
+        "enumeration": 8
+      }
+    ]
+  },
+  "answer": "Anything cracked will shatter at a touch",
+  "zones": [
+    {
+      "rect": [
+        0,
+        0,
+        0,
+        16
+      ],
+      "style": {
+        "border": 0
+      }
+    },
+    {
+      "rect": [
+        1,
+        0,
+        1,
+        16
+      ],
+      "style": {
+        "highlight": true
+      }
+    },
+    {
+      "rect": [
+        5,
+        0,
+        5,
+        16
+      ],
+      "style": {
+        "highlight": true
+      }
+    }
+  ],
+  "volatile": {
+    "com.hiddenquote:arrows": "",
+    "com.hiddenquote:subject": "",
+    "com.hiddenquote:syllables": ""
+  },
+  "com.hiddenquote:arrows": "1,5",
+  "com.hiddenquote:subject": "general",
+  "com.hiddenquote:syllables": [
+    "a",
+    "ab",
+    "ad",
+    "age",
+    "al",
+    "cas",
+    "cock",
+    "cut",
+    "den",
+    "den",
+    "di",
+    "dis",
+    "drau",
+    "ee",
+    "em",
+    "er",
+    "gar",
+    "gos",
+    "gust",
+    "gy",
+    "hy",
+    "i",
+    "i",
+    "ing",
+    "kryp",
+    "la",
+    "less",
+    "lic",
+    "lute",
+    "man",
+    "name",
+    "nan",
+    "nol",
+    "o",
+    "o",
+    "ploy",
+    "ramp",
+    "rish",
+    "roach",
+    "so",
+    "teach",
+    "tech",
+    "ter",
+    "ti",
+    "tion",
+    "ton",
+    "ty",
+    "ty",
+    "u",
+    "vi",
+    "wood",
+    "yu"
+  ]
+}

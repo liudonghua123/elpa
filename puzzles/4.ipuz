@@ -1,0 +1,532 @@
+{
+  "version": "http://ipuz.org/v2",
+  "kind": [
+    "http://mauroaranda.com/puzzles/hiddenquote#1",
+    "http://ipuz.org/crossword#1"
+  ],
+  "copyright": "Copyright (C) 2021 tbb",
+  "publisher": "MauroAranda",
+  "url": "http://mauroaranda.com/puzzles/hidden-quote-puzzle/1",
+  "uniqueid": "4",
+  "title": "Hidden Puzzle Nº1",
+  "author": "Mauro Aranda",
+  "editor": "Mauro Aranda",
+  "date": "01/26/2021",
+  "origin": "GNU Emacs",
+  "intro": "Complete the grid to read an Aristotle quote",
+  "dimensions": {
+    "width": 11,
+    "height": 20
+  },
+  "puzzle": [
+    [
+      "1",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "2",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "3",
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "4",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null
+    ],
+    [
+      "5",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "6",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null
+    ],
+    [
+      "7",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null
+    ],
+    [
+      "8",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null
+    ],
+    [
+      "9",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null
+    ],
+    [
+      "10",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null
+    ],
+    [
+      "11",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null
+    ],
+    [
+      "12",
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "13",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null
+    ],
+    [
+      "14",
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "15",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null
+    ],
+    [
+      "16",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "17",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null
+    ],
+    [
+      "18",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null,
+      null
+    ],
+    [
+      "19",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      null
+    ],
+    [
+      "20",
+      0,
+      0,
+      0,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  ],
+  "clues": {
+    "Clues": [
+      {
+        "number": 1,
+        "clue": "(Arch.) A low wall, especially one serving to protect the edge of a platform, roof, bridge, or the like",
+        "answer": "parapet",
+        "enumeration": 7
+      },
+      {
+        "number": 2,
+        "clue": "Playing on the surface; touching lightly",
+        "answer": "lambent",
+        "enumeration": 7
+      },
+      {
+        "number": 3,
+        "clue": "A lighted coal, smoldering amid ashes",
+        "answer": "ember",
+        "enumeration": 5
+      },
+      {
+        "number": 4,
+        "clue": "Any product of human workmanship",
+        "answer": "artifact",
+        "enumeration": 8
+      },
+      {
+        "number": 5,
+        "clue": "Destitute of sap; not juicy",
+        "answer": "sapless",
+        "enumeration": 7
+      },
+      {
+        "number": 6,
+        "clue": "Inspection or analysis of the urine as a means of diagnosis",
+        "answer": "uroscopy",
+        "enumeration": 8
+      },
+      {
+        "number": 7,
+        "clue": "To obtain again",
+        "answer": "reobtain",
+        "enumeration": 8
+      },
+      {
+        "number": 8,
+        "clue": "To cut with a chisel",
+        "answer": "enchisel",
+        "enumeration": 8
+      },
+      {
+        "number": 9,
+        "clue": "Act of beginning; commencement; inception",
+        "answer": "inchoation",
+        "enumeration": 10
+      },
+      {
+        "number": 10,
+        "clue": "A name given in affectionate familiarity",
+        "answer": "nickname",
+        "enumeration": 8
+      },
+      {
+        "number": 11,
+        "clue": "A large extent or tract of land",
+        "answer": "territory",
+        "enumeration": 9
+      },
+      {
+        "number": 12,
+        "clue": "(- of Troy) The beautiful daughter of Zeus and Leda, who was abducted by Paris",
+        "answer": "helen",
+        "enumeration": 5
+      },
+      {
+        "number": 13,
+        "clue": "One of the fundamental subatomic particles, of negative charge",
+        "answer": "electron",
+        "enumeration": 8
+      },
+      {
+        "number": 14,
+        "clue": "The Hebrew prophet, who was cast overboard as one who endangered the ship",
+        "answer": "jonah",
+        "enumeration": 5
+      },
+      {
+        "number": 15,
+        "clue": "An instrument attached to a vehicle which measures the distance traversed",
+        "answer": "odometer",
+        "enumeration": 8
+      },
+      {
+        "number": 16,
+        "clue": "To ornament with a jewel or with jewels",
+        "answer": "bejewel",
+        "enumeration": 7
+      },
+      {
+        "number": 17,
+        "clue": "One of the three geologic eras of the Phanerozoic Eon",
+        "answer": "paleozoic",
+        "enumeration": 9
+      },
+      {
+        "number": 18,
+        "clue": "Not courteous or gracious",
+        "answer": "uncordial",
+        "enumeration": 9
+      },
+      {
+        "number": 19,
+        "clue": "Landlocked country in Central Asia",
+        "answer": "tajikistan",
+        "enumeration": 10
+      },
+      {
+        "number": 20,
+        "clue": "An asiatic leguminous herb, which seeds are used in preparing soy",
+        "answer": "soja",
+        "enumeration": 4
+      }
+    ]
+  },
+  "answer": "Pleasure in the job puts perfection in the work.",
+  "zones": [
+    {
+      "rect": [
+        0,
+        0,
+        0,
+        19
+      ],
+      "style": {
+        "border": 0
+      }
+    },
+    {
+      "rect": [
+        1,
+        0,
+        1,
+        19
+      ],
+      "style": {
+        "highlight": true
+      }
+    },
+    {
+      "rect": [
+        5,
+        0,
+        5,
+        19
+      ],
+      "style": {
+        "highlight": true
+      }
+    }
+  ],
+  "volatile": {
+    "com.hiddenquote:arrows": "",
+    "com.hiddenquote:subject": "",
+    "com.hiddenquote:syllables": ""
+  },
+  "com.hiddenquote:arrows": "1,5",
+  "com.hiddenquote:subject": "general",
+  "com.hiddenquote:syllables": [
+    "a",
+    "a",
+    "ar",
+    "be",
+    "bent",
+    "ber",
+    "chis",
+    "cho",
+    "co",
+    "cor",
+    "dial",
+    "dom",
+    "e",
+    "e",
+    "el",
+    "el",
+    "em",
+    "en",
+    "en",
+    "fact",
+    "hel",
+    "i",
+    "ic",
+    "in",
+    "ja",
+    "jew",
+    "jik",
+    "jo",
+    "lam",
+    "le",
+    "lec",
+    "less",
+    "nah",
+    "name",
+    "nick",
+    "o",
+    "o",
+    "ob",
+    "pa",
+    "par",
+    "pet",
+    "py",
+    "re",
+    "ri",
+    "ros",
+    "ry",
+    "sap",
+    "so",
+    "stan",
+    "ta",
+    "tain",
+    "ter",
+    "ter",
+    "ti",
+    "tion",
+    "to",
+    "tron",
+    "u",
+    "un",
+    "zo"
+  ]
+}
