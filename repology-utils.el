@@ -149,7 +149,7 @@ The version string is emphasized according to PACKAGE's status."
 (defun repology-project-p (object)
   "Return t if OBJECT is a project."
   (pcase object
-    (`(,(pred symbolp) . ,packages)
+    (`(,(pred symbolp) . ,(and (pred listp) packages))
      (seq-every-p #'repology-package-p packages))
     (_ nil)))
 
