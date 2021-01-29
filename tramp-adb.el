@@ -1,6 +1,6 @@
 ;;; tramp-adb.el --- Functions for calling Android Debug Bridge from Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Jürgen Hötzel <juergen@archlinux.org>
 ;; Keywords: comm, processes
@@ -98,6 +98,7 @@ It is used for TCP/IP devices."
 	      `(,tramp-adb-method
                 (tramp-login-program ,tramp-adb-program)
                 (tramp-login-args    (("shell")))
+                (tramp-direct-async  t)
 	        (tramp-tmpdir        "/data/local/tmp")
                 (tramp-default-port  5555)))
 
@@ -635,7 +636,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       (copy-directory filename newname keep-date t)
 
     (let ((t1 (tramp-tramp-file-p filename))
-	  (t2 (tramp-tramp-file-p newname)))
+	  (t2 (tramp-tramp-file-p newname))
+	  ;; We don't want the target file to be compressed, so we
+	  ;; let-bind `jka-compr-inhibit' to t.
+	  (jka-compr-inhibit t))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
 	  (tramp-error
@@ -716,7 +720,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(delete-directory filename 'recursive))
 
     (let ((t1 (tramp-tramp-file-p filename))
-	  (t2 (tramp-tramp-file-p newname)))
+	  (t2 (tramp-tramp-file-p newname))
+	  ;; We don't want the target file to be compressed, so we
+	  ;; let-bind `jka-compr-inhibit' to t.
+	  (jka-compr-inhibit t))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
 	  (tramp-error
@@ -895,8 +902,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 ;; terminated.
 (defun tramp-adb-handle-make-process (&rest args)
   "Like `make-process' for Tramp files.
-If connection property \"direct-async-process\" is non-nil, an
-alternative implementation will be used."
+If method parameter `tramp-direct-async' and connection property
+\"direct-async-process\" are non-nil, an alternative
+implementation will be used."
   (if (tramp-direct-async-process-p args)
       (apply #'tramp-handle-make-process args)
     (when args
