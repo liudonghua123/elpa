@@ -648,7 +648,7 @@ Returns the `hiddenquote-grid' widget created."
                       ("com.hiddenquote:syllables" .
                        ,(vconcat (sort (copy-sequence
                                         (oref self syllables))
-                                       #'string-lessp))))))
+                                       #'string-collate-lessp))))))
       (let ((json-pretty-print-max-secs 0.0))
         (json-pretty-print (point-min) (point-max)))
       (buffer-string))))
