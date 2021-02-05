@@ -8,7 +8,7 @@
 ;; Version: 0.1
 ;; Package-Version: 0.1
 ;; Package-Requires: ((emacs "25.1"))
-;; URL: http://www.mauroaranda.com
+;; URL: http://mauroaranda.com/puzzles/hidden-quote-puzzle/
 ;; Keywords: games
 
 ;; This file is NOT part of GNU Emacs.
