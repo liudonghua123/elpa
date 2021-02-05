@@ -1,7 +1,7 @@
 # hiddenquote: A different kind of word puzzle
 
 > hiddenquote is a major mode that lets you play a word puzzle you
-might not played before
+might not have played before
 
 ## Table of Contents
 
