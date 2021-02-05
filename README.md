@@ -15,6 +15,7 @@ might not played before
 ## Example
 
 `(require 'hiddenquote)`
+
 `M-x hiddenquote`
 
 Select the source you want to retrieve the puzzle from (you probably
