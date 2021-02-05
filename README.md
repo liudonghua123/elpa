@@ -77,9 +77,11 @@ best to maximize the Emacs frame:
   
 - The syllables buffer: Here you mark the syllables you used for each
   word.  Toggle a syllable state (used/unused) by clicking with the
-  mouse or by hitting RET.  Once the grid is filled, and the syllables
-  are marked as used, the puzzle is complete and the timer (in the
-  grid buffer) will stop, if the solution is right.
+  mouse or by hitting `RET`.
+  
+  Once the grid is filled, and the syllables are marked as used, the
+  puzzle is complete and the timer (in the grid buffer) will stop, if
+  the solution is right.
 
 ---
 
