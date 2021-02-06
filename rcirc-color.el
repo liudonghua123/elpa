@@ -63,6 +63,11 @@ everything by 256. This also helps preventing integer overflow."
 	(bg (face-background 'default))
 	(fg (face-foreground 'rcirc-my-nick))
 	candidates)
+    ;; Some themes don't specify a background for terminal displays (so that
+    ;; the terminal's transparency is still effective).  In that case, assume
+    ;; white or black depending on the foreground.
+    (when (string= bg "unspecified-bg")
+      (setq bg (if (color-dark-p (color-name-to-rgb fg)) "white" "black")))
     (dolist (item color-name-rgb-alist)
       (let ((color (car item)))
 	(when (and (not (color-gray-p color))
