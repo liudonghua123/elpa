@@ -70,6 +70,7 @@
 (require 'json)
 
 (defvar json-pretty-print-max-secs) ; json.el
+(defvar url-mime-accept-string) ; url-vars.el
 
 ;; Customization.
 (defgroup hiddenquote nil
@@ -1160,6 +1161,7 @@ puzzle Nº."
          (url "http://mauroaranda.com/puzzles/hidden-quote-puzzle/")
          (file (and num (hiddenquote-expand-puzzle-file-name
                          (format "%s.ipuz" num) "hidden-quote")))
+         (url-mime-accept-string "application/json")
          puzzle)
     (if (and file (file-exists-p file)) ; Look for the file locally first.
         (progn
