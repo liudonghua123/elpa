@@ -1405,9 +1405,9 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (while (re-search-forward "^         " (point-max) t)
 	(replace-match "    "))
       ;; fill
-      (let ((paragraph-separate "    >[[:space:]]+$"))
-	(fill-region (point-min)
-		     (point-max)))
+      ;; (let ((paragraph-separate "    >[[:space:]]+$"))
+      ;; 	(fill-region (point-min)
+      ;; 		     (point-max)))
       ;; finally
       (buffer-substring (point-min)
 			(point-max)))))
