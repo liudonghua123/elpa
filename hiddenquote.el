@@ -28,6 +28,14 @@
 
 ;;; Commentary:
 ;;
+;; hiddenquote is a kind of word puzzle where you have to read
+;; word definitions (the clues), and put the answer into a grid, using
+;; the provided syllables.  When the grid is complete, you should be able
+;; to read a quote in the highlighted cells.
+;;
+;; This word puzzle is known in Argentina as Claringrilla, because they are
+;; published by a national newspaper named "Clarín".
+;;
 ;; This file contains all the hidden quote puzzle rendering, major mode
 ;; and commands.  It also defines a source to retrieve puzzles of
 ;; the hidden quote type, created by myself.
