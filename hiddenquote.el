@@ -1,6 +1,6 @@
 ;;; hiddenquote.el --- Major mode for doing hidden quote puzzles -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2021 by Mauro Aranda
+;; Copyright (C) 2020-2021  Free Software Foundation, Inc.
 
 ;; Author: Mauro Aranda <maurooaranda@gmail.com>
 ;; Maintainer: Mauro Aranda <maurooaranda@gmail.com>
