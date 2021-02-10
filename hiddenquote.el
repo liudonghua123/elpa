@@ -5,8 +5,8 @@
 ;; Author: Mauro Aranda <maurooaranda@gmail.com>
 ;; Maintainer: Mauro Aranda <maurooaranda@gmail.com>
 ;; Created: Sun Dec 13 11:10:00 2020
-;; Version: 0.1
-;; Package-Version: 0.1
+;; Version: 1.1
+;; Package-Version: 1.1
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: http://mauroaranda.com/puzzles/hidden-quote-puzzle/
 ;; Keywords: games
@@ -41,7 +41,6 @@
 ;; the hidden quote type, created by myself.
 ;;
 ;;;; Usage:
-;; (require 'hiddenquote)
 ;; M-x hiddenquote
 ;; Select the source you want to retrieve the puzzle from.
 ;; With a prefix argument, the command will prompt for a specific ID number.
