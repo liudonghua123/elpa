@@ -158,6 +158,7 @@
  ("greenbar"		:url nil)
  ("guess-language"	:url "https://github.com/tmalsburg/guess-language.el")
  ("heap"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ("hiddenquote"	:url "https://gitlab.com/mauroaranda/hiddenquote/hiddenquote")
  ("highlight-escape-sequences"
   :url "https://github.com/dgutov/highlight-escape-sequences/"
   :auto-sync t)
