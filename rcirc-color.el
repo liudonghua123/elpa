@@ -1,10 +1,10 @@
 ;;; rcirc-color.el --- color nicks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005-2018  Free Software Foundation, Inc.
+;; Copyright (C) 2005-2021  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 0.4.1
+;; Version: 0.4.2
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: comm
 
@@ -38,9 +38,9 @@
   "Compute the difference between two colors.
 The difference between COLOR1 and COLOR2 is computed using the
 weighted Euclidean distance formula proposed on
-<http://www.compuphase.com/cmetric.htm>. Remember that every
+<http://www.compuphase.com/cmetric.htm>.  Remember that every
 component for the formula is in the range of 0-xFF and
-`color-values' will return a range of 0-FFFF. Thus, divide
+`color-values' will return a range of 0-FFFF.  Thus, divide
 everything by 256. This also helps preventing integer overflow."
   (let* ((dr (/ (- (nth 0 (color-values color1))
 		   (nth 0 (color-values color2)))
