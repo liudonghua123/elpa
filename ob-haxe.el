@@ -24,7 +24,8 @@
 
 ;;; Commentary:
 
-;; Org-Babel support for evaluating haxe source code.
+;; Org Babel support for evaluating haxe source code.
+;; https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-haxe.html
 
 ;;; Code:
 (require 'ob)
