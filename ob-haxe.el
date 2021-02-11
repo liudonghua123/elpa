@@ -5,7 +5,7 @@
 ;; Author: Ian Martins <ianxm@jhu.edu>
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: https://orgmode.org
-;; Version: 0
+;; Version: 1.0
 
 ;; This file is not part of GNU Emacs.
 
