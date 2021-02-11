@@ -1,4 +1,0 @@
-* ob-haxe.el
-[[https://orgmode.org/worg/org-contrib/babel/index.html][Org babel]] functions for [[https://haxe.org/][haxe]] evaluation.
-
-Full documentation will be available on [[https://orgmode.org/worg/org-contrib/babel/languages/index.html][worg]] (when I write it).
