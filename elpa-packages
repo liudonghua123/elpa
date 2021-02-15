@@ -101,7 +101,10 @@
  ("csv-mode"		:url nil)
  ("cycle-quotes"	:url nil)
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
- ("dash"                :url "https://github.com/magnars/dash.el.git")
+ ("dash"
+  :url "https://github.com/magnars/dash.el.git"
+  :doc "dash.texi"
+  :auto-sync t)
  ("dbus-codegen"	:url "https://github.com/ueno/dbus-codegen-el.git")
  ("debbugs"		:url nil :doc ("debbugs.texi" "debbugs-ug.texi"))
  ("delight"		:url "https://git.savannah.gnu.org/r/delight.git")
