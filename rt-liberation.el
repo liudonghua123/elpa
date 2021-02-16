@@ -1056,8 +1056,8 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (let (latest-point)
     (save-excursion
       (goto-char (point-max))
-      (when (re-search-backward rt-liber-correspondence-regexp
-				(point-min) t)
+      (when (re-search-backward
+	     rt-liber-correspondence-regexp (point-min) t)
 	(setq latest-point (point))))
     (if latest-point
 	(progn
