@@ -246,6 +246,9 @@ This variable is made buffer local for the ticket history")
 (defvar rt-liber-viewer2-section-regexp "^Ticket [0-9]+ by "
   "Regular expression to match a section in the viewer.")
 
+(defvar rt-liber-viewer2-communicate-regexp (regexp-opt '("[Create]" "[Correspond]" "[Comment]"))
+  "Regular expression to match ticket communication.")
+
 (defvar rt-liber-viewer2-recenter 4
   "Argument passed to `recenter' in the viewer.")
 
@@ -1535,14 +1538,14 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	   (recenter rt-liber-viewer2-recenter)))
     (goto-char (point-at-bol))))
 
-(defun rt-liber-viewer2-last-section-in ()
+(defun rt-liber-viewer2-last-communicate-in ()
   (interactive)
   (goto-char (point-max))
-  (let ((last (re-search-backward rt-liber-viewer2-section-regexp
+  (let ((last (re-search-backward rt-liber-viewer2-communicate-regexp
 				  (point-min)
 				  t)))
     (if (not last)
-	(error "no sections found")
+	(error "no communcations found")
       (recenter rt-liber-viewer2-recenter)
       (goto-char (point-at-bol)))))
 
@@ -1586,7 +1589,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 (defconst rt-liber-viewer2-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "q") 'rt-liber-viewer2-mode-quit)
-    (define-key map (kbd "N") 'rt-liber-viewer2-last-section-in)
+    (define-key map (kbd "N") 'rt-liber-viewer2-last-communicate-in)
     (define-key map (kbd "n") 'rt-liber-viewer2-next-section-in)
     (define-key map (kbd "p") 'rt-liber-viewer2-previous-section-in)
     (define-key map (kbd "V") 'rt-liber-viewer-visit-in-browser)
