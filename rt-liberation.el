@@ -493,6 +493,15 @@ AFTER  date after predicate."
     (error "null field symbol"))
   (cdr (assoc field-symbol rt-liber-field-dictionary)))
 
+(defun rt-liber-display-ticket (ticket-number)
+  "Display ticket with TICKET-NUMBER."
+  (interactive "nticket number: ")
+  (let ((ticket-id (number-to-string ticket-number)))
+    (rt-liber-browse-query
+     (rt-liber-compile-query
+      (id ticket-id))
+     (concat "#" ticket-id))))
+
 
 ;;; --------------------------------------------------------
 ;;; Ticket browser
