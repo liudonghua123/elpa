@@ -269,39 +269,40 @@ This variable is made buffer local for the ticket history")
 ;;; --------------------------------------------------------
 ;;; TicketSQL compiler
 ;;; --------------------------------------------------------
-(defun rt-liber-bool-p (sym)
-  "Return t if SYM is a boolean operator, otherwise nil."
-  (member sym '(and or)))
-(defun rt-liber-attrib-p (sym)
-  "Return t if SYM is a ticket attribute, otherwise nil."
-  (member sym '(id owner status subject content queue lastupdatedby
-		   email-address)))
-(defun rt-liber-time-p (sym)
-  "Return t if SYM is a temporal attribute, otherwise nil."
-  (member sym '(created lastupdated resolved)))
-(defun rt-liber-negation-p (sym)
-  (member sym '(not)))
+(eval-and-compile ;; for use in macro `rt-liber-compile-query'
+  (defun rt-liber-bool-p (sym)
+    "Return t if SYM is a boolean operator, otherwise nil."
+    (member sym '(and or)))
+  (defun rt-liber-attrib-p (sym)
+    "Return t if SYM is a ticket attribute, otherwise nil."
+    (member sym '(id owner status subject content queue lastupdatedby
+		     email-address)))
+  (defun rt-liber-time-p (sym)
+    "Return t if SYM is a temporal attribute, otherwise nil."
+    (member sym '(created lastupdated resolved)))
+  (defun rt-liber-negation-p (sym)
+    (member sym '(not)))
 
-(defun rt-liber-reduce (op seq)
-  "Reduce-OP with SEQ to a string of \"s0 op s1 op s2..\"."
-  (if seq
-      (cl-reduce
-       #'(lambda (a b)
-	   (format "%s %s %s" a op b))
-       seq)
-    ""))
+  (defun rt-liber-reduce (op seq)
+    "Reduce-OP with SEQ to a string of \"s0 op s1 op s2..\"."
+    (if seq
+	(cl-reduce
+	 #'(lambda (a b)
+	     (format "%s %s %s" a op b))
+	 seq)
+      ""))
 
-(defun rt-liber-make-interval (pred before after)
-  "Return a formatted TicketSQL interval.
+  (defun rt-liber-make-interval (pred before after)
+    "Return a formatted TicketSQL interval.
 PRED   temporal attribute predicate.
 BEFORE date before predicate.
 AFTER  date after predicate."
-  (when (string= before "") (setq before nil))
-  (when (string= after "") (setq after nil))
-  (concat
-   (if before (format "%s < '%s'" pred before) "")
-   (if (and before after) (format " AND ") "")
-   (if after (format "%s > '%s'" pred after) "")))
+    (when (string= before "") (setq before nil))
+    (when (string= after "") (setq after nil))
+    (concat
+     (if before (format "%s < '%s'" pred before) "")
+     (if (and before after) (format " AND ") "")
+     (if after (format "%s > '%s'" pred after) ""))))
 
 (defmacro rt-liber-compile-query (query &optional n)
   "Compile sexp-based QUERY into TicketSQL."
@@ -492,15 +493,6 @@ AFTER  date after predicate."
   (when (not field-symbol)
     (error "null field symbol"))
   (cdr (assoc field-symbol rt-liber-field-dictionary)))
-
-(defun rt-liber-display-ticket (ticket-number)
-  "Display ticket with TICKET-NUMBER."
-  (interactive "nticket number: ")
-  (let ((ticket-id (number-to-string ticket-number)))
-    (rt-liber-browse-query
-     (rt-liber-compile-query
-      (id ticket-id))
-     (concat "#" ticket-id))))
 
 
 ;;; --------------------------------------------------------
@@ -1449,7 +1441,6 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(desc      (alist-get 'Description section))
 	(oldvalue  (alist-get 'OldValue section))
 	(newvalue  (alist-get 'NewValue section))
-	(field     (alist-get 'Field section))
 	(s-content (rt-liber-viewer2-format-content
 		    (alist-get 'Content section))))
     (when (not (or (string= type "CommentEmailRecord")
@@ -1622,6 +1613,15 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (set (make-local-variable 'buffer-stale-function)
        (lambda (&optional _noconfirm) 'slow))
   (run-hooks 'rt-liber-viewer-hook))
+
+(defun rt-liber-display-ticket (ticket-number)
+  "Display ticket with TICKET-NUMBER."
+  (interactive "nticket number: ")
+  (let ((ticket-id (number-to-string ticket-number)))
+    (rt-liber-browse-query
+     (rt-liber-compile-query
+      (id ticket-id))
+     (concat "#" ticket-id))))
 
 
 (provide 'rt-liberation)
