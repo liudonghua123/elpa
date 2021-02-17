@@ -1,11 +1,11 @@
 ;;; rt-liberation.el --- Emacs interface to RT  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Yoni Rabkin <yrk@gnu.org>
 ;; Authors: Aaron S. Hawley <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>
 ;; Maintainer: Yoni Rabkin <yrk@gnu.org>
-;; Version: 2.01
+;; Version: 2.2
 ;; Keywords: rt, tickets
 ;; Package-Type: multi
 ;; url: http://www.nongnu.org/rtliber/
@@ -246,6 +246,9 @@ This variable is made buffer local for the ticket history")
 (defvar rt-liber-viewer2-section-regexp "^Ticket [0-9]+ by "
   "Regular expression to match a section in the viewer.")
 
+(defvar rt-liber-viewer2-communicate-regexp (regexp-opt '("[Create]" "[Correspond]" "[Comment]"))
+  "Regular expression to match ticket communication.")
+
 (defvar rt-liber-viewer2-recenter 4
   "Argument passed to `recenter' in the viewer.")
 
@@ -266,39 +269,40 @@ This variable is made buffer local for the ticket history")
 ;;; --------------------------------------------------------
 ;;; TicketSQL compiler
 ;;; --------------------------------------------------------
-(defun rt-liber-bool-p (sym)
-  "Return t if SYM is a boolean operator, otherwise nil."
-  (member sym '(and or)))
-(defun rt-liber-attrib-p (sym)
-  "Return t if SYM is a ticket attribute, otherwise nil."
-  (member sym '(id owner status subject content queue lastupdatedby
-		   email-address)))
-(defun rt-liber-time-p (sym)
-  "Return t if SYM is a temporal attribute, otherwise nil."
-  (member sym '(created lastupdated resolved)))
-(defun rt-liber-negation-p (sym)
-  (member sym '(not)))
+(eval-and-compile ;; for use in macro `rt-liber-compile-query'
+  (defun rt-liber-bool-p (sym)
+    "Return t if SYM is a boolean operator, otherwise nil."
+    (member sym '(and or)))
+  (defun rt-liber-attrib-p (sym)
+    "Return t if SYM is a ticket attribute, otherwise nil."
+    (member sym '(id owner status subject content queue lastupdatedby
+		     email-address)))
+  (defun rt-liber-time-p (sym)
+    "Return t if SYM is a temporal attribute, otherwise nil."
+    (member sym '(created lastupdated resolved)))
+  (defun rt-liber-negation-p (sym)
+    (member sym '(not)))
 
-(defun rt-liber-reduce (op seq)
-  "Reduce-OP with SEQ to a string of \"s0 op s1 op s2..\"."
-  (if seq
-      (cl-reduce
-       #'(lambda (a b)
-	   (format "%s %s %s" a op b))
-       seq)
-    ""))
+  (defun rt-liber-reduce (op seq)
+    "Reduce-OP with SEQ to a string of \"s0 op s1 op s2..\"."
+    (if seq
+	(cl-reduce
+	 #'(lambda (a b)
+	     (format "%s %s %s" a op b))
+	 seq)
+      ""))
 
-(defun rt-liber-make-interval (pred before after)
-  "Return a formatted TicketSQL interval.
+  (defun rt-liber-make-interval (pred before after)
+    "Return a formatted TicketSQL interval.
 PRED   temporal attribute predicate.
 BEFORE date before predicate.
 AFTER  date after predicate."
-  (when (string= before "") (setq before nil))
-  (when (string= after "") (setq after nil))
-  (concat
-   (if before (format "%s < '%s'" pred before) "")
-   (if (and before after) (format " AND ") "")
-   (if after (format "%s > '%s'" pred after) "")))
+    (when (string= before "") (setq before nil))
+    (when (string= after "") (setq after nil))
+    (concat
+     (if before (format "%s < '%s'" pred before) "")
+     (if (and before after) (format " AND ") "")
+     (if after (format "%s > '%s'" pred after) ""))))
 
 (defmacro rt-liber-compile-query (query &optional n)
   "Compile sexp-based QUERY into TicketSQL."
@@ -1056,8 +1060,8 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (let (latest-point)
     (save-excursion
       (goto-char (point-max))
-      (when (re-search-backward rt-liber-correspondence-regexp
-				(point-min) t)
+      (when (re-search-backward
+	     rt-liber-correspondence-regexp (point-min) t)
 	(setq latest-point (point))))
     (if latest-point
 	(progn
@@ -1405,9 +1409,9 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (while (re-search-forward "^         " (point-max) t)
 	(replace-match "    "))
       ;; fill
-      (let ((paragraph-separate "    >[[:space:]]+$"))
-	(fill-region (point-min)
-		     (point-max)))
+      ;; (let ((paragraph-separate "    >[[:space:]]+$"))
+      ;; 	(fill-region (point-min)
+      ;; 		     (point-max)))
       ;; finally
       (buffer-substring (point-min)
 			(point-max)))))
@@ -1421,9 +1425,9 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
     (while (re-search-forward "^    " (point-max) t)
       (replace-match ""))
     ;; fill
-    (let ((paragraph-separate ">[[:space:]]+$"))
-      (fill-region (point-min)
-		   (point-max)))
+    ;; (let ((paragraph-separate ">[[:space:]]+$"))
+    ;;   (fill-region (point-min)
+    ;; 		   (point-max)))
     ;; finally
     (buffer-substring (point-min)
 		      (point-max))))
@@ -1434,9 +1438,9 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(creator   (alist-get 'Creator section))
 	(date      (alist-get 'Created section))
 	(type	   (alist-get 'Type section))
+	(desc      (alist-get 'Description section))
 	(oldvalue  (alist-get 'OldValue section))
 	(newvalue  (alist-get 'NewValue section))
-	(field     (alist-get 'Field section))
 	(s-content (rt-liber-viewer2-format-content
 		    (alist-get 'Content section))))
     (when (not (or (string= type "CommentEmailRecord")
@@ -1464,14 +1468,12 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (add-text-properties start
 			   (point)
 			   `(rt-liberation-section-data ,section))
-      (cond ((string= type "Status")
+      (cond ((or (string= type "Status")
+		 (string= type "SetWatcher")
+		 (string= type "Set")
+		 (string= type "AddLink"))
 	     (insert
-	      (format "\n    Status change from %s to %s\n\n" oldvalue newvalue)))
-	    ((and (string= type "Set")
-		  (string= field "Owner")
-		  (string= oldvalue "10"))
-	     (insert
-	      (format "\n    Ticket assigned\n\n")))
+	      (format "\n    %s\n\n" desc)))
 	    ;; catch-all
 	    (t
 	     (insert
@@ -1535,14 +1537,14 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	   (recenter rt-liber-viewer2-recenter)))
     (goto-char (point-at-bol))))
 
-(defun rt-liber-viewer2-last-section-in ()
+(defun rt-liber-viewer2-last-communicate-in ()
   (interactive)
   (goto-char (point-max))
-  (let ((last (re-search-backward rt-liber-viewer2-section-regexp
+  (let ((last (re-search-backward rt-liber-viewer2-communicate-regexp
 				  (point-min)
 				  t)))
     (if (not last)
-	(error "no sections found")
+	(error "no communcations found")
       (recenter rt-liber-viewer2-recenter)
       (goto-char (point-at-bol)))))
 
@@ -1586,7 +1588,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 (defconst rt-liber-viewer2-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "q") 'rt-liber-viewer2-mode-quit)
-    (define-key map (kbd "N") 'rt-liber-viewer2-last-section-in)
+    (define-key map (kbd "N") 'rt-liber-viewer2-last-communicate-in)
     (define-key map (kbd "n") 'rt-liber-viewer2-next-section-in)
     (define-key map (kbd "p") 'rt-liber-viewer2-previous-section-in)
     (define-key map (kbd "V") 'rt-liber-viewer-visit-in-browser)
@@ -1611,6 +1613,15 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (set (make-local-variable 'buffer-stale-function)
        (lambda (&optional _noconfirm) 'slow))
   (run-hooks 'rt-liber-viewer-hook))
+
+(defun rt-liber-display-ticket (ticket-number)
+  "Display ticket with TICKET-NUMBER."
+  (interactive "nticket number: ")
+  (let ((ticket-id (number-to-string ticket-number)))
+    (rt-liber-browse-query
+     (rt-liber-compile-query
+      (id ticket-id))
+     (concat "#" ticket-id))))
 
 
 (provide 'rt-liberation)

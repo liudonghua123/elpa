@@ -1,4 +1,18 @@
-New in version ...
+New in version 2.02
+
+    * The new viewer now displays meaningful descriptors in
+      non-commincation sections.
+
+    * New interactive function `rt-liber-display-ticket' asks for a
+      ticket number and does exactly what you think it does.
+
+    * 'N' now jumps to the last comminication, as opposed to merely
+      the section.
+
+    * Disable the sub-optimal filling in the new viewer.
+
+
+New in version 2.01
 
     * Support getting REST credentials from auth-source.
 
