@@ -208,7 +208,7 @@ OPTIONS association list of options.
       ))))
 
 (defun rt-liber-gnus-visit-ticket-at-point ()
-  "Call `rt-liber-display-ticket' on this ticket."
+  "Display the ticket at point."
   (interactive)
   (save-excursion
     (goto-char (point-at-bol))
