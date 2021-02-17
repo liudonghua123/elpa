@@ -1446,6 +1446,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(creator   (alist-get 'Creator section))
 	(date      (alist-get 'Created section))
 	(type	   (alist-get 'Type section))
+	(desc      (alist-get 'Description section))
 	(oldvalue  (alist-get 'OldValue section))
 	(newvalue  (alist-get 'NewValue section))
 	(field     (alist-get 'Field section))
@@ -1476,14 +1477,12 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (add-text-properties start
 			   (point)
 			   `(rt-liberation-section-data ,section))
-      (cond ((string= type "Status")
+      (cond ((or (string= type "Status")
+		 (string= type "SetWatcher")
+		 (string= type "Set")
+		 (string= type "AddLink"))
 	     (insert
-	      (format "\n    Status change from %s to %s\n\n" oldvalue newvalue)))
-	    ((and (string= type "Set")
-		  (string= field "Owner")
-		  (string= oldvalue "10"))
-	     (insert
-	      (format "\n    Ticket assigned\n\n")))
+	      (format "\n    %s\n\n" desc)))
 	    ;; catch-all
 	    (t
 	     (insert
