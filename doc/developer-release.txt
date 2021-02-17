@@ -35,6 +35,7 @@ the VCS:
     $ git push --tags origin "2.00"
 
 * ELPA
-Push the changes to externals/rt-liberation on elpa.git with:
+Merge the changes into the local externals/rt-liberation and then push
+the changes to externals/rt-liberation on elpa.git with:
 
     $ git push elpa elpa:refs/heads/externals/rt-liberation
