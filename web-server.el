@@ -183,16 +183,19 @@ function.
       (let ((protocol (to-keyword (match-string 1 string)))
             (credentials (match-string 2 string)))
         (list (cons :AUTHORIZATION
-                    (cons protocol
-                          (cl-case protocol
-                            (:BASIC
-                             (let ((cred (base64-decode-string credentials)))
-                               (if (string-match ":" cred)
-                                   (cons (substring cred 0 (match-beginning 0))
-                                         (substring cred (match-end 0)))
-                                 (ws-error proc "bad credentials: %S" cred))))
-                            (t (ws-error proc "un-support protocol: %s"
-                                         protocol))))))))
+                    (if (eq protocol :NTLM)
+                        string
+                      (cons protocol
+                            (cl-case protocol
+                              (:BASIC
+                               (let ((cred (base64-decode-string credentials)))
+                                 (if (string-match ":" cred)
+                                     (cons (substring cred 0
+                                                      (match-beginning 0))
+                                           (substring cred (match-end 0)))
+                                   (ws-error proc "bad credentials: %S" cred))))
+                              (t (ws-error proc "un-support protocol: %s"
+                                           protocol)))))))))
      ;; All other headers
      ((string-match "^\\([^[:space:]]+\\): \\(.*\\)$" string)
       (list (cons (to-keyword (match-string 1 string))
