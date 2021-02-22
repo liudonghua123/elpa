@@ -157,6 +157,24 @@ only if the puzzles you play contain such characters, of course."
   :type 'boolean
   :package-version '(hiddenquote . "0.1"))
 
+(defcustom hiddenquote-skip-definitions-window t
+  "If non-nil, `other-window' and the like skips the Definitions window.
+This is non-nil by default, so that `other-window' takes you quicker to the
+Syllables window."
+  :type 'boolean
+  :package-version '(hiddenquote . "1.2")
+  :set (lambda (sym val)
+         (set sym val)
+         (when (boundp 'hiddenquote-buffer) ; defvar further down.
+           (cl-loop for buff in (buffer-list)
+                    when (with-current-buffer buff
+                           (and hiddenquote-buffer
+                                (string-match "- Definitions$"
+                                              (buffer-name buff))))
+                    do (set-window-parameter (get-buffer-window buff)
+                                             'no-other-window val)))))
+
+
 (defgroup hiddenquote-faces nil
   "Faces used by `hiddenquote'."
   :group 'hiddenquote)
@@ -522,7 +540,8 @@ Returns the `hiddenquote-grid' widget created."
     (setq window (split-window nil nil 'right))
     (set-window-buffer window def-buff)
     (set-window-dedicated-p window t)
-    (set-window-parameter window 'no-other-window t)
+    (when hiddenquote-skip-definitions-window
+      (set-window-parameter window 'no-other-window t))
     ;; Syllables.
     (let ((syll-buff (get-buffer-create (concat (buffer-name) " - Syllables")))
           (syllables (oref self syllables))
