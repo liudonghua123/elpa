@@ -258,6 +258,9 @@
  ;;                         git reset \$GIT_COMMIT -- pspp-mode.el" \
  ;;         -- -- pspp-mode.el
  ("pspp-mode"		:url nil) ;; Was "https://git.sv.gnu.org/r/pspp.git"
+ ;; ("pyim"
+ ;;  :url "https://github.com/tumashu/pyim.git"
+ ;;  :auto-sync t)
  ("python"		:core "lisp/progmodes/python.el")
  ("quarter-plane"	:url nil)
  ("queue"		:url "http://www.dr-qubit.org/git/predictive.git")
