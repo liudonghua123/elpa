@@ -94,7 +94,9 @@
  ("company-math"	:url "https://github.com/vspinu/company-math.git")
  ("company-statistics"	:url "https://github.com/company-mode/company-statistics")
  ("context-coloring"	:url "https://github.com/jacksonrayhamilton/context-coloring.git")
- ("counsel"		:url "https://github.com/abo-abo/swiper")
+ ("counsel"
+  :url "https://github.com/abo-abo/swiper"
+  :auto-sync t)
  ("cpio-mode"		:url "https://github.com/dlewan/cpio-mode")
  ("crisp"		:url nil)
  ;; ("crossword"		:url "https://github.com/Boruch-Baum/emacs-crossword")
@@ -171,7 +173,9 @@
  ("hyperbole"           :url "http://git.savannah.gnu.org/r/hyperbole.git")
  ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git")
  ("iterators"		:url nil)
- ("ivy"			:url "https://github.com/abo-abo/swiper")
+ ("ivy"
+  :url "https://github.com/abo-abo/swiper"
+  :auto-sync t)
  ("ivy-explorer"        :url "https://github.com/clemera/ivy-explorer")
  ("ivy-posframe"        :url "https://github.com/tumashu/ivy-posframe")
  ("javaimp"		:url nil)
@@ -310,7 +314,9 @@
  ("stream"		:url nil)
  ("svg"			:core ("lisp/svg.el"))
  ("svg-clock"		:url nil)
- ("swiper"		:url "https://github.com/abo-abo/swiper")
+ ("swiper"
+  :url "https://github.com/abo-abo/swiper"
+  :auto-sync t)
  ("system-packages"	:url "https://gitlab.com/jabranham/system-packages")
  ("systemd"		:url nil)
  ("temp-buffer-browse"  :url "https://github.com/leoliu/temp-buffer-browse")
