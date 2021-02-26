@@ -14,8 +14,6 @@ might not have played before
 
 ## Example
 
-`(require 'hiddenquote)`
-
 `M-x hiddenquote`
 
 Select the source you want to retrieve the puzzle from (you probably
@@ -31,7 +29,13 @@ syllables (and marking them as used) as you go.
 ---
 
 ## Installation
-You can follow these steps:
+
+This package is on GNU ELPA, so you can type
+`M-x package-install RET hiddenquote`
+
+to install it.
+
+Alternatively, you can follow these steps:
 
 - Download and open up a terminal in hiddenquote dir.
 - `make`
@@ -43,9 +47,6 @@ Done!
 ---
 
 ## Using
-
-Require the file in your .init file:
-`(require 'hiddenquote)`
 
 `M-x hiddenquote`
 
