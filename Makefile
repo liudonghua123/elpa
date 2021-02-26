@@ -23,10 +23,10 @@ EMACSFLAGS = -batch -f batch-byte-compile
 PACKAGE = hiddenquote
 PACKAGE_BUGREPORT = maurooaranda@gmail.com
 PACKAGE_NAME = hiddenquote
-PACKAGE_STRING = hiddenquote 0.1
-PACKAGE_TARNAME = hiddenquote-0.1
+PACKAGE_STRING = hiddenquote 1.1
+PACKAGE_TARNAME = hiddenquote-1.1
 PACKAGE_URL = 
-PACKAGE_VERSION = 0.1
+PACKAGE_VERSION = 1.1
 DISTDIR = $(PACKAGE_TARNAME)
 DISTFILES = COPYING README Makefile hiddenquote.el
 
