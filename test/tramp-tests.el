@@ -2182,6 +2182,16 @@ is greater than 10.
       (expand-file-name ".." "./"))
     (concat (file-remote-p tramp-test-temporary-file-directory) "/"))))
 
+(ert-deftest tramp-test05-expand-file-name-top ()
+  "Check `expand-file-name'."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (not (tramp--test-ange-ftp-p)))
+
+  (let ((dir (concat (file-remote-p tramp-test-temporary-file-directory) "/")))
+    (dolist (local '("." ".."))
+      (should (string-equal (expand-file-name local dir) dir))
+      (should (string-equal (expand-file-name (concat dir local)) dir)))))
+
 (ert-deftest tramp-test06-directory-file-name ()
   "Check `directory-file-name'.
 This checks also `file-name-as-directory', `file-name-directory',
@@ -5092,8 +5102,10 @@ INPUT, if non-nil, is a string sent to the process."
 	     (string-match-p
 	      (regexp-quote envvar)
 	      ;; We must remove PS1, the output is truncated otherwise.
+	      ;; We must suppress "_=VAR...".
 	      (funcall
-	       this-shell-command-to-string "printenv | grep -v PS1")))))))))
+	       this-shell-command-to-string
+	       "printenv | grep -v PS1 | grep -v _=")))))))))
 
 (tramp--test--deftest-direct-async-process tramp-test33-environment-variables
   "Check that remote processes set / unset environment variables properly.
@@ -5739,6 +5751,11 @@ This does not support globbing characters in file names (yet)."
   (string-match-p
    "ftp$" (file-remote-p tramp-test-temporary-file-directory 'method)))
 
+(defun tramp--test-gdrive-p ()
+  "Check, whether the gdrive method is used."
+  (string-equal
+   "gdrive" (file-remote-p tramp-test-temporary-file-directory 'method)))
+
 (defun tramp--test-gvfs-p (&optional method)
   "Check, whether the remote host runs a GVFS based method.
 This requires restrictions of file name syntax.
@@ -5768,11 +5785,6 @@ a $'' syntax."
 This does not support external Emacs calls."
   (string-equal
    "mock" (file-remote-p tramp-test-temporary-file-directory 'method)))
-
-(defun tramp--test-nextcloud-p ()
-  "Check, whether the nextcloud method is used."
-  (string-equal
-   "nextcloud" (file-remote-p tramp-test-temporary-file-directory 'method)))
 
 (defun tramp--test-rclone-p ()
   "Check, whether the remote host is offered by rclone.
@@ -6144,7 +6156,6 @@ Use the `ls' command."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
 
@@ -6214,6 +6225,7 @@ Use the `ls' command."
   (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (not (tramp--test-ksh-p)))
+  (skip-unless (not (tramp--test-gdrive-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
 
@@ -6838,8 +6850,8 @@ Since it unloads Tramp, it shall be the last test to run."
 If INTERACTIVE is non-nil, the tests are run interactively."
   (interactive "p")
   (funcall
-   (if interactive
-       #'ert-run-tests-interactively #'ert-run-tests-batch) "^tramp"))
+   (if interactive #'ert-run-tests-interactively #'ert-run-tests-batch)
+   "^tramp"))
 
 ;; TODO:
 
@@ -6855,8 +6867,6 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Work on skipped tests.  Make a comment, when it is impossible.
 ;; * Revisit expensive tests, once problems in `tramp-error' are solved.
 ;; * Fix `tramp-test06-directory-file-name' for `ftp'.
-;; * Investigate, why `tramp-test11-copy-file' and `tramp-test12-rename-file'
-;;   do not work properly for `nextcloud'.
 ;; * Implement `tramp-test31-interrupt-process' for `adb' and for
 ;;   direct async processes.
 ;; * Fix `tramp-test44-threads'.

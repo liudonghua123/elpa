@@ -1750,7 +1750,7 @@ The outline level is equal to the verbosity of the Tramp message."
    (tramp-compat-string-replace "/" " " (tramp-debug-buffer-name vec))
    (tramp-compat-temporary-file-directory)))
 
-(defsubst tramp-debug-message (vec fmt-string &rest arguments)
+(defun tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.
 Message is formatted with FMT-STRING as control string and the remaining
 ARGUMENTS to actually emit the message (if applicable)."
@@ -2005,7 +2005,7 @@ the resulting error message."
   (unless (eq error-symbol 'void-variable)
     (tramp-error
      (car tramp-current-connection) error-symbol
-     "%s" (mapconcat (lambda (x) (format "%s" x)) data " "))))
+     (mapconcat (lambda (x) (format "%s" x)) data " "))))
 
 (put #'tramp-signal-hook-function 'tramp-suppress-trace t)
 
@@ -3092,9 +3092,9 @@ User is always nil."
 (defun tramp-handle-access-file (filename string)
   "Like `access-file' for Tramp files."
   (unless (file-readable-p (file-truename filename))
-    (tramp-error
-     (tramp-dissect-file-name filename) tramp-file-missing
-     "%s: No such file or directory %s" string filename)))
+    (tramp-compat-file-missing
+     (tramp-dissect-file-name filename)
+     (format "%s: %s" string filename))))
 
 (defun tramp-handle-add-name-to-file
   (filename newname &optional ok-if-already-exists)
@@ -3128,9 +3128,7 @@ User is always nil."
   ;; `copy-directory' creates NEWNAME before running this check.  So
   ;; we do it ourselves.
   (unless (file-exists-p directory)
-    (tramp-error
-     (tramp-dissect-file-name directory) tramp-file-missing
-     "No such file or directory" directory))
+    (tramp-compat-file-missing (tramp-dissect-file-name directory) directory))
   ;; We must do it file-wise.
   (tramp-run-real-handler
    'copy-directory
@@ -3151,9 +3149,7 @@ User is always nil."
 (defun tramp-handle-directory-files (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
-    (tramp-error
-     (tramp-dissect-file-name directory) tramp-file-missing
-     "No such file or directory" directory))
+    (tramp-compat-file-missing (tramp-dissect-file-name directory) directory))
   (when (file-directory-p directory)
     (setq directory (file-name-as-directory (expand-file-name directory)))
     (let ((temp (nreverse (file-name-all-completions "" directory)))
@@ -3201,6 +3197,9 @@ User is always nil."
     (with-parsed-tramp-file-name name nil
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
+      ;; Do not keep "/..".
+      (when (string-match-p "^/\\.\\.?$" localname)
+	(setq localname "/"))
       ;; Do normal `expand-file-name' (this does "/./" and "/../").
       ;; `default-directory' is bound, because on Windows there would
       ;; be problems with UNC shares or Cygwin mounts.
@@ -3250,9 +3249,7 @@ User is always nil."
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (unless (file-exists-p filename)
-      (tramp-error
-       v tramp-file-missing
-       "Cannot make local copy of non-existing file `%s'" filename))
+      (tramp-compat-file-missing v filename))
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
       (copy-file filename tmpfile 'ok-if-already-exists 'keep-time)
       tmpfile)))
@@ -3462,8 +3459,10 @@ User is always nil."
 		      (if (stringp symlink-target)
 			  (if (file-remote-p symlink-target)
 			      (tramp-compat-file-name-quote symlink-target 'top)
-			    (expand-file-name
-			     symlink-target (file-name-directory v2-localname)))
+			    (tramp-drop-volume-letter
+			     (expand-file-name
+			      symlink-target
+			      (file-name-directory v2-localname))))
 			v2-localname)
 		      'nohop)))
 	     (when (>= numchase numchase-limit)
@@ -3545,9 +3544,7 @@ User is always nil."
     (with-parsed-tramp-file-name filename nil
       (unwind-protect
 	  (if (not (file-exists-p filename))
-	      (tramp-error
-	       v tramp-file-missing
-	       "File `%s' not found on remote host" filename)
+	      (tramp-compat-file-missing v filename)
 
 	    (with-tramp-progress-reporter
 		v 3 (format-message "Inserting `%s'" filename)
@@ -3670,8 +3667,7 @@ User is always nil."
 	 v 'file-error
 	 "File `%s' does not include a `.el' or `.elc' suffix" file)))
     (unless (or noerror (file-exists-p file))
-      (tramp-error
-       v tramp-file-missing "Cannot load nonexistent file `%s'" file))
+      (tramp-compat-file-missing v file))
     (if (not (file-exists-p file))
 	nil
       (let ((signal-hook-function (unless noerror signal-hook-function))
@@ -3852,10 +3848,7 @@ It does not support `:stderr'."
 			     elt (default-toplevel-value 'process-environment))))
 			(setq env (cons elt env)))))
 	       (env (setenv-internal
-		     env "INSIDE_EMACS"
-		     (concat (or (getenv "INSIDE_EMACS") emacs-version)
-			     ",tramp:" tramp-version)
-		     'keep))
+		     env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
 	       (env (mapcar #'tramp-shell-quote-argument (delq nil env)))
 	       ;; Quote command.
 	       (command (mapconcat #'tramp-shell-quote-argument command " "))

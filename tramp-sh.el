@@ -1094,7 +1094,8 @@ component is used as the target of the symlink."
 	  (unless ln
 	    (tramp-error
 	     v 'file-error
-	   "Making a symbolic link.  ln(1) does not exist on the remote host."))
+	     (concat "Making a symbolic link. "
+		     "ln(1) does not exist on the remote host.")))
 
 	  ;; Do the 'confirm if exists' thing.
 	  (when (file-exists-p linkname)
@@ -1724,9 +1725,8 @@ ID-FORMAT valid values are `string' and `integer'."
   "Like `directory-files-and-attributes' for Tramp files."
   (unless id-format (setq id-format 'integer))
   (unless (file-exists-p directory)
-    (tramp-error
-     (tramp-dissect-file-name directory) tramp-file-missing
-     "No such file or directory" directory))
+    (tramp-compat-file-missing
+     (tramp-dissect-file-name directory) directory))
   (when (file-directory-p directory)
     (setq directory (expand-file-name directory))
     (let* ((temp
@@ -1877,8 +1877,9 @@ ID-FORMAT valid values are `string' and `integer'."
 	       ;; side.
 	       (unless (looking-at-p "^ok$")
 		 (tramp-error
-		  v 'file-error "\
-tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
+		  v 'file-error
+		  (concat "tramp-sh-handle-file-name-all-completions: "
+			  "internal error accessing `%s': `%s'")
 		  (tramp-shell-quote-argument localname) (buffer-string))))
 
 	     (while (zerop (forward-line -1))
@@ -1944,9 +1945,7 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 	(t2 (tramp-tramp-file-p newname)))
     (with-parsed-tramp-file-name (if t1 dirname newname) nil
       (unless (file-exists-p dirname)
-	(tramp-error
-	 v tramp-file-missing
-	 "Copying directory" "No such file or directory" dirname))
+	(tramp-compat-file-missing v dirname))
       (if (and (not copy-contents)
 	       (tramp-get-method-parameter v 'tramp-copy-recursive)
 	       ;; When DIRNAME and NEWNAME are remote, they must have
@@ -2032,12 +2031,12 @@ file names."
 	  (length (tramp-compat-file-attribute-size
 		   (file-attributes (file-truename filename))))
 	  (attributes (and preserve-extended-attributes
-			   (apply #'file-extended-attributes (list filename)))))
+			   (apply #'file-extended-attributes (list filename))))
+	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-error
-	   v tramp-file-missing "No such file or directory" filename))
+	  (tramp-compat-file-missing v filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -2045,9 +2044,7 @@ file names."
 	  (tramp-error v 'file-error "File is a directory %s" newname))
 
 	(with-tramp-progress-reporter
-	    v 0 (format "%s %s to %s"
-			(if (eq op 'copy) "Copying" "Renaming")
-			filename newname)
+	    v 0 (format "%s %s to %s" msg-operation filename newname)
 
 	  (cond
 	   ;; Both are Tramp files.
@@ -2536,7 +2533,7 @@ The method used must be an out-of-band method."
   (setq dir (expand-file-name dir))
   (with-parsed-tramp-file-name dir nil
     (when (and (null parents) (file-exists-p dir))
-      (tramp-error v 'file-already-exists "Directory already exists %s" dir))
+      (tramp-error v 'file-already-exists dir))
     ;; When PARENTS is non-nil, DIR could be a chain of non-existent
     ;; directories a/b/c/...  Instead of checking, we simply flush the
     ;; whole cache.
@@ -2821,6 +2818,9 @@ the result will be a local, non-Tramp, file name."
       ;; expands to "/".  Remove this.
       (while (string-match "//" localname)
 	(setq localname (replace-match "/" t t localname)))
+      ;; Do not keep "/..".
+      (when (string-match-p "^/\\.\\.?$" localname)
+	(setq localname "/"))
       ;; No tilde characters in file name, do normal
       ;; `expand-file-name' (this does "/./" and "/../").
       ;; `default-directory' is bound, because on Windows there would
@@ -2930,16 +2930,11 @@ alternative implementation will be used."
 			     elt (default-toplevel-value 'process-environment))
 			    (if (string-match-p "=" elt)
 				(setq env (append env `(,elt)))
-			      (if (tramp-get-env-with-u-option v)
-				  (setq env (append `("-u" ,elt) env))
-				(setq uenv (cons elt uenv)))))))
+			      (setq uenv (cons elt uenv))))))
+		 (env (setenv-internal
+		       env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
 		 (command
 		  (when (stringp program)
-		    (setenv-internal
-		     env "INSIDE_EMACS"
-		     (concat (or (getenv "INSIDE_EMACS") emacs-version)
-			     ",tramp:" tramp-version)
-		     'keep)
 		    (format "cd %s && %s exec %s %s env %s %s"
 			    (tramp-shell-quote-argument localname)
 			    (if uenv
@@ -3150,14 +3145,8 @@ alternative implementation will be used."
         (or (member elt (default-toplevel-value 'process-environment))
             (if (string-match-p "=" elt)
                 (setq env (append env `(,elt)))
-              (if (tramp-get-env-with-u-option v)
-                  (setq env (append `("-u" ,elt) env))
-                (setq uenv (cons elt uenv))))))
-      (setenv-internal
-       env "INSIDE_EMACS"
-       (concat (or (getenv "INSIDE_EMACS") emacs-version)
-	       ",tramp:" tramp-version)
-       'keep)
+              (setq uenv (cons elt uenv)))))
+      (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep)
       (when env
 	(setq command
 	      (format
@@ -3278,9 +3267,7 @@ alternative implementation will be used."
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (unless (file-exists-p (file-truename filename))
-      (tramp-error
-       v tramp-file-missing
-       "Cannot make local copy of non-existing file `%s'" filename))
+      (tramp-compat-file-missing v filename))
 
     (let* ((size (tramp-compat-file-attribute-size
 		  (file-attributes (file-truename filename))))
@@ -3969,7 +3956,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 		       "[[:blank:]]+\\([^[:blank:]]+\\)"
 		       "\\([[:blank:]]+\\([^\n\r]+\\)\\)?")
 	       line)
-	(tramp-error proc 'file-notify-error "%s" line))
+	(tramp-error proc 'file-notify-error line))
 
       (let ((object
 	     (list
@@ -4312,10 +4299,9 @@ file exists and nonzero exit status otherwise."
     (tramp-send-command
      vec (format
 	  (concat
-	   "exec env TERM='%s' INSIDE_EMACS='%s,tramp:%s' "
+	   "exec env TERM='%s' INSIDE_EMACS='%s' "
 	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s -i")
-          tramp-terminal-type
-          (or (getenv "INSIDE_EMACS") emacs-version) tramp-version
+          tramp-terminal-type (tramp-inside-emacs)
           (or (getenv-internal "ENV" tramp-remote-process-environment) "")
 	  (if (stringp tramp-histfile-override)
 	      (format "HISTFILE=%s"
@@ -5949,16 +5935,6 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	    "ln -s foo %s && chmod -h %s 0777"
 	    (tramp-file-local-name tmpfile) (tramp-file-local-name tmpfile)))
 	(delete-file tmpfile)))))
-
-(defun tramp-get-env-with-u-option (vec)
-  "Check, whether the remote `env' command supports the -u option."
-  (with-tramp-connection-property vec "env-u-option"
-    (tramp-message vec 5 "Checking, whether `env -u' works")
-    ;; Option "-u" is a GNU extension.
-    (tramp-send-command-and-check
-     vec (format "env FOO=foo env -u FOO 2>%s | grep -qv FOO"
-                 (tramp-get-remote-null-device vec))
-     t)))
 
 ;; Some predefined connection properties.
 (defun tramp-get-inline-compress (vec prop size)
