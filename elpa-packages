@@ -173,7 +173,9 @@
  ("iterators"		:url nil)
  ("ivy"			:url "https://github.com/abo-abo/swiper")
  ("ivy-explorer"        :url "https://github.com/clemera/ivy-explorer")
- ("ivy-posframe"        :url "https://github.com/tumashu/ivy-posframe")
+ ("ivy-posframe"
+  :url "https://github.com/tumashu/ivy-posframe"
+  :auto-sync t)
  ("javaimp"		:url nil)
  ("jgraph-mode"		:url nil)
  ("js2-mode"
@@ -248,7 +250,9 @@
  ("phps-mode"		:url "https://github.com/cjohansson/emacs-phps-mode")
  ("pinentry"		:url "https://github.com/ueno/pinentry-el.git")
  ("poker"		:url nil)
- ("posframe"		:url "https://github.com/tumashu/posframe")
+ ("posframe"
+  :url "https://github.com/tumashu/posframe"
+  :auto-sync t)
  ("prefixed-core"	:url nil)
  ("project"		:core "lisp/progmodes/project.el")
  ("psgml"               :url "https://github.com/lenst/psgml.git")
