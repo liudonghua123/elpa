@@ -1263,12 +1263,12 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	  ((< 0 days-ago 7)
 	   (format "%s day%s ago" days-ago
 		   (rt-liber-viewer2-vernacular-plural days-ago)))
-	  ((< 7 days-ago 30)
+	  ((<= 7 days-ago 30)
 	   (let ((weeks (floor (/ days-ago 7.0))))
 	     (format "%s week%s ago"
 		     weeks
 		     (rt-liber-viewer2-vernacular-plural weeks))))
-	  ((< 30 days-ago 365)
+	  ((<= 30 days-ago 365)
 	   (let ((months (floor (/ days-ago 30.0))))
 	     (format "%s month%s ago"
 		     months
