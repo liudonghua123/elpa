@@ -5,7 +5,7 @@
 ;; Author: Yoni Rabkin <yrk@gnu.org>
 ;; Authors: Aaron S. Hawley <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>
 ;; Maintainer: Yoni Rabkin <yrk@gnu.org>
-;; Version: 2.2
+;; Version: 2.3
 ;; Keywords: rt, tickets
 ;; Package-Type: multi
 ;; url: http://www.nongnu.org/rtliber/
@@ -43,6 +43,7 @@
 (require 'cl-lib)
 
 (require 'rt-liberation-rest)
+(require 'rt-liberation-compiler)
 
 (declare-function rt-liber-get-ancillary-text "rt-liberation-storage.el")
 (declare-function rt-liber-ticket-marked-p "rt-liberation-multi.el")
@@ -77,38 +78,11 @@
 	   'font-lock-comment-face)))
   "Expressions to font-lock for RT ticket viewer.")
 
-(defvar rt-liber-created-string "Created"
-  "String representation of \"created\" query tag.")
-
 (defvar rt-liber-resolved-string "Resolved"
   "String representation of \"resolved\" query tag.")
 
 (defvar rt-liber-base-url ""
   "Base url for ticket display.")
-
-(defvar rt-liber-lastupdated-string "LastUpdated"
-  "String representation of \"lastupdated\" query tag.")
-
-(defvar rt-liber-resolved-string "Resolved"
-  "String representation of \"resolved\" query tag.")
-
-(defvar rt-liber-content-string "Content LIKE"
-  "String representation of \"content\" query tag.")
-
-(defvar rt-liber-subject-string "Subject LIKE"
-  "String representation of \"subject\" query tag.")
-
-(defvar rt-liber-email-address-string "Requestor.EmailAddress LIKE"
-  "String representation of \"Requestor.EmailAddress\" query tag.")
-
-(defvar rt-liber-content-not-string "Content NOT LIKE"
-  "String representation of \"content\" query tag.")
-
-(defvar rt-liber-subject-not-string "Subject NOT LIKE"
-  "String representation of \"subject\" query tag.")
-
-(defvar rt-liber-email-address-not-string "Requestor.EmailAddress NOT LIKE"
-  "String representation of \"Requestor.EmailAddress\" query tag.")
 
 (defvar rt-liber-content-regexp "^Content:.*$"
   "Regular expression for section headers.")
@@ -141,9 +115,6 @@ function returns a truth value.")
 (defvar rt-liber-custom-ticket-redraw-function
   'rt-liber-ticketlist-browser-redraw-f
   "Default ticket redraw function.")
-
-(defvar rt-liber-ticket-old-threshold 30
-  "Age in days before a ticket is considered old.")
 
 (defvar rt-liber-jump-to-latest nil
   "jump to the latest correspondence when viewing a ticket.")
@@ -196,15 +167,6 @@ of referring to certain commands. The command strings are the
 specific strings which would produce the desired effect in the
 server.")
 
-(defvar rt-liber-field-dictionary
-  '((owner   . "Owner")
-    (queue   . "Queue")
-    (status  . "Status")
-    (priority  . "Priority"))
-  "Mapping between field symbols and RT field strings.
-The field symbols provide the programmer with a consistent way of
-referring to RT fields.")
-
 (defvar rt-liber-status-dictionary
   '((deleted  . "deleted")
     (resolved . "resolved")
@@ -214,13 +176,6 @@ referring to RT fields.")
 The status symbols provide the programmer with a consistent way
 of referring to certain statuses. The status strings are the
 server specific strings.")
-
-(defvar rt-liber-debug-log-enable nil
-  "If t then enable logging of communication to a buffer.
-Careful! This might create a sizable buffer.")
-
-(defvar rt-liber-debug-log-buffer-name "*rt-liber debug log*"
-  "Name of debug log buffer.")
 
 (defvar rt-liber-ticket-local nil
   "Buffer local storage for a ticket.
@@ -251,248 +206,6 @@ This variable is made buffer local for the ticket history")
 
 (defvar rt-liber-viewer2-recenter 4
   "Argument passed to `recenter' in the viewer.")
-
-
-;;; --------------------------------------------------------
-;;; Debug log
-;;; --------------------------------------------------------
-(defun rt-liber-debug-log-write (str)
-  "Write STR to debug log."
-  (when (not (stringp str))
-    (error "must be a string"))
-  (with-current-buffer (get-buffer-create
-			rt-liber-debug-log-buffer-name)
-    (goto-char (point-max))
-    (insert str)))
-
-
-;;; --------------------------------------------------------
-;;; TicketSQL compiler
-;;; --------------------------------------------------------
-(eval-and-compile ;; for use in macro `rt-liber-compile-query'
-  (defun rt-liber-bool-p (sym)
-    "Return t if SYM is a boolean operator, otherwise nil."
-    (member sym '(and or)))
-  (defun rt-liber-attrib-p (sym)
-    "Return t if SYM is a ticket attribute, otherwise nil."
-    (member sym '(id owner status subject content queue lastupdatedby
-		     email-address)))
-  (defun rt-liber-time-p (sym)
-    "Return t if SYM is a temporal attribute, otherwise nil."
-    (member sym '(created lastupdated resolved)))
-  (defun rt-liber-negation-p (sym)
-    (member sym '(not)))
-
-  (defun rt-liber-reduce (op seq)
-    "Reduce-OP with SEQ to a string of \"s0 op s1 op s2..\"."
-    (if seq
-	(cl-reduce
-	 #'(lambda (a b)
-	     (format "%s %s %s" a op b))
-	 seq)
-      ""))
-
-  (defun rt-liber-make-interval (pred before after)
-    "Return a formatted TicketSQL interval.
-PRED   temporal attribute predicate.
-BEFORE date before predicate.
-AFTER  date after predicate."
-    (when (string= before "") (setq before nil))
-    (when (string= after "") (setq after nil))
-    (concat
-     (if before (format "%s < '%s'" pred before) "")
-     (if (and before after) (format " AND ") "")
-     (if after (format "%s > '%s'" pred after) ""))))
-
-(defmacro rt-liber-compile-query (query &optional n)
-  "Compile sexp-based QUERY into TicketSQL."
-  (cond ((null query) `"")
-	((stringp query) `,query)
-	((rt-liber-bool-p query) `,(upcase (format "%s" query)))
-	;; attribute (positive)
-	((and (rt-liber-attrib-p query)
-	      (not n))
-	 `,(cond ((equal query 'content) rt-liber-content-string)
-		 ((equal query 'subject) rt-liber-subject-string)
-		 ((equal query 'email-address) rt-liber-email-address-string)
-		 (t (capitalize (format "%s =" query)))))
-	;; attribute (negation)
-	((and (rt-liber-attrib-p query)
-	      n)
-	 `,(cond ((equal query 'content) rt-liber-content-not-string)
-		 ((equal query 'subject) rt-liber-subject-not-string)
-		 ((equal query 'email-address) rt-liber-email-address-not-string)
-		 (t (capitalize (format "%s !=" query)))))
-	;; time
-	((rt-liber-time-p query)
-	 `,(cond ((equal query 'created) rt-liber-created-string)
-		 ((equal query 'lastupdated) rt-liber-lastupdated-string)
-		 ((equal query 'resolved) rt-liber-resolved-string)))
-	((and (listp query)
-	      (rt-liber-time-p (car query)))
-	 `(rt-liber-make-interval
-	   (rt-liber-compile-query ,(car query))
-	   (rt-liber-compile-query ,(cadr query))
-	   (rt-liber-compile-query ,(caddr query))))
-	;; function (known at compile time?)
-	((and query
-	      (listp query)
-	      (not (rt-liber-bool-p (car query)))
-	      (not (rt-liber-negation-p (car query)))
-	      (functionp (car query)))
-	 `(format "%s" ,query))
-	;; negation attribute pairs
-	((and (listp query)
-	      (rt-liber-negation-p (car query))
-	      (rt-liber-attrib-p (caadr query)))
-	 `(format "%s '%s'"
-		  (rt-liber-compile-query ,(caadr query) t) ; negate
-		  (rt-liber-compile-query ,(cadadr query))))
-	;; attribute pairs
-	((and (listp query)
-	      (rt-liber-attrib-p (car query)))
-	 `(format "%s '%s'"
-		  (rt-liber-compile-query ,(car query))
-		  (rt-liber-compile-query ,(cadr query))))
-	;; splice boolean operators
-	((and (listp query)
-	      (rt-liber-bool-p (car query)))
-	 `(rt-liber-reduce (rt-liber-compile-query ,(car query))
-			   (rt-liber-compile-query ,(cdr query))))
-	;; compound statements
-	((and (listp query)
-	      (not (cdr query)))
-	 `(list (rt-liber-compile-query ,(car query))))
-	((listp query)
-	 `(append
-	   (list (rt-liber-compile-query ,(car query)))
-	   (rt-liber-compile-query ,(cdr query))))
-	;; free variable
-	((and query
-	      (symbolp query))
-	 `(format "%s" ,query))
-	(t (error "cannot compile query %s" query))))
-
-
-;;; --------------------------------------------------------
-;;; Parse Answer
-;;; --------------------------------------------------------
-(defun rt-liber-parse-answer (answer-string parser-f)
-  "Operate on ANSWER-STRING with PARSER-F."
-  (with-temp-buffer
-    (insert answer-string)
-    (goto-char (point-min))
-    (when rt-liber-debug-log-enable
-      (rt-liber-debug-log-write (buffer-substring (point-min)
-						  (point-max))))
-    (funcall parser-f)))
-
-
-;;; --------------------------------------------------------
-;;; Ticket list retriever
-;;; --------------------------------------------------------
-(put 'rt-liber-no-result-from-query-error
-     'error-conditions
-     '(error rt-liber-errors rt-liber-no-result-from-query-error))
-
-(put 'rt-liber-no-result-from-query-error
-     'error-message
-     "No results from query")
-
-(defun rt-liber-ticket-base-retriever-parser-f ()
-  "Parser function for ticket list."
-  (let (ticketbase-list ticketbase (continue t))
-    (while (save-excursion
-	     (re-search-forward "^id:" (point-max) t))
-      (while (and continue
-		  (re-search-forward
-		   "^\\(\\([.{} #[:alpha:]]+\\): \\(.*\\)\\)$\\|^--$"
-		   (point-max) t))
-	(if (string= (match-string-no-properties 0) "--")
-	    (setq continue nil)
-	  (push (cons (match-string-no-properties 2)
-		      (match-string-no-properties 3))
-		ticketbase)))
-      (push (copy-sequence ticketbase) ticketbase-list)
-      (setq ticketbase nil
-	    continue t))
-    ticketbase-list))
-
-(defun rt-liber-rest-ticketsql-runner-parser-f ()
-  "Parser function for a textual list of tickets."
-  (let (idsub-list)
-    (rt-liber-rest-parse-http-header)
-    (while (re-search-forward "ticket/\\([0-9].+\\)" (point-max) t)
-      (push (list (match-string-no-properties 1)
-		  ".")
-	    idsub-list))
-    idsub-list))
-
-(defun rt-liber-rest-run-ls-query (query)
-  "Run an \"ls\" type query against the server with QUERY."
-  (rt-liber-parse-answer
-   (rt-liber-rest-query-runner "ls" query)
-   'rt-liber-rest-ticketsql-runner-parser-f))
-
-(defun rt-liber-rest-run-show-base-query (idsublist)
-  "Run \"show\" type query against the server with IDSUBLIST."
-  (rt-liber-parse-answer
-   (rt-liber-rest-show-query-runner idsublist)
-   #'rt-liber-ticket-base-retriever-parser-f))
-
-(defun rt-liber-rest-run-ticket-history-base-query (ticket-id)
-  "Run history query against server for TICKET-ID."
-  (rt-liber-parse-answer
-   (rt-liber-rest-query-runner "history" ticket-id)
-   #'(lambda ()
-       (rt-liber-rest-parse-http-header)
-       (buffer-substring (point) (point-max)))))
-
-(defun rt-liber-rest-command-set (id field status)
-  "Set ticket ID status to be STATUS."
-  (rt-liber-parse-answer
-   (rt-liber-rest-edit-runner id field status)
-   'rt-liber-command-runner-parser-f))
-
-
-;;; --------------------------------------------------------
-;;; Ticket utilities
-;;; --------------------------------------------------------
-(defun rt-liber-ticket-days-old (ticket-alist)
-  "Return the age of the ticket in positive days."
-  (days-between (format-time-string "%Y-%m-%dT%T%z" (current-time))
-		(cdr (assoc "Created" ticket-alist))))
-
-(defun rt-liber-ticket-old-p (ticket-alist)
-  (<= rt-liber-ticket-old-threshold
-      (rt-liber-ticket-days-old ticket-alist)))
-
-(defun rt-liber-ticket-id-only (ticket-alist)
-  "Return numerical portion of ticket number from TICKET-ALIST."
-  (if ticket-alist
-      (substring (cdr (assoc "id" ticket-alist)) 7)
-    nil))
-
-(defun rt-liber-ticket-priority-only (ticket-alist)
-  "Return an integer value priority or NIL."
-  (if ticket-alist
-      (let ((p-str (cdr (assoc "Priority" ticket-alist))))
-	(if p-str
-	    (string-to-number p-str)
-	  nil))
-    nil))
-
-(defun rt-liber-ticket-owner-only (ticket-alist)
-  "Return the string value of the ticket owner."
-  (when (not ticket-alist)
-    (error "null ticket-alist"))
-  (cdr (assoc (rt-liber-get-field-string 'owner)
-	      ticket-alist)))
-
-(defun rt-liber-get-field-string (field-symbol)
-  (when (not field-symbol)
-    (error "null field symbol"))
-  (cdr (assoc field-symbol rt-liber-field-dictionary)))
 
 
 ;;; --------------------------------------------------------
@@ -1263,12 +976,12 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	  ((< 0 days-ago 7)
 	   (format "%s day%s ago" days-ago
 		   (rt-liber-viewer2-vernacular-plural days-ago)))
-	  ((< 7 days-ago 30)
+	  ((<= 7 days-ago 30)
 	   (let ((weeks (floor (/ days-ago 7.0))))
 	     (format "%s week%s ago"
 		     weeks
 		     (rt-liber-viewer2-vernacular-plural weeks))))
-	  ((< 30 days-ago 365)
+	  ((<= 30 days-ago 365)
 	   (let ((months (floor (/ days-ago 30.0))))
 	     (format "%s month%s ago"
 		     months
