@@ -1,3 +1,10 @@
+New in version 2.03
+
+    * Bug fix: incorrect display of certain dates in the viewer.
+
+    * Major reorganization of the code to help modularization.
+
+
 New in version 2.02
 
     * The new viewer now displays meaningful descriptors in
