@@ -116,9 +116,6 @@ function returns a truth value.")
   'rt-liber-ticketlist-browser-redraw-f
   "Default ticket redraw function.")
 
-(defvar rt-liber-ticket-old-threshold 30
-  "Age in days before a ticket is considered old.")
-
 (defvar rt-liber-jump-to-latest nil
   "jump to the latest correspondence when viewing a ticket.")
 
@@ -170,15 +167,6 @@ of referring to certain commands. The command strings are the
 specific strings which would produce the desired effect in the
 server.")
 
-(defvar rt-liber-field-dictionary
-  '((owner   . "Owner")
-    (queue   . "Queue")
-    (status  . "Status")
-    (priority  . "Priority"))
-  "Mapping between field symbols and RT field strings.
-The field symbols provide the programmer with a consistent way of
-referring to RT fields.")
-
 (defvar rt-liber-status-dictionary
   '((deleted  . "deleted")
     (resolved . "resolved")
@@ -188,13 +176,6 @@ referring to RT fields.")
 The status symbols provide the programmer with a consistent way
 of referring to certain statuses. The status strings are the
 server specific strings.")
-
-(defvar rt-liber-debug-log-enable nil
-  "If t then enable logging of communication to a buffer.
-Careful! This might create a sizable buffer.")
-
-(defvar rt-liber-debug-log-buffer-name "*rt-liber debug log*"
-  "Name of debug log buffer.")
 
 (defvar rt-liber-ticket-local nil
   "Buffer local storage for a ticket.
@@ -225,140 +206,6 @@ This variable is made buffer local for the ticket history")
 
 (defvar rt-liber-viewer2-recenter 4
   "Argument passed to `recenter' in the viewer.")
-
-
-;;; --------------------------------------------------------
-;;; Debug log
-;;; --------------------------------------------------------
-(defun rt-liber-debug-log-write (str)
-  "Write STR to debug log."
-  (when (not (stringp str))
-    (error "must be a string"))
-  (with-current-buffer (get-buffer-create
-			rt-liber-debug-log-buffer-name)
-    (goto-char (point-max))
-    (insert str)))
-
-
-;;; --------------------------------------------------------
-;;; Parse Answer
-;;; --------------------------------------------------------
-(defun rt-liber-parse-answer (answer-string parser-f)
-  "Operate on ANSWER-STRING with PARSER-F."
-  (with-temp-buffer
-    (insert answer-string)
-    (goto-char (point-min))
-    (when rt-liber-debug-log-enable
-      (rt-liber-debug-log-write (buffer-substring (point-min)
-						  (point-max))))
-    (funcall parser-f)))
-
-
-;;; --------------------------------------------------------
-;;; Ticket list retriever
-;;; --------------------------------------------------------
-(put 'rt-liber-no-result-from-query-error
-     'error-conditions
-     '(error rt-liber-errors rt-liber-no-result-from-query-error))
-
-(put 'rt-liber-no-result-from-query-error
-     'error-message
-     "No results from query")
-
-(defun rt-liber-ticket-base-retriever-parser-f ()
-  "Parser function for ticket list."
-  (let (ticketbase-list ticketbase (continue t))
-    (while (save-excursion
-	     (re-search-forward "^id:" (point-max) t))
-      (while (and continue
-		  (re-search-forward
-		   "^\\(\\([.{} #[:alpha:]]+\\): \\(.*\\)\\)$\\|^--$"
-		   (point-max) t))
-	(if (string= (match-string-no-properties 0) "--")
-	    (setq continue nil)
-	  (push (cons (match-string-no-properties 2)
-		      (match-string-no-properties 3))
-		ticketbase)))
-      (push (copy-sequence ticketbase) ticketbase-list)
-      (setq ticketbase nil
-	    continue t))
-    ticketbase-list))
-
-(defun rt-liber-rest-ticketsql-runner-parser-f ()
-  "Parser function for a textual list of tickets."
-  (let (idsub-list)
-    (rt-liber-rest-parse-http-header)
-    (while (re-search-forward "ticket/\\([0-9].+\\)" (point-max) t)
-      (push (list (match-string-no-properties 1)
-		  ".")
-	    idsub-list))
-    idsub-list))
-
-(defun rt-liber-rest-run-ls-query (query)
-  "Run an \"ls\" type query against the server with QUERY."
-  (rt-liber-parse-answer
-   (rt-liber-rest-query-runner "ls" query)
-   'rt-liber-rest-ticketsql-runner-parser-f))
-
-(defun rt-liber-rest-run-show-base-query (idsublist)
-  "Run \"show\" type query against the server with IDSUBLIST."
-  (rt-liber-parse-answer
-   (rt-liber-rest-show-query-runner idsublist)
-   #'rt-liber-ticket-base-retriever-parser-f))
-
-(defun rt-liber-rest-run-ticket-history-base-query (ticket-id)
-  "Run history query against server for TICKET-ID."
-  (rt-liber-parse-answer
-   (rt-liber-rest-query-runner "history" ticket-id)
-   #'(lambda ()
-       (rt-liber-rest-parse-http-header)
-       (buffer-substring (point) (point-max)))))
-
-(defun rt-liber-rest-command-set (id field status)
-  "Set ticket ID status to be STATUS."
-  (rt-liber-parse-answer
-   (rt-liber-rest-edit-runner id field status)
-   'rt-liber-command-runner-parser-f))
-
-
-;;; --------------------------------------------------------
-;;; Ticket utilities
-;;; --------------------------------------------------------
-(defun rt-liber-ticket-days-old (ticket-alist)
-  "Return the age of the ticket in positive days."
-  (days-between (format-time-string "%Y-%m-%dT%T%z" (current-time))
-		(cdr (assoc "Created" ticket-alist))))
-
-(defun rt-liber-ticket-old-p (ticket-alist)
-  (<= rt-liber-ticket-old-threshold
-      (rt-liber-ticket-days-old ticket-alist)))
-
-(defun rt-liber-ticket-id-only (ticket-alist)
-  "Return numerical portion of ticket number from TICKET-ALIST."
-  (if ticket-alist
-      (substring (cdr (assoc "id" ticket-alist)) 7)
-    nil))
-
-(defun rt-liber-ticket-priority-only (ticket-alist)
-  "Return an integer value priority or NIL."
-  (if ticket-alist
-      (let ((p-str (cdr (assoc "Priority" ticket-alist))))
-	(if p-str
-	    (string-to-number p-str)
-	  nil))
-    nil))
-
-(defun rt-liber-ticket-owner-only (ticket-alist)
-  "Return the string value of the ticket owner."
-  (when (not ticket-alist)
-    (error "null ticket-alist"))
-  (cdr (assoc (rt-liber-get-field-string 'owner)
-	      ticket-alist)))
-
-(defun rt-liber-get-field-string (field-symbol)
-  (when (not field-symbol)
-    (error "null field symbol"))
-  (cdr (assoc field-symbol rt-liber-field-dictionary)))
 
 
 ;;; --------------------------------------------------------

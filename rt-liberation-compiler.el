@@ -39,6 +39,9 @@
 (require 'cl-lib)
 
 
+;;; ------------------------------------------------------------------
+;;; variables and constants
+;;; ------------------------------------------------------------------
 (defvar rt-liber-content-string "Content LIKE"
   "String representation of \"content\" query tag.")
 
