@@ -171,8 +171,13 @@
  ("hyperbole"           :url "http://git.savannah.gnu.org/r/hyperbole.git")
  ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git")
  ("iterators"		:url nil)
- ("ivy"			:url "https://github.com/abo-abo/swiper")
+ ("ivy"
+  :url "https://github.com/abo-abo/swiper"
+  :renames (("doc/" ""))
+  :doc "doc/ivy.texi")
+ ("ivy-avy"		:url "https://github.com/abo-abo/swiper")
  ("ivy-explorer"        :url "https://github.com/clemera/ivy-explorer")
+ ("ivy-hydra"		:url "https://github.com/abo-abo/swiper")
  ("ivy-posframe"
   :url "https://github.com/tumashu/ivy-posframe"
   :auto-sync t)
