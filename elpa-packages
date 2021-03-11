@@ -270,6 +270,9 @@
  ("pyim"
   :url "https://github.com/tumashu/pyim.git"
   :auto-sync t)
+ ("pyim-basedict"
+  :url "https://github.com/tumashu/pyim-basedict.git"
+  :auto-sync t)
  ("python"		:core "lisp/progmodes/python.el")
  ("quarter-plane"	:url nil)
  ("queue"		:url "http://www.dr-qubit.org/git/predictive.git")
