@@ -215,6 +215,12 @@
   :auto-sync t)
  ("modus-operandi-theme":url "https://gitlab.com/protesilaos/modus-themes")
  ("modus-vivendi-theme"	:url "https://gitlab.com/protesilaos/modus-themes")
+ ("modus-themes"	:core ("etc/themes/modus-themes.el"
+                               "etc/themes/modus-operandi-theme.el"
+                               "etc/themes/modus-vivendi-theme.el"
+                               "doc/misc/modus-themes.org"
+                               "doc/misc/doclicense.texi")
+  :doc "modus-themes.org")
  ("multishell"		:url "https://github.com/kenmanheimer/EmacsMultishell")
  ("muse"		:url "https://github.com/alexott/muse") ;FIXME: Not nearly in-sync
  ("myers"		:url nil)
@@ -300,6 +306,7 @@
  ("scroll-restore"	:url nil)
  ("sed-mode"		:url nil)
  ("seq"			:url nil)
+ ;; ("setup"		:url "https://git.sr.ht/~zge/setup")
  ("shelisp"		:url nil)
  ("shell-command+"	:url "https://git.sr.ht/~zge/bang/tree/shell-command+")
  ("shell-quasiquote"	:url nil)
