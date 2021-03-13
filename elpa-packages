@@ -306,7 +306,7 @@
  ("scroll-restore"	:url nil)
  ("sed-mode"		:url nil)
  ("seq"			:url nil)
- ;; ("setup"		:url "https://git.sr.ht/~zge/setup")
+ ("setup"		:url "https://git.sr.ht/~zge/setup")
  ("shelisp"		:url nil)
  ("shell-command+"	:url "https://git.sr.ht/~zge/bang/tree/shell-command+")
  ("shell-quasiquote"	:url nil)
