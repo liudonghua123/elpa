@@ -213,8 +213,10 @@
  ("mmm-mode"
   :url "https://github.com/purcell/mmm-mode.git"
   :auto-sync t)
- ("modus-operandi-theme":url "https://gitlab.com/protesilaos/modus-themes")
- ("modus-vivendi-theme"	:url "https://gitlab.com/protesilaos/modus-themes")
+ ("modus-operandi-theme":url "https://gitlab.com/protesilaos/modus-themes"
+  :branch "elpa/modus-operandi-theme")
+ ("modus-vivendi-theme"	:url "https://gitlab.com/protesilaos/modus-themes"
+  :branch "elpa/modus-vivendi-theme")
  ("modus-themes"	:core ("etc/themes/modus-themes.el"
                                "etc/themes/modus-operandi-theme.el"
                                "etc/themes/modus-vivendi-theme.el"
