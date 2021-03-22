@@ -213,6 +213,9 @@
  ("mmm-mode"
   :url "https://github.com/purcell/mmm-mode.git"
   :auto-sync t)
+ ;; `modus-operandi-theme' and `modus-vivendi-theme' are deprecated and
+ ;; will have to be deleted by the summer of 2021, as discussed in Emacs
+ ;; bug#46964: <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=46964>.
  ("modus-operandi-theme":url "https://gitlab.com/protesilaos/modus-themes"
   :branch "elpa/modus-operandi-theme")
  ("modus-vivendi-theme"	:url "https://gitlab.com/protesilaos/modus-themes"
