@@ -75,9 +75,8 @@ handlers if the symbol (eg. `man') is contained in the list."
   :type '(choice (boolean :tag "Always active?")
                  (repeat :tag "Selected commands" symbol)))
 
-(defcustom shell-command+-prompt "Shell command:"
-  "Prompt to use when invoking `shell-command+'.
-This option doesn't require a trailing whitespace."
+(defcustom shell-command+-prompt "Shell command: "
+  "Prompt to use when invoking `shell-command+'."
   :type 'string)
 
 (defconst shell-command+--command-regexp
@@ -135,7 +134,7 @@ These extentions can all be combined with one-another.
 
 In case a region is active, `shell-command+' will only work with the region
 between BEG and END.  Otherwise the whole buffer is processed."
-  (interactive (list (read-shell-command (concat shell-command+-prompt " "))
+  (interactive (list (read-shell-command shell-command+-prompt)
                      (if (use-region-p) (region-beginning) (point-min))
                      (if (use-region-p) (region-end) (point-max))))
   (save-match-data
