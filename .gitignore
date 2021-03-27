@@ -1,0 +1,4 @@
+*.elc
+
+/dts-mode-autoloads.el
+/dts-mode-pkg.el

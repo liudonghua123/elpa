@@ -1,8 +1,8 @@
 ;;; dts-mode.el --- Major mode for Device Tree source files
 
-;; Copyright (C) 2014-2015  Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021  Free Software Foundation, Inc.
 
-;; Version: 0.1.0
+;; Version: 0.1.1
 ;; Author: Ben Gamari <ben@smart-cactus.org>
 ;; Keywords: languages
 
@@ -21,7 +21,13 @@
 
 ;;; Commentary:
 
+;; This provides basic editing support for DTS files (see
+;; http://www.devicetree.org/), with the following features:
 ;;
+;; - Font-lock highlighting
+;; - SMIE-based automatic indentation
+
+;;; News:
 
 ;;; Code:
 
