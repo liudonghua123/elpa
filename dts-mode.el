@@ -91,7 +91,10 @@
 (defun dts-indent-line ()
   (interactive)
   (let ((indent (dts--calculate-indentation)))
-    (indent-line-to (* indent tab-width))))
+    (save-excursion
+      (indent-line-to (* indent tab-width)))
+    (when (or (bolp) (looking-back "^[[:space:]]+"))
+      (beginning-of-line-text))))
 
 ;;;; New SMIE-based indentation code.
 
