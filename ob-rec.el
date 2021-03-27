@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
-;; Author: Jose E. Marchesi
+;; Author: Jose E. Marchesi <jemarch@gnu.org>
+;; Maintainer: Antoine Kalmbach <ane@iki.fi>
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 ;; Version: 7.7

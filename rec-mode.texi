@@ -1,10 +1,12 @@
 \input texinfo
 @comment %**start of header
+@documentencoding UTF-8
 @setfilename rec-mode.info
 @settitle rec-mode for Emacs
-@set UPDATED 13 November 2020
+@set UPDATED 27 November 2020
 @set EDITION 1.8.90
 @set VERSION 1.8.90
+@set RECMODEVERSION 1.7.0
 @afourpaper
 @comment %**end of header
 
@@ -15,8 +17,15 @@
 @end macro
 
 @macro reccmd{key,command}
-@item @kbd{\key\} @tie{}@tie{}@tie{}@tie{}(@code{\command\})
+@item \key\
+@itemx M-x \command\
+@kindex \key\
+@findex \command\
+@c
 @end macro
+
+@c Merge variable and concept indexes
+@synindex cp vr
 
 @copying
 This manual is for rec-mode for Emacs, which is part of the GNU
@@ -54,7 +63,7 @@ Documentation License''.
 @node Top
 @top rec-mode: an Emacs mode for editing recfiles
 
-This manual documents version @value{VERSION} of rec-mode.
+This manual documents version @value{RECMODEVERSION} of rec-mode.
 
 @insertcopying
 @end ifnottex
@@ -63,8 +72,14 @@ This manual documents version @value{VERSION} of rec-mode.
 * Introduction::                Getting started
 * Navigation mode::             User-friendly interface for browing recfiles
 * Edition modes::               Edit recfiles in rec-format
+* Summary mode::                List records in a table.
+* Selecting records::           Run queries on the current buffer.
+* Cross referencing::           Cross reference records.
 * Configuration::               Adapting rec-mode to your needs
-* GNU Free Documentation License:: Distribution terms for this document
+* Command Index::               Command and Function Index
+* Key Index::                   Key (Character) Index
+* Variable and Concept Index::  Variable and Concept Index
+* GNU Free Documentation License::  Distribution terms for this document
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -77,22 +92,29 @@ Introduction
 
 Navigation mode
 
-* Record navigation::           Moving through records.
-* Field navigation::            Moving through fields in a record.
-* Field folding::               Hiding and showing the values of fields.
-* Field edition::               Changing the values of fields.
-* Searches::                    Finding records fufilling some criteria.
-* Statistics::                  Counting records.
-* Data integrity::              Verifying the integrity of the recfile.
+* Record navigation::           Moving through records
+* Field navigation::            Moving through fields in a record
+* Field folding::               Hiding and showing the values of fields
+* Field edition::               Changing the values of fields
+* Searches::                    Finding records fulfilling some criteria
+* Statistics::                  Counting records
+* Data integrity::              Verifying the integrity of the recfile
 
-Edition modes
+Selecting records
 
-* Edition modes::               Edit recfiles in rec-format
+* Buffer from selection::       Copy the selection into a new recfile buffer.
+* Selection mode::              Navigate the current buffer based on a search.
+
+
+Cross referencing
+
+* Cross referencing by selection:: Cross reference matching selections.
 
 Configuration
 
 * Finding the recutils::        Specifying the location of the recutils.
-* Records appearance::          Setting the way records are displayed.
+* Records appearance::          Setting the way records are displayed
+
 @end detailmenu
 @end menu
 
@@ -123,10 +145,10 @@ rec-mode is implemented in a self-contained elisp file called
 @file{rec-mode.el}.  It can be obtained in several ways:
 
 @itemize @minus
-@item As part of a released tarball of recutils.  @file{rec-mode.el}
-can be found in the @file{etc/} directory in the tarball contents.
+@item From @url{https://elpa.gnu.org/packages/rec-mode.html, GNU ELPA}
+using the built-in Emacs package manager. 
 @item As part of the source tree cloned from the development git
-repo.  @file{rec-mode.el} can be found in the @file{etc/} directory in
+repository of rec-mode.  @file{rec-mode.el} can be found in the root directory of
 the recutils sources tree.
 @item As a single file downloaded form some other location in
 internet.
@@ -134,9 +156,10 @@ internet.
 distribution.
 @end itemize
 
-@noindent In the first three cases you need to tell Emacs where to locate the
+@noindent In the second case you need to tell Emacs where to locate the
 @file{rec-mode.el} file and to load it.  Add the following to your
 @file{.emacs} file.
+
 @lisp
 (add-to-list 'load-path "~/path/to/recmode/")
 (require 'rec-mode)
@@ -151,19 +174,15 @@ have to @code{require} the package.
 @section Activation
 @cindex activation
 
+rec-mode should automatically activate when opening @file{.rec} files.
 To make sure files with extension @file{.rec} use rec-mode, add the
-following line to your @file{.emacs} file.
-@lisp
-(add-to-list 'auto-mode-alist '("\\.rec\\'" . rec-mode))
-@end lisp
 @noindent rec-mode buffers need font-lock to be turned on - this is
 the default in Emacs@footnote{If you don't use font-lock globally,
 turn it on in the rec buffer with @code{(add-hook 'rec-mode-hook
 'turn-on-font-lock)}}.
 
-With this setup, all files with extension @samp{.rec} will be put into
-rec mode.  As an alternative, make the first line of a recfile look
-like this:
+If the file doesn't end in @file{.rec}, make the first line of a
+recfile look like this:
 
 @example
 # -*- mode: rec -*-
@@ -190,6 +209,8 @@ The subscription can be done online at
 
 @node Navigation mode
 @chapter Navigation mode
+@cindex navigation mode
+@cindex modes, navigation
 
 When a recfile is visited in Emacs and rec-mode is activated, the
 contents of the file are examined and parsed in order to determine if
@@ -232,7 +253,7 @@ following subsections.
 
 The following commands jump to other records in the buffer.
 
-@table @asis
+@table @kbd
 @reccmd{n,rec-cmd-goto-next-rec}
 Display the next record of the same type in the buffer.
 @*`C-u N n' will move next N times.
@@ -256,11 +277,12 @@ display the first record of the selected type.
 The following commands iterate through the fields in a record, and to
 get information about some of the properties of the fields.
 
-@table @asis
+@table @kbd
 @reccmd{TAB, rec-cmd-goto-next-field}
 Move the cursor to the beginning of the name of the next field in the
 current record.  If the cursor is currently located at the last field
 of the record then move it to the beginning of the first field.
+
 @reccmd{t, rec-cmd-show-type}
 Show information about the type of the field under the cursor, if it
 is defined.
@@ -268,13 +290,14 @@ is defined.
 
 @node Field folding
 @section Field folding
+@cindex folding
 
 Fields in recfiles can contain data of any size, and sometimes it is
 difficult to have an overview of the contents of the record.  The
 following commands fold and unfold the value of the field under the
 cursor.
 
-@table @asis
+@table @kbd
 @reccmd{SPC, rec-cmd-toggle-field-visibility}
 Toggle the visibility of the field under the cursor.  When a field is
 folded then three dots are displayed in the buffer instead of the
@@ -287,10 +310,12 @@ appearance}.
 
 @node Field edition
 @section Field edition
+@cindex editing fields
+@cindex edition, fields
 
 The following commands change the value of the field under the cursor.
 
-@table @asis
+@table @kbd
 @reccmd{e, rec-cmd-edit-field}
 Edit the value of the field under the cursor.  The specific action
 depends on the type of the field in the corresponding record
@@ -326,13 +351,13 @@ leading and trailing blank characters.
 The following commands jump to the first record in the buffer
 satisfying some criteria.
 
-@table @asis
-@reccmd{s q, rec-cmd-select-fast}
+@table @kbd
+@reccmd{s q, rec-cmd-jump-to-fast}
 Display the first record having a field whose value matches a given
 fixed pattern.  This is equivalent of using the command line option
 @option{-q} of @command{recsel}.  If a prefix argument is specified
 then the search is case-insensitive.
-@reccmd{s s, rec-cmd-select-sex}
+@reccmd{s s, rec-cmd-jump-to-sex}
 Display the first record in the buffer satisfying a given selection
 expression.  This is equivalent of using the command line option
 @option{-e} of @command{recsel}.  If a prefix argument is specified
@@ -341,11 +366,12 @@ then the search is case-insensitive.
 
 @node Statistics
 @section Statistics
+@cindex counting
 
 The following commands allow to count records in the current buffer
 based on some provided criteria.
 
-@table @asis
+@table @kbd
 @reccmd{I, rec-cmd-show-info}
 Show the number of records in the buffer categorized by type.
 @reccmd{#, rec-cmd-count}
@@ -366,11 +392,12 @@ each of the possible values of the enumerated type.
 
 @node Data integrity
 @section Data integrity
+@cindex fixing records
 
 The integrity of the rec data stored in the file can be checked using
 the following commands.
 
-@table @asis
+@table @kbd
 @reccmd{c, rec-cmd-compile}
 Compile the buffer with @command{recfix} and open a compilation window
 showing the result of the command.  In case some error or warning is
@@ -380,6 +407,8 @@ pressing @kbd{RET} in the compilation window.
 
 @node Edition modes
 @chapter Edition modes
+@cindex edition modes
+@cindex modes, edition
 
 The navigation mode described in a previous chapter is mainly intended
 for browsing recdata and doing changes at the record level: editing
@@ -404,7 +433,7 @@ exceptions to this are the bindings @kbd{c}
 The following commands are used to enter into one of the available
 edition modes from the navigation mode.
 
-@table @asis
+@table @kbd
 @reccmd{R, rec-edit-record}
 Edit the record being navigated.
 @reccmd{T, rec-edit-type}
@@ -416,21 +445,251 @@ Edit the buffer.
 @noindent After doing modifications in the buffer, the user can go
 back to navigation mode by using the following command.
 
-@table @asis
+@table @kbd
 @reccmd{C-c C-c, rec-finish-editing}
 Finish the current edition and return to navigation mode.  If a
 syntactic error was introduced in the edition activity then the error
 is reported in the echo area and navigation mode is not entered.
 @end table
 
+@node Summary mode
+@chapter Summary mode
+@cindex summary
+@cindex modes, summary
+
+Besides the standard viewing modes of buffers, there is also a third
+option called @dfn{summary mode}.  Summary mode is a tabulated list of
+the record in which each record is a row in the table.  The columns in
+the table are determined by user input, or alternatively, by special
+keys in the current file.
+
+@table @kbd
+@reccmd{h, rec-cmd-show-summary}
+Creates a summary buffer from the current type being viewed in the
+recfile. The columns are based on user input (prompted), or if the
+record has either a @code{%summary} or @code{%key} in its descriptor,
+those fields are used.
+@end table
+
+The input for the summary query is a @dfn{field expression}, a
+comma-separated list of column names.  Thus, if your recfile looks
+like the following:
+
+@example
+Name: Ada Lovelace
+Age: 36
+
+Name: Peter the Great
+Age: 53
+
+Name: Matusalem
+Age: 969
+@end example
+
+Then calling @kbd{rec-cmd-show-summary} and entering @code{Name,Age}
+would create a table of all records with those columns.  If your
+record descriptor contains a @code{%summary} like below:
+
+@example
+%summary: Age,Name
+@end example
+
+@noindent then this is used as the field expression instead.
+Similarly, if no @code{%summary} field is defined and a @code{%key}
+field exists, then that field is used.
+
+Calling this command enters @dfn{record summary mode}, which a a major
+mode derived from @dfn{tabulated list mode} (@pxref{Tabulated List
+mode,,,elisp}). In this mode, the following bindings are available:
+
+@table @kbd
+@reccmd{n, rec-summary-cmd-next}
+Go to the next record in the summary.
+@end table
+
+@noindent Navigation inside the summary buffer maintains the position
+of the associated recfile buffer, and vice versa.  The currently
+active record in the recfile is shown highlighted in the buffer.  As a
+result, the summary can be thought of as a useful ``overview''
+overview for any recfile buffer.
+
+@node Selecting records
+@chapter Selecting records
+
+Sometimes it is useful to operate or inspect only a subset of all the
+records on the file.  To this end, rec-mode provides several ways of
+using the searching facilities of recutils.
+
+Selection can be done using two mechanisms:
+
+@itemize @bullet
+@item
+@b{selection expressions}, which are expressions that can be applied
+to a record. These offer a powerful query language for
+records. @xref{Selection Expressions,,,recutils,GNU Recutils manual}.
+
+@item
+@b{fast string searches}, which match records whose field values match
+a string.
+@end itemize
+
+For instance, you can create a new buffer out of the current buffer,
+so that only the records that match your search are copied.  This way
+you can create new recfiles out of existing ones based on selections.
+
+To help navigate the buffer based on a search, you can create a new
+navigation mode where the commands for moving between records only
+move to those matching a search.  This is known as selection mode.
+
+@menu
+* Buffer from selection::       Copy the selection into a new recfile buffer.
+* Selection mode::              Navigate the current buffer based on a search.
+
+@end menu
+
+@node Buffer from selection
+@section Buffer from selection
+@cindex selection, buffer
+
+Creating new recfiles based on selections can be done by creating a
+wholly new buffer using the @dfn{buffer from selection} commands in
+rec-mode.
+
+@table @kbd
+@reccmd{x s, rec-cmd-new-buffer-from-sex}
+Creates a new buffer from a @dfn{selection expression}. @xref{Selection
+Expressions,,,recutils,GNU Recutils Manual}.  Prompts the user for a
+selection expression and then displays a new buffer containing records
+that match the expression. 
+@reccmd{x q, rec-cmd-new-buffer-from-fast-string}
+Creates a new buffer from a @dfn{fast string search}.  Prompts the user
+for a @i{string} and then displays a new buffer which contains all
+records whose any field contains this string.
+@end table
+
+In both of these commands, if the recfile has a @dfn{record descriptor},
+it is copied as well.
+
+@node Selection mode
+@section Selection mode
+@cindex selection mode
+@cindex modes, selection
+
+In both navigation mode and the assorted edition modes,
+@code{rec-cmd-goto-next-rec} and @code{rec-cmd-goto-prev-rec} navigate
+to the next and previous record, respectively.  On large files,
+finding a particular record using these commands only can be quite
+tedious.  To this end, using selections, it is possible to jump to or
+restrict navigation to records matching selections.
+
+@noindent Restricting the navigation commands, typically
+bound to @kbd{n} and @kbd{C-c C-n} (@i{mutatis mutandis} for backward
+movement), to records that match the current selection, can be done
+using what is called @i{record selection mode}.
+
+Record selection mode is a buffer-local minor mode in which the
+commands for next and previous records as described above do not
+behave the usual way: they navigate records that only match
+the currently active selection.
+
+When selection mode is entered, any associated summary buffer
+automatically updates its contents to match that of the current
+selection.  Once selection mode is turned off, the summary buffer
+reverts back to the previous selection.
+
+Record selection mode can be entered by the following commands:
+
+@table @kbd
+@reccmd{/ s, rec-cmd-navigate-current-type-by-sex}
+Prompts the user for a selection expression, runs a query on the
+current buffer and the current type, and then enters record selection
+mode.
+@reccmd{/ q, rec-cmd-navigate-current-type-by-fast-string}
+Same as above, but with a fast string search.
+@end table
+
+@noindent In record selection mode, besides the standard navigation bindings,
+the following additional bindings are defined:
+
+@table @kbd
+
+@reccmd{/ /, rec-cmd-exit-selection}
+Exits record selection mode and restores the normal navigation keybindings.
+@end table
+
+@node Cross referencing
+@chapter Cross referencing
+@cindex cross referencing
+@cindex xref
+
+Besides navigation, edition and selection, rec-mode provides another
+powerful feature for recfiles, known as @dfn{cross referencing}. In
+short, cross referencing is an Emacs term for listing various kinds of
+search results for certain keywords an identifiers. For records, this
+could mean the following:
+
+@enumerate
+@item
+Finding the type definition of a field.
+@item
+Finding the uses of a certain type, the inverse of above.
+@item
+Finding the referred record of a foreign key.  If a field is a key
+referring to another record, you can jump to that record.
+@item
+Finding the @i{referents} of a record if it is a foreign key. 
+@item
+Finding records that match a certain selection expression or fast
+string search.
+@end enumerate
+
+@noindent Emacs provides a unified interface for this called Xref.  @xref{Find
+Identifier Referencs,,,emacs,GNU Emacs Manual}.
+
+Regardless of functionality, if there are more than one search result,
+Xref searches present their results in a special @code{XREF} buffer.
+It is an ordered list of results, similar to compilation mode
+(@pxref{Compilation Mode,,,emacs,GNU Emacs Manual}). Xref makes it
+easy to navigate between search results, as it binds the
+@code{next-error} functionality, letting you navigate the results even
+if you are @i{outside} the rec mode buffer.
+
+As of version @value{RECMODEVERSION}, Xref implements only the last
+functionality, cross referencing records by selection expressions or
+fast string searches.
+
+@menu
+* Cross referencing by selection::
+@end menu
+
+@node Cross referencing by selection
+@section Cross referencing by selection
+@cindex cross referencing, selection
+
+Cross referencing @i{by selection} lets you perform a query and then
+list the results using the Xref buffer.  Rec mode provides two such
+commands:
+
+@table @kbd
+@reccmd{X s, rec-cmd-xref-sex}
+Query the current recfile using a selection expression and the current
+type and then list the results using Xref.  Each results shows a small
+snippet of the matched record making it easier to identify which
+records matched the search.
+@reccmd{X q, rec-cmd-xref-fast-string}
+Like above, but using a fast string.  Instead of previewing the first
+three fields of a record, it shows each field where there was a match.
+@end table
+
 @node Configuration
 @chapter Configuration
 
-TBC
+rec-mode can be configured using the customization facilities of
+Emacs. 
 
 @menu
-* Finding the recutils::     Specifying the location of the recutils.
-* Records appearance::       Setting the way records are displayed
+* Finding the recutils::        Specifying the location of the recutils.
+* Records appearance::          Setting the way records are displayed
 @end menu
 
 @node Finding the recutils
@@ -441,14 +700,17 @@ the recutils.  The following variables tell the mode where to find the
 utilities.  The default values of these variables must work if the
 recutils are installed system-wide in the system.
 
-@table @code
-@item rec-recsel
-Name of the @command{recsel} utility from the GNU recutils.
-@item rec-recinf
+@defvar rec-recsel
+Name of the @code{recsel} utility from the GNU recutil.
+@end defvar
+
+@defvar rec-recinf
 Name of the @command{recinf} utility from the GNU recutils.
-@item rec-recfix
+@end defvar
+
+@defvar rec-recfix
 Name of the @command{recfix} utility from the GNU recutils.
-@end table
+@end defvar
 
 @node Records appearance
 @section Records appearance
@@ -456,12 +718,23 @@ Name of the @command{recfix} utility from the GNU recutils.
 The appearance of the records in navigation mode can be customised by
 tweaking the value of the following variables.
 
-@table @code
-@item rec-max-lines-in-fields
+@defvar rec-max-lines-in-fields
 Values in fiels having more than the specified number of lines will be
 hidden by default in navigation mode.  When hidden, an ellipsis is
 shown instead of the value of the field.  Default is @code{15}.
-@end table
+@end defvar
+
+@node Command Index
+@unnumbered Command and Function Index
+@printindex fn
+
+@node Key Index
+@unnumbered Key (Character) Index
+@printindex ky
+
+@node Variable and Concept Index
+@unnumbered Variable and Concept Index
+@printindex vr
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
