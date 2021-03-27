@@ -83,7 +83,8 @@ it will set PROP."
   (if (fboundp 'macrop) #'macrop
     (lambda (object)
       "Non-nil if and only if OBJECT is a macro."
-      (let ((def (ignore-errors (indirect-function object))))
+      (let ((def (or (with-no-warnings (ignore-errors (indirect-function object t)))
+                     (ignore-errors (indirect-function object)))))
         (when (consp def)
           (or (eq 'macro (car def))
               (and (names--autoloadp def) (memq (nth 4 def) '(macro t)))))))))
