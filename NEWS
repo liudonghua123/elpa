@@ -1,3 +1,9 @@
+New in version 2.4
+
+    * Versions are now in X.Y format in order to be more elpa
+      friendly.
+
+
 New in version 2.03
 
     * Bug fix: incorrect display of certain dates in the viewer.

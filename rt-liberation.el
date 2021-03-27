@@ -5,7 +5,7 @@
 ;; Author: Yoni Rabkin <yrk@gnu.org>
 ;; Authors: Aaron S. Hawley <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>
 ;; Maintainer: Yoni Rabkin <yrk@gnu.org>
-;; Version: 2.3
+;; Version: 2.4rc
 ;; Keywords: rt, tickets
 ;; Package-Type: multi
 ;; url: http://www.nongnu.org/rtliber/
@@ -375,12 +375,6 @@ If POINT is nil then called on (point)."
   (let ((prev (previous-single-property-change (point) 'rt-ticket)))
     (when prev (goto-char prev))))
 
-(defun rt-liber-display-ticket-at-point ()
-  "Display the contents of the ticket at point."
-  (interactive)
-  (let ((ticket-alist (get-text-property (point) 'rt-ticket)))
-    (rt-liber-display-ticket-history ticket-alist (current-buffer))))
-
 (defun rt-liber-ticket-at-point ()
   "Display the contents of the ticket at point."
   (interactive)
@@ -728,45 +722,9 @@ returned as no associated text properties."
   (rt-liber-browser-assign rt-liber-username))
 
 
-;;; --------------------------------------------------------
-;;; Viewer
-;;; --------------------------------------------------------
-(defun rt-liber-display-ticket-history (ticket-alist &optional assoc-browser)
-  "Display history for ticket.
-TICKET-ALIST alist of ticket data.
-ASSOC-BROWSER if non-nil should be a ticket browser."
-  (let* ((ticket-id (rt-liber-ticket-id-only ticket-alist))
-	 (contents (rt-liber-rest-run-ticket-history-base-query ticket-id))
-	 (new-ticket-buffer (get-buffer-create
-			     (concat "*RT Ticket #" ticket-id "*"))))
-    (with-current-buffer new-ticket-buffer
-      (let ((inhibit-read-only t))
-	(erase-buffer)
-	(insert contents)
-	(goto-char (point-min))
-	(rt-liber-viewer-mode)
-	(set
-	 (make-local-variable 'rt-liber-ticket-local)
-	 ticket-alist)
-	(when assoc-browser
-	  (set
-	   (make-local-variable 'rt-liber-assoc-browser)
-	   assoc-browser))
-	(set-buffer-modified-p nil)
-	(setq buffer-read-only t)))
-    (switch-to-buffer new-ticket-buffer)))
-
-
 ;;; ------------------------------------------------------------------
 ;;; viewer mode functions
 ;;; ------------------------------------------------------------------
-(defun rt-liber-refresh-ticket-history (&optional _ignore-auto _noconfirm)
-  (interactive)
-  (if rt-liber-ticket-local
-      (rt-liber-display-ticket-history rt-liber-ticket-local
-                                       rt-liber-assoc-browser)
-    (error "not viewing a ticket")))
-
 (defun rt-liber-jump-to-latest-correspondence ()
   "Move point to the newest correspondence section."
   (interactive)
@@ -826,42 +784,6 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
   (when (not (re-search-backward rt-liber-content-regexp (point-min) t))
     (message "no previous section"))
   (goto-char (point-at-bol)))
-
-(defconst rt-liber-viewer-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "q") 'rt-liber-viewer-mode-quit)
-    (define-key map (kbd "n") 'rt-liber-next-section-in-viewer)
-    (define-key map (kbd "N") 'rt-liber-jump-to-latest-correspondence)
-    (define-key map (kbd "p") 'rt-liber-previous-section-in-viewer)
-    (define-key map (kbd "V") 'rt-liber-viewer-visit-in-browser)
-    (define-key map (kbd "m") 'rt-liber-viewer-answer)
-    (define-key map (kbd "M") 'rt-liber-viewer-answer-this)
-    (define-key map (kbd "t") 'rt-liber-viewer-answer-provisionally)
-    (define-key map (kbd "T") 'rt-liber-viewer-answer-provisionally-this)
-    (define-key map (kbd "F") 'rt-liber-viewer-answer-verbatim-this)
-    (define-key map (kbd "c") 'rt-liber-viewer-comment)
-    (define-key map (kbd "C") 'rt-liber-viewer-comment-this)
-    (define-key map (kbd "g") 'revert-buffer)
-    (define-key map (kbd "SPC") 'scroll-up)
-    (define-key map (kbd "DEL") 'scroll-down)
-    (define-key map (kbd "h") 'rt-liber-viewer-show-ticket-browser)
-    map)
-  "Key map for ticket viewer.")
-
-(define-derived-mode rt-liber-viewer-mode nil
-  "RT Liberation Viewer"
-  "Major Mode for viewing RT tickets.
-\\{rt-liber-viewer-mode-map}"
-  (set
-   (make-local-variable 'font-lock-defaults)
-   '((rt-liber-viewer-font-lock-keywords)))
-  (set (make-local-variable 'revert-buffer-function)
-       #'rt-liber-refresh-ticket-history)
-  (set (make-local-variable 'buffer-stale-function)
-       (lambda (&optional _noconfirm) 'slow))
-  (when rt-liber-jump-to-latest
-    (rt-liber-jump-to-latest-correspondence))
-  (run-hooks 'rt-liber-viewer-hook))
 
 ;; wrapper functions around specific functions provided by a backend
 (declare-function
