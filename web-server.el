@@ -1,11 +1,11 @@
 ;;; web-server.el --- Emacs Web Server -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte <schulte.eric@gmail.com>
 ;; Maintainer: Eric Schulte <schulte.eric@gmail.com>
 ;; Version: 0.1.2
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.6"))
 ;; Keywords: http, server, network
 ;; URL: https://github.com/eschulte/emacs-web-server
 
@@ -107,11 +107,11 @@ function MATCH and the `ws-response-header' convenience
 function.
 
   (ws-start
-   \\='(((lambda (_) t) .
-      (lambda (proc request)
-        (ws-response-header proc 200 \\='(\"Content-type\" . \"text/plain\"))
-        (process-send-string proc \"hello world\")
-        t)))
+   \\=`(((lambda (_) t) .
+      (lambda (request)
+        (with-slots ((proc process)) request
+          (ws-response-header proc 200 \\='(\"Content-Type\" . \"text/plain\"))
+          (process-send-string proc \"hello world\")))))
    8080)
 
 "
@@ -365,8 +365,9 @@ Return non-nil only when parsing is complete."
 ;;                and causes `ws-web-socket-parse-messages' to be
 ;;                called again after it terminates
 ;; data --------- holds the data of parsed messages
-;; handler ------ holds the user-supplied function used called on the
-;;                data of parsed messages
+;; handler ------ holds the user-supplied function of two arguments
+;;                called on the process and the data of parsed
+;;                messages
 (defclass ws-message ()                 ; web socket message object
   ((process  :initarg :process  :accessor ws-process  :initform "")
    (pending  :initarg :pending  :accessor ws-pending  :initform "")
@@ -383,9 +384,9 @@ in the request handler.  If no web-socket connection is
 established (e.g., because REQUEST is not attempting to establish
 a connection) then no actions are taken and nil is returned.
 
-Second argument HANDLER should be a function of one argument
-which will be called on all complete messages as they are
-received and parsed from the network."
+Second argument HANDLER should be a function of two arguments,
+the process and a string, which will be called on all complete
+messages as they are received and parsed from the network."
   (with-slots (process headers) request
     (when (assoc :SEC-WEBSOCKET-KEY headers)
       ;; Accept the connection
@@ -725,9 +726,9 @@ respectively."
   "Perform the handshake defined in RFC6455."
   (base64-encode-string (sha1 (concat (ws-trim key) ws-guid) nil nil 'binary)))
 
-;;; Enable the old accessors without the `ws-' namespace as obsolete.
-;;; Lets plan to remove these within a year of the date they were
-;;; marked obsolete, so that would be roughly 2021-03-12.
+;; Enable the old accessors without the `ws-' namespace as obsolete.
+;; Lets plan to remove these within a year of the date they were
+;; marked obsolete, so that would be roughly 2021-03-12.
 (define-obsolete-function-alias 'active #'ws-active "2020-03-12")
 (define-obsolete-function-alias 'body #'ws-body "2020-03-12")
 (define-obsolete-function-alias 'boundary #'ws-boundary "2020-03-12")
