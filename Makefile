@@ -57,11 +57,13 @@ sync:
 	cp -p $(SOURCE_DIR)/lisp/tramp-compat.el tramp-compat.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-crypt.el tramp-crypt.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-ftp.el tramp-ftp.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-fuse.el tramp-fuse.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-gvfs.el tramp-gvfs.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-integration.el tramp-integration.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-rclone.el tramp-rclone.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-sh.el tramp-sh.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-smb.el tramp-smb.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-sshfs.el tramp-sshfs.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-sudoedit.el tramp-sudoedit.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-uu.el tramp-uu.el
 	cp -p $(SOURCE_DIR)/lisp/tramp.el tramp.el
