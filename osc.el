@@ -249,6 +249,7 @@ fine grained control.
 A process object is returned which can be dicarded with `delete-process'."
   (make-network-process
    :name "OSCserver"
+   :coding 'binary
    :filter #'osc-filter
    :host host
    :service port
