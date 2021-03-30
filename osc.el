@@ -1,6 +1,6 @@
 ;;; osc.el --- Open Sound Control protocol library  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2020  Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021  Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@blind.guru>
 ;; Version: 0.2
@@ -173,6 +173,29 @@
 	 (expt 2.0 (- e 127))
 	 (1+ (/ f (expt 2.0 23))))))))
 
+(defun osc-read-float64 ()
+  (let ((s (lsh (logand (following-char) #X80) -7))
+	(e (+ (lsh (logand (following-char) #X7F) 4)
+	      (lsh (logand (progn (forward-char) (following-char)) #XF0) -4)))
+	(f (+ (lsh (logand (following-char) #X0F) 48)
+	      (lsh (progn (forward-char) (following-char)) 40)
+	      (lsh (progn (forward-char) (following-char)) 32)
+	      (lsh (progn (forward-char) (following-char)) 24)
+	      (lsh (progn (forward-char) (following-char)) 16)
+	      (lsh (progn (forward-char) (following-char)) 8)
+	      (prog1 (progn (forward-char) (following-char)) (forward-char)))))
+    (cond
+     ((and (= e 0) (= f 0))
+      (* 0.0 (expt -1 s)))
+     ((and (= e 2047) (or (= f (1- (expt 2 52))) (= f 0)))
+      (* 1.0e+INF (expt -1 s)))
+     ((and (= e 2047) (not (or (= f 0) (= f (1- (expt 2 52))))))
+      0.0e+NaN)
+     (t
+      (* (expt -1 s)
+	 (expt 2.0 (- e 1023))
+	 (1+ (/ f (expt 2.0 52))))))))
+
 (defun osc-server-set-handler (server path handler)
   "Set HANDLER for PATH on SERVER.
 IF HANDLER is nil, remove previously defined handler and fallback to
@@ -205,6 +228,7 @@ the generic handler for SERVER."
 			(lambda (type)
 			  (cl-case type
 			    (?b (osc-read-blob))
+			    (?d (osc-read-float64))
 			    (?f (osc-read-float32))
 			    (?i (osc-read-int32))
 			    (?s (osc-read-string))))
