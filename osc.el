@@ -92,6 +92,13 @@
       (setq value (/ value 256)))
     (apply 'unibyte-string bytes)))
 
+(defun osc-timetag (time)
+  (cl-multiple-value-bind (high low usec psec) (time-convert time 'list)
+    (concat (osc-int32 (+ 2208988800 (ash high 16) low))
+	    (osc-int32 (round (* (+ (* usec (expt 10.0 -6))
+				    (* psec (expt 10.0 -12)))
+				 (1- (ash 1 32))))))))
+
 ;;;###autoload
 (defun osc-make-client (host port)
   "Create an OSC client process which talks to HOST and PORT."
@@ -102,13 +109,12 @@
    :service port
    :type 'datagram))
 
-;;;###autoload
-(defun osc-send-message (client path &rest args)
-  "Send an OSC message from CLIENT to the specified PATH with ARGS."
-  (process-send-string
-   client
-   (apply
-    'concat
+(defun osc-make-message (path &rest args)
+  "Make a OSC message with specified PATh and ARGS.
+A unibyte string is returned.  Use `vconcat' to convert that unibyte
+string to a vector if embedding in another OSC message is what you want."
+  (apply
+   'concat
     (osc-string path)
     (osc-string
      (apply
@@ -128,7 +134,12 @@
 	((integerp arg) (osc-int32 arg))
 	((stringp arg) (osc-string arg))
 	((vectorp arg) (osc-blob arg))))
-     args))))
+     args)))
+
+;;;###autoload
+(defun osc-send-message (process path &rest args)
+  "Send an OSC message from PROCESS to the specified PATH with ARGS."
+  (process-send-string process (apply #'osc-make-message path args)))
 
 (defun osc-read-string ()
   (let ((pos (point)) string)
@@ -195,6 +206,12 @@
       (* (expt -1 s)
 	 (expt 2.0 (- e 1023))
 	 (1+ (/ f (expt 2.0 52))))))))
+
+(defun osc-read-timetag ()
+  (let ((secs (osc-read-int32))
+	(frac (osc-read-int32)))
+    (time-convert (+ (- secs 2208988800)
+		     (/ (float frac) (1- (ash 1 32)))))))
 
 (defun osc-server-set-handler (server path handler)
   "Set HANDLER for PATH on SERVER.
