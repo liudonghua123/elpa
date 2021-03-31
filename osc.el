@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014-2021  Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@blind.guru>
-;; Version: 0.2
+;; Version: 0.3
 ;; Keywords: comm, processes, multimedia
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -228,8 +228,11 @@ string to a vector if embedding in another OSC message is what you want."
 	 (1+ (/ f (expt 2.0 52))))))))
 
 (defun osc-read-timetag ()
-  (time-add (time-convert (- (osc-read-int32) osc-ntp-offset))
-	    (time-convert (cons (osc-read-int32) (ash 1 32)))))
+  (let ((secs (osc-read-int32)) (frac (osc-read-int32)))
+    (if (and (zerop secs) (= frac 1))
+	nil ; now
+      (time-add (time-convert (- secs osc-ntp-offset))
+		(time-convert (cons frac (ash 1 32)))))))
 
 (defun osc-server-set-handler (server path handler)
   "Set HANDLER for PATH on SERVER.
@@ -268,12 +271,12 @@ the generic handler for SERVER."
 			    (?i (osc-read-int32))
 			    (?s (osc-read-string))))
 			(string-to-list (substring (osc-read-string) 1))))))
-	  (forward-char 8) ;skip 64-bit timetag
-	  (while (not (eobp))
-	    (let ((size (osc-read-int32)))
-	      (osc-filter proc
-			  (buffer-substring
-			   (point) (progn (forward-char size) (point)))))))))))
+	  (let ((time (osc-read-timetag)))
+	    (while (not (eobp))
+	      (let* ((size (osc-read-int32))
+		     (data (buffer-substring
+			    (point) (progn (forward-char size) (point)))))
+		(run-at-time time nil #'osc-filter proc data)))))))))
 
 ;;;###autoload
 (defun osc-make-server (host port default-handler)
