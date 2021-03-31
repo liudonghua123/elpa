@@ -95,8 +95,7 @@
 (defun osc-timetag (time)
   (cl-multiple-value-bind (high low usec psec) (time-convert time 'list)
     (concat (osc-int32 (+ 2208988800 (ash high 16) low))
-	    (osc-int32 (round (* (+ (* usec (expt 10.0 -6))
-				    (* psec (expt 10.0 -12)))
+	    (osc-int32 (round (* (+ (* usec 1e-06) (* psec 1e-12))
 				 (1- (ash 1 32))))))))
 
 ;;;###autoload
@@ -140,6 +139,21 @@ string to a vector if embedding in another OSC message is what you want."
 (defun osc-send-message (process path &rest args)
   "Send an OSC message from PROCESS to the specified PATH with ARGS."
   (process-send-string process (apply #'osc-make-message path args)))
+
+(defconst osc-bundle-tag (osc-string "#bundle"))
+(defconst osc-timetag-now (concat (osc-int32 0) (osc-int32 1)))
+
+(defun osc-make-bundle (time &rest messages)
+  "Make a bundle with timetag TIME and MESSAGES as payload."
+  (apply #'concat osc-bundle-tag (if time (osc-timetag time) osc-timetag-now)
+	 (mapcar (lambda (message)
+		   (concat (osc-int32 (length message)) message))
+		 messages)))
+
+;;;###autoload
+(defun osc-send-bundle (process time &rest messages)
+  "Send a bundle to PROCESS with timetag TIME and MESSAGES as payload."
+  (process-send-string process (apply #'osc-make-bundle path args)))
 
 (defun osc-read-string ()
   (let ((pos (point)) string)
@@ -208,10 +222,8 @@ string to a vector if embedding in another OSC message is what you want."
 	 (1+ (/ f (expt 2.0 52))))))))
 
 (defun osc-read-timetag ()
-  (let ((secs (osc-read-int32))
-	(frac (osc-read-int32)))
-    (time-convert (+ (- secs 2208988800)
-		     (/ (float frac) (1- (ash 1 32)))))))
+  (time-add (time-convert (- (osc-read-int32) 2208988800))
+	    (time-convert (cons (osc-read-int32) (ash 1 32)))))
 
 (defun osc-server-set-handler (server path handler)
   "Set HANDLER for PATH on SERVER.
