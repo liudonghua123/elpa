@@ -81,15 +81,32 @@
 		    (lsh (logand f #XFF00) -8)
 		    (logand f #XFF))))
 
-(defun osc-int32 (value)
-  (let (bytes)
-    (dotimes (_ 4)
-      (push (% value 256) bytes)
-      (setq value (/ value 256)))
-    (apply 'unibyte-string bytes)))
+(defconst osc-int32-zero (unibyte-string 0 0 0 0))
+(defconst osc-most-negative-signed-int32 (- (ash 1 (1- 32))))
+(defconst osc-most-positive-signed-int32 (1- (ash 1 (1- 32))))
+(defconst osc-most-positive-unsigned-int32 (1- (ash 1 32)))
+
+(defun osc-int32 (integer &optional unsigned)
+  (cl-check-type integer integer)
+  (if (zerop integer)
+      osc-int32-zero
+    (if unsigned
+	(unless (and (natnump integer)
+		     (<= integer osc-most-positive-unsigned-int32))
+	  (signal 'overflow-error (list integer)))
+      (unless (and (>= integer osc-most-negative-signed-int32)
+		   (<= integer osc-most-positive-signed-int32))
+	(signal 'overflow-error (list integer)))
+      (unless (natnump integer)
+	(setq integer (+ integer (ash 1 32)))))
+    (let (bytes)
+      (dotimes (_ 4)
+	(push (logand integer #xFF) bytes)
+	(setq integer (ash integer -8)))
+      (apply #'unibyte-string bytes))))
 
 (defconst osc-timetag-now
-  (concat (osc-int32 0) (osc-int32 1)))
+  (concat (osc-int32 0 t) (osc-int32 1 t)))
 
 (defconst osc-ntp-offset
   (round
@@ -101,9 +118,11 @@
       osc-timetag-now
     (pcase (time-convert time 'list)
       (`(,high ,low ,usec ,psec)
-       (concat (osc-int32 (+ (ash high 16) low osc-ntp-offset))
+       (concat (osc-int32 (+ (ash high 16) low osc-ntp-offset)
+			  t)
 	       (osc-int32 (round (* (+ (* usec 1e-06) (* psec 1e-12))
-				    (1- (ash 1 32))))))))))
+				    (1- (ash 1 32))))
+			  t))))))
 
 ;;;###autoload
 (defun osc-make-client (host port)
