@@ -38,6 +38,7 @@
  ("adaptive-wrap"	:url nil)
  ("adjust-parens"	:url nil)
  ("advice-patch"	:url nil)
+ ("aggressive-completion" :url nil)
  ("aggressive-indent"	:url "https://github.com/Malabarba/aggressive-indent-mode")
  ("ahungry-theme"	:url "https://github.com/ahungry/color-theme-ahungry")
  ("all"			:url nil)
