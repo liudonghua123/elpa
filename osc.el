@@ -54,7 +54,7 @@
 (defun osc-blob (vector)
   (let ((length (length vector)))
     (concat (osc-int32 length)
-	    vector
+	    (apply #'unibyte-string (append vector nil))
 	    (make-string (% (- 4 (% length 4)) 4) 0))))
 
 (defun osc-float32 (value)
