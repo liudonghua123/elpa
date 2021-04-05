@@ -140,7 +140,7 @@
  ("excorporate"		:url nil)
  ("expand-region"	:url "https://github.com/magnars/expand-region.el")
  ("exwm"		:url "https://github.com/ch11ng/exwm.git")
- ("f90-interface-browser" :url "https://github.com/wence-/f90-iface")
+ ("f90-interface-browser" :url nil) ;; Was "https://github.com/wence-/f90-iface"
  ("filladapt"		:url nil)
  ("flylisp"		:url nil)
  ("flymake"		:core "lisp/progmodes/flymake.el")
@@ -219,14 +219,14 @@
  ;; bug#46964: <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=46964>.
  ("modus-operandi-theme":url "https://gitlab.com/protesilaos/modus-themes"
   :branch "elpa/modus-operandi-theme")
- ("modus-vivendi-theme"	:url "https://gitlab.com/protesilaos/modus-themes"
-  :branch "elpa/modus-vivendi-theme")
  ("modus-themes"	:core ("etc/themes/modus-themes.el"
                                "etc/themes/modus-operandi-theme.el"
                                "etc/themes/modus-vivendi-theme.el"
                                "doc/misc/modus-themes.org"
                                "doc/misc/doclicense.texi")
   :doc "modus-themes.org")
+ ("modus-vivendi-theme"	:url "https://gitlab.com/protesilaos/modus-themes"
+  :branch "elpa/modus-vivendi-theme")
  ("multishell"		:url "https://github.com/kenmanheimer/EmacsMultishell")
  ("muse"		:url "https://github.com/alexott/muse") ;FIXME: Not nearly in-sync
  ("myers"		:url nil)
@@ -320,7 +320,7 @@
  ("sisu-mode"		:url nil)
  ("slime-volleyball"	:url nil)
  ("sm-c-mode" 		:url nil)
- ("smalltalk-mode"	:url "git://git.sv.gnu.org/smalltalk")
+ ("smalltalk-mode"	:url nil) ;; Was "git://git.sv.gnu.org/smalltalk"
  ("smart-yank"		:url nil)
  ("sml-mode"		:url nil)
  ("so-long"             :core "lisp/so-long.el")
@@ -370,6 +370,7 @@
  ("visual-fill"		:url nil)
  ("vlf"			:url "https://github.com/m00natic/vlfi")
  ("verilog-mode"        :core "lisp/progmodes/verilog-mode.el")
+ ("vertico"		:url "https://github.com/minad/vertico")
  ("wcheck-mode"		:url "https://github.com/tlikonen/wcheck-mode")
  ("wconf"		:url "https://github.com/ilohmar/wconf")
  ("web-server"		:url "https://github.com/eschulte/emacs-web-server.git")
