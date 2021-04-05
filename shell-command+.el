@@ -3,7 +3,7 @@
 ;; Copyright (C) 2020  Free Software Foundation, Inc.
 
 ;; Author: Philip K. <philipk@posteo.net>
-;; Version: 2.0.0
+;; Version: 2.1.0
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: http://elpa.gnu.org/packages/shell-command+.html
