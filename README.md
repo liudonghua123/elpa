@@ -50,7 +50,7 @@ Bug reports and patches should be sent to my [public inbox].
 Using [`setup`][setup] I configure `shell-command+` as so:
 
 ~~~elisp
-(setup shell-command+
+(setup (:package shell-command+)
   (:option shell-command+-prompt "$ ")
   (:with-feature dired
     (:bind "M-!" shell-command+))
