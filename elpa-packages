@@ -302,7 +302,8 @@
  ("realgud-trepan-ni"   :url "https://github.com/realgud/realgud-ni")
  ("rec-mode"		:url "https://git.savannah.gnu.org/git/recutils/rec-mode.git")
  ("register-list"	:url nil)
- ("relint"		:url "https://github.com/mattiase/relint")
+ ("relint"		:url "https://github.com/mattiase/relint"
+  :auto-sync t)
  ("repology"		:url nil)
  ("rich-minority"	:url "https://github.com/Malabarba/rich-minority")
  ("rnc-mode"		:url nil)
@@ -385,7 +386,8 @@
  ("xclip"		:url nil)
  ("xelb"		:url "https://github.com/ch11ng/xelb.git")
  ("xpm"			:url nil)
- ("xr"			:url "https://github.com/mattiase/xr")
+ ("xr"			:url "https://github.com/mattiase/xr"
+  :auto-sync t)
  ("xref"		:core "lisp/progmodes/xref.el")
  ("yasnippet"		:url "https://github.com/capitaomorte/yasnippet.git")
  ("yasnippet-classic-snippets" :url nil)
