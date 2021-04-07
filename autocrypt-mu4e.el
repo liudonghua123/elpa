@@ -24,27 +24,40 @@
 
 (require 'mu4e)
 
-;;;###autoload
-(cl-defmethod autocrypt-mode-hook ((_mode (derived-mode mu4e-main-mode)))
-  "Return the hook to install autocrypt."
-  'gnus-view-mode-hook)
+;;; XXX: mu4e seems to share no common mode, and the `derived-mode'
+;;;       specializer supports only one mode (currently). Therefore
+;;;       the method definitions have to be duplicated.
 
-(defun autocrypt-mu4e-install ()
+(cl-defmethod autocrypt-install ((_mode (derived-mode mu4e-main-mode)))
   "Install autocrypt hooks for mu4e."
   (add-hook 'mu4e-view-mode-hook #'autocrypt-process-header)
   (add-hook 'mu4e-compose-mode-hook #'autocrypt-compose-setup))
 
-(defun autocrypt-mu4e-uninstall ()
+(cl-defmethod autocrypt-uninstall ((_mode (derived-mode mu4e-main-mode)))
   "Remove autocrypt hooks for mu4e."
   (remove-hook 'mu4e-view-mode-hook #'autocrypt-process-header)
   (remove-hook 'mu4e-compose-mode-hook #'autocrypt-compose-setup))
 
-(defun autocrypt-mu4e-header (field)
-  "Ask mu4e to return header FIELD."
+(cl-defmethod autocrypt-get-header ((_mode (derived-mode mu4e-main-mode))
+                                    header)
+  "Ask mu4e to return HEADER."
   (save-window-excursion
     (with-current-buffer (mu4e-view-raw-message)
       (prog1 (mail-fetch-field field)
         (kill-buffer (current-buffer))))))
+
+(cl-defmethod autocrypt-install ((_mode (derived-mode mu4e-view-mode)))
+  "Install autocrypt hooks for mu4e."
+  (autocrypt-install 'mu4e-main-mode))
+
+(cl-defmethod autocrypt-uninstall ((_mode (derived-mode mu4e-view-mode)))
+  "Remove autocrypt hooks for mu4e."
+  (autocrypt-uninstall 'mu4e-main-mode))
+
+(cl-defmethod autocrypt-get-header ((_mode (derived-mode mu4e-view-mode))
+                                    header)
+  "Ask mu4e to return HEADER."
+  (autocrypt-get-header 'mu4e-main-mode header))
 
 (provide 'autocrypt-mu4e)
 
