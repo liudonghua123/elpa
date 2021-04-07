@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014-2021  Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@blind.guru>
-;; Version: 0.3
+;; Version: 0.4
 ;; Keywords: comm, processes, multimedia
 
 ;; This program is free software; you can redistribute it and/or modify
