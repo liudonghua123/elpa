@@ -25,17 +25,14 @@
 (require 'gnus)
 
 ;;;###autoload
-(defun autocrypt-gnus-install ()
-  "Install autocrypt hooks for Gnus."
-  (add-hook 'gnus-view-mode-hook #'autocrypt-process-header))
+(cl-defmethod autocrypt-mode-hooks ((_mode (derived-mode message-mode)))
+  "Return the hook to install autocrypt."
+  '(gnus-view-mode-hook))
 
-(defun autocrypt-gnus-uninstall ()
-  "Remove autocrypt hooks for Gnus."
-  (remove-hook 'gnus-view-mode-hook #'autocrypt-process-header))
-
-(defun autocrypt-gnus-header (field)
-  "Ask Gnus to return header FIELD."
-  (gnus-fetch-original-field field))
+(cl-defmethod autocrypt-get-header ((_mode (derived-mode message-mode))
+                                    header)
+  "Return the value for HEADER."
+  (gnus-fetch-original-field header))
 
 (provide 'autocrypt-gnus)
 

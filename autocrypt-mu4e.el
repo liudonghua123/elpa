@@ -25,6 +25,10 @@
 (require 'mu4e)
 
 ;;;###autoload
+(cl-defmethod autocrypt-mode-hook ((_mode (derived-mode mu4e-main-mode)))
+  "Return the hook to install autocrypt."
+  'gnus-view-mode-hook)
+
 (defun autocrypt-mu4e-install ()
   "Install autocrypt hooks for mu4e."
   (add-hook 'mu4e-view-mode-hook #'autocrypt-process-header)

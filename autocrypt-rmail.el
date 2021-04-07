@@ -25,19 +25,15 @@
 (require 'rmail)
 
 ;;;###autoload
-(defun autocrypt-rmail-install ()
-  "Install autocrypt hooks for Rmail."
-  (add-hook 'rmail-show-message-hook #'autocrypt-process-header))
+(cl-defmethod autocrypt-mode-hooks ((_mode (derived-mode message-mode)))
+  "Return the hook to install autocrypt."
+  '(rmail-show-message-hook))
 
-(defun autocrypt-rmail-uninstall ()
-  "Remove autocrypt hooks for Rmail."
-  (remove-hook 'rmail-show-message-hook #'autocrypt-process-header))
-
-(defun autocrypt-rmail-header (field)
-  "Ask Rmail to return header FIELD."
-  (rmail-apply-in-message
-   rmail-current-message
-   (lambda () (mail-fetch-field field))))
+(cl-defmethod autocrypt-get-header ((_mode (derived-mode message-mode))
+                                    header)
+  "Ask Rmail to return HEADER."
+  (rmail-apply-in-message rmail-current-message
+                          (lambda () (mail-fetch-field header))))
 
 (provide 'autocrypt-rmail)
 

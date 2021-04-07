@@ -26,7 +26,7 @@
 (require 'message)
 
 ;;;###autoload
-(defun autocrypt-message-install ()
+(cl-defmethod autocrypt-install ((_mode (derived-mode message-mode)))
   "Install autocrypt hooks for message mode."
   (add-hook 'message-setup-hook #'autocrypt-compose-setup)
   (add-hook 'message-send-hook #'autocrypt-compose-pre-send)
@@ -41,21 +41,32 @@
             #'autocrypt-compose-setup)
     (define-key message-mode-map (kbd "C-c RET C-a") nil)))
 
-(defun autocrypt-message-add-header (key val)
-  "Insert header with key KEY and value VAL into message head."
-  (message-add-header (concat key ": " val)))
+(cl-defmethod autocrypt-get-header ((_ (derived-mode message-mode))
+                                    header)
+  "Return the value for HEADER."
+  (message-fetch-field header))
 
-(defun autocrypt-message-sign-encrypt ()
+(cl-defmethod autocrypt-add-header ((_mode (derived-mode message-mode))
+                                    header value)
+  "Insert HEADER with VALUE into the message head."
+  (message-add-header (concat header ": " value)))
+
+(cl-defmethod autocrypt-sign-encrypt ((_mode (derived-mode message-mode)))
   "Sign and encrypt message."
   (mml-secure-message-sign-encrypt "pgpmime"))
 
-(defun autocrypt-message-secure-attach (payload)
+(cl-defmethod autocrypt-sign-secure-attach ((_mode (derived-mode message-mode))
+                                            payload)
   "Attach and encrypt buffer PAYLOAD."
   (mml-attach-buffer payload)
   (mml-secure-part "pgpmime")
   (add-hook 'message-send-hook
             (lambda () (kill-buffer payload))
             nil t))
+
+(cl-defmethod autocrypt-encrypted-p ((_mode (derived-mode message-mode)))
+  "Check if the current message is encrypted."
+  (mml-secure-is-encrypted-p))
 
 (provide 'autocrypt-message)
 

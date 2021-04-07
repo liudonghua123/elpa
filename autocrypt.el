@@ -3,7 +3,7 @@
 ;; Author: Philip K. <philip@warpmail.net>
 ;; Version: 0.4.0
 ;; Keywords: comm
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "25.1") (cl-generic "0.3"))
 ;; URL: https://git.sr.ht/~zge/autocrypt
 
 ;; This file is NOT part of Emacs.
@@ -26,6 +26,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'cl-generic)
 (require 'rx)
 (require 'epg)
 (require 'ietf-drums)
@@ -76,7 +77,7 @@ process \"Autocrypt-Gossip\" headers when received."
 
 All elements have the form (MAIL FINGERPRINT PREFERENCE), where
 FINGERPRINT is the fingerprint of the PGP key that should be used
-by email address MAIL. PREFERENCE must be one of `mutual' or
+by email address MAIL.  PREFERENCE must be one of `mutual' or
 `no-preference', `none' (if no preference should be inserted into
 headers), or nil if this account should be temporarily disabled.
 
@@ -90,90 +91,56 @@ configure it, or by calling `autocrypt-create-account'.")
 Every member of this list has to be an instance of the
 `autocrypt-peer' structure.")
 
-(defconst autocrypt-save-variables '(autocrypt-accounts
-                                     autocrypt-peers)
+(defconst autocrypt-save-variables
+  '(autocrypt-saved-version
+    autocrypt-accounts
+    autocrypt-peers)
   "List of variables to save to `autocrypt-save-data'.")
+
+(defvar autocrypt-loaded-version)       ;used by `autocrypt-load-data'
 
 
 ;;; MUA TRANSLATION LAYER
 
-(defconst autocrypt-mua-func-alist
-  '((gnus
-     :install autocrypt-gnus-install
-     :uninstall autocrypt-gnus-uninstall
-     :header autocrypt-gnus-header)
-    (rmail
-     :install autocrypt-rmail-install
-     :uninstall autocrypt-rmail-uninstall
-     :header autocrypt-rmail-header)
-    (mu4e
-     :install autocrypt-mu4e-install
-     :uninstall autocrypt-mu4e-uninstall
-     :header autocrypt-mu4e-header
-     :add-header autocrypt-message-add-header
-     :remove-header message-remove-header
-     :sign-encrypt autocrypt-message-sign-encrypt
-     :secure-attach autocrypt-message-secure-attach
-     :encrypted-p mml-secure-is-encrypted-p)
-    (message
-     :install autocrypt-message-install
-     :uninstall autocrypt-message-uninstall
-     :header message-fetch-field
-     :add-header autocrypt-message-add-header
-     :remove-header message-remove-header
-     :sign-encrypt autocrypt-message-sign-encrypt
-     :secure-attach autocrypt-message-secure-attach
-     :encrypted-p mml-secure-is-encrypted-p))
-  "Alist for all MUA specific functions.
+(cl-defgeneric autocrypt-mode-hooks (_mode)
+  "Return a list of hooks required to install autocrypt.")
 
-The value of each record is a plist. The value of each property
-is the symbol of the function that should be called, when
-refereed to by the property (see `autocrypt-mua-call').
+(cl-defgeneric autocrypt-install (mode)
+  "Install autocrypt for MODE."
+  (dolist (hook (autocrypt-mode-hooks mode))
+    (add-hook hook #'autocrypt-process-header)))
 
-Valid properties and their associated messages are:
+(cl-defgeneric autocrypt-uninstall (mode)
+  "Undo `autocrypt-install' for MODE."
+  (dolist (hook (autocrypt-mode-hooks mode))
+    (remove-hook hook #'autocrypt-process-header)))
 
-:install - called when autocrypt minor mode is activated in the
-current buffer. Should only install hooks.
+(cl-defgeneric autocrypt-get-header (_mode _header)
+  "Return the value of HEADER.")
 
-:uninstall - inverse of :install, and should reverse it's
-effects, ie. usually removing hooks.
+(cl-defgeneric autocrypt-add-header (_mode _header _value)
+  "Insert HEADER with VALUE into message."
+  'n/a)
 
-:header - a MUA viewer (Gnus, Rmail, ...) must provide such a
-message to let autocrypt query headers. The function must accept
-one argument, and return the value as a string.
+(cl-defgeneric autocrypt-remove-header (_mode _header)
+  "Remove HEADER from message."
+  'n/a)
 
-:part - a MUA viewer might provide such a message to let
-autocrypt query parts. The function must accept a index (as
-in IDX'th part) and return either a buffer, string or
-cons-cell of the form (file . PATH), where PATH points to where
-the part contents can be found.")
+(cl-defgeneric autocrypt-sign-encrypt (_mode)
+  "Sign and encrypt this message."
+  'n/a)
 
-(defsubst autocrypt-get-mua ()
-  "Return key for MUA based on major mode.
+(cl-defgeneric autocrypt-secure-attach (_mode _payload)
+  "Add PAYLOAD as an encrypted attachment."
+  'n/a)
 
-The key should identify a record in the
-`autocrypt-mua-func-alist' alist."
-  (cond
-   ((derived-mode-p 'mu4e-main-mode 'mu4e-view-mode)
-    'mu4e)
-   ((derived-mode-p 'gnus-mode)
-    'gnus)
-   ((derived-mode-p 'rmail-mode)
-    'rmail)
-   ((derived-mode-p 'message-mode)
-    'message)
-   (t (user-error "MUA not supported: %s" major-mode))))
+(cl-defgeneric autocrypt-encrypted-p (_mode)
+  "Check the the current message is encrypted."
+  'n/a)
 
-(defsubst autocrypt-mua-func (msg)
-  "Return function behind MSG for major mode."
-  (plist-get (cdr (assq (autocrypt-get-mua)
-                        autocrypt-mua-func-alist))
-             msg))
-
-(defun autocrypt-mua-call (msg &rest args)
-  "Call function behind MSG with ARGS for major mode."
-  (let ((func (autocrypt-mua-func msg)))
-    (and func (apply func args))))
+(cl-defgeneric autocrypt-get-part (_mode _nr)
+  "Check the the current message is encrypted."
+  'n/a)
 
 
 ;;; INTERNAL FUNCTIONS
@@ -190,18 +157,22 @@ The key should identify a record in the
 (defun autocrypt-load-data ()
   "Load peer data if exists from `autocrypt-save-file'."
   (when (file-exists-p autocrypt-save-file)
-    (load autocrypt-save-file t t t)))
+    (load autocrypt-save-file t t t)
+    (when (boundp autocrypt-loaded-version)
+      ;; handle older versions if necessary
+      t)))
 
 (defun autocrypt-save-data ()
   "Write peer data save-file to `autocrypt-save-file'."
   (with-temp-buffer
     (insert ";; generated by autocrypt.el	-*- mode: lisp-data -*-\n"
             ";; do not modify by hand\n")
+    (when (fboundp 'package-get-version)
+      (print `(setq autocrypt-loaded-version ,(package-get-version))))
     (let ((standard-output (current-buffer)))
       (dolist (var autocrypt-save-variables)
-        (print
-         `(unless ,var
-            (setq ,var ',(symbol-value var))))))
+        (print `(unless ,var
+                  (setq ,var ',(symbol-value var))))))
     (write-region (point-min) (point-max) autocrypt-save-file)))
 
 ;; https://autocrypt.org/level1.html#recommendations-for-single-recipient-messages
@@ -273,8 +244,8 @@ well-formed, otherwise returns just nil."
 (defun autocrypt-list-recipients ()
   "Return a list of all recipients to this message."
   (let (recipients)
-    (dolist (hdr '("To" "Cc" "Reply-To"))
-      (let* ((f (autocrypt-mua-call :header hdr))
+    (dolist (header '("To" "Cc" "Reply-To"))
+      (let* ((f (autocrypt-get-header major-mode header))
              (r (and f (mail-extract-address-components f t))))
         (setq recipients (nconc (mapcar #'cadr r) recipients))))
     (delete-dups recipients)))
@@ -285,7 +256,7 @@ well-formed, otherwise returns just nil."
 
 Argument DATE contains the time value of the \"From\" tag."
   (let ((recip (autocrypt-list-recipients))
-        (root (autocrypt-mua-call :part 0))
+        (root (autocrypt-get-part major-mode major-mode 0))
         (re (rx bol "Autocrypt-Gossip:" (* space)
                 (group (+ (or nonl (: "\n "))))
                 eol))
@@ -330,9 +301,9 @@ Argument DATE contains the time value of the \"From\" tag."
 ;; https://autocrypt.org/level1.html#updating-autocrypt-peer-state
 (defun autocrypt-process-header ()
   "Update internal autocrypt state."
-  (let* ((from (autocrypt-canonicalise (autocrypt-mua-call :header "From")))
-         (date (ietf-drums-parse-date (autocrypt-mua-call :header "Date")))
-         (header (autocrypt-mua-call :header "Autocrypt"))
+  (let* ((from (autocrypt-canonicalise (autocrypt-get-header major-mode "From")))
+         (date (ietf-drums-parse-date (autocrypt-get-header major-mode "Date")))
+         (header (autocrypt-get-header major-mode "Autocrypt"))
          parse addr preference keydata peer)
     (when header
       (when (setq parse (autocrypt-parse-header header))
@@ -382,9 +353,9 @@ Argument DATE contains the time value of the \"From\" tag."
 (defun autocrypt-generate-header (addr &optional gossip-p)
   "Generate header value for address ADDR.
 
-If ADDR is a local account, it's key will be used. Otherwise it
-attempts to look up ADDR in the peer data. If nothing was found
-OR the header is too large, return nil. If GOSSIP-P is non-nil,
+If ADDR is a local account, it's key will be used.  Otherwise it
+attempts to look up ADDR in the peer data.  If nothing was found
+OR the header is too large, return nil.  If GOSSIP-P is non-nil,
 the function will not add an encryption
 preference (\"prefer-encrypt\")."
   (let (acc peer pref keydata)
@@ -418,7 +389,7 @@ preference (\"prefer-encrypt\")."
 Argument RECIPIENTS is a list of addresses this message is
 addressed to."
   (and autocrypt-do-gossip
-       (autocrypt-mua-call :encrypted-p)
+       (autocrypt-encrypted-p major-mode)
        (< 1 (length recipients))
        (cl-every
         (lambda (rec)
@@ -430,42 +401,39 @@ addressed to."
   "Check if Autocrypt is possible, and add pseudo headers."
   (interactive)
   (let ((recs (autocrypt-list-recipients))
-        (can-remove (autocrypt-mua-func :remove-header))
-        (from (autocrypt-canonicalise (autocrypt-mua-call :header "From"))))
+        (from (autocrypt-canonicalise (autocrypt-get-header major-mode "From"))))
     ;; encrypt message if applicable
     (save-excursion
       (cl-case (autocrypt-recommendation from recs)
         (encrypt
-         (autocrypt-mua-call :sign-encrypt))
+         (autocrypt-sign-encrypt major-mode))
         (available
-         (when can-remove
-           (autocrypt-mua-call :add-header "Do-Autocrypt" "no")))
+         (autocrypt-add-header major-mode "Do-Autocrypt" "no"))
         (discourage
-         (when can-remove
-           (autocrypt-mua-call :add-header "Do-Discouraged-Autocrypt" "no")))))))
+         (autocrypt-add-header major-mode "Do-Discouraged-Autocrypt" "no"))))))
 
 (defun autocrypt-compose-pre-send ()
   "Insert Autocrypt headers before sending a message.
 
 Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
   (let* ((recs (autocrypt-list-recipients))
-         (from (autocrypt-canonicalise (autocrypt-mua-call :header "From"))))
+         (from (autocrypt-canonicalise (autocrypt-get-header major-mode "From"))))
     ;; encrypt message if applicable
     (when (eq (autocrypt-recommendation from recs) 'encrypt)
-      (autocrypt-mua-call :sign-encrypt))
+      (autocrypt-sign-encrypt major-mode))
     ;; check for manual autocrypt confirmations
-    (let ((do-autocrypt (autocrypt-mua-call :header "Do-Autocrypt"))
-          (ddo-autocrypt (autocrypt-mua-call :header "Do-Discouraged-Autocrypt"))
+    (let ((do-autocrypt (autocrypt-get-header major-mode "Do-Autocrypt"))
+          (ddo-autocrypt (autocrypt-get-header major-mode "Do-Discouraged-Autocrypt"))
           (query "Are you sure you want to use Autocrypt, even though it is discouraged?"))
-      (when (and (not (autocrypt-mua-call :encrypted-p))
+      (when (and (not (autocrypt-encrypted-p major-mode))
                  (or (and do-autocrypt
                           (string= (downcase do-autocrypt) "yes"))
                      (and ddo-autocrypt
                           (string= (downcase ddo-autocrypt) "yes")
                           (yes-or-no-p query))))
-        (autocrypt-mua-call :sign-encrypt)))
-    (autocrypt-mua-call :remove-header "Do-Autocrypt")
-    (autocrypt-mua-call :remove-header "Do-Discouraged-Autocrypt")
+        (autocrypt-sign-encrypt major-mode)))
+    (autocrypt-remove-header major-mode "Do-Autocrypt")
+    (autocrypt-remove-header major-mode "Do-Discouraged-Autocrypt")
     ;; insert gossip data
     (when (autocrypt-gossip-p recs)
       (let ((payload (generate-new-buffer " *autocrypt gossip*")))
@@ -473,12 +441,13 @@ Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
           (dolist (addr (autocrypt-list-recipients))
             (let ((header (autocrypt-generate-header addr t)))
               (insert "Autocrypt-Gossip: " header "\n"))))
-        (autocrypt-mua-call :secure-attach payload)))
+        (autocrypt-secure-attach major-mode payload)))
     ;; insert autocrypt header
     (let ((header (and from (autocrypt-generate-header from))))
       (when header
-        (autocrypt-mua-call :add-header "Autocrypt" header)))))
+        (autocrypt-add-header major-mode header)))))
 
+;;;###autoload
 (defun autocrypt-create-account ()
   "Create a GPG key for Autocrypt."
   (interactive)
@@ -531,11 +500,9 @@ mode."
   :group 'autocrypt
   (if autocrypt-mode
       (progn
-        (add-hook 'kill-emacs-hook #'autocrypt-save-data)
         (autocrypt-load-data)
-        (autocrypt-mua-call :install))
-    (autocrypt-save-data)
-    (autocrypt-mua-call :uninstall)))
+        (autocrypt-install major-mode))
+    (autocrypt-uninstall major-mode)))
 
 (provide 'autocrypt)
 
