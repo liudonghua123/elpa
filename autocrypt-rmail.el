@@ -24,6 +24,8 @@
 
 (require 'rmail)
 
+;;; NOTE: rmail does not use derived modes, so these methods match the
+;;;       exact mode.
 
 ;;;###autoload
 (cl-defmethod autocrypt-load ((_mode (eql rmail-mode)))
