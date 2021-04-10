@@ -22,12 +22,16 @@
 
 ;;; Code:
 
-(require 'autocrypt "autocrypt")
 (require 'message)
 
 ;;;###autoload
+(cl-defmethod autocrypt-load-system ((_mode (derived-mode message-mode)))
+  "Load this module."
+  (require 'autocrypt-message))
+
 (cl-defmethod autocrypt-install ((_mode (derived-mode message-mode)))
   "Install autocrypt hooks for message mode."
+  (require 'autocrypt-message)
   (add-hook 'message-setup-hook #'autocrypt-compose-setup)
   (add-hook 'message-send-hook #'autocrypt-compose-pre-send)
   (unless (lookup-key message-mode-map (kbd "C-c RET C-a"))
