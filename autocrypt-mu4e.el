@@ -22,14 +22,20 @@
 
 ;;; Code:
 
-(require 'mu4e)
+(declare-function mu4e-view-raw-message "mu4e" () )
 
 ;;; XXX: mu4e seems to share no common mode, and the `derived-mode'
 ;;;       specializer supports only one mode (currently). Therefore
 ;;;       the method definitions have to be duplicated.
 
+;;;###autoload
+(cl-defmethod autocrypt-load-system ((_mode (derived-mode mu4e-main-mode)))
+  "Load this module."
+  (require 'autocrypt-mu4e))
+
 (cl-defmethod autocrypt-install ((_mode (derived-mode mu4e-main-mode)))
   "Install autocrypt hooks for mu4e."
+  (require 'autocrypt-mu4e)
   (add-hook 'mu4e-view-mode-hook #'autocrypt-process-header)
   (add-hook 'mu4e-compose-mode-hook #'autocrypt-compose-setup))
 
@@ -43,8 +49,13 @@
   "Ask mu4e to return HEADER."
   (save-window-excursion
     (with-current-buffer (mu4e-view-raw-message)
-      (prog1 (mail-fetch-field field)
+      (prog1 (mail-fetch-field header)
         (kill-buffer (current-buffer))))))
+
+;;;###autoload
+(cl-defmethod autocrypt-load-system ((_mode (derived-mode mu4e-view-mode)))
+  "Load this module."
+  (require 'autocrypt-mu4e))
 
 ;;;###autoload
 (cl-defmethod autocrypt-install ((_mode (derived-mode mu4e-view-mode)))
