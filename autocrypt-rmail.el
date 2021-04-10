@@ -30,7 +30,6 @@
   "Load this module."
   (require 'autocrypt-rmail))
 
-;;;###autoload
 (cl-defmethod autocrypt-mode-hooks ((_mode (eql rmail-mode)))
   "Return the hook to install autocrypt."
   (require 'autocrypt-mu4e)

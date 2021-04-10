@@ -57,7 +57,6 @@
   "Load this module."
   (require 'autocrypt-mu4e))
 
-;;;###autoload
 (cl-defmethod autocrypt-install ((_mode (derived-mode mu4e-view-mode)))
   "Install autocrypt hooks for mu4e."
   (autocrypt-install 'mu4e-main-mode))
