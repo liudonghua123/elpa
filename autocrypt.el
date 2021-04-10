@@ -102,6 +102,9 @@ Every member of this list has to be an instance of the
 
 ;;; MUA TRANSLATION LAYER
 
+(cl-defgeneric autocrypt-load-system (mode)
+  "Load autocrypt methods for MODE."
+  (ignore mode))
 
 (cl-defgeneric autocrypt-mode-hooks (mode)
   "Return a list of hooks for MODE that process headers.")
@@ -502,6 +505,7 @@ mode."
   (if autocrypt-mode
       (progn
         (autocrypt-load-data)
+        (autocrypt-load-system major-mode)
         (autocrypt-install major-mode))
     (autocrypt-uninstall major-mode)))
 
