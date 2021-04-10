@@ -46,6 +46,7 @@
       (prog1 (mail-fetch-field field)
         (kill-buffer (current-buffer))))))
 
+;;;###autoload
 (cl-defmethod autocrypt-install ((_mode (derived-mode mu4e-view-mode)))
   "Install autocrypt hooks for mu4e."
   (autocrypt-install 'mu4e-main-mode))
