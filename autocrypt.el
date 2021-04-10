@@ -159,7 +159,7 @@ Every member of this list has to be an instance of the
   "Load peer data if exists from `autocrypt-save-file'."
   (when (file-exists-p autocrypt-save-file)
     (load autocrypt-save-file t t t)
-    (when (boundp autocrypt-loaded-version)
+    (when (boundp 'autocrypt-loaded-version)
       ;; handle older versions if necessary
       t)))
 
