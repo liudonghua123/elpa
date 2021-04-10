@@ -24,12 +24,19 @@
 
 (require 'rmail)
 
+
 ;;;###autoload
-(cl-defmethod autocrypt-mode-hooks ((_mode (derived-mode message-mode)))
+(cl-defmethod autocrypt-load ((_mode (eql rmail-mode)))
+  "Load this module."
+  (require 'autocrypt-rmail))
+
+;;;###autoload
+(cl-defmethod autocrypt-mode-hooks ((_mode (eql rmail-mode)))
   "Return the hook to install autocrypt."
+  (require 'autocrypt-mu4e)
   '(rmail-show-message-hook))
 
-(cl-defmethod autocrypt-get-header ((_mode (derived-mode message-mode))
+(cl-defmethod autocrypt-get-header ((_mode (eql rmail-mode))
                                     header)
   "Ask Rmail to return HEADER."
   (rmail-apply-in-message rmail-current-message
