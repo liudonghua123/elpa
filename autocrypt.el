@@ -92,9 +92,7 @@ Every member of this list has to be an instance of the
 `autocrypt-peer' structure.")
 
 (defconst autocrypt-save-variables
-  '(autocrypt-saved-version
-    autocrypt-accounts
-    autocrypt-peers)
+  '(autocrypt-accounts autocrypt-peers)
   "List of variables to save to `autocrypt-save-data'.")
 
 (defvar autocrypt-loaded-version)       ;used by `autocrypt-load-data'
