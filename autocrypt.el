@@ -102,9 +102,9 @@ Every member of this list has to be an instance of the
 
 ;;; MUA TRANSLATION LAYER
 
-(cl-defgeneric autocrypt-mode-hooks (_mode)
-  "Return a list of hooks required to install autocrypt."
-  nil)
+
+(cl-defgeneric autocrypt-mode-hooks (mode)
+  "Return a list of hooks for MODE that process headers.")
 
 (cl-defgeneric autocrypt-install (mode)
   "Install autocrypt for MODE."
