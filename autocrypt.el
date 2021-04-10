@@ -257,12 +257,12 @@ well-formed, otherwise returns just nil."
 
 Argument DATE contains the time value of the \"From\" tag."
   (let ((recip (autocrypt-list-recipients))
-        (root (autocrypt-get-part major-mode major-mode 0))
+        (root (autocrypt-get-part major-mode 0))
         (re (rx bol "Autocrypt-Gossip:" (* space)
                 (group (+ (or nonl (: "\n "))))
                 eol))
         gossip)
-    (when root
+    (unless (eq root 'n/a)
       (catch 'unsupported
         (with-temp-buffer
           ;; The MUA interface should have the flexibility to return
@@ -446,7 +446,7 @@ Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
     ;; insert autocrypt header
     (let ((header (and from (autocrypt-generate-header from))))
       (when header
-        (autocrypt-add-header major-mode header)))))
+        (autocrypt-add-header major-mode "Autocrypt" header)))))
 
 ;;;###autoload
 (defun autocrypt-create-account ()
