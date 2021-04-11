@@ -298,8 +298,8 @@ Argument DATE contains the time value of the \"From\" tag."
               (push (cons addr (make-autocrypt-peer
                                 :gossip-timestamp date
                                 :gossip-key (caddr datum)))
-                    autocrypt-peers)))))))
-  (autocrypt-save-data))
+                    autocrypt-peers))))
+        (autocrypt-save-data)))))
 
 ;; https://autocrypt.org/level1.html#updating-autocrypt-peer-state
 (defun autocrypt-process-header ()
@@ -332,8 +332,8 @@ Argument DATE contains the time value of the \"From\" tag."
                   (autocrypt-peer-pubkey peer) keydata)
           (setf (autocrypt-peer-deactivated peer) t))
         (unless (assoc addr autocrypt-peers)
-          (push (cons addr peer) autocrypt-peers)))))
-  (autocrypt-save-data))
+          (push (cons addr peer) autocrypt-peers))
+        (autocrypt-save-data)))))
 
 (defun autocrypt-insert-keydata (data)
   "Insert raw keydata DATA as base64 at point."
@@ -485,9 +485,9 @@ Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
         (error "Could not determine fingerprint"))
       (push (list email (cdr (assq 'fingerprint (car res))) 'none)
             autocrypt-accounts))
+    (autocrypt-save-data)
     (message "Successfully generated key for %s, and added to key chain."
-             email))
-  (autocrypt-save-data))
+             email)))
 
 
 ;;; MINOR MODES
