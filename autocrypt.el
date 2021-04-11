@@ -175,7 +175,7 @@ Every member of this list has to be an instance of the
       (dolist (var autocrypt-save-variables)
         (print `(unless ,var
                   (setq ,var ',(symbol-value var))))))
-    (write-region (point-min) (point-max) autocrypt-save-file)))
+    (write-region nil nil autocrypt-save-file nil 'silent)))
 
 ;; https://autocrypt.org/level1.html#recommendations-for-single-recipient-messages
 (defun autocrypt-single-recommentation (sender recipient)
