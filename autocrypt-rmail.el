@@ -28,7 +28,7 @@
 ;;;       exact mode.
 
 ;;;###autoload
-(cl-defmethod autocrypt-load ((_mode (eql rmail-mode)))
+(cl-defmethod autocrypt-load-system ((_mode (eql rmail-mode)))
   "Load this module."
   (require 'autocrypt-rmail))
 
