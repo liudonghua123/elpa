@@ -24,17 +24,11 @@
 
 (require 'gnus)
 
-;;;###autoload
-(cl-defmethod autocrypt-load-system ((_mode (derived-mode gnus-mode)))
-  "Load this module."
-  (require 'autocrypt-gnus))
-
-(cl-defmethod autocrypt-mode-hooks ((_mode (derived-mode gnus-mode)))
+(cl-defmethod autocrypt-mode-hooks ((_mode (eql gnus)))
   "Return the hook to install autocrypt."
   '(gnus-article-prepare-hook))
 
-(cl-defmethod autocrypt-get-header ((_mode (derived-mode gnus-mode))
-                                    header)
+(cl-defmethod autocrypt-get-header ((_mode (eql gnus)) header)
   "Return the value for HEADER."
   (gnus-fetch-original-field header))
 

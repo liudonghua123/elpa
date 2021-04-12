@@ -27,18 +27,11 @@
 ;;; NOTE: rmail does not use derived modes, so these methods match the
 ;;;       exact mode.
 
-;;;###autoload
-(cl-defmethod autocrypt-load-system ((_mode (eql rmail-mode)))
-  "Load this module."
-  (require 'autocrypt-rmail))
-
 (cl-defmethod autocrypt-mode-hooks ((_mode (eql rmail-mode)))
   "Return the hook to install autocrypt."
-  (require 'autocrypt-mu4e)
   '(rmail-show-message-hook))
 
-(cl-defmethod autocrypt-get-header ((_mode (eql rmail-mode))
-                                    header)
+(cl-defmethod autocrypt-get-header ((_mode (eql rmail-mode)) header)
   "Ask Rmail to return HEADER."
   (rmail-apply-in-message rmail-current-message
                           (lambda () (mail-fetch-field header))))
