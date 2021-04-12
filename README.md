@@ -3,7 +3,7 @@ Autocrypt for Emacs
 
 [Autocrypt][autocrypt] is cryptography protocol, for distributing and
 automatically encrypting emails. This package generically implements
-the protocol, for various Emacs MUAs.
+the protocol, for various Emacs MUAs (Mail User Agent).
 
 Currently, it supports:
 
@@ -43,6 +43,20 @@ necessary for `autocrypt.el` to function properly.
 
 Bug reports and patches should be sent to my [public inbox].
 
+Extending `autocrypt.el`
+------------------------
+
+The core functionality of autocrypt is based on [cl-generic], that is
+to say generic methods. The list of generic functions that should be
+implemented as methods are listed in `autocrypt.el` under the section
+"MUA TRANSLATION LAYER".
+
+Support for additional MUAs can be added to this package, but should
+preferably be part of the MUAs themself.
+
+To register a new back end, the variable `autocrypt-backends` should
+be modified.
+
 Copying
 -------
 
@@ -53,4 +67,5 @@ Public Domain Dedication][cc0] license.
 [public inbox]: https://lists.sr.ht/~zge/public-inbox
 [MELPA]: https://melpa.org/#/autocrypt
 [setup]: http://elpa.gnu.org/packages/setup.html
+[cl-generic]: http://elpa.gnu.org/packages/cl-generic.html
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
