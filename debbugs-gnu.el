@@ -2168,8 +2168,8 @@ Format of each element is (BUGNUMBERS REPO-DIR COMMIT-RANGE).")
   "Select COMMIT-RANGE to post as patches or announce as pushed.
 COMMIT-RANGE is read using `debbugs-gnu-read-commit-range-hook',
 or `read-string' if none of its functions apply.  Add entry to
-`debbugs-gnu-pick-commits' and jump to read bug in preparation for
-user to call `debbugs-gnu-maybe-use-picked-commits'."
+`debbugs-gnu-picked-commits' and jump to read bug in preparation
+for user to call `debbugs-gnu-maybe-use-picked-commits'."
   (interactive
    (or (run-hook-with-args-until-success
         'debbugs-gnu-read-commit-range-hook)
