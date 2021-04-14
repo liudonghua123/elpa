@@ -169,7 +169,8 @@
  ("hook-helpers"	:url "https://git.savannah.nongnu.org/git/hook-helpers-el.git")
  ("html5-schema"	:url nil)
  ("hydra"		:url "https://github.com/abo-abo/hydra")
- ("hyperbole"           :url "http://git.savannah.gnu.org/r/hyperbole.git")
+ ("hyperbole"           :url "http://git.savannah.gnu.org/r/hyperbole.git"
+  :auto-sync t)
  ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git")
  ("iterators"		:url nil)
  ("ivy"
