@@ -371,7 +371,8 @@
  ("visual-fill"		:url nil)
  ("vlf"			:url "https://github.com/m00natic/vlfi")
  ("verilog-mode"        :core "lisp/progmodes/verilog-mode.el")
- ("vertico"		:url "https://github.com/minad/vertico")
+ ("vertico"		:url "https://github.com/minad/vertico"
+  :doc "README.org")
  ("wcheck-mode"		:url "https://github.com/tlikonen/wcheck-mode")
  ("wconf"		:url "https://github.com/ilohmar/wconf")
  ("web-server"		:url "https://github.com/eschulte/emacs-web-server.git")
