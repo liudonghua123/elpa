@@ -1,6 +1,6 @@
 ;;; greenbar.el --- Mark comint output with "greenbar" background -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2020  Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021  Free Software Foundation, Inc.
 
 ;; Author: Michael R. Mauger <michael@mauger.com>
 ;; Version: 1.1
@@ -199,7 +199,7 @@ set of background colors found in
 ;;;###autoload
 (define-minor-mode greenbar-mode
   "Enable \"green bar striping\" of comint output"
-  nil nil nil
+  :lighter nil
   (if greenbar-mode
       (add-hook 'comint-output-filter-functions
                 #'greenbar-output-filter t t)
