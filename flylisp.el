@@ -1,6 +1,6 @@
 ;;; flylisp.el --- Color unbalanced parentheses and parentheses inconsistent with indentation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2014  Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021  Free Software Foundation, Inc.
 
 ;; Author: Barry O'Reilly <gundaetiapo@gmail.com>
 ;; Version: 0.2
@@ -486,7 +486,7 @@ next in the list. This is used to scan-lists efficiently."
 (define-minor-mode flylisp-mode
   "Color unbalanced parentheses and parentheses inconsistent with
   indentation."
-  nil nil nil
+  :lighter nil
   (if flylisp-mode
       (progn
         (jit-lock-register 'fl-propertize-region t)
