@@ -1,6 +1,6 @@
 ;;; org-translate.el --- Org-based translation environment  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021  Free Software Foundation, Inc.
 
 ;; Version: 0.1.3
 ;; Package-Requires: ((emacs "25.1") (org "9.1"))
@@ -322,7 +322,7 @@ By default, just remove it."
   "Minor mode for using an Org file as a translation project.
 
 \\{org-translate-mode-map}"
-  nil " Translate" nil
+  :lighter " Translate"
   (if (null org-translate-mode)
       (progn
 	(setq ogt-source-heading nil
