@@ -132,7 +132,8 @@
  ("eldoc-eval"		:url "https://github.com/thierryvolpiatto/eldoc-eval.git")
  ("electric-spacing"	:url nil)
  ("elisp-benchmarks"	:url nil)
- ("emms"		:url "https://git.savannah.gnu.org/git/emms.git")
+ ("emms"		:url "https://git.savannah.gnu.org/git/emms.git"
+  :doc "doc/emms.texinfo")
  ("enwc"		:url "hg::https://hg.savannah.nongnu.org/hgweb/enwc/")
  ("epoch-view"		:url nil)
  ("ergoemacs-mode"	:url "https://github.com/ergoemacs/ergoemacs-mode.git")
