@@ -94,6 +94,8 @@
  ("company-math"	:url "https://github.com/vspinu/company-math.git")
  ("company-statistics"	:url "https://github.com/company-mode/company-statistics")
  ("context-coloring"	:url "https://github.com/jacksonrayhamilton/context-coloring.git")
+ ("corfu"		:url "https://github.com/minad/corfu"
+  :doc "README.org")
  ("counsel"		:url "https://github.com/abo-abo/swiper")
  ("cpio-mode"		:url "https://github.com/dlewan/cpio-mode")
  ("crisp"		:url nil)
