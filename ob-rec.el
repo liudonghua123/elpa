@@ -1,6 +1,6 @@
 ;;; ob-rec.el --- org-babel functions for recutils evaluation  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021  Free Software Foundation, Inc.
 
 ;; Author: Jose E. Marchesi <jemarch@gnu.org>
 ;; Maintainer: Antoine Kalmbach <ane@iki.fi>

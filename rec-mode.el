@@ -1,6 +1,6 @@
 ;;; rec-mode.el --- Major mode for viewing/editing rec files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2021  Free Software Foundation, Inc.
 
 ;; Author: Jose E. Marchesi <jemarch@gnu.org>
 ;; Maintainer: Antoine Kalmbach <ane@iki.fi>

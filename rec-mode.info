@@ -4,7 +4,7 @@ rec-mode.texi.
 This manual is for rec-mode for Emacs, which is part of the GNU
 recutils suite (version 1.8.90, 27 November 2020).
 
-   Copyright © 2012-2020 Free Software Foundation, Inc.
+   Copyright © 2012-2021 Free Software Foundation, Inc.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
@@ -28,7 +28,7 @@ This manual documents version 1.7.0 of rec-mode.
    This manual is for rec-mode for Emacs, which is part of the GNU
 recutils suite (version 1.8.90, 27 November 2020).
 
-   Copyright © 2012-2020 Free Software Foundation, Inc.
+   Copyright © 2012-2021 Free Software Foundation, Inc.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
