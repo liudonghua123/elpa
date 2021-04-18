@@ -23,7 +23,7 @@ File: rec-mode.info,  Node: Top,  Next: Introduction,  Up: (dir)
 rec-mode: an Emacs mode for editing recfiles
 ********************************************
 
-This manual documents version 1.7.0 of rec-mode.
+This manual documents version 1.8.0 of rec-mode.
 
    This manual is for rec-mode for Emacs, which is part of the GNU
 recutils suite (version 1.8.90, 27 November 2020).
@@ -642,7 +642,7 @@ between search results, as it binds the ‘next-error’ functionality,
 letting you navigate the results even if you are outside the rec mode
 buffer.
 
-   As of version 1.7.0, Xref implements only the last functionality,
+   As of version 1.8.0, Xref implements only the last functionality,
 cross referencing records by selection expressions or fast string
 searches.
 

@@ -6,7 +6,7 @@
 ;; Maintainer: Antoine Kalmbach <ane@iki.fi>
 ;; URL: https://www.gnu.org/software/recutils/
 ;; Package-Requires: ((emacs "25"))
-;; Version: 1.7.0
+;; Version: 1.8.0
 
 ;; This file is NOT part of GNU Emacs.
 
