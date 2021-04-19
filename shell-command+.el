@@ -60,6 +60,7 @@
 
 (eval-when-compile (require 'rx))
 (require 'eshell)
+(require 'em-unix)
 
 ;;; Code:
 
