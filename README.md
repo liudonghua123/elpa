@@ -1,5 +1,5 @@
-`bang.el`
-=========
+`shell-command+.el`
+===================
 
 `shell-command+` is a `shell-command` substitute that makes it easier
 to run commands on regions or whole buffers, among other things.
@@ -17,8 +17,6 @@ invoking
 
 Bind the command `shell-command+` to any key, for example `M-!`.
 
-Bug reports and patches should be sent to my [public inbox].
-
 Using [`setup`][setup] I configure `shell-command+` as so:
 
 ~~~elisp
@@ -29,14 +27,22 @@ Using [`setup`][setup] I configure `shell-command+` as so:
   (:global "M-!" shell-command+))
 ~~~
 
+Bugs
+----
+
+Bugs or comments can be submitted to my [public inbox][mail].  Note
+that non-trivial contributions require a [copyright assignment][ca] to
+the FSF.
+
 Copying
 -------
 
-`bang.el` is distributed under the [CC0 1.0 Universal (CC0 1.0) Public
-Domain Dedication][cc0] license.
+`shell-command+.el` is distributed under the [GPL v3][gpl3] license.
 
 [leah]: http://leahneukirchen.org/dotfiles/.emacs
 [ELPA]: http://elpa.gnu.org/packages/shell-command+.html
-[public inbox]: https://lists.sr.ht/~zge/public-inbox
+[mail]: https://lists.sr.ht/~zge/public-inbox
 [setup]: http://elpa.gnu.org/packages/setup.html
-[cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
+[ca]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Copyright-Assignment.html#Copyright-Assignment
+[gpl3]: https://www.gnu.org/licenses/gpl-3.0.en.html
+
