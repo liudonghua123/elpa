@@ -1758,9 +1758,7 @@ returned by `debbugs-gnu-bugs'."
 
 (defun debbugs-gnu-send-control-message (message &optional reverse)
   "Send a control message for the current bug report.
-You can set the severity or add a tag, or close the report.  If
-you use the special \"done\" MESSAGE, the report will be marked as
-fixed, and then closed.
+You can set the severity or add a tag, or close the report.
 
 If given a prefix, and given a tag to set, the tag will be
 removed instead."
@@ -1813,9 +1811,7 @@ Otherwise, the version is queried for bugs whose package is
 When called interactively, choose the current buffer if it is in
 `message-mode', or create a new buffer otherwise.
 
-You can set the severity or add a tag, or close the report.  If
-you use the special \"done\" MESSAGE, the report will be marked as
-fixed, and then closed.
+You can set the severity or add a tag, or close the report.
 
 If given a prefix, and given a tag to set, the tag will be
 removed instead."
@@ -1935,10 +1931,8 @@ removed instead."
 	    "Package(s): " debbugs-gnu-all-packages nil nil
 	    (string-join (alist-get 'package status) ","))
 	   ",")))
-        ((equal message "close")
+        ((member message '("close" "done"))
          (format "close %d %s\n" bugid version))
-        ((equal message "done")
-         (format "tags %d fixed\nclose %d %s\n" bugid bugid version))
         ((member message '("found" "notfound" "fixed" "notfixed"))
          (format "%s %d %s\n" message bugid version))
         ((member message '("donenotabug" "donewontfix"

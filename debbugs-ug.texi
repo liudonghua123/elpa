@@ -613,6 +613,7 @@ The second bug number is read interactively.  It could be also a list
 of comma-separated bug numbers.
 
 @item close
+@itemx done
 "close 12345 25.1"
 
 The second argument, the Emacs version, is read interactively if the
@@ -637,11 +638,10 @@ If the command invoking the control message has been prefixed with
 
 "tags 12345 - confirmed"
 
-@item done
-@itemx donenotabug
+@item donenotabug
 @itemx doneunreproducible
 @itemx donewontfix
-"tags 12345 fixed|notabug|unreproducible|wontfix" @*
+"tags 12345 notabug|unreproducible|wontfix" @*
 "close 12345 25.1"
 
 The second argument in the close message, the Emacs version, is read

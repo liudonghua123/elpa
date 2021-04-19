@@ -1,3 +1,4 @@
 /debbugs-pkg.el
 /debbugs-autoloads.el
 *.elc
+*.info
