@@ -95,8 +95,10 @@ handlers if the symbol (eg. `man') is contained in the list."
       (* space)
       ;; actual command (and command name)
       (group (group (+ (not space)))
-             (* space)
+             (*? space)
              (*? not-newline))
+      ;; ignore all trailing whitespace
+      (* space)
       eos)
   "Regular expression to parse `shell-command+' input.")
 
