@@ -92,9 +92,9 @@ handlers if the symbol (eg. `man') is contained in the list."
       ;; allow whitespace after indicator
       (* space)
       ;; actual command (and command name)
-      (group (? (group (+? not-newline))
-                (+ space))
-             (+ not-newline))
+      (group (group (+ (not space)))
+             (* space)
+             (*? not-newline))
       eos)
   "Regular expression to parse `shell-command+' input.")
 
