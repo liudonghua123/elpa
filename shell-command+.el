@@ -50,10 +50,11 @@
 ;; selected region (or buffer, if no region was selected).
 ;;
 ;;
-;;	... make
+;;	man fprintf
 ;;
-;; Run Eshell's make (via `compile') in the parent's parent
-;; directory.
+;; Open a man-page using Emacs default man page viewer.  This feature
+;; is based on `eshell', and can be customized using
+;; `shell-command+-use-eshell'.
 ;;
 ;; See `shell-command+'s docstring for more details on how it's input
 ;; is interpreted..
