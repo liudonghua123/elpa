@@ -6,7 +6,7 @@
 ;; Version: 2.1.0
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.1"))
-;; URL: http://elpa.gnu.org/packages/shell-command+.html
+;; URL: https://git.sr.ht/~zge/bang
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
