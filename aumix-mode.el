@@ -1,6 +1,6 @@
-;;; aumix-mode.el --- run the aumix program in a buffer
+;;; aumix-mode.el --- run the aumix program in a buffer  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006,2009-2011,2013-2014  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2021  Free Software Foundation, Inc.
 
 ;; Author: Kevin Ryde <user42_kevin@yahoo.com.au>
 ;; Version: 7
@@ -29,8 +29,7 @@
 
 ;;; Emacsen:
 
-;; Designed for Emacs 20 up.  A bit doubtful with XEmacs 21 term.el (see
-;; `aumix-mode' docstring below).
+;; Designed for Emacs 20 up.
 
 ;;; Install:
 
@@ -63,10 +62,6 @@
 ;;; Code:
 
 (require 'term)
-(eval-when-compile
-  (unless (fboundp 'dotimes)
-    (require 'cl))) ;; for emacs20 dotimes
-
 
 ;;;###autoload
 (defgroup aumix-mode nil "Aumix Mode"
@@ -79,8 +74,7 @@
 
 (defcustom aumix-mode-program "aumix"
   "Executable program name for aumix."
-  :type  'string
-  :group 'aumix-mode)
+  :type  'string)
 ;; automatically `risky-local-variable-p' due to name `-program'
 
 (defcustom aumix-mode-switches nil
@@ -91,8 +85,7 @@ example
 
     (setq aumix-mode-switches \\='(\"-d\" \"/dev/mixer2\"))"
 
-  :type  '(repeat string)
-  :group 'aumix-mode)
+  :type  '(repeat string))
 ;;
 ;; Not sure if switches can do very much damage.  Make risky just in case
 ;; "-d filename" causes ioctls to some device other than a mixer.
@@ -109,12 +102,21 @@ similar before the program output starts.
 See also `term-exec-hook' which runs after \"aumix\" is started."
 
   :type    'hook
-  :group   'aumix-mode
   :options '(turn-on-filladapt-mode))
 
 ;;-----------------------------------------------------------------------------
 
-(defvar aumix-mode-map (make-sparse-keymap)
+(defvar aumix-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;;
+    (dotimes (i 31)
+      (let ((key (1+ i))) ;; 1 to 31
+        (unless (member key '(?\C-c ?\C-l ?\t))
+          (define-key map (vector key) nil))))
+    (define-key map "Q"    #'aumix-mode-quit)
+    (define-key map "q"    #'aumix-mode-quit)
+    (define-key map "\C-l" #'term-send-raw)
+    map)
   "Keymap for `aumix-mode'.
 This inherits from parent keymap `term-raw-map'.  That parent
 keymap is only set when `aumix-mode' is first called, since in
@@ -128,14 +130,6 @@ particular C-x and C-h have their usual prefix meanings.
 C-c is left for the various prefixed bindings of `term-raw-map'.
 C-l and Tab are `term-send-raw' since they're used by the aumix
 program.")
-;;
-(dotimes (i 31)
-  (let ((key (1+ i))) ;; 1 to 31
-    (unless (member key '(?\C-c ?\C-l ?\t))
-      (define-key aumix-mode-map (vector key) nil))))
-(define-key aumix-mode-map "Q"    'aumix-mode-quit)
-(define-key aumix-mode-map "q"    'aumix-mode-quit)
-(define-key aumix-mode-map "\C-l" 'term-send-raw)
 
 ;;-----------------------------------------------------------------------------
 
@@ -175,13 +169,6 @@ that's turned on (which it is by default).  In Emacs 21 the
 opposite was true; if you turn on font lock then you lose the
 colours.
 
-In XEmacs 21.4, term.el doesn't seem to work very well with
-ncurses programs.  A message \"Error opening terminal: eterm\" is
-from aumix (the ncurses library) complaining the terminfo is not
-found.  Adding TERMINFO=/usr/share/xemacs21/xemacs-packages/etc/
-or wherever the /e/eterm file lives might help.  If something
-doesn't work then C-c C-x C-k will kill the buffer.
-
 `clone-buffer' doesn't work on an aumix-mode buffer, as of Emacs
 24.3.  Two or more aumix programs can run simultaneously (their
 displays update with the underlying mixer settings), so perhaps
@@ -202,9 +189,7 @@ The aumix-mode.el home page is
   (term-mode)
 
   ;; kill sub-process when killing buffer
-  (if (eval-when-compile (fboundp 'make-local-hook))
-      (make-local-hook 'kill-buffer-hook)) ;; for xemacs21
-  (add-hook 'kill-buffer-hook 'aumix-mode-kill-process
+  (add-hook 'kill-buffer-hook #'aumix-mode-kill-process
             nil ;; not append
             t)  ;; buffer-local
 
@@ -212,11 +197,9 @@ The aumix-mode.el home page is
         mode-name  "Aumix")
 
   ;; desktop.el no misc-data needed
-  (set (make-local-variable 'desktop-save-buffer) 'ignore)
+  (set (make-local-variable 'desktop-save-buffer) #'ignore)
 
-  (if (eval-when-compile (fboundp 'run-mode-hooks))
-      (run-mode-hooks 'aumix-mode-hook)
-    (run-hooks 'aumix-mode-hook))
+  (run-mode-hooks 'aumix-mode-hook)
 
   ;; Unset $DISPLAY to ensure aumix uses the curses interface, not the gtk
   ;; interface if it was built with gtk interface.  The "-C" command line
@@ -234,7 +217,7 @@ The aumix-mode.el home page is
 
   (use-local-map aumix-mode-map)
 
-  ;; In term.el of emacs21 and xemacs21 `term-raw-map' is only created
+  ;; In term.el of emacs21 `term-raw-map' is only created
   ;; when `term-char-mode' is called, so must wait until this point to set
   ;; it as the parent keymap.
   (set-keymap-parent aumix-mode-map term-raw-map)
@@ -272,7 +255,7 @@ See `aumix-mode' for details of operating the mode."
 ;; be to autoload `aumix-mode-desktop-restore' and the `eval-after-load',
 ;; but that seems like more.
 
-(defun aumix-mode-desktop-restore (file-name buffer-name misc-data)
+(defun aumix-mode-desktop-restore (_file-name buffer-name _misc-data)
   "Restore `aumix-mode' buffer for desktop.el.
 This is designed for use from `desktop-buffer-mode-handlers'."
   ;; checkdoc-params: (file-name buffer-name misc-data)
