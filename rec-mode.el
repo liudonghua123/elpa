@@ -6,7 +6,7 @@
 ;; Maintainer: Antoine Kalmbach <ane@iki.fi>
 ;; URL: https://www.gnu.org/software/recutils/
 ;; Package-Requires: ((emacs "25"))
-;; Version: 1.8.0
+;; Version: 1.8.1
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -1010,7 +1010,8 @@ Return nil if the point is not on a record."
   "Return the name of the field declared as the key of the current record set.
 
 Returns nil if no key is declared."
-  (slot-value (rec-current-record-descriptor) 'key))
+  (when-let ((descr (rec-current-record-descriptor)))
+    (slot-value descr 'key)))
 
 ;;;; Navigation
 
@@ -1288,26 +1289,26 @@ manual."
 
 If the field has no type, i.e. it is an unrestricted field which
 can contain any text, then nil is returned."
-  (let* ((descriptor (rec-current-record-descriptor))
-         (types (rec-record-assoc "%type" descriptor))
-         res-type)
-    ;; Note that invalid %type entries are simply ignored.
-    (mapc
-     (lambda (type-descr)
-       (with-temp-buffer
-         (insert type-descr)
-         (goto-char (point-min))
-         (when (looking-at "[ \n\t]*\\([a-zA-Z%][a-zA-Z0-9_-]*\\(,[a-zA-Z%][a-zA-Z0-9_-]*\\)?\\)[ \n\t]*")
-           (let (;; (names (match-string 1))
-                 (begin-description (match-end 0)))
-             (goto-char (match-beginning 1))
-             (while (looking-at "\\([a-zA-Z%][a-zA-Z0-9_]*\\),?")
-               (if (equal (match-string 1) field-name)
-                   (progn
-                     (goto-char begin-description)
-                     (setq res-type (rec-parse-type (buffer-substring (point) (point-max)))))
-                 (goto-char (match-end 0))))))))
-     types)
+  (if-let ((descriptor (rec-current-record-descriptor))
+           (types (rec-record-assoc "%type" descriptor))
+           res-type)
+      ;; Note that invalid %type entries are simply ignored.
+      (mapc
+       (lambda (type-descr)
+         (with-temp-buffer
+           (insert type-descr)
+           (goto-char (point-min))
+           (when (looking-at "[ \n\t]*\\([a-zA-Z%][a-zA-Z0-9_-]*\\(,[a-zA-Z%][a-zA-Z0-9_-]*\\)?\\)[ \n\t]*")
+             (let (;; (names (match-string 1))
+                   (begin-description (match-end 0)))
+               (goto-char (match-beginning 1))
+               (while (looking-at "\\([a-zA-Z%][a-zA-Z0-9_]*\\),?")
+                 (if (equal (match-string 1) field-name)
+                     (progn
+                       (goto-char begin-description)
+                       (setq res-type (rec-parse-type (buffer-substring (point) (point-max)))))
+                   (goto-char (match-end 0))))))))
+       types)
     res-type))
 
 ;;;; Mode line and Head line
@@ -1669,20 +1670,20 @@ Argument SEX is the selection expression to use."
 (defun rec--new-buffer-for-selection (selection expr)
   "Generate a new buffer for SELECTION and switch to it."
   (if selection
-    (let* ((name (generate-new-buffer-name
-                  (format "*Selection of %s*" (buffer-name))))
-           (origin (buffer-name))
-           (buf (get-buffer-create name)))
-      (with-current-buffer buf
-        (insert
-         (format "# Generated from %s using expression %s" origin expr))
-        (newline)
-        (insert selection)
-        (goto-char (point-min))
-        (rec-edit-mode)
-        (run-hooks 'hack-local-variables-hook))
-      (rec-update-buffer-descriptors)
-      (switch-to-buffer buf))
+      (let* ((name (generate-new-buffer-name
+                    (format "*Selection of %s*" (buffer-name))))
+             (origin (buffer-name))
+             (buf (get-buffer-create name)))
+        (with-current-buffer buf
+          (insert
+           (format "# Generated from %s using expression %s" origin expr))
+          (newline)
+          (insert selection)
+          (goto-char (point-min))
+          (rec-edit-mode)
+          (run-hooks 'hack-local-variables-hook))
+        (rec-update-buffer-descriptors)
+        (switch-to-buffer buf))
     (user-error "No results.")))
 
 (defun rec-cmd-new-buffer-from-sex (sex)
@@ -1921,18 +1922,18 @@ Prefix arguments N moves next by N records."
 Takes up to the first three elements of a record and displays them, padded
 with four spaces."
   (let* ((rec-fields (slot-value record 'fields))
-        (fields (mapconcat
-                 (lambda (field)
-                   (concat
-                    "    "
-                    (with-temp-buffer
-                      (rec-insert field)
-                      (string-trim-right
-                       (rec-mode--syntax-highlight (buffer-string))))))
-                 (cl-subseq rec-fields 0 3 )
-                 "\n")))
+         (fields (mapconcat
+                  (lambda (field)
+                    (concat
+                     "    "
+                     (with-temp-buffer
+                       (rec-insert field)
+                       (string-trim-right
+                        (rec-mode--syntax-highlight (buffer-string))))))
+                  (cl-subseq rec-fields 0 3 )
+                  "\n")))
     (if (< 3 (length rec-fields))
-                (concat fields "\n    ...")
+        (concat fields "\n    ...")
       fields)))
 
 (cl-defgeneric rec--xref-truncate-fields (record (kind (head fast)))
@@ -1965,9 +1966,8 @@ with four spaces."
 
 (defun rec--xref-summary-for-record (record type kind)
   "Base class method to do the rest of the formating."
-  (let* ((line-number (number-to-string
-                       (line-number-at-pos
-                        (slot-value record 'position) t)))
+  (let* ((pos (byte-to-position (slot-value record 'position)))
+         (line-number (number-to-string (line-number-at-pos pos t)))
          (heading (concat (propertize type 'face 'font-lock-type-face)
                           " at line "
                           line-number)))
@@ -1983,16 +1983,19 @@ with four spaces."
          (descriptor (cl-find-if #'rec-record-descriptor-p results))
          (type (if descriptor
                    (slot-value descriptor 'type)
-                 "Record")))
-    (when results
+                 "Record"))
+         (data (if descriptor
+                   (cdr results)
+                 results)))
+    (when data
       (xref--show-xrefs
        (mapcar
         (lambda (record)
           (xref-make
            (rec--xref-summary-for-record record type kind)
            (xref-buffer-location :buffer (current-buffer)
-                                 :position (slot-value record 'position))))
-        (cdr results))
+                                 :position (byte-to-position (slot-value record 'position)))))
+        data)
        nil))))
 
 (defun rec-cmd-xref-sex (sex)
