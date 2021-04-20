@@ -1,10 +1,10 @@
 ;;; cl-lib.el --- Forward cl-lib compatibility library for Emacs<24.3  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2012-2019  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2021  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; vcomment: Emacs-24.3's version is 1.0 so this has to stay below.
-;; Version: 0.6.1
+;; Version: 0.7
 ;; Y-Package-Requires: ((emacs "21")) ¡`emacs' package only exists in Emacs≥24!
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -34,6 +34,11 @@
 
 ;; This code is largely copied from Emacs-24.3's cl.el, with the alias bindings
 ;; simply reversed.
+
+;;; News:
+
+;; Since v0.7:
+;; - Provides `gv-define-setter'.
 
 ;;; Code:
 
@@ -371,6 +376,10 @@
       ;; macro will be interpreted as lexically bound code or not).
       (message "This `cl-labels' requires `lexical-binding' to be non-nil"))
     `(labels ,@args)))
+
+(unless (fboundp 'gv-define-setter)
+  (defmacro gv-define-setter (name arglist &rest body)
+    `(defsetf ,name ,(cdr arglist) (,(car arglist)) ,@body)))
 
 (provide 'cl-lib)
 ;;; cl-lib.el ends here
