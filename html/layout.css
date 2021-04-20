@@ -109,6 +109,7 @@ tt, code {
   border: 1px solid rgb(187, 187, 187);
   padding: 0px 6px;
   border-radius: 4px;
+  white-space: nowrap;
 }
 
 pre {
