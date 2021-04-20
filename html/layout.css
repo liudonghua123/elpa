@@ -47,7 +47,7 @@ table {
 /* End of reset */
 
 body {
-  font-family: "fira sans", sans;
+  font-family: "fira sans", sans-serif;
   line-height: 1.5em;
   font-size: 1.2em;
   color: #333;
@@ -92,6 +92,7 @@ a:hover {
 }
 
 tt, code {
+  font-family: "Fira Mono", monospace;
   background-color: rgb(238, 238, 238);
   border: 1px solid rgb(187, 187, 187);
   padding: 0px 6px;
@@ -99,7 +100,7 @@ tt, code {
 }
 
 pre {
-  font-family: "Fira Mono";
+  font-family: "Fira Mono", monospace;
   font-size: 14px;
   background: #fafafa;
   padding: 15px;
