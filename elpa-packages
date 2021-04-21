@@ -171,7 +171,7 @@
  ("hook-helpers"	:url "https://git.savannah.nongnu.org/git/hook-helpers-el.git")
  ("html5-schema"	:url nil)
  ("hydra"		:url "https://github.com/abo-abo/hydra")
- ("hyperbole"           :url "http://git.savannah.gnu.org/r/hyperbole.git"
+ ("hyperbole"           :url "https://git.savannah.gnu.org/r/hyperbole.git"
   :auto-sync t)
  ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git")
  ("iterators"		:url nil)
@@ -202,8 +202,8 @@
  ("lex"			:url nil)
  ("lmc"			:url nil)
  ("load-dir"		:url nil)
- ("load-relative"	:url "http://github.com/rocky/emacs-load-relative")
- ("loc-changes"		:url "http://github.com/rocky/emacs-loc-changes")
+ ("load-relative"	:url "https://github.com/rocky/emacs-load-relative")
+ ("loc-changes"		:url "https://github.com/rocky/emacs-loc-changes")
  ("loccur"		:url "https://github.com/fourier/loccur")
  ("map"                 :core "lisp/emacs-lisp/map.el")
  ("markchars"		:url nil)
@@ -235,7 +235,7 @@
  ("myers"		:url nil)
  ("nadvice"		:url nil)
  ("nameless"		:url "https://github.com/Malabarba/Nameless")
- ("names"		:url "http://github.com/Malabarba/names")
+ ("names"		:url "https://github.com/Malabarba/names")
  ("nhexl-mode"		:url nil)
  ("nlinum"		:url nil)
  ("notes-mode"		:url nil)
