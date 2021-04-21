@@ -1,12 +1,12 @@
-;;; brief.el --- Brief Editor Emulator (Brief Mode)
+;;; brief.el --- Brief Editor Emulator (Brief Mode)  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2018-2021  Free Software Foundation, Inc.
 
 ;; Author:       Luke Lee <luke.yx.lee@gmail.com>
 ;; Maintainer:   Luke Lee <luke.yx.lee@gmail.com>
 ;; Keywords:     brief, emulations, crisp
 ;; Version:      5.87
-;; Package-Type: multi
+;; Package-Requires: ((nadvice "0.3") (cl-lib "0.5"))
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -433,7 +433,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   ;; Quiet byte-compiler about argument number changes due to advice functions,
   ;; as well as other warnings that's known to be not important.
   (setq byte-compile-warnings
@@ -480,7 +480,7 @@
 
 (defvar brief-selection-op-legacy nil)
 
-(eval-when (compile load eval)
+(cl-eval-when (compile load eval)
 
   (defmacro brief-is-x ()
     `(eq (framep (selected-frame)) 'x))
@@ -584,7 +584,7 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
         (progn
           (unless (fboundp 'gui-get-selection)
             (setq brief-selection-op-legacy t)
-            (defalias 'gui-get-selection 'w32-get-clipboard-data))
+            (defalias 'gui-get-selection #'w32-get-clipboard-data))
           (unless (fboundp 'gui-set-selection)
             (defun gui-set-selection (_type data)
               (w32-set-selection data)))
@@ -597,9 +597,9 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
 
       (unless (fboundp 'gui-get-selection)
         (setq brief-selection-op-legacy t)
-        (defalias 'gui-get-selection 'x-get-selection))
+        (defalias 'gui-get-selection #'x-get-selection))
       (unless (fboundp 'gui-set-selection)
-        (defalias 'gui-set-selection 'x-set-selection))
+        (defalias 'gui-set-selection #'x-set-selection))
       (unless (fboundp 'gui-backend-get-selection)
         (defun gui-backend-get-selection (selection-symbol target-type)
           (x-get-selection selection-symbol target-type)))
@@ -695,11 +695,11 @@ Also, under terminal mode it can't actually get the slowdown."
      (t (setq brief-slowdown-factor 8.0)))))
 
 ;;(defvar brief-debugging t) ;; enable debugging here
-(eval-when (compile load eval)
+(cl-eval-when (compile load eval)
   (if (boundp 'brief-debugging)
       (defun brief-dbg-message (&rest args)
         (let ((inhibit-message t)
-              (msg (apply 'format args)))
+              (msg (apply #'format args)))
           ;;    (apply 'message args)
           (message "%s %s" (format-time-string "[%H:%M:%S.%3N]" (current-time))
                    msg)))
@@ -821,10 +821,9 @@ indicates Brief mode is enabled.
 Setting this variable directly does not take effect;
 use either M-x customize or the function `brief-mode'."
   :set        (lambda (_symbol value) (brief-mode (if value t nil)))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :require    'brief
-  :type       'boolean
-  :group      'brief)
+  :type       'boolean)
 
 (defcustom brief-search-replace-using-regexp t
   "Determine if search & replace commands using regular expression or string.
@@ -929,7 +928,7 @@ Notice that to change the setting of this value, `custom-set-variables'
 need to be used or only the value of is changed but it won't have any
 real effect until `brief-mode' changed."
   :type  'boolean
-  :set   'brief-set:brief-enable-postpone-selection)
+  :set   #'brief-set:brief-enable-postpone-selection)
 
 (defcustom brief-debounce-keys-microsoft-office nil
 ;; Workaround MS-office issue, for detail explanation, see the comments
@@ -1107,7 +1106,7 @@ as non-nil, please rebuild the 'xsel' from author's git repository:
 \"https://github.com/kfish/xsel.git\" and checkout at least commit id
 \"9bfc13d\"."
   :type  'boolean
-  :set   'brief-set:brief-in-favor-of-xsel)
+  :set   #'brief-set:brief-in-favor-of-xsel)
 
 ;;
 ;; Miscellaneous behavioral configurations
@@ -1158,8 +1157,7 @@ marked region changed according to our cursor."
 
 (defface brief-fake-region-face
   '((default :inherit region))  ;; 'secondary-selection
-  "The face (color) of fake region when `brief-search-fake-region-mark' is t."
-  :group 'brief)
+  "The face (color) of fake region when `brief-search-fake-region-mark' is t.")
 
 (defcustom brief-after-search-hook nil
   "Hook for user defined search behavior.
@@ -1520,7 +1518,7 @@ created and mapped into `brief-prefix-meta-l'"
          (interactive)
          (,(intern (concat "brief-call-mark-line-" dir "-with-key"))
           ,key))
-       (define-key brief-prefix-meta-l ,key ',keyfunc))))
+       (define-key brief-prefix-meta-l ,key #',keyfunc))))
 
 ;;
 ;; Brief bookmarks
@@ -1556,9 +1554,9 @@ example, add the following into .emacs:
     (brief-bookmark-try-switch-frame-window bookmark))
 
   (advice-add 'bookmark-jump
-              :before 'bookmark-jump-restoring-frame-window)
+              :before #'bookmark-jump-restoring-frame-window)
   (advice-add 'bookmark-jump-other-window
-              :before 'bookmark-jump-restoring-frame-window)"
+              :before #'bookmark-jump-restoring-frame-window)"
 
   (unless brief-inhibit-bookmark-try-switch-frame-window
     (let ((fname (ignore-errors ;; prevent non-existing bookmark error
@@ -1908,9 +1906,9 @@ compilation won't be counted in."
               (when (boundp 'compilation-mode-map)
                 ;; Extend compilation-mode for brief style keys
                 ;;(define-key compilation-mode-map [(control p)]
-                ;;  'compilation-previous-error)
+                ;;  #'compilation-previous-error)
                 (define-key compilation-mode-map [(control n)]
-                  'compilation-next-error)))
+                  #'compilation-next-error)))
 
           ;; Not found, search buffer list if not strict search.
           (if (not strict)
@@ -1922,7 +1920,8 @@ compilation won't be counted in."
           (if (null buf)
               (message (concat "No " (if strict
                                          "*compilation*"
-                                       "compilation") " buffer found."))
+                                       "compilation")
+                               " buffer found."))
             ;; Open buffer in a split window
             (if (= (length (window-list)) 1)
                 (split-window-vertically))
@@ -1943,7 +1942,7 @@ compilation won't be counted in."
             (count 1))
         (catch 'break
           ;; Repeat no more than the number of exinsting windows
-          (dolist (l (window-list))
+          (dolist (_ (window-list))
             (if (eq window curr)
                 (throw 'break nil))
             (incf count 1)
@@ -2257,6 +2256,10 @@ This is the number of newlines between them."
 ;;(defun brief-fast-line-number-at-pos (&optional pos)
 ;;  "Much faster version for replacing `line-number-at-pos'."
 ;;  (1+ (brief-fast-count-physical-lines 1 (or pos (point))))) ; base 1
+
+;; Control variables used in my "cursor undo" package, to be released.
+(defvar enable-cursor-tracking)
+(defvar disable-local-cursor-tracking)
 
 (defun brief-current-row-visual () ;; base:0
   "Compute the relative row number of cursor for current window.
@@ -2947,18 +2950,18 @@ The 'key-up' is actually emulated by running an idle timer."
 
 (defun brief-enable-clipboard-postponement ()
   (add-hook 'activate-mark-hook
-            'brief-postpone-gui-set-selection 't)
+            #'brief-postpone-gui-set-selection 't)
   (add-hook 'deactivate-mark-hook
-            'brief-resume-gui-set-selection))
+            #'brief-resume-gui-set-selection))
 
 (defun brief-disable-clipboard-postponement ()
   (remove-hook 'activate-mark-hook
-               'brief-postpone-gui-set-selection)
+               #'brief-postpone-gui-set-selection)
   (remove-hook 'deactivate-mark-hook
-               'brief-resume-gui-set-selection)
+               #'brief-resume-gui-set-selection)
   ;; In case any terminal mode frame in work
   (remove-hook 'post-command-hook
-               'brief-terminal-mode-activate-gui-selection-idle-timer))
+               #'brief-terminal-mode-activate-gui-selection-idle-timer))
 
 ;;
 ;; External Xselection selection get/set helper using programs like 'xsel' or
@@ -3125,7 +3128,7 @@ program."
                          ;; Emacs <= v24
                          (let ((proc
                                 (apply
-                                 'start-process
+                                 #'start-process
                                  (nconc
                                   (list brief-xclipboard-cmd
                                         (current-buffer)
@@ -3140,10 +3143,10 @@ program."
                                        (nth 6 brief-xclipboard-args))))))
                            (set-process-filter
                             proc
-                            'brief--external-clipboard-filter)
+                            #'brief--external-clipboard-filter)
                            (set-process-sentinel
                             proc
-                            'brief--external-clipboard-sentinel)
+                            #'brief--external-clipboard-sentinel)
                            (set-process-query-on-exit-flag proc nil)
                            proc)
 
@@ -3175,13 +3178,13 @@ program."
                (count 0)
                (start-wait-time (brief-current-time))
                (clipboard-timeout
-                (case (or mode 'interrupt) ;; default 'interrupt mode
+                (pcase (or mode 'interrupt) ;; default 'interrupt mode
                   ('timeout   (* brief-external-xclipboard-timeout
                                  (brief-slowdown-factor)))
                   ;; Emacs23: A `most-positive-fixnum' will cause immediate
                   ;; timeout, so divide it by 2.
                   ('interrupt (/ most-positive-fixnum 2))
-                  (otherwise
+                  (_
                    (error
                     "Brief: unknown mode %S for brief-external-get-selection"
                     mode))))
@@ -3337,12 +3340,12 @@ program."
                 (kill-buffer stderr))))))
 
       ;; Finally, return the result
-      (case type
+      (pcase type
         ('PRIMARY
          (setq gui--last-selected-text-primary result))
         ('CLIPBOARD
          (setq gui--last-selected-text-clipboard result))
-        (otherwise
+        (_
          ;; don't shoot an error since we can still work
          (message "Unsupported TYPE '%S' for `brief-external-get-selection'" type)))
       result)))
@@ -3454,12 +3457,12 @@ This function does not support native Win32/Win64."
                               (string= gui--last-selected-text-primary data))))
               t)
 
-        (case type
+        (pcase type
           ('PRIMARY
            (setq gui--last-selected-text-primary data))
           ('CLIPBOARD
            (setq gui--last-selected-text-clipboard data))
-          (otherwise
+          (_
            (message "Unsupported TYPE for `brief-external-set-selection'")))
 
         ;; Delete the lingering process as we're going to overwrite the
@@ -3471,7 +3474,7 @@ This function does not support native Win32/Win64."
                (default-process-coding-system ;;'(utf-8 . utf-8))
                  (brief-external-clipboard-process-coding-system))
                (proc (apply
-                      'start-process
+                      #'start-process
                       (nconc (list
                               brief-xclipboard-cmd nil
                               ;;"timeout"
@@ -3509,7 +3512,7 @@ This function does not support native Win32/Win64."
               (progn
                 ;; Send pieces during idle, till user inputs something
                 (while (and
-                        (case brief-is-external-interruptible
+                        (pcase brief-is-external-interruptible
                           ;; Interruptible mode
                           ('interruptible
                            ;; any input event breaks the loop
@@ -3522,7 +3525,7 @@ This function does not support native Win32/Win64."
                            ;;    (accept-process-output nil 0.05))
                            t)
                           ;; Continuous mode, no break
-                          (otherwise
+                          (_
                            t))
                         (< databeg datalen)
                         (process-live-p proc))
@@ -3662,108 +3665,36 @@ able to restore it back if we have no backups.")
 
 ;; The core modification that prevent Windows X server failure
 ;; due to too much flooding message as clipboard change
-(if (not (fboundp 'advice-add))
-    (progn
-      (defvar brief-ad-gui-get-selection-reenter nil)
-      (defvar brief-ad-gui-set-selection-reenter nil)
-      (if brief-selection-op-legacy
-          (defadvice x-get-selection (around brief-advice-gui-get-selection
-                                             (&optional type data-type)
-                                             disable activate compile)
-            (if (or window-system
-                    brief-ad-gui-get-selection-reenter)
-                ad-do-it
-              (let ((brief-ad-gui-get-selection-reenter t))
-                (brief-external-get-selection (or type 'PRIMARY)))))
+;;
+;; `advice-add' defined
+;;
+;; When external helper is enabled but neither 'xsel' nor 'xclip' is
+;; installed, reenter will occur.
+(defvar brief-gui-get-selection-reentry nil
+  "An internal variable to prevent advised function reenter.")
 
-        (defadvice gui-get-selection (around brief-advice-gui-get-selection
-                                             (&optional type data-type)
-                                             disable activate compile)
-          ;; [2017-07-14 Fri] When clipboard data is huge,
-          ;; `gui-backend-get-selection', which was implemented as
-          ;; `x-get-selection-internal', will stop responding.
-          (if (or window-system
-                  brief-ad-gui-get-selection-reenter)
-              ad-do-it
-            (let ((brief-ad-gui-get-selection-reenter t))
-              (brief-external-get-selection (or type 'PRIMARY))))))
+(defun brief-gui-get-selection (orig-func &optional type &rest args)
+  "Brief's advice replacement for `gui-get-selection'."
+  ;; [2017-07-14 Fri] When clipboard data is huge, `gui-backend-get-selection'
+  ;; which was implemented as `x-get-selection-internal' will stop responding.
+  (if brief-gui-get-selection-reentry
+      (apply orig-func type args)
+    (let ((brief-gui-get-selection-reentry t))
+      (if (or (and (brief-is-x)
+                   brief-use-external-clipboard-when-possible)
+              (brief-is-terminal))
+          (brief-external-get-selection (or type 'PRIMARY))
+        (or (if (and (brief-is-winnt)
+                     ;; On Win32/Win64 we by default use 'CLIPBOARD
+                     (eq (or type 'CLIPBOARD)
+                         'CLIPBOARD))
+                ;; TODO: revise this for Win32/64 Emacs newer than v23
+                (or (w32-get-clipboard-data)
+                    (w32--get-selection)))
+            (apply orig-func type args))))))
 
-      (if brief-selection-op-legacy
-          (defadvice x-set-selection (around brief-advice-gui-set-selection
-                                             (type data) disable activate compile)
-            (if (or (eq type 'SECONDARY)
-                    brief-ad-gui-set-selection-reenter)
-                ad-do-it
-              (let ((brief-ad-gui-set-selection-reenter t))
-                (if brief-is-gui-set-selection-postponed
-                    (brief-activate-postpone-gui-selection-timer)
-                  (unless (brief-multiple-cursor-in-action)
-                    (if (and (brief-is-x)
-                             (not brief-use-external-clipboard-when-possible))
-                        ad-do-it
-                      (brief-external-set-selection type data)))))))
-
-        (defadvice gui-set-selection (around brief-advice-gui-set-selection
-                                             (type data)
-                                             disable activate compile)
-          (if (or (eq type 'SECONDARY)
-                  brief-ad-gui-set-selection-reenter)
-              ad-do-it
-            (let ((brief-ad-gui-set-selection-reenter t))
-              (unless (and brief--search-overlay
-                           (overlay-start brief--search-overlay))
-                ;; Bypass `gui-set-selection' due to searching
-
-                (if brief-is-gui-set-selection-postponed
-                    ;; Activate timer to start postponing gui-set-selection.
-                    ;; In terminal mode this will not run.
-                    (brief-activate-postpone-gui-selection-timer)
-                  (unless (brief-multiple-cursor-in-action)
-                    (if (or (brief-is-winnt)
-                            (and
-                             (brief-is-x)
-                             ;; [2017-12-12 Tue] The following is no longer true.
-                             ;; Cannot reproduce it any longer, maybe a glitch
-                             ;; during the development?
-                             ;; [2017-07-13 Thu] When running in X11, the
-                             ;; function `x-own-selection-internal' will fail
-                             ;; if the data is longer than 262040 bytes.  This
-                             ;; bug is caught thru many experiments.
-                             ;; When data is long, use external helper program.
-                             ;;(< (length data) 262041)
-                             (not brief-use-external-clipboard-when-possible)))
-                        ad-do-it
-                      (brief-external-set-selection type data))))))))))
-  ;;
-  ;; `advice-add' defined
-  ;;
-  ;; When external helper is enabled but neither 'xsel' nor 'xclip' is
-  ;; installed, reenter will occur.
-  (defvar brief-gui-get-selection-reentry nil
-    "An internal variable to prevent advised function reenter.")
-
-  (defun brief-gui-get-selection (orig-func &optional type &rest args)
-    "Brief's advice replacement for `gui-get-selection'."
-    ;; [2017-07-14 Fri] When clipboard data is huge, `gui-backend-get-selection'
-    ;; which was implemented as `x-get-selection-internal' will stop responding.
-    (if brief-gui-get-selection-reentry
-        (apply orig-func type args)
-      (let ((brief-gui-get-selection-reentry t))
-        (if (or (and (brief-is-x)
-                     brief-use-external-clipboard-when-possible)
-                (brief-is-terminal))
-            (brief-external-get-selection (or type 'PRIMARY))
-          (or (if (and (brief-is-winnt)
-                       ;; On Win32/Win64 we by default use 'CLIPBOARD
-                       (eq (or type 'CLIPBOARD)
-                           'CLIPBOARD))
-                  ;; TODO: revise this for Win32/64 Emacs newer than v23
-                  (or (w32-get-clipboard-data)
-                      (w32--get-selection)))
-              (apply orig-func type args))))))
-
-  ;;(advice-remove 'gui-get-selection 'brief-gui-get-selection)
-  ;;(advice-add 'gui-get-selection :around 'brief-gui-get-selection)
+;;(advice-remove 'gui-get-selection #'brief-gui-get-selection)
+;;(advice-add 'gui-get-selection :around #'brief-gui-get-selection)
 
 ;;(defvar brief-gui-set-debouncer
 ;;  "Debouncing info for brief-gui-set-selection due to MS Office message flood.
@@ -3771,53 +3702,53 @@ able to restore it back if we have no backups.")
 ;;    nil)
 ;;
 
-  (defvar brief-gui-set-selection-reentry nil
-    "An internal variable to prevent advised function reenter.")
+(defvar brief-gui-set-selection-reentry nil
+  "An internal variable to prevent advised function reenter.")
 
-  ;; The core modification that prevent Windows X server failure
-  ;; due to too much flooding message as clipboard change caused by
-  ;; Microsoft Office
-  (defun brief-gui-set-selection (orig-func &rest args)
-    "Brief's advice replacement for `gui-set-selection'."
-    (if brief-gui-set-selection-reentry
-        (progn
-          (brief-dbg-message "Reenter brief-gui-set-selection, call orig func.")
-          (apply orig-func args))
-      (brief-dbg-message "enter brief-gui-set-selection")
-      (let ((type (car args))
-            ;;(data (cadr args))
-            (brief-gui-set-selection-reentry t))
-        (if (eq type 'SECONDARY)
-            (apply orig-func args)
-          (unless (and brief--search-overlay
-                       (overlay-start brief--search-overlay))
-            ;; Bypass `gui-set-selection' due to searching
-            (if brief-is-gui-set-selection-postponed
-                ;; Activate timer to start postponing gui-set-selection
-                ;; (in terminal mode this will not run)
-                (brief-activate-postpone-gui-selection-timer)
+;; The core modification that prevent Windows X server failure
+;; due to too much flooding message as clipboard change caused by
+;; Microsoft Office
+(defun brief-gui-set-selection (orig-func &rest args)
+  "Brief's advice replacement for `gui-set-selection'."
+  (if brief-gui-set-selection-reentry
+      (progn
+        (brief-dbg-message "Reenter brief-gui-set-selection, call orig func.")
+        (apply orig-func args))
+    (brief-dbg-message "enter brief-gui-set-selection")
+    (let ((type (car args))
+          ;;(data (cadr args))
+          (brief-gui-set-selection-reentry t))
+      (if (eq type 'SECONDARY)
+          (apply orig-func args)
+        (unless (and brief--search-overlay
+                     (overlay-start brief--search-overlay))
+          ;; Bypass `gui-set-selection' due to searching
+          (if brief-is-gui-set-selection-postponed
+              ;; Activate timer to start postponing gui-set-selection
+              ;; (in terminal mode this will not run)
+              (brief-activate-postpone-gui-selection-timer)
 
-              ;;(deactivate-mark) ;; this will cause reenter as this will invoke
-              ;;                  ;; `gui-set-selection'
-              (unless (brief-multiple-cursor-in-action)
-                (if (or (brief-is-winnt)
-                        (and
-                         (brief-is-x)
-                         ;; [2017-12-12 Tue] The following is no longer true.
-                         ;; Cannot reproduce it any longer, maybe a glitch
-                         ;; during the development?
-                         ;; [2017-07-13 Thu] When running in X11, the function
-                         ;; `x-own-selection-internal' will fail if the data
-                         ;; is longer than 262040 bytes.  This bug is caught
-                         ;; by many experiments.
-                         ;; When data is long, use external helper program.
-                         ;; TODO: verify if this bug persists for emacs version
-                         ;; > 26.0.50. if bug persists, fix it.
-                         ;;(< (length data) 262041)
-                         (not brief-use-external-clipboard-when-possible)))
-                    (apply orig-func args)
-                  (apply #'brief-external-set-selection args)))))))
-      (brief-dbg-message "leave brief-gui-set-selection"))))
+            ;;(deactivate-mark) ;; this will cause reenter as this will invoke
+            ;;                  ;; `gui-set-selection'
+            (unless (brief-multiple-cursor-in-action)
+              (if (or (brief-is-winnt)
+                      (and
+                       (brief-is-x)
+                       ;; [2017-12-12 Tue] The following is no longer true.
+                       ;; Cannot reproduce it any longer, maybe a glitch
+                       ;; during the development?
+                       ;; [2017-07-13 Thu] When running in X11, the function
+                       ;; `x-own-selection-internal' will fail if the data
+                       ;; is longer than 262040 bytes.  This bug is caught
+                       ;; by many experiments.
+                       ;; When data is long, use external helper program.
+                       ;; TODO: verify if this bug persists for emacs version
+                       ;; > 26.0.50. if bug persists, fix it.
+                       ;;(< (length data) 262041)
+                       (not brief-use-external-clipboard-when-possible)))
+                  (apply orig-func args)
+                (apply #'brief-external-set-selection args)))))))
+    (brief-dbg-message "leave brief-gui-set-selection")))
 
 ;;
 ;; Xselection/Windows-clipboard backward compatibility functions for older Emacs
@@ -4108,46 +4039,6 @@ restored, otherwise NIL."
   ;; so we do advice here
   (and cua--restored-rectangle
        (brief-region-backup-clipboard-selection)))
-
-;; TODO: Is there a better way then defining an advice for restoring clipboard?
-
-;; Note that `deactivate-mark-hook' is not adequate as in many situation
-;; involving command cancellation, that hook never got invoked.
-(eval-when (compile eval load)
-  (unless (fboundp #'advice-add)
-    ;; Initially we disable our advises but hooked, till Brief mode is enabled
-    (if (fboundp 'cua--rectangle-post-command)
-        (defadvice cua--rectangle-post-command
-            (before brief-cua--rectangle-post-command () disable activate compile)
-          (brief-cua-rectangle-undo-helper)))
-
-    ;; Starting from Emacs23 the CUA mode is builtin.
-    (defadvice cua-cancel (before brief-cua-cancel () disable activate compile)
-      (brief-reset-for-command-cancellation))
-
-    (defadvice keyboard-quit
-        (before brief-keyboard-quit () disable activate compile)
-      (brief-reset-for-keyboard-quit))
-
-    (defadvice keyboard-escape-quit
-        (before brief-keyboard-escape-quit () disable activate compile)
-      (brief-reset-for-command-cancellation))
-
-    (when (fboundp 'cua-clear-rectangle-mark)
-      (defadvice cua-clear-rectangle-mark
-          (before brief-clear-rectangle-mark () disable activate compile)
-        "Extend `cua-clear-rectangle-mark' by a Xselection backup.
-The implementation of `cua-clear-rectangle-mark' does not invoke the
-`deactivate-mark-hook' thus we need to do that ourselves."
-        (brief-reset-for-command-cancellation)))
-
-    (when (fboundp 'cua-close-rectangle)
-      (defadvice cua-close-rectangle
-          (before brief-close-rectangle () disable activate compile)
-        "Extend `cua-close-rectangle' by a Xselection backup.
-The implementation of `cua-close-rectangle' does not invoke the
-`deactivate-mark-hook' thus we need to do that ourselves."
-        (brief-reset-for-command-cancellation)))))
 
 ;;
 ;; Various Brief mode interactive commands
@@ -4458,10 +4349,6 @@ told this command to respect visual mode."
           (list cmd-time debounce))))
 
 (defvar brief-kill-line-debounce nil)
-
-;; Control variables used in my "cursor undo" package, to be released.
-(defvar enable-cursor-tracking)
-(defvar disable-local-cursor-tracking)
 
 (defun brief-kill-line (arg)
   "Kill/cut (visual) line(s) into kill-ring and clipboard.
@@ -5019,7 +4906,7 @@ For example, moving cursor around should reshape the region."
               (eq this-command 'brief-undo))
     (setq brief-last-search-region nil)
     (brief-delete-search-overlay)
-    (remove-hook 'pre-command-hook 'brief-reset-new-search))
+    (remove-hook 'pre-command-hook #'brief-reset-new-search))
   t)
 
 (defvar-local brief-search-failed nil)
@@ -5137,7 +5024,7 @@ region.  To settle the cursor there, cancel the (rectangle) region."
     (when new-search
       ;; Reset `brief-search-failed' for a new search
       (setq brief-search-failed nil)
-      (add-hook 'pre-command-hook 'brief-reset-new-search))
+      (add-hook 'pre-command-hook #'brief-reset-new-search))
 
     ;; Activate the search overlay for a region if it's not activated
     (and is-region
@@ -5387,7 +5274,7 @@ region.  To settle the cursor there, cancel the (rectangle) region."
     (when new-search
       ;; Reset `brief-search-failed' for a new search
       (setq brief-search-failed nil)
-      (add-hook 'pre-command-hook 'brief-reset-new-search))
+      (add-hook 'pre-command-hook #'brief-reset-new-search))
 
     ;; Activate the search overlay for a region if it's not activated
     (and is-region
@@ -5965,19 +5852,19 @@ Perform `brief-query-replace' in backward direction."
         (let ((currsyn (char-syntax (char-before)))
               (iswhite (char-syntax ?\t )))
           (ignore-errors
-            (loop for i from arg to -1 by 1 do
-                  (while (= (char-syntax (char-before)) iswhite)
-                    (backward-char))
-                  (while (= (char-syntax (char-before)) currsyn)
-                    (backward-char)))))
+            (cl-loop for i from arg to -1 by 1 do
+                     (while (= (char-syntax (char-before)) iswhite)
+                       (backward-char))
+                     (while (= (char-syntax (char-before)) currsyn)
+                       (backward-char)))))
       (let ((currsyn (char-syntax (char-after)))
             (iswhite (char-syntax ?\t )))
         (ignore-errors
-          (loop for i downfrom (or arg 1) to 1 by 1 do
-                (while (= (char-syntax (char-after)) currsyn)
-                  (forward-char))
-                (while (= (char-syntax (char-after)) iswhite)
-                  (forward-char)))))))
+          (cl-loop for i downfrom (or arg 1) to 1 by 1 do
+                   (while (= (char-syntax (char-after)) currsyn)
+                     (forward-char))
+                   (while (= (char-syntax (char-after)) iswhite)
+                     (forward-char)))))))
   t)
 
 (defun brief-backward-word (&optional arg)
@@ -6330,7 +6217,7 @@ bottom of screen and end of buffer."
   (let ((end4  (eq brief-last-3rd-command  'brief-end))
         (end3  (eq brief-last-last-command 'brief-end))
         (end2  (eq last-command            'brief-end))
-        p1 p2 c1)
+        p1 p2) ;; c1
     (cond
      ;; 4th press
      ((and end4 end3 end2)
@@ -6498,7 +6385,7 @@ key of `save-buffers-kill-emacs' to bypass all these checks."
                 (let ((next-buffer (server-done))
                       (rest server-clients))
                   (if next-buffer
-                      (apply 'server-switch-buffer next-buffer)
+                      (apply #'server-switch-buffer next-buffer)
                     (while (and rest (not next-buffer))
                       (let ((proc (car rest)))
                         ;; Only look at frameless clients, or those in the
@@ -6667,39 +6554,39 @@ Unlike [return] key, this command does not split current line."
 ;; Defining F1 keymap bindings
 (brief-key                  [(f1)]  brief-prefix-F1)
 
-(define-key brief-prefix-F1 [(up)]         'brief-switch-window-up)
-(define-key brief-prefix-F1 [(down)]       'brief-switch-window-down)
-(define-key brief-prefix-F1 [(left)]       'brief-switch-window-left)
-(define-key brief-prefix-F1 [(right)]      'brief-switch-window-right)
+(define-key brief-prefix-F1 [(up)]         #'brief-switch-window-up)
+(define-key brief-prefix-F1 [(down)]       #'brief-switch-window-down)
+(define-key brief-prefix-F1 [(left)]       #'brief-switch-window-left)
+(define-key brief-prefix-F1 [(right)]      #'brief-switch-window-right)
 
 ;; Defining F2 keymap bindings
 ;; TODO: enlarge/shrink according to current window position and layouts
 (brief-key                  [(f2)]  brief-prefix-F2)
 
-(define-key brief-prefix-F2 [(down)]       'enlarge-window)
-(define-key brief-prefix-F2 [(left)]       'shrink-window-horizontally)
-(define-key brief-prefix-F2 [(right)]      'enlarge-window-horizontally)
-(define-key brief-prefix-F2 [(up)]         'shrink-window)
+(define-key brief-prefix-F2 [(down)]       #'enlarge-window)
+(define-key brief-prefix-F2 [(left)]       #'shrink-window-horizontally)
+(define-key brief-prefix-F2 [(right)]      #'enlarge-window-horizontally)
+(define-key brief-prefix-F2 [(up)]         #'shrink-window)
 
 ;; Defining F3 keymap bindings
 
 (brief-key                  [(f3)]  brief-prefix-F3)
 
-(define-key brief-prefix-F3 [(down)]       'split-window-vertically)
-(define-key brief-prefix-F3 [(up)]         'brief-split-window-up)
-(define-key brief-prefix-F3 [(right)]      'split-window-horizontally)
-(define-key brief-prefix-F3 [(left)]       'brief-split-window-left)
+(define-key brief-prefix-F3 [(down)]       #'split-window-vertically)
+(define-key brief-prefix-F3 [(up)]         #'brief-split-window-up)
+(define-key brief-prefix-F3 [(right)]      #'split-window-horizontally)
+(define-key brief-prefix-F3 [(left)]       #'brief-split-window-left)
 
 ;; Defining F4 keymap bindings
 (brief-key                  [(f4)]  brief-prefix-F4)
 
-(define-key brief-prefix-F4 [(up)]         'brief-delete-window-up)
-(define-key brief-prefix-F4 [(down)]       'brief-delete-window-down)
-(define-key brief-prefix-F4 [(left)]       'brief-delete-window-left)
-(define-key brief-prefix-F4 [(right)]      'brief-delete-window-right)
+(define-key brief-prefix-F4 [(up)]         #'brief-delete-window-up)
+(define-key brief-prefix-F4 [(down)]       #'brief-delete-window-down)
+(define-key brief-prefix-F4 [(left)]       #'brief-delete-window-left)
+(define-key brief-prefix-F4 [(right)]      #'brief-delete-window-right)
 
 
-(brief-key [(control f4)]           'brief-delete-current-window)
+(brief-key [(control f4)]           #'brief-delete-current-window)
 
 ;; Search commands
 
@@ -6707,116 +6594,116 @@ Unlike [return] key, this command does not split current line."
 ;; "meta"    key means "backward"
 ;; "control" key means "forward/current"
 
-(brief-key               [(f5)]     'brief-search-forward)
-(brief-key          [(meta f5)]     'brief-search-backward)
+(brief-key               [(f5)]     #'brief-search-forward)
+(brief-key          [(meta f5)]     #'brief-search-backward)
 
-(brief-key         [(shift f5)]     'brief-repeat-search)
-(brief-key [(control shift f5)]     'brief-repeat-search-forward)
-(brief-key    [(meta shift f5)]     'brief-repeat-search-backward)
+(brief-key         [(shift f5)]     #'brief-repeat-search)
+(brief-key [(control shift f5)]     #'brief-repeat-search-forward)
+(brief-key    [(meta shift f5)]     #'brief-repeat-search-backward)
 ;; 02/10/2005 ins 2, Search forward/backward, default current word
 ;; "control" key here means "current", as "f5" without "meta" already means
 ;; "forward"
-(brief-key       [(control f5)]     'brief-search-forward-currword)
-(brief-key  [(meta control f5)]     'brief-search-backward-currword)
+(brief-key       [(control f5)]     #'brief-search-forward-currword)
+(brief-key  [(meta control f5)]     #'brief-search-backward-currword)
 
-(brief-key    [(control x)(f5)]     'brief-toggle-search-case-sensitivity)
+(brief-key    [(control x)(f5)]     #'brief-toggle-search-case-sensitivity)
 
 ;; Replace commands
 
 ;; 04/03/'08 rem 1 ins 1
-(brief-key               [(f6)]     'brief-query-replace-forward)
-(brief-key          [(meta f6)]     'brief-query-replace-backward)
+(brief-key               [(f6)]     #'brief-query-replace-forward)
+(brief-key          [(meta f6)]     #'brief-query-replace-backward)
 
-(brief-key         [(shift f6)]     'brief-repeat-query-replace)
-(brief-key [(control shift f6)]     'brief-repeat-query-replace-forward)
-(brief-key    [(meta shift f6)]     'brief-repeat-query-replace-backward)
+(brief-key         [(shift f6)]     #'brief-repeat-query-replace)
+(brief-key [(control shift f6)]     #'brief-repeat-query-replace-forward)
+(brief-key    [(meta shift f6)]     #'brief-repeat-query-replace-backward)
 
-(brief-key       [(control f6)]     'brief-query-replace-forward-currword)
-(brief-key  [(meta control f6)]     'brief-query-replace-backward-currword)
+(brief-key       [(control f6)]     #'brief-query-replace-forward-currword)
+(brief-key  [(meta control f6)]     #'brief-query-replace-backward-currword)
 
-(brief-key    [(control x)(f6)]     'brief-toggle-search-replace-regexp)
+(brief-key    [(control x)(f6)]     #'brief-toggle-search-replace-regexp)
 
-(brief-key [(control s)]            'isearch-forward)
-(brief-key [(meta s)]               'isearch-backward)
+(brief-key [(control s)]            #'isearch-forward)
+(brief-key [(meta s)]               #'isearch-backward)
 
 ;; File/Buffer commands
 
-(brief-key [(meta e)]               'brief-find-file)
-(brief-key [(meta f)]               'brief-current-filename)
+(brief-key [(meta e)]               #'brief-find-file)
+(brief-key [(meta f)]               #'brief-current-filename)
 
-(brief-key [(f9)]                   'find-file)
-(brief-key [(meta f9)]              'load-library)
+(brief-key [(f9)]                   #'find-file)
+(brief-key [(meta f9)]              #'load-library)
 
-(brief-key [(meta o)]               'write-file)
-(brief-key [(meta r)]               'insert-file)
+(brief-key [(meta o)]               #'write-file)
+(brief-key [(meta r)]               #'insert-file)
 
-(brief-key [(f10)]                  'execute-extended-command)
-(brief-key [(meta f10)]             'compile)
-(brief-key [(shift f10)]            'menu-bar-open)
-(brief-key [(control p)]            'brief-view-compilation-output)
+(brief-key [(f10)]                  #'execute-extended-command)
+(brief-key [(meta f10)]             #'compile)
+(brief-key [(shift f10)]            #'menu-bar-open)
+(brief-key [(control p)]            #'brief-view-compilation-output)
 
-(brief-key [(meta b)]               'brief-buffer-list-window)
+(brief-key [(meta b)]               #'brief-buffer-list-window)
 ;; added function brief-indent-tab
 ;; <2012-01-03 Tue 16:29> !!! This key-binding is too strong for Info mode !!!
 ;;   Info mode use "\t" instead of <tab>.
-;;(brief-key [(tab)]                  'brief-indent-tab)
+;;(brief-key [(tab)]                  #'brief-indent-tab)
 ;; <2012-01-03 Tue 16:29> This weak binding will enable <TAB> in Info mode.
 ;; [2012-02-24 14:35:58 +0800] This seems to work only after Emacs 24,
 ;;  Emacs 23 won't work.
-(brief-key "\t"                     'brief-indent-tab)
+(brief-key "\t"                     #'brief-indent-tab)
 ;; 06/02/2008 Original function can be replaced by 'ctrl-q' <tab>,
 ;;   change this key combination to brief-indent-buffer
-(brief-key [(control meta tab)]     'brief-indent-buffer)
+(brief-key [(control meta tab)]     #'brief-indent-buffer)
 ;; 06/21/2005 ins 1 08/10/2005 change to meta-f11 for Fedora4
-(brief-key [(meta f11)]             'brief-buffer-read-only-toggle)
-(brief-key [(meta p)]               'brief-print) ;; 04/15/'08 ins 1
+(brief-key [(meta f11)]             #'brief-buffer-read-only-toggle)
+(brief-key [(meta p)]               #'brief-print) ;; 04/15/'08 ins 1
 
-;;(brief-key [(control ?-)]          'kill-buffer)
-(brief-key [(control ?-)]           'brief-kill-current-buffer)
-(brief-key [(control kp-subtract)]  'kill-buffer)
+;;(brief-key [(control ?-)]          #'kill-buffer)
+(brief-key [(control ?-)]           #'brief-kill-current-buffer)
+(brief-key [(control kp-subtract)]  #'kill-buffer)
 
-(brief-key [(meta ?-)]              'brief-previous-buffer)
-(brief-key [(meta ?_)]              'brief-previous-buffer)
+(brief-key [(meta ?-)]              #'brief-previous-buffer)
+(brief-key [(meta ?_)]              #'brief-previous-buffer)
 
-(brief-key [(meta n)]               'brief-next-buffer)
+(brief-key [(meta n)]               #'brief-next-buffer)
 ;; 2009/12/1 add since meta-n (next) is a so widely used key combination
 ;;   with meta-p (prev)
-(brief-key [(meta ?+)]              'brief-next-buffer)
-(brief-key [(meta ?=)]              'brief-next-buffer)
+(brief-key [(meta ?+)]              #'brief-next-buffer)
+(brief-key [(meta ?=)]              #'brief-next-buffer)
 
-(brief-key [(meta w)]               'brief-save-buffer)
+(brief-key [(meta w)]               #'brief-save-buffer)
 
-(brief-key [(meta x)]               'brief-meta-x-wrapper)
-;;(brief-key [(control x)]            'save-buffers-kill-emacs) ;; Emacs prefix
-(brief-key [(control meta shift x)] 'save-buffers-kill-emacs)
-(brief-key [(control meta shift X)] 'save-buffers-kill-emacs)
+(brief-key [(meta x)]               #'brief-meta-x-wrapper)
+;;(brief-key [(control x)]            #'save-buffers-kill-emacs) ;; Emacs prefix
+(brief-key [(control meta shift x)] #'save-buffers-kill-emacs)
+(brief-key [(control meta shift X)] #'save-buffers-kill-emacs)
 
-(brief-key [(meta h)]               'help)
+(brief-key [(meta h)]               #'help)
 
 ;; Macro commands
 
 ;; modify start-kbd-macro to brief-define-macro
-(brief-key [(f7)]                   'brief-define-macro)
-(brief-key [(shift f7)]             'brief-toggle-pause-kbd-macro)
+(brief-key [(f7)]                   #'brief-define-macro)
+(brief-key [(shift f7)]             #'brief-toggle-pause-kbd-macro)
 
-(brief-key [(f8)]                   'brief-call-last-kbd-macro)
+(brief-key [(f8)]                   #'brief-call-last-kbd-macro)
 
-(brief-key [(meta f7)]              'brief-load-kbd-macro)
-(brief-key [(meta f8)]              'brief-save-kbd-macro)
+(brief-key [(meta f7)]              #'brief-load-kbd-macro)
+(brief-key [(meta f8)]              #'brief-save-kbd-macro)
 
 ;; Region / Xselection(Clipboard) commands
 
-(brief-key [(kp-add)]               'brief-copy-line)
-(brief-key [(kp-subtract)]          'brief-kill-line)
+(brief-key [(kp-add)]               #'brief-copy-line)
+(brief-key [(kp-subtract)]          #'brief-kill-line)
 ;; just to cover all the bases (GNU Emacs, for instance)
 
 ;; <2011-06-10 Fri 14:35> for Emacs X clipboard
-(brief-key [(insert)]               'brief-yank)
-(brief-key [(insertchar)]           'brief-yank)
+(brief-key [(insert)]               #'brief-yank)
+(brief-key [(insertchar)]           #'brief-yank)
 
 ;; Preventing the need for a keypad; for notebooks and a lot of new keyboards
-(brief-key [(control insert)]       'brief-copy-line)
-(brief-key [(shift delete)]         'brief-kill-line)
+(brief-key [(control insert)]       #'brief-copy-line)
+(brief-key [(shift delete)]         #'brief-kill-line)
 
 ;;
 ;; Defining meta-L keymaps
@@ -6848,83 +6735,83 @@ Unlike [return] key, this command does not split current line."
 (brief-meta-l-key down [(control next)])  ;; 'brief-mark-line-down-with-<C-next>
 
 ;; 04/28/2008 ins
-(define-key brief-prefix-meta-l [(meta l)]   'brief-mark-line-down-with-meta-l)
+(define-key brief-prefix-meta-l [(meta l)]   #'brief-mark-line-down-with-meta-l)
 
-(brief-key [(meta m)]               'set-mark-command)
+(brief-key [(meta m)]               #'set-mark-command)
 
 ;; Rectangle open/close/clear
-(brief-key [(meta c)]               'cua-set-rectangle-mark)
+(brief-key [(meta c)]               #'cua-set-rectangle-mark)
 
-(brief-key [(meta u)]               'brief-undo)
-;;(brief-key [(control u)]            'undo) ;; a prefix key
-(brief-key [(kp-multiply)]          'brief-undo)
+(brief-key [(meta u)]               #'brief-undo)
+;;(brief-key [(control u)]            #'undo) ;; a prefix key
+(brief-key [(kp-multiply)]          #'brief-undo)
 
 ;; General editing commands
 
-(brief-key [(meta d)]               'brief-delete-entire-line)
-(brief-key [(meta k)]               'brief-delete-end-of-line)
+(brief-key [(meta d)]               #'brief-delete-entire-line)
+(brief-key [(meta k)]               #'brief-delete-end-of-line)
 
-;;(brief-key [(control ?])]          'brief-matching-open)
+;;(brief-key [(control ?])]          #'brief-matching-open)
 
 ;; <2011-06-30 Thu 15:04> rename 'kill' to 'delete'
 ;; <2012-10-31 Wed 16:00> remove brief-delete-word due to the brief-forward-word
 ;;   fix that it's now identical to brief-delete-word
-(brief-key [(meta backspace)]       'brief-delete-word)
+(brief-key [(meta backspace)]       #'brief-delete-word)
 ;; <2011-06-14 Tue 18:06> Add brief-backward-delete-word
-(brief-key [(control backspace)]    'brief-backward-delete-word)
+(brief-key [(control backspace)]    #'brief-backward-delete-word)
 
-(brief-key [(delete)]               'brief-delete)
-(brief-key [(shift backspace)]      'backward-kill-word)
+(brief-key [(delete)]               #'brief-delete)
+(brief-key [(shift backspace)]      #'backward-kill-word)
 
-(brief-key [(meta i)]               'overwrite-mode)
+(brief-key [(meta i)]               #'overwrite-mode)
 
 ;; Bookmark commands
 
-(brief-key [(meta ?0)]              'brief-bookmark-jump-set-0)
-(brief-key [(meta ?1)]              'brief-bookmark-jump-set-1)
-(brief-key [(meta ?2)]              'brief-bookmark-jump-set-2)
-(brief-key [(meta ?3)]              'brief-bookmark-jump-set-3)
-(brief-key [(meta ?4)]              'brief-bookmark-jump-set-4)
-(brief-key [(meta ?5)]              'brief-bookmark-jump-set-5)
-(brief-key [(meta ?6)]              'brief-bookmark-jump-set-6)
-(brief-key [(meta ?7)]              'brief-bookmark-jump-set-7)
-(brief-key [(meta ?8)]              'brief-bookmark-jump-set-8)
-(brief-key [(meta ?9)]              'brief-bookmark-jump-set-9)
+(brief-key [(meta ?0)]              #'brief-bookmark-jump-set-0)
+(brief-key [(meta ?1)]              #'brief-bookmark-jump-set-1)
+(brief-key [(meta ?2)]              #'brief-bookmark-jump-set-2)
+(brief-key [(meta ?3)]              #'brief-bookmark-jump-set-3)
+(brief-key [(meta ?4)]              #'brief-bookmark-jump-set-4)
+(brief-key [(meta ?5)]              #'brief-bookmark-jump-set-5)
+(brief-key [(meta ?6)]              #'brief-bookmark-jump-set-6)
+(brief-key [(meta ?7)]              #'brief-bookmark-jump-set-7)
+(brief-key [(meta ?8)]              #'brief-bookmark-jump-set-8)
+(brief-key [(meta ?9)]              #'brief-bookmark-jump-set-9)
 
-(brief-key [(meta j)]               'brief-bookmark-set-jump)
+(brief-key [(meta j)]               #'brief-bookmark-set-jump)
 
 ;; Cursor commands
 
-(brief-key [(meta left)]            'backward-sexp)
-(brief-key [(meta right)]           'forward-sexp)
+(brief-key [(meta left)]            #'backward-sexp)
+(brief-key [(meta right)]           #'forward-sexp)
 
-(brief-key [(control left)]         'brief-backward-word)
-(brief-key [(control right)]        'brief-forward-word)
+(brief-key [(control left)]         #'brief-backward-word)
+(brief-key [(control right)]        #'brief-forward-word)
 
-(brief-key [(home)]                 'brief-home)
-(brief-key [(control home)]         'brief-move-to-window-line-0)
-(brief-key [(control shift home)]   'brief-mark-move-to-window-line-0)
+(brief-key [(home)]                 #'brief-home)
+(brief-key [(control home)]         #'brief-move-to-window-line-0)
+(brief-key [(control shift home)]   #'brief-mark-move-to-window-line-0)
 
-(brief-key [(meta home)]            'beginning-of-line)
-(brief-key [(end)]                  'brief-end)
-(brief-key [(control end)]          'brief-move-to-window-line-end)
-(brief-key [(control shift end)]    'brief-mark-move-to-window-line-end)
-(brief-key [(meta end)]             'end-of-line)
+(brief-key [(meta home)]            #'beginning-of-line)
+(brief-key [(end)]                  #'brief-end)
+(brief-key [(control end)]          #'brief-move-to-window-line-end)
+(brief-key [(control shift end)]    #'brief-mark-move-to-window-line-end)
+(brief-key [(meta end)]             #'end-of-line)
 
-(brief-key [prior]                  'brief-fixed-cursor-page-up)
-(brief-key [next]                   'brief-fixed-cursor-page-down)
+(brief-key [prior]                  #'brief-fixed-cursor-page-up)
+(brief-key [next]                   #'brief-fixed-cursor-page-down)
 
-(brief-key [(meta up)]              'brief-previous-physical-line)
-(brief-key [(meta down)]            'brief-next-physical-line)
+(brief-key [(meta up)]              #'brief-previous-physical-line)
+(brief-key [(meta down)]            #'brief-next-physical-line)
 
-(brief-key [(meta g)]               'goto-line)
+(brief-key [(meta g)]               #'goto-line)
 
-;;(brief-key [up]                     'brief-previous-line)
-;;(brief-key [down]                   'brief-next-line)
-(brief-key [remap previous-line]    'brief-previous-line)
-(brief-key [remap next-line]        'brief-next-line)
+;;(brief-key [up]                     #'brief-previous-line)
+;;(brief-key [down]                   #'brief-next-line)
+(brief-key [remap previous-line]    #'brief-previous-line)
+(brief-key [remap next-line]        #'brief-next-line)
 
-(brief-key [(control shift l)]      'brief-recenter-left-right)
+(brief-key [(control shift l)]      #'brief-recenter-left-right)
 
 ;;
 ;; Miscellaneous infrequently used Brief keys
@@ -6934,28 +6821,28 @@ Unlike [return] key, this command does not split current line."
   (when brief-enable-less-frequent-keys
     ;; Change Emacs native key binding for infrequently used commands
 
-    (brief-key [(meta v)]               'brief-version)
-    (define-key cua--cua-keys-keymap [(meta v)] 'brief-version)
+    (brief-key [(meta v)]               #'brief-version)
+    (define-key cua--cua-keys-keymap [(meta v)] #'brief-version)
 
-    (brief-key [(control e)]            'brief-scroll-up-one-line)
-    (brief-key [(control d)]            'brief-scroll-down-one-line)
+    (brief-key [(control e)]            #'brief-scroll-up-one-line)
+    (brief-key [(control d)]            #'brief-scroll-down-one-line)
 
-    (brief-key [(control w)]            'brief-toggle-auto-backup)
+    (brief-key [(control w)]            #'brief-toggle-auto-backup)
 
-    (brief-key [(control prior)]        'brief-beginning-of-file)
-    (brief-key [(control next)]         'brief-end-of-file)
+    (brief-key [(control prior)]        #'brief-beginning-of-file)
+    (brief-key [(control next)]         #'brief-end-of-file)
     ;;(brief-meta-l-key up   [(control prior)]) ;;already defined
     ;;(brief-meta-l-key down [(control next)])  ;;already defined
 
-    (brief-key [(meta home)]            'brief-move-to-window-line-0)
-    (brief-key [(meta end)]             'brief-end-of-window)
+    (brief-key [(meta home)]            #'brief-move-to-window-line-0)
+    (brief-key [(meta end)]             #'brief-end-of-window)
     (brief-meta-l-key up   [(meta home)])     ; brief-mark-line-up-with-<M-home>
     (brief-meta-l-key down [(meta end)])      ; brief-mark-line-down-with-<M-end>
 
-    (brief-key [(control return)]       'brief-open-new-line-next)
-    (define-key cua-global-keymap [(control return)] 'brief-open-new-line-next)
+    (brief-key [(control return)]       #'brief-open-new-line-next)
+    (define-key cua-global-keymap [(control return)] #'brief-open-new-line-next)
 
-    (brief-key [(meta z)]               'eshell)))
+    (brief-key [(meta z)]               #'eshell)))
 
 ;;==============================================================================
 ;;
@@ -7059,81 +6946,41 @@ toggle brief-mode."
                     select-enable-primary   brief-backup-select-enable-primary))
           ;; These gui-get/set-selection changes are also required for
           ;; win32/win64 systems
-          (if (fboundp 'advice-add)
-              (if brief-selection-op-legacy
-                  (progn
-                    (advice-remove 'x-get-selection 'brief-gui-get-selection)
-                    (advice-remove 'x-set-selection 'brief-gui-set-selection)
-                    (advice-remove 'x-select-text   'brief-gui-select-text))
-                ;; newer emacs
-                (advice-remove 'gui-get-selection 'brief-gui-get-selection)
-                (advice-remove 'gui-set-selection 'brief-gui-set-selection)
-                (advice-remove 'gui-select-text   'brief-gui-select-text))
-
-            (if brief-selection-op-legacy
-                (progn
-                  ;; older emacs don't have gui-get/set-selection
-                  (ad-disable-advice 'x-get-selection
-                                     'around 'brief-advice-gui-get-selection)
-                  (ad-disable-advice 'x-set-selection
-                                     'around 'brief-advice-gui-set-selection)
-                  (ad-activate 'x-get-selection)
-                  (ad-activate 'x-set-selection))
-              ;; `advice-add' not present, but `gui-get-selection' exists,
-              ;; this combination is not likely to happen, just in case.
-              (ad-disable-advice 'gui-get-selection
-                                 'around 'brief-advice-gui-get-selection)
-              (ad-disable-advice 'gui-set-selection
-                                 'around 'brief-advice-gui-set-selection)
-              (ad-activate 'gui-get-selection)
-              (ad-activate 'gui-set-selection)))
-
-          (if (fboundp 'advice-add)
+          (if brief-selection-op-legacy
               (progn
-                (advice-remove 'cua--rectangle-post-command
-                               'brief-cua--rectangle-post-command)
-                (advice-remove 'cua-cancel
-                               'brief-reset-for-command-cancellation)
-                (advice-remove 'keyboard-quit
-                               'brief-reset-for-keyboard-quit)
-                (advice-remove 'keyboard-escape-quit
-                               'brief-reset-for-command-cancellation)
-                (advice-remove 'cua-clear-rectangle-mark
-                               'brief-reset-for-command-cancellation)
-                (advice-remove 'cua-close-rectangle
-                               'brief-reset-for-command-cancellation))
-            (when (fboundp 'cua--rectangle-post-command)
-              (ad-disable-advice 'cua--rectangle-post-command
-                                 'before 'brief-cua--rectangle-post-command)
-              (ad-activate 'cua--rectangle-post-command))
-            (ad-disable-advice 'cua-cancel
-                               'before 'brief-cua-cancel)
-            (ad-activate 'cua-cancel)
-            (ad-disable-advice 'keyboard-quit
-                               'before 'brief-keyboard-quit)
-            (ad-activate 'keyboard-quit)
-            (ad-disable-advice 'keyboard-escape-quit
-                               'before 'brief-keyboard-escape-quit)
-            (ad-activate 'keyboard-escape-quit)
-            (when (fboundp 'cua-clear-rectangle-mark)
-              (ad-disable-advice 'cua-clear-rectangle-mark
-                                 'before 'brief-clear-rectangle-mark)
-              (ad-activate 'cua-clear-rectangle-mark))
-            (when (fboundp 'cua-close-rectangle)
-              (ad-disable-advice 'cua-close-rectangle
-                                 'before 'brief-close-rectangle)
-              (ad-activate 'cua-close-rectangle)))
+                (advice-remove 'x-get-selection #'brief-gui-get-selection)
+                (advice-remove 'x-set-selection #'brief-gui-set-selection)
+                (advice-remove 'x-select-text   #'brief-gui-select-text))
+            ;; newer emacs
+            (advice-remove 'gui-get-selection #'brief-gui-get-selection)
+            (advice-remove 'gui-set-selection #'brief-gui-set-selection)
+            (advice-remove 'gui-select-text   #'brief-gui-select-text))
+
+          ;; TODO: Is there a better way then defining an advice for
+          ;; restoring clipboard?
+          (advice-remove 'cua--rectangle-post-command
+                         #'brief-cua--rectangle-post-command)
+          (advice-remove 'cua-cancel
+                         #'brief-reset-for-command-cancellation)
+          (advice-remove 'keyboard-quit
+                         #'brief-reset-for-keyboard-quit)
+          (advice-remove 'keyboard-escape-quit
+                         #'brief-reset-for-command-cancellation)
+          (advice-remove 'cua-clear-rectangle-mark
+                         #'brief-reset-for-command-cancellation)
+          (advice-remove 'cua-close-rectangle
+                         #'brief-reset-for-command-cancellation)
 
           (remove-hook 'activate-mark-hook
-                       'brief-region-backup-clipboard-selection)
+                       #'brief-region-backup-clipboard-selection)
           (remove-hook 'activate-mark-hook
-                       'brief-postpone-gui-set-selection)
+                       #'brief-postpone-gui-set-selection)
           (remove-hook 'deactivate-mark-hook
-                       'brief-resume-gui-set-selection)
+                       #'brief-resume-gui-set-selection)
           (remove-hook 'before-change-functions
-                       'brief-trim-fast-line-number-list)
+                       #'brief-trim-fast-line-number-list)
           (remove-hook 'deactivate-mark-hook
-                       'brief-delete-search-overlay)
+                       #'brief-delete-search-overlay)
 
           (use-global-map brief-mode-original-keymap)
 
@@ -7164,88 +7011,46 @@ toggle brief-mode."
           ;; On Windows only 'CLIPBOARD works, 'PRIMARY does not work
           (setq select-enable-clipboard t
                 select-enable-primary   nil))
-      (if (fboundp 'advice-add)
-          ;; Emacs >= 24
-          (if brief-selection-op-legacy
-              (progn
-                (advice-add 'x-get-selection
-                            :around   'brief-gui-get-selection)
-                (advice-add 'x-set-selection
-                            :around   'brief-gui-set-selection)
-                (advice-add 'x-select-text
-                            :override 'brief-gui-select-text))
-            ;; Emacs >= 25
-            (advice-add 'gui-get-selection
-                        :around   'brief-gui-get-selection)
-            (advice-add 'gui-set-selection
-                        :around   'brief-gui-set-selection)
-            (advice-add 'gui-select-text
-                        :override 'brief-gui-select-text))
-        (if brief-selection-op-legacy
-            ;; Older emacs
-            (progn
-              (ad-enable-advice 'x-get-selection
-                                'around 'brief-advice-gui-get-selection)
-              (ad-enable-advice 'x-set-selection
-                                'around 'brief-advice-gui-set-selection)
-              (ad-activate 'x-get-selection)
-              (ad-activate 'x-set-selection))
-          ;; `advice-add' not present, but `gui-get-selection' exists
-          ;; not likely to happen, just in case.
-          (ad-enable-advice 'gui-get-selection
-                            'around 'brief-advice-gui-get-selection)
-          (ad-enable-advice 'gui-set-selection
-                            'around 'brief-advice-gui-set-selection)
-          (ad-activate 'gui-get-selection)
-          (ad-activate 'gui-set-selection)))
-
-      (if (fboundp 'advice-add)
+      (if brief-selection-op-legacy
           (progn
-            (advice-add 'cua--rectangle-post-command
-                        :before   'brief-cua-rectangle-undo-helper)
-            (advice-add 'cua-cancel
-                        :before   'brief-reset-for-command-cancellation)
-            (advice-add 'keyboard-quit
-                        :before   'brief-reset-for-keyboard-quit)
-            (advice-add 'keyboard-escape-quit
-                        :before   'brief-reset-for-command-cancellation)
-            (advice-add 'cua-clear-rectangle-mark
-                        :before   'brief-reset-for-command-cancellation)
-            (advice-add 'cua-close-rectangle
-                        :before   'brief-reset-for-command-cancellation))
-        (when (fboundp 'cua--rectangle-post-command)
-          (ad-enable-advice 'cua--rectangle-post-command
-                            'before 'brief-cua--rectangle-post-command)
-          (ad-activate 'cua--rectangle-post-command))
-        (ad-enable-advice 'cua-cancel
-                          'before 'brief-cua-cancel)
-        (ad-activate 'cua-cancel)
-        (ad-enable-advice 'keyboard-quit
-                          'before 'brief-keyboard-quit)
-        (ad-activate 'keyboard-quit)
-        (ad-enable-advice 'keyboard-escape-quit
-                          'before 'brief-keyboard-escape-quit)
-        (ad-activate 'keyboard-escape-quit)
-        (when (fboundp 'cua-clear-rectangle-mark)
-          (ad-enable-advice 'cua-clear-rectangle-mark
-                            'before 'brief-clear-rectangle-mark)
-          (ad-activate 'cua-clear-rectangle-mark))
-        (when (fboundp 'cua-close-rectangle)
-          (ad-enable-advice 'cua-close-rectangle
-                            'before 'brief-close-rectangle)
-          (ad-activate 'cua-close-rectangle)))
+            (advice-add 'x-get-selection
+                        :around   #'brief-gui-get-selection)
+            (advice-add 'x-set-selection
+                        :around   #'brief-gui-set-selection)
+            (advice-add 'x-select-text
+                        :override #'brief-gui-select-text))
+        ;; Emacs >= 25
+        (advice-add 'gui-get-selection
+                    :around   #'brief-gui-get-selection)
+        (advice-add 'gui-set-selection
+                    :around   #'brief-gui-set-selection)
+        (advice-add 'gui-select-text
+                    :override #'brief-gui-select-text))
+
+      (advice-add 'cua--rectangle-post-command
+                  :before   #'brief-cua-rectangle-undo-helper)
+      (advice-add 'cua-cancel
+                  :before   #'brief-reset-for-command-cancellation)
+      (advice-add 'keyboard-quit
+                  :before   #'brief-reset-for-keyboard-quit)
+      (advice-add 'keyboard-escape-quit
+                  :before   #'brief-reset-for-command-cancellation)
+      (advice-add 'cua-clear-rectangle-mark
+                  :before   #'brief-reset-for-command-cancellation)
+      (advice-add 'cua-close-rectangle
+                  :before   #'brief-reset-for-command-cancellation)
 
       ;; This will sometimes make `wg-restore-window' fails. I modified
       ;; `wg-restore-window' and add a advice function in init.el to prevent this
       (add-hook 'activate-mark-hook
-                'brief-region-backup-clipboard-selection)
+                #'brief-region-backup-clipboard-selection)
       (when brief-enable-postpone-selection
         (add-hook 'activate-mark-hook
-                  'brief-postpone-gui-set-selection 't)
+                  #'brief-postpone-gui-set-selection 't)
         (add-hook 'deactivate-mark-hook
-                  'brief-resume-gui-set-selection))
+                  #'brief-resume-gui-set-selection))
       (add-hook 'deactivate-mark-hook
-                'brief-delete-search-overlay)
+                #'brief-delete-search-overlay)
 
       (use-global-map brief-global-mode-map)
 
@@ -7262,9 +7067,9 @@ toggle brief-mode."
       (if brief-load-scroll-lock
           (require 'scroll-lock))
       (if (featurep 'scroll-lock)
-          (define-key brief-global-mode-map [(Scroll_Lock)] 'scroll-lock-mode))
+          (define-key brief-global-mode-map [(Scroll_Lock)] #'scroll-lock-mode))
 
-      (add-hook 'before-change-functions 'brief-trim-fast-line-number-list)
+      (add-hook 'before-change-functions #'brief-trim-fast-line-number-list)
       ;; ;; On Windows we can only interact with CLIPBOARD but not PRIMARY
       ;; (if (eq window-system 'w32)
       ;;     (setq brief-X-selection-target 'CLIPBOARD))
@@ -7306,8 +7111,8 @@ toggle brief-mode."
 
      (when (and (fboundp 'cua-paste)
                 (boundp 'cua--cua-keys-keymap))
-       (define-key cua--cua-keys-keymap [remap yank] 'brief-yank)
-       (define-key cua--cua-keys-keymap [(control v)] 'brief-yank))))
+       (define-key cua--cua-keys-keymap [remap yank] #'brief-yank)
+       (define-key cua--cua-keys-keymap [(control v)] #'brief-yank))))
 
 ;; Support multiple-cursors package
 
@@ -7481,13 +7286,13 @@ toggle brief-mode."
                    help
                    eshell)))))
 
-     (add-hook 'brief-mode-mode 'brief-setup-multicurs-cmds)))
+     (add-hook 'brief-mode-mode #'brief-setup-multicurs-cmds)))
 
 ;;
 ;; Overriding `line-number-at-pos'
 ;;
 
-(eval-when (compile load eval)
+(cl-eval-when (compile load eval)
   (when (version< emacs-version "24.0")
     ;;(message "Defining advice function `brief-override-line-number-at-pos'")
     ;; Initially we disable it till brief mode is enabled
@@ -7505,30 +7310,18 @@ This function dynamically override `line-number-at-pos' according to
 the VAL.  Notice this works only if functions like `custom-set-variables'
 are used to set this custom variable."
   (if val
-      (if (fboundp #'advice-add)
-          (progn
-            (advice-add 'line-number-at-pos
-                        :override #'brief-fast-line-number-at-pos)
-            (message
-             "Overriding `line-number-at-pos' with Brief's fast version."))
-        (ad-enable-advice 'line-number-at-pos
-                          'around 'brief-override-line-number-at-pos)
-        (ad-activate 'line-number-at-pos)
-        (message "Advice `line-number-at-pos' with Brief's fast version."))
+      (progn
+        (advice-add 'line-number-at-pos
+                    :override #'brief-fast-line-number-at-pos)
+        (message
+         "Overriding `line-number-at-pos' with Brief's fast version."))
     ;; Iterate through the buffer list and clean each buffer's line number cache
     (dolist (b (buffer-list))
       (with-current-buffer b
         (setq brief-fast-line-number-list nil)))
-    (if (fboundp 'advice-remove)
-        (progn
-          (advice-remove 'line-number-at-pos #'brief-fast-line-number-at-pos)
-          (message
-           "Restoring `line-number-at-pos' to Emacs's default version."))
-      (ad-disable-advice 'line-number-at-pos
-                         'around 'brief-override-line-number-at-pos)
-      (ad-activate 'line-number-at-pos)
-      (message
-       "Disable advicing `line-number-at-pos' return to Emacs's default.")))
+    (advice-remove 'line-number-at-pos #'brief-fast-line-number-at-pos)
+    (message
+     "Restoring `line-number-at-pos' to Emacs's default version."))
   (set sym val))
 
 (defcustom brief-replace-emacs-func:line-number-at-pos
@@ -7544,9 +7337,10 @@ which is slow on very big files, especially when using `linum-mode'.
 Notice that this replacement is global once you loaded brief mode, no
 matter if brief-mode is enabled or not."
   :type  'boolean
-  :set   'brief-set:brief-replace-emacs-func:line-number-at-pos)
+  :set   #'brief-set:brief-replace-emacs-func:line-number-at-pos)
 
-(eval-when (compile eval load)
+(cl-eval-when (compile eval load)
+  ;; FIXME: This quote comments out the whole thing; is that intended?
   '(when brief-replace-emacs-func:line-number-at-pos
      ;; Global replacement, no matter if Brief mode is enabled or not.
      ;; Notice that it dynamically overrides the `line-number-at-pos' function
@@ -7554,14 +7348,10 @@ matter if brief-mode is enabled or not."
      ;; `custom-set-variables' must be used to change this custom value.
      ;; Normal `setq', `set' and `set-default' will only change the value but
      ;; will not change the replacement status of `line-number-at-pos'.
-     (if (fboundp 'advice-add)
-         ;; Its :set method already do this; here is just in case the user
-         ;; using `setq' to set the value.
-         (advice-add 'line-number-at-pos
-                     :override #'brief-fast-line-number-at-pos)
-       (ad-enable-advice 'line-number-at-pos
-                         'around 'brief-override-line-number-at-pos)
-       (ad-activate 'line-number-at-pos))))
+     ;; Its :set method already do this; here is just in case the user
+     ;; using `setq' to set the value.
+     (advice-add 'line-number-at-pos
+                 :override #'brief-fast-line-number-at-pos)))
 
 ;;;###autoload
 (defun brief-easy-start ()
