@@ -64,6 +64,11 @@
 (declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
 
+;; Reload `tramp-compat` when we reload `tramp-autoloads' of the GNU
+;; ELPA package.
+;;;###autoload (when (featurep 'tramp-compat)
+;;;###autoload   (load "tramp-compat" 'noerror 'nomessage)
+
 ;;; User Customizable Internal Variables:
 
 (defgroup tramp nil
@@ -2581,15 +2586,12 @@ Falls back to normal file name handler if no Tramp file name handler exists."
     ;; might be an older, incompatible version active.  We try to
     ;; overload this.
     (let ((default-directory temporary-file-directory))
-      (load "tramp-compat" 'noerror 'nomessage)
       (load "tramp" 'noerror 'nomessage)))
   (apply operation args)))
 
 ;; `tramp-autoload-file-name-handler' must be registered before
 ;; evaluation of site-start and init files, because there might exist
-;; remote files already, f.e. files kept via recentf-mode.  We must
-;; also handle the case that autoloads are revaluated, for example
-;; when installing Tramp as GNU ELPA package.
+;; remote files already, f.e. files kept via recentf-mode.
 ;;;###autoload
 (progn (defun tramp-register-autoload-file-name-handlers ()
   "Add Tramp file name handlers to `file-name-handler-alist' during autoload."
