@@ -67,7 +67,7 @@
 ;; Reload `tramp-compat` when we reload `tramp-autoloads' of the GNU
 ;; ELPA package.
 ;;;###autoload (when (featurep 'tramp-compat)
-;;;###autoload   (load "tramp-compat" 'noerror 'nomessage)
+;;;###autoload   (load "tramp-compat" 'noerror 'nomessage))
 
 ;;; User Customizable Internal Variables:
 

@@ -33,7 +33,6 @@
 
 ;;; Code:
 
-(require 'tramp-compat)
 (require 'tramp)
 
 (defvar process-file-return-signal-string)
