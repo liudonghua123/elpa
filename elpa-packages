@@ -83,6 +83,7 @@
  ("cl-generic"		:url nil)
  ("cl-lib"		:url nil)
  ("cl-print"		:core "lisp/emacs-lisp/cl-print.el")
+ ("clhs"                :url "https://gitlab.com/sam-s/clhs.git")
  ("clipboard-collector" :url "https://github.com/clemera/clipboard-collector")
  ("cobol-mode"          :url "https://gist.github.com/Edward-H/6768e7dc53ea3dd2adca")
  ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
