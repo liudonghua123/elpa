@@ -12,9 +12,6 @@ A remote file name has always the syntax
 
 Most of the parts are optional, read the manual for details.
 
-Installing Tramp as GNU ELPA package requires, that the current
-default-directory is not under Tramp control.
-
 Tramp must be compiled for the Emacs version you are running.  If you
 experience compatibility error messages for the Tramp package, or if
 you use another major Emacs version than the version Tramp has been
