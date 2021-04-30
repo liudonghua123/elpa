@@ -45,7 +45,8 @@
  ("ampc"		:url nil)
  ("arbitools"		:url nil)
  ("ascii-art-to-unicode" :url nil)
- ("async"		:url "https://github.com/jwiegley/emacs-async")
+ ("async"		:url "https://github.com/jwiegley/emacs-async"
+  :auto-sync t)
  ("auctex"		:url "git://git.sv.gnu.org/auctex.git")
  ("aumix-mode"		:url nil)
  ("auto-overlays"	:url "http://www.dr-qubit.org/git/predictive.git"
