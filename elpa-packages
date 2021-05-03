@@ -111,7 +111,8 @@
   :auto-sync t)
  ("dbus-codegen"	:url "https://github.com/ueno/dbus-codegen-el.git")
  ("debbugs"		:url nil :doc ("debbugs.texi" "debbugs-ug.texi"))
- ("delight"		:url "https://git.savannah.gnu.org/r/delight.git")
+ ("delight"		:url "https://git.savannah.gnu.org/r/delight.git"
+  :auto-sync t)
  ("dict-tree"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("diffview"            :url "https://github.com/mgalgs/diffview-mode.git")
  ("diff-hl"
@@ -137,7 +138,8 @@
  ("electric-spacing"	:url nil)
  ("elisp-benchmarks"	:url nil)
  ("emms"		:url "https://git.savannah.gnu.org/git/emms.git"
-  :doc "doc/emms.texinfo")
+  :doc "doc/emms.texinfo"
+  :auto-sync t)
  ("enwc"		:url "hg::https://hg.savannah.nongnu.org/hgweb/enwc/")
  ("epoch-view"		:url nil)
  ("ergoemacs-mode"	:url "https://github.com/ergoemacs/ergoemacs-mode.git")
