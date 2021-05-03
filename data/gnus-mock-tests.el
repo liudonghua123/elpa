@@ -44,6 +44,8 @@
 ;;; Code:
 
 (require 'ert)
+(declare-function gnus-alive-p "gnus-util")
+(defvar gnus-newsrc-hashtb)
 
 (defcustom gnus-mock-halt-seconds 1
   "In `gnus-mock-run-tests-halt', halt for this many seconds."
