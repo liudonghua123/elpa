@@ -7,7 +7,7 @@
 ;; URL: https://github.com/realgud/realgud-trepan-ni
 ;; Compatibility: GNU Emacs 25.x
 
-;; Copyright (C) 2015, 2016, 2019, 2020 Free Software Foundation, Inc
+;; Copyright (C) 2015, 2016, 2019-2021 Free Software Foundation, Inc
 
 ;; Author: Rocky Bernstein <rocky@gnu.org>
 
