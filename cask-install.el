@@ -1,6 +1,6 @@
 ;; Copyright (C) 2021  Free Software Foundation, Inc
 
-(require 'cask "~/.cask/cask.el")
+(if t (require 'cask "~/.cask/cask.el"))
 (let*
     ((parent-dir
       (if (string-match "test/\\'" default-directory)
