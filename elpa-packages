@@ -176,6 +176,7 @@
  ("html5-schema"	:url nil)
  ("hydra"		:url "https://github.com/abo-abo/hydra")
  ("hyperbole"           :url "https://git.savannah.gnu.org/r/hyperbole.git"
+  :make ("kotl/kotl-autoloads.el")
   :auto-sync t)
  ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git")
  ("iterators"		:url nil)
@@ -261,7 +262,7 @@
   :auto-sync t)
  ("org-translate"	:url nil)
  ("orgalist"            :url nil)
- ("org-edna"		:url "https://savannah.nongnu.org/projects/org-edna-el") ;URL?
+ ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
  ("osc"			:url nil)
  ("other-frame-window"	:url nil)
  ("paced"		:url "bzr::bzr://bzr.savannah.nongnu.org/paced-el/trunk")
@@ -302,11 +303,11 @@
  ("rcirc-menu"		:url nil)
  ("realgud"             :url "https://github.com/realgud/realgud")
  ("realgud-ipdb"        :url "https://github.com/realgud/realgud-ipdb")
- ("realgud-jdb"         :url "https://github.com/realgud/jdb")
+ ("realgud-jdb"         :url "https://github.com/realgud/realgud-jdb")
  ("realgud-lldb"        :url "https://github.com/realgud/realgud-lldb")
  ("realgud-node-debug"  :url "https://github.com/realgud/realgud-node-debug")
  ("realgud-node-inspect" :url "https://github.com/realgud/realgud-node-inspect")
- ("realgud-trepan-ni"   :url "https://github.com/realgud/realgud-ni")
+ ("realgud-trepan-ni"   :url "https://github.com/realgud/realgud-trepan-ni")
  ("rec-mode"		:url "https://git.savannah.gnu.org/git/recutils/rec-mode.git"
   :auto-sync t)
  ("register-list"	:url nil)
