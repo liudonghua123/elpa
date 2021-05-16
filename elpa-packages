@@ -179,6 +179,7 @@
   :make ("kotl/kotl-autoloads.el")
   :auto-sync t)
  ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git")
+ ("isearch-mb"		:url "https://github.com/astoff/isearch-mb")
  ("iterators"		:url nil)
  ("ivy"
   :url "https://github.com/abo-abo/swiper"
