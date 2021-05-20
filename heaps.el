@@ -1,6 +1,6 @@
 ;;; heaps.el --- Some kind of heap data structure of Dismal
 
-;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021  Free Software Foundation, Inc.
 
 ;; Author: David Fox, fox@cs.nyu.edu
 ;; Created-On: Mon Jan  6 14:19:10 1992
@@ -117,8 +117,9 @@ Argument H "
     ;; Put the new element in the next free position in the heap vector
     (heap-aset heap (heap-last heap) element)
     ;; Increment the element count
-    (if (> index 0)
-        (heap--bubble-up heap (heap-last heap)))
+    (let ((last (heap-last heap)))
+      (if (> last 0)
+          (heap--bubble-up heap last)))
     (heap-set-last heap (1+ (heap-last heap)))))
 
 (defun heap-deletemin (heap)
