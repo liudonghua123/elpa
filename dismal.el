@@ -1,12 +1,12 @@
 ;;; dismal.el --- Dis Mode Ain't Lotus: Spreadsheet program Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2021 Free Software Foundation, Inc.
 
 ;; Author: David Fox, fox@cs.nyu.edu
 ;;         Frank E. Ritter, ritter@cs.cmu.edu
 ;; Maintainer: UnMaintainer <emacs-devel@gnu.org>
 ;; Created-On: 31 Oct 1991.
-;; Version: 1.5
+;; Version: 1.5.1
 ;; Package-Requires: ((cl-lib "0"))
 
 ;; This is free software: you can redistribute it and/or modify
@@ -1184,7 +1184,7 @@ Optional second argument non-nil means use scientific notation."
 
 ;; This make any new file ending in .dis get opened up into dismal-mode
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.dis\\'" . auto-mode-alist))
+(add-to-list 'auto-mode-alist '("\\.dis\\'" . dismal-mode))
 
 ;;;###autoload
 (defun dismal-mode ()
