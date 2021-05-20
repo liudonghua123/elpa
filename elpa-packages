@@ -325,7 +325,7 @@
  ("seq"			:url nil)
  ("setup"		:url "https://git.sr.ht/~zge/setup")
  ("shelisp"		:url nil)
- ("shell-command+"	:url "https://git.sr.ht/~zge/bang/tree/shell-command+")
+ ("shell-command+"	:url "https://git.sr.ht/~zge/bang")
  ("shell-quasiquote"	:url nil)
  ("shen-mode"		:url nil)
  ("sisu-mode"		:url nil)
