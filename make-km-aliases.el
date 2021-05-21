@@ -1,4 +1,4 @@
-;;; make-km-aliases.el --- A simple way to create Dismal aliases
+;;; make-km-aliases.el --- A simple way to create Dismal aliases  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-2021  Free Software Foundation, Inc.
 
@@ -9,6 +9,12 @@
 ;;; Code:
 
 (require 'simple-menu)
+
+;; FIXME: There's circular dependency between `dismal.el' and
+;; `make-km-aliases.el'.  We should fix it with a new `dismal-lib.el',
+;; but in the mean time, just silence the warnings.
+(defvar dismal-current-col)
+(defvar dismal-current-row)
 
 (defvar dismal-old-aliases nil "*Old commands that you have passed in.")
 (make-variable-buffer-local 'dismal-old-aliases)
@@ -32,7 +38,7 @@
 (defun dismal-display-dup-aliases ()
   "Print out the duplicated aliases so far for make-aliases."
   (interactive)
-  (let ((old-buffer (current-buffer))
+  (let (;; (old-buffer (current-buffer))
         (dups dismal-dup-aliases))
     (pop-to-buffer sm-help-buffer)
     (erase-buffer)
@@ -47,7 +53,7 @@
 ;;;	I.	dismal-make-alias
 ;;;
 
-(add-hook 'dis-user-cell-functions 'dismal-make-alias)
+(add-hook 'dis-user-cell-functions #'dismal-make-alias)
 
 (defun dismal-make-alias (old) 
   "Make an alias given an OLD command.

@@ -7,7 +7,7 @@
 ;; Maintainer: UnMaintainer <emacs-devel@gnu.org>
 ;; Created-On: 31 Oct 1991.
 ;; Version: 1.5.2
-;; Package-Requires: ((cl-lib "0"))
+;; Package-Requires: ((cl-lib "0") (emacs "24.3"))
 
 ;; This is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -212,7 +212,7 @@ columns when alighning.")
 confirmed on entering.")
 
 (defvar dismal-copy-to-dismal-binding "\C-c\M-c"
-  "*Key to globally bind to `copy-to-dismal'.")
+  "*Key to globally bind to `dis-copy-to-dismal'.")
 
 (defconst dismal-directory (file-name-directory load-file-name))
 
@@ -274,50 +274,50 @@ confirmed on entering.")
     ;; could del work appropriately?
 
     ;; box keys first
-    (define-key map [begin] 'dis-first-column)
-    (define-key map [up] 'dis-backward-row)
-    (define-key map [down] 'dis-forward-row)
-    (define-key map [left] 'dis-backward-column)
-    (define-key map [right] 'dis-forward-column)
-    (define-key map [home] 'dis-first-column)
-    (define-key map [C-home] 'dis-beginning-of-buffer)
-    (define-key map [end] 'dis-end-of-row)
-    (define-key map [C-end] 'dis-end-of-buffer)
-    (define-key map [prior] 'dis-scroll-down-in-place)
-    (define-key map [next] 'dis-scroll-up-in-place)
-    (define-key map "\t" 'dis-forward-column)
+    (define-key map [begin]  #'dis-first-column)
+    (define-key map [up]     #'dis-backward-row)
+    (define-key map [down]   #'dis-forward-row)
+    (define-key map [left]   #'dis-backward-column)
+    (define-key map [right]  #'dis-forward-column)
+    (define-key map [home]   #'dis-first-column)
+    (define-key map [C-home] #'dis-beginning-of-buffer)
+    (define-key map [end]    #'dis-end-of-row)
+    (define-key map [C-end]  #'dis-end-of-buffer)
+    (define-key map [prior]  #'dis-scroll-down-in-place)
+    (define-key map [next]   #'dis-scroll-up-in-place)
+    (define-key map "\t"     #'dis-forward-column)
 
     ;; plain keys now
-    (define-key map "?" 'describe-mode)
-    (define-key map "<" 'dis-edit-cell-leftjust)
-    (define-key map ">" 'dis-edit-cell-rightjust)
-    ;; (define-key map "\"" 'dis-edit-cell-string)
-    ;; (define-key map "'" 'dis-edit-cell-string)
-    (define-key map "=" 'dis-edit-cell-default)
-    (define-key map "|" 'dis-edit-cell-center)
-    (define-key map "\ " 'dis-forward-column)
-    (define-key map "c" 'dis-copy-range)
-    (define-key map "dc" 'dis-delete-column)
-    (define-key map "dd" 'dis-delete-range)
-    (define-key map "dr" 'dis-delete-row)
-    (define-key map "d " 'dis-delete-blank-rows)
-    (define-key map "e" 'dis-edit-cell-plain)
-    (define-key map "f" 'dis-read-column-format)
-    (define-key map "h" 'dis-help)
-    (define-key map "ic" 'dis-insert-column)
-    (define-key map "ii" 'dis-insert-range)
-    (define-key map "iz" 'dis-insert-z-box)
-    (define-key map "i." 'dis-insert-cells)
-    (define-key map "ir" 'dis-insert-row)
-    (define-key map "j" 'dis-jump)
-    (define-key map "m" 'dis-set-mark)
-    (define-key map "n" 'dis-next-filled-row-cell)
-    (define-key map "p" 'dis-previous-filled-row-cell)
-    (define-key map "q" 'dis-bury-buffer)
-    (define-key map "r" 'dis-hard-redraw-row)
-    (define-key map "v" 'dis-paste-range)
-    (define-key map "x" 'dis-kill-range)
-    (define-key map "z" 'dis-redraw-range)
+    (define-key map "?"  #'describe-mode)
+    (define-key map "<"  #'dis-edit-cell-leftjust)
+    (define-key map ">"  #'dis-edit-cell-rightjust)
+    ;;(define-key map "\"" #'dis-edit-cell-string)
+    ;;(define-key map "'"  #'dis-edit-cell-string)
+    (define-key map "="  #'dis-edit-cell-default)
+    (define-key map "|"  #'dis-edit-cell-center)
+    (define-key map "\ " #'dis-forward-column)
+    (define-key map "c"  #'dis-copy-range)
+    (define-key map "dc" #'dis-delete-column)
+    (define-key map "dd" #'dis-delete-range)
+    (define-key map "dr" #'dis-delete-row)
+    (define-key map "d " #'dis-delete-blank-rows)
+    (define-key map "e"  #'dis-edit-cell-plain)
+    (define-key map "f"  #'dis-read-column-format)
+    (define-key map "h"  #'dis-help)
+    (define-key map "ic" #'dis-insert-column)
+    (define-key map "ii" #'dis-insert-range)
+    (define-key map "iz" #'dis-insert-z-box)
+    (define-key map "i." #'dis-insert-cells)
+    (define-key map "ir" #'dis-insert-row)
+    (define-key map "j"  #'dis-jump)
+    (define-key map "m"  #'dis-set-mark)
+    (define-key map "n"  #'dis-next-filled-row-cell)
+    (define-key map "p"  #'dis-previous-filled-row-cell)
+    (define-key map "q"  #'dis-bury-buffer)
+    (define-key map "r"  #'dis-hard-redraw-row)
+    (define-key map "v"  #'dis-paste-range)
+    (define-key map "x"  #'dis-kill-range)
+    (define-key map "z"  #'dis-redraw-range)
 
     ;; C-j newline-and-indent should goto work better
     ;; C-o should work appropriately
@@ -327,48 +327,48 @@ confirmed on entering.")
     ;; C-x [ and C- ] (paging) should work appropriately
     ;; C-x > C-x < scroll right & left
 
-    (define-key map "\C-?" 'dis-backward-kill-cell) ;del
+    (define-key map "\C-?"     #'dis-backward-kill-cell) ;del
     ;; very tricky key definition follows, allowing C-space to work:
-    (define-key map [?\C-\ ] 'dis-set-mark)
-    (define-key map "\C-@" 'dis-set-mark)
-    (define-key map "\C-a" 'dis-first-column)
-    (define-key map "\C-b" 'dis-backward-column)
-    (define-key map "\C-c\C-m" 'dis-run-menu)
+    (define-key map [?\C-\ ]   #'dis-set-mark)
+    (define-key map "\C-@"     #'dis-set-mark)
+    (define-key map "\C-a"     #'dis-first-column)
+    (define-key map "\C-b"     #'dis-backward-column)
+    (define-key map "\C-c\C-m" #'dis-run-menu)
     ;; something binds it to insert mail buffer, which is dangerous
-    (define-key map "\C-cm" 'undefined)
-    (define-key map "\C-d" 'dis-clear-cell)
-    (define-key map "\C-e" 'dis-end-of-row)
-    (define-key map "\C-f" 'dis-forward-column)
-    (define-key map "\C-k" 'dis-kill-line)
+    (define-key map "\C-cm"    #'undefined)
+    (define-key map "\C-d"     #'dis-clear-cell)
+    (define-key map "\C-e"     #'dis-end-of-row)
+    (define-key map "\C-f"     #'dis-forward-column)
+    (define-key map "\C-k"     #'dis-kill-line)
     ;; this appears to be too slow, leave as plain recenter
-    ;;(define-key map "\C-l" 'dis-recenter)
-    (define-key map "\C-m" 'dis-forward-row)
-    (define-key map "\C-n" 'dis-forward-row)
-    (define-key map "\C-o" 'dis-open-line)
-    (define-key map "\C-p" 'dis-backward-row)
-    (define-key map "\C-r" 'dis-isearch-backwards)
-    (define-key map "\C-s" 'dis-isearch)
-    (define-key map "\C-t" 'undefined)  ; transpose-chars
-    (define-key map "\C-q" 'dis-quoted-insert)
-    (define-key map "\C-w" 'dis-kill-range)
-    (define-key map "\C-xu" 'dis-undo)
-    (define-key map "\C-_" 'dis-undo)
-    (define-key map "\C-v" 'dis-scroll-up-in-place)
+    ;;(define-key map "\C-l"   #'dis-recenter)
+    (define-key map "\C-m"     #'dis-forward-row)
+    (define-key map "\C-n"     #'dis-forward-row)
+    (define-key map "\C-o"     #'dis-open-line)
+    (define-key map "\C-p"     #'dis-backward-row)
+    (define-key map "\C-r"     #'dis-isearch-backwards)
+    (define-key map "\C-s"     #'dis-isearch)
+    (define-key map "\C-t"     #'undefined)  ; transpose-chars
+    (define-key map "\C-q"     #'dis-quoted-insert)
+    (define-key map "\C-w"     #'dis-kill-range)
+    (define-key map "\C-xu"    #'dis-undo)
+    (define-key map "\C-_"     #'dis-undo)
+    (define-key map "\C-v"     #'dis-scroll-up-in-place)
     ;; FIXME: Abuses C-x bindings!
-    (define-key map "\C-xi" 'dis-insert-file)
-    (define-key map "\C-x\C-i" 'dis-insert-file)
-    (define-key map "\C-xr" 'dis-update-ruler)
-    ;; (define-key map "\C-xs" 'dis-save-some-buffers)
-    (define-key map "\C-x\C-s" 'dis-save-file)
-    (define-key map "\C-x\C-w" 'dis-write-file)
-    (define-key map "\C-x\C-x" 'dis-exchange-point-and-mark)
-    (define-key map "\C-x[" 'dis-start-of-col)
-    (define-key map "\C-x]" 'dis-end-of-col)
-    (define-key map "\C-x>" 'undefined) ; set-fill-prefix
-    (define-key map "\C-x\C-q" 'dis-toggle-read-only)
-    (define-key map "\C-y" 'dis-paste-range)
+    (define-key map "\C-xi"    #'dis-insert-file)
+    (define-key map "\C-x\C-i" #'dis-insert-file)
+    (define-key map "\C-xr"    #'dis-update-ruler)
+    ;; (define-key map "\C-xs" #'dis-save-some-buffers)
+    (define-key map "\C-x\C-s" #'dis-save-file)
+    (define-key map "\C-x\C-w" #'dis-write-file)
+    (define-key map "\C-x\C-x" #'dis-exchange-point-and-mark)
+    (define-key map "\C-x["    #'dis-start-of-col)
+    (define-key map "\C-x]"    #'dis-end-of-col)
+    (define-key map "\C-x>"    #'undefined) ; set-fill-prefix
+    (define-key map "\C-x\C-q" #'dis-toggle-read-only)
+    (define-key map "\C-y"     #'dis-paste-range)
 
-    (define-key map "\C-c\M-\C-c" 'dis-op-code-segment)
+    (define-key map "\C-c\M-\C-c" #'dis-op-code-segment)
     ;; M-a should work appropriately
     ;; M-m back-to-indentation should work appropriately
     ;; M-r replace-string should work appropriately
@@ -376,46 +376,46 @@ confirmed on entering.")
     ;; M-z down-one-line
     ;; M-del should work appropriately?
 
-    (define-key map "\M-\C-?" 'dis-backward-kill-cell) ;del
-    (define-key map "\M-\ " 'dis-backward-column)
-    (define-key map "\M-<" 'dis-beginning-of-buffer)
-    (define-key map "\M->" 'dis-end-of-buffer)
-    (define-key map "\M-[" 'undefined)  ;
-    (define-key map "\M-]" 'undefined)  ; not bound
-    (define-key map "\M-\t" 'dis-backward-column)
-    (define-key map "\M-a" 'undefined)  ; backward-sentence
-    (define-key map "\M-b" 'dis-backward-filled-column)
-    (define-key map "\M-c" 'dis-capitalize-cell)
-    (define-key map "\M-d" 'dis-kill-cell)
-    (define-key map "\M-e" 'dis-last-column)
-    (define-key map "\M-f" 'dis-forward-filled-column)
-    (define-key map "\M-g" 'undefined)           ; fill-region
-    (define-key map "\M-h" 'undefined)           ; mark-paragraph
-    (define-key map "\M-i" 'undefined)           ; tab-to-tab-stop
-    (define-key map "\M-j" 'dis-align-metacolumns) ; fill-paragraph
-    (define-key map "\M-k" 'undefined)             ; kill-sent
-    (define-key map "\M-l" 'dis-downcase-cell)
-    (define-key map "\M-n" 'dis-next-filled-row-cell)
-    (define-key map "\M-o" 'dis-insert-range)
-    (define-key map "\M-p" 'dis-previous-filled-row-cell)
-    (define-key map "\M-q" 'dis-query-replace)
+    (define-key map "\M-\C-?" #'dis-backward-kill-cell) ;del
+    (define-key map "\M-\ "   #'dis-backward-column)
+    (define-key map "\M-<"    #'dis-beginning-of-buffer)
+    (define-key map "\M->"    #'dis-end-of-buffer)
+    (define-key map "\M-["    #'undefined)  ;
+    (define-key map "\M-]"    #'undefined)  ; not bound
+    (define-key map "\M-\t"   #'dis-backward-column)
+    (define-key map "\M-a"    #'undefined)  ; backward-sentence
+    (define-key map "\M-b"    #'dis-backward-filled-column)
+    (define-key map "\M-c"    #'dis-capitalize-cell)
+    (define-key map "\M-d"    #'dis-kill-cell)
+    (define-key map "\M-e"    #'dis-last-column)
+    (define-key map "\M-f"    #'dis-forward-filled-column)
+    (define-key map "\M-g"    #'undefined)           ; fill-region
+    (define-key map "\M-h"    #'undefined)           ; mark-paragraph
+    (define-key map "\M-i"    #'undefined)           ; tab-to-tab-stop
+    (define-key map "\M-j"    #'dis-align-metacolumns) ; fill-paragraph
+    (define-key map "\M-k"    #'undefined)             ; kill-sent
+    (define-key map "\M-l"    #'dis-downcase-cell)
+    (define-key map "\M-n"    #'dis-next-filled-row-cell)
+    (define-key map "\M-o"    #'dis-insert-range)
+    (define-key map "\M-p"    #'dis-previous-filled-row-cell)
+    (define-key map "\M-q"    #'dis-query-replace)
     ;; used to be replace-string
-    (define-key map "\M-r" 'dis-move-to-window-line)
-    (define-key map "\M-t" 'dis-transpose-cells) ;used 2be transpose-words
-    (define-key map "\M-u" 'dis-upcase-cell)
-    (define-key map "\M-v" 'dis-scroll-down-in-place)
-    (define-key map "\M-w" 'dis-copy-range)
-    (define-key map "\M-=" 'dis-debug-cell)
-    (define-key map "\M-%" 'dis-query-replace)
-    (define-key map "\M-," 'undefined)  ; tags-loop-continue
+    (define-key map "\M-r"    #'dis-move-to-window-line)
+    (define-key map "\M-t"    #'dis-transpose-cells) ;used 2be transpose-words
+    (define-key map "\M-u"    #'dis-upcase-cell)
+    (define-key map "\M-v"    #'dis-scroll-down-in-place)
+    (define-key map "\M-w"    #'dis-copy-range)
+    (define-key map "\M-="    #'dis-debug-cell)
+    (define-key map "\M-%"    #'dis-query-replace)
+    (define-key map "\M-,"    #'undefined)  ; tags-loop-continue
 
     ;; C-M-b, f, a, & e should work appropriately
-    (define-key map "\M-\C-k" 'undefined) ;kill-sexp
-    (define-key map "\M-\C-e" 'dis-erase-range)
-    (define-key map "\M-\C-m" 'dis-backward-row)
-    (define-key map "\M-\C-r" 'dis-redraw)
-    (define-key map "\M-\C-t" 'dis-transpose-cells) ; used to be transpose-sexps
-    (define-key map "\M-\C-u" 'dis-update-matrix) ; used to be backward-up-list
+    (define-key map "\M-\C-k" #'undefined) ;kill-sexp
+    (define-key map "\M-\C-e" #'dis-erase-range)
+    (define-key map "\M-\C-m" #'dis-backward-row)
+    (define-key map "\M-\C-r" #'dis-redraw)
+    (define-key map "\M-\C-t" #'dis-transpose-cells) ;used to be transpose-sexps
+    (define-key map "\M-\C-u" #'dis-update-matrix) ; used to be backward-up-list
     ;; dis-recalculate-matrix
     map)
   "Keymap for Dismal mode.")
@@ -460,27 +460,10 @@ keeping other parts of the columns still aligned.")
 ;; can't require this (it has no provide), but we'll try
 (autoload 'delete-extract-rectangle "rect")
 
-(autoload 'dis-model-match "dismal-extensions"
-  "Given a cell RANGE computes the percentage of colA matched
-with something in colA-1.  Only counts stuff that is in order." t)
-
-(autoload 'dis-model-match-op "dismal-extensions"
-  "Given a cell RANGE computes the percentage of colA matched
-with something in colA-2, and col A is an operator.  Only counts stuff
-that is in order." t)
 
 (autoload 'dis-auto-align-model  "auto-aligner"
   "Automatically align the two metacolumns in
 the spreadsheet." t)
-
-(autoload 'dis-model-match-op    "dismal-model-extensions"
-  "Given a cell RANGE computes the percentage of colA matched
-with something in colA-2, and col A is an operator.  Only counts stuff
-that is in order." t)
-
-(autoload 'dis-model-match "dismal-model-extensions"
-  "Given a cell RANGE computes the percentage of colA matched
-with something in colA-1.  Only counts stuff that is in order." t)
 
 (autoload 'dis-initialize-operator-codes "semi-coder"
   "Initialize the dismal operator codes." t)
@@ -524,15 +507,16 @@ with something in colA-1.  Only counts stuff that is in order." t)
 
 ;;;; viii.	System Constants
 
-(defconst dismal-version "1.4"
-  "Version of dismal-mode implementation.")
+(defconst dismal-version
+  (if (fboundp 'package-get-version) (package-get-version) "unknown")
+  "Version of dismal-mode package.")
 
 (defun dismal-version (&optional here)
   "Show the version of dismal.el in the minibuffer.
 If optional argument HERE is non-nil, insert info at point."
   (interactive "P")
   (let ((version-string
-         (format "Version of \`dismal.el\': %s" dismal-version)))
+         (format "Version of `dismal.el': %s" dismal-version)))
     (if here
         (insert version-string)
       (if (called-interactively-p 'interactive)
@@ -1211,8 +1195,8 @@ and right mouse button is bound to `dis-mouse-highlight-row'.
         (setq mode-line-format dismal-mode-line-format)
         ;; must be set in all buffers
         (setq dismal-matrix (dismal-create-matrix))
-        (setq dismal-invalid-heapA (heap-create 'dismal-address-compare))
-        (setq dismal-invalid-heapB (heap-create 'dismal-address-compare))
+        (setq dismal-invalid-heapA (heaps-create #'dismal-address-compare))
+        (setq dismal-invalid-heapB (heaps-create #'dismal-address-compare))
         (setq dismal-invalid-heap dismal-invalid-heapA)
         (setq dismal-invalid-heap-not dismal-invalid-heapB)
         (setq dismal-range-buffer [0 0 0])
@@ -1552,8 +1536,8 @@ C-x C-q to change read-only.")))
 ;; This is used outside of dismal, so must rebind.
 (cond
  ((not (key-binding dismal-copy-to-dismal-binding))
-  (global-set-key dismal-copy-to-dismal-binding 'copy-to-dismal))
- ((eq (key-binding dismal-copy-to-dismal-binding) 'copy-to-dismal))
+  (global-set-key dismal-copy-to-dismal-binding #'dis-copy-to-dismal))
+ ((eq (key-binding dismal-copy-to-dismal-binding) #'dis-copy-to-dismal))
  (t (message
      "Change value of dismal-copy-to-dismal-binding, %s already used as %s"
      (key-description dismal-copy-to-dismal-binding)
@@ -1563,12 +1547,12 @@ C-x C-q to change read-only.")))
 (defvar dismal-minibuffer-local-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\C-j" 'dismal-exit-minibuffer-down)
-    (define-key map "\C-m" 'exit-minibuffer)
-    (define-key map "\C-n" 'dismal-exit-minibuffer-down)
-    (define-key map "\C-p" 'dismal-exit-minibuffer-up)
-    ;; (define-key map "\M-\C-b" 'dismal-exit-minibuffer-left)
-    ;; (define-key map "\M-\C-f" 'dismal-exit-minibuffer-right)
+    (define-key map "\C-j" #'dismal-exit-minibuffer-down)
+    (define-key map "\C-m" #'exit-minibuffer)
+    (define-key map "\C-n" #'dismal-exit-minibuffer-down)
+    (define-key map "\C-p" #'dismal-exit-minibuffer-up)
+    ;; (define-key map "\M-\C-b" #'dismal-exit-minibuffer-left)
+    ;; (define-key map "\M-\C-f" #'dismal-exit-minibuffer-right)
     map))
 
 (defun dismal-exit-minibuffer-down ()
@@ -2515,13 +2499,12 @@ in the status line."
 ;; does not keep point and mark clean in original buffer
 ;; does not keep point and mark clean in dismal buffer
 (defun dis-copy-to-dismal (dismal-buffer-name beg end)
-
   "Copy column specified by point and mark to buffer DISMAL-BUFFER-NAME
 starting at its current cell.  Point and mark must be within or at the
 beginning of a column of text, delimited by blanks.  The column must
 contain words without spaces or valid dismal numbers, which may
 contain decimal points but not commas.  The variable
-dis-copy-column-seperator (default is space) is used to separate columns.
+`dis-copy-column-separator' (default is space) is used to separate columns.
 
 For example, in the following column, you would place point on 2 in
 123 and mark on the 8 in 789 and only that middle column would be
@@ -2800,7 +2783,7 @@ current cell's value."
     (vector-remove dismal-formula-cells (cons row column))
     (dismal-set-mrk row column nil)
     ;; invalidate its references if its just a value
-    (dismal-map-apply 'dismal-invalidate-cell (dismal-get-deps row column))))
+    (mapc #'dismal-invalidate-cell (dismal-get-deps row column))))
 
 (defun dis-capitalize-cell (arg)
   "Capitalize the current cell (or ARG cells), moving over if arg >1 (default).
@@ -2868,25 +2851,25 @@ This gives the cell(s) characters all in upper case."
   (let ((temp nil)
         (i 1))
     (while (and (<= i dis-iteration-limit)
-                (not (heap-empty-p dismal-invalid-heap)))
+                (not (heaps-empty-p dismal-invalid-heap)))
       (message "Starting to update cycle ... %d (%s cells)" i
-               (heap-last dismal-invalid-heap))
+               (heaps-size dismal-invalid-heap))
       (dismal-update-cycle)
       (setq i (1+ i))
       (setq temp dismal-invalid-heap)
       (setq dismal-invalid-heap dismal-invalid-heap-not)
       (setq dismal-invalid-heap-not temp))
     ;; check to see how long you did this...
-    (if (not (heap-empty-p dismal-invalid-heap))
+    (if (not (heaps-empty-p dismal-invalid-heap))
         (message "Update stopped due to exceeding max cycles of %s."
                  dis-iteration-limit)
       (message "Updated %s times." (1- i)) )    ))
 
-;; (heap-aref dismal-invalid-heap 0)
+;; (heaps--aref dismal-invalid-heap 0)
 (defun dismal-update-cycle ()
   (let ((prev nil))
-    (while (not (heap-empty-p dismal-invalid-heap))
-      (let* ((addr (heap-deletemin dismal-invalid-heap))
+    (while (not (heaps-empty-p dismal-invalid-heap))
+      (let* ((addr (heaps-deletemin dismal-invalid-heap))
              (r (dismal-address-row addr))
              (c (dismal-address-col addr))
              (new-val nil)
@@ -2912,14 +2895,14 @@ This gives the cell(s) characters all in upper case."
     ;;(message "invalidating %s %s" r c)
     ;; only invalidate cells that can be updated
     (if (vector-member dismal-formula-cells addr)
-        (heap-insert dismal-invalid-heap addr)
+        (heaps-insert dismal-invalid-heap addr)
       (dismal-redraw-cell r c t))
     ;;is this necessary? seems to lead to problems...
     ;;(dismal-set-val row col nil)
     (if (eq 'visited (dismal-get-mrk r c))
         ()
       (dismal-set-mrk r c 'visited)
-      (dismal-map-apply #'dismal-invalidate-cell (dismal-get-deps r c))
+      (mapc #'dismal-invalidate-cell (dismal-get-deps r c))
       (dismal-set-mrk r c 0))))
 
 (defun dis-recalculate-matrix ()
@@ -2934,8 +2917,8 @@ This gives the cell(s) characters all in upper case."
      ;;            (sit-for 1)
      (if (dismal-possible-live-sexp
           (dismal-get-exp (car cell) (cadr cell)))
-         (heap-insert dismal-invalid-heap
-                      (cons (car cell) (cadr cell)))))
+         (heaps-insert dismal-invalid-heap
+                       (cons (car cell) (cadr cell)))))
    dismal-matrix)
   (dis-update-matrix)
   (dis-redraw nil))
@@ -3025,9 +3008,9 @@ If range is 2d, signal an error."
 
 
 
-;;;; EMA changes  ;;; EMA changes  ;;; EMA changes  ;;; EMA changes
-;;;; inserting and deleting rows throws off formulas.
-;;;; same sort of fix might be needed for columns.  changes are marked
+;; EMA changes  ;;; EMA changes  ;;; EMA changes  ;;; EMA changes
+;; inserting and deleting rows throws off formulas.
+;; same sort of fix might be needed for columns.  changes are marked
 
 ;; 3-7-93 - EMA - didn't remove the call to dismal-change-row-references.
 ;;   see dismal-insert-range-cells.
@@ -3058,7 +3041,7 @@ If range is 2d, signal an error."
       (setq dismal-max-row (+ dismal-max-row arg))
       (dis-insert-cells arg (if (not (aref dismal-mark 0)) 'rows)))
 
-;;; Special case: insert whole row
+;; Special case: insert whole row
      ((and (= start-row end-row)
            (= start-col 0) (= end-col dismal-max-col))
       (setq dismal-max-row (+ dismal-max-row arg))
@@ -3070,7 +3053,7 @@ If range is 2d, signal an error."
       ;;(dismal-change-row-references dismal-current-row arg)
       )
 
-;;; Insert partial row moving cells down
+;; Insert partial row moving cells down
      ((= start-row end-row)
       (setq dismal-max-row (+ dismal-max-row arg))
       (while (<= start-col end-col)
@@ -3085,7 +3068,7 @@ If range is 2d, signal an error."
                              (1+ dismal-max-row)))
       (dismal-add-row-labels-at-end arg))
 
-;;; Special case: insert whole column
+;; Special case: insert whole column
      ((and (= start-col end-col)
            (= start-row 0) (= end-row dismal-max-row))
       (setq dismal-max-col (+ dismal-max-col arg))
@@ -5725,12 +5708,6 @@ Includes leap years."
 
 
 ;;;; XIXb.	Utility functions - List functions
-
-(defun dismal-map-apply (function list)
-  (if (null list)
-      ()
-    (funcall function (car list))
-    (dismal-map-apply function (cdr list))))
 
 ;; (setq aa '(1 2 (1 . 2) 3 4))
 ;; (dismal-del 1 aa)

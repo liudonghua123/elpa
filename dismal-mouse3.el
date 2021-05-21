@@ -1,6 +1,6 @@
-;;; dismal-mouse3.el --- Functionality for using a mouse inside of Dismal
+;;; dismal-mouse3.el --- Functionality for using a mouse inside of Dismal  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2021  Free Software Foundation, Inc.
 
 ;; Author: Nigel Jenkins, nej@cs.nott.ac.uk
 ;;                        lpyjnej@psyc.nott.ac.uk  
@@ -34,6 +34,18 @@
 (defvar dismal-max-row)
 (defvar dismal-current-row)
 
+;; FIXME: We have a circularity between `dismal.el' and `dismal-mouse3.el'.
+;; We should probably move the functions needed by `dismal-mouse3.el'
+;; into a new `dismal-lib.el' to break this cycle.
+;; In the mean time, just silence the warnings.
+(declare-function dismal-column-width "dismal")
+(declare-function dismal-goto-column  "dismal")
+(declare-function dismal-goto-row     "dismal")
+(declare-function dismal-set-mark     "dismal")
+(declare-function dismal-jump-to-cell "dismal")
+(declare-function dismal-cell-name    "dismal")
+(declare-function dismal-raw-column-to-dismal-column "dismal")
+
 ;;;; i.	Modify `dismal-mode-map' to cope with new mouse controls
 
 ;; Keymap additions to dismal-mode-map keymap, allowing the mouse to
@@ -41,26 +53,26 @@
 
 (defvar dismal-mouse-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [down-mouse-1] 'dis-mouse-highlight-cell-or-range)
-    (define-key map [double-mouse-1] 'ignore)
-    (define-key map [triple-mouse-1] 'ignore)
+    (define-key map [down-mouse-1]   #'dis-mouse-highlight-cell-or-range)
+    (define-key map [double-mouse-1] #'ignore)
+    (define-key map [triple-mouse-1] #'ignore)
 
     ;; These areecause of how the matrix is represented, 
     ;; so don't r.
-    ;; (define-kde-map [down-mouse-2] 'dis-mouse-highlight-column)
-    ;; (define-kde-map [mouse-2] 'dis-mouse-highlight-column)
+    ;; (define-kde-map [down-mouse-2] #'dis-mouse-highlight-column)
+    ;; (define-kde-map [mouse-2]      #'dis-mouse-highlight-column)
     ;; had been t-point, which is a mess with plain text
 
-    (define-key map [down-mouse-2] 'dis-mouse-highlight-cell-or-range)
-    (define-key map [mouse-2] 'dis-mouse-highlight-cell-or-range)
-    (define-key map [double-mouse-2] 'ignore)
-    (define-key map [triple-mouse-2] 'ignore)
+    (define-key map [down-mouse-2]   #'dis-mouse-highlight-cell-or-range)
+    (define-key map [mouse-2]        #'dis-mouse-highlight-cell-or-range)
+    (define-key map [double-mouse-2] #'ignore)
+    (define-key map [triple-mouse-2] #'ignore)
 
 
-    (define-key map [down-mouse-3] 'dis-mouse-highlight-row)
-    (define-key map [mouse-3] 'dis-mouse-highlight-row)
-    (define-key map [double-mouse-3] 'ignore)
-    (define-key map [triple-mouse-3] 'ignore)
+    (define-key map [down-mouse-3]   #'dis-mouse-highlight-row)
+    (define-key map [mouse-3]        #'dis-mouse-highlight-row)
+    (define-key map [double-mouse-3] #'ignore)
+    (define-key map [triple-mouse-3] #'ignore)
     map))
 
 

@@ -1,6 +1,6 @@
-;;; dismal-data-structures.el --- Misc data structures for Dismal
+;;; dismal-data-structures.el --- Misc data structures for Dismal  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2021  Free Software Foundation, Inc.
 
 ;; Author: Frank E. Ritter, ritter@cs.cmu.edu
 ;; Created-On: 14 May 94
@@ -137,7 +137,7 @@
           ;; put back in ;; 13-Jul-92 -FER, so qreplace can work on numbers
           (numberp object)
           (and (symbolp object) (boundp object)))
-      (eval object)
+      (eval object t)
     (prin1-to-string object)))
 
 (defmacro dismal-mark-row ()

@@ -1,4 +1,4 @@
-;;; dismal-metacolumn.el --- Implement metacolumn manipulations for dismal
+;;; dismal-metacolumn.el --- Implement metacolumn manipulations for dismal  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992-2021  Free Software Foundation, Inc.
 
@@ -73,6 +73,10 @@ at ROW (default, current-row)."
 
 ;;;; III.	dis-insert-z-box
 
+;; FIXME: Unknown function!
+(declare-function dismal-redraw-range            ":vaporware:")
+(declare-function dismal-insert-metacolumn-cells ":vaporware:")
+
 (defun dis-insert-z-box (initial-arg)
   "Insert ARG rows of cells on each side of dis-middle-col,
 starting at the rows of point and mark, which must be on opposite 
@@ -117,7 +121,8 @@ keeping other parts of the columns still aligned."
           (r2c (dismal-mark-col))
           first-row first-col-start first-col-end
           ;; these are used to do insertion
-          second-row second-col-start second-col-end 
+          second-row ;; second-col-start second-col-end
+          
           (arg (abs (- r1r r2r))) )
      (if (not (or (and (<= r1c dis-middle-col) (> r2c dis-middle-col))
                   (and (<= r2c dis-middle-col) (> r1c dis-middle-col))))
@@ -132,24 +137,28 @@ keeping other parts of the columns still aligned."
               (cond ((> r1c dis-middle-col) ;; point is left of mark
                      (setq first-col-start 0)
                      (setq first-col-end dis-middle-col)
-                     (setq second-col-start (1+ dis-middle-col))
-                     (setq second-col-end dismal-max-col))
+                     ;; (setq second-col-start (1+ dis-middle-col))
+                     ;; (setq second-col-end dismal-max-col)
+                     )
                     (t ;; point is right of mark
                      (setq first-col-start (1+ dis-middle-col))
                      (setq first-col-end dismal-max-col)
-                     (setq second-col-start 0)
-                     (setq second-col-end dis-middle-col))))
+                     ;; (setq second-col-start 0)
+                     ;; (setq second-col-end dis-middle-col)
+                     )))
              (t (setq first-row r1r) (setq second-row r2r) ;; point is before mark
                 (cond ((> r1c dis-middle-col) ;; point is left of mark
                        (setq first-col-start (1+ dis-middle-col))
                        (setq first-col-end dismal-max-col)
-                       (setq second-col-start 0)
-                       (setq second-col-end dis-middle-col))
+                       ;; (setq second-col-start 0)
+                       ;; (setq second-col-end dis-middle-col)
+                       )
                       (t ;; point is right of mark
                        (setq first-col-start 0)
                        (setq first-col-end dis-middle-col)
-                       (setq second-col-start (1+ dis-middle-col))
-                       (setq second-col-end dismal-max-col)))))
+                       ;; (setq second-col-start (1+ dis-middle-col))
+                       ;; (setq second-col-end dismal-max-col)
+                       ))))
        (if dismal-interactive-p
            (if (= first-col-start 0)
                (message "Aligning row %s (R) to row %s (L)..." second-row first-row)

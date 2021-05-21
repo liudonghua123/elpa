@@ -1,6 +1,6 @@
-;;; dismal-simple-menus.el --- Describe the simple-menus in dismal-mode
+;;; dismal-simple-menus.el --- Describe the simple-menus in dismal-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021  Free Software Foundation, Inc.
 
 ;; Author: Frank Ritter
 ;; Created-On: Mon Jan  6 21:19:01 1992

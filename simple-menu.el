@@ -1,6 +1,6 @@
 ;;; simple-menu.el --- Command-line menus made declaratively  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2021  Free Software Foundation, Inc.
 
 ;; Author: Frank Ritter & Roberto Ong
 ;; Created-On: Mon Oct 28 12:28:03 1991
@@ -147,9 +147,9 @@
 
 ;;*created this function to quit simple-menu
 ;; allows a cleaner quit with C-g, 19-May-97 -FER
-(defun sm-quit ()
+(defun sm-quit (&optional command)
   "Quit simple-menu to abort, or after a command has been evaluated."
-  (if (boundp 'command)
+  (if command
       (sm-note-function-key command sm--current-key-map)
     (beep)
     (message "Quiting simple-menu"))
@@ -305,7 +305,7 @@ TO and FROM are ints, FUN is a symbol."
     (suppress-keymap map)
     (let ((set-key (lambda (k)
                      (define-key map (char-to-string k)
-                       'exit-minibuffer))))
+                       #'exit-minibuffer))))
       (sm-for ?a ?z set-key)
       (sm-for ?A ?Z set-key)
       (sm-for ?0 ?9 set-key)
@@ -320,9 +320,9 @@ TO and FROM are ints, FUN is a symbol."
       (funcall set-key ?\t)             ; should accept default
       ;; modified in 1.4 to be ignored, b/c it is messy to use in general
       ;;  (funcall set-key ?\e)			; should abort
-      (define-key map "?" 'sm-pop-up-help)
-      (define-key map " " 'sm-pop-up-help)
-      (define-key map "\C-h" 'sm-pop-up-help))
+      (define-key map "?" #'sm-pop-up-help)
+      (define-key map " " #'sm-pop-up-help)
+      (define-key map "\C-h" #'sm-pop-up-help))
     map))
 
 ;; Set letters and digits to return from minibuffer
@@ -441,17 +441,17 @@ TO and FROM are ints, FUN is a symbol."
        ;; (full-prompt (get amenu 'full-prompt))
        (prompt))
       (setq prompt
-            (cond ;; it is something to be eval
-                  (  (listp raw-prompt)
-                     (eval raw-prompt))
-                  ;; it is a function
-                  (  (and (symbolp raw-prompt) (fboundp raw-prompt))
+            (cond ;; it is a function
+                  (  (functionp raw-prompt)
                      (funcall raw-prompt))
                   ;; it is a string
                   (  (stringp raw-prompt)
                      (if (not (string= raw-prompt ""))
                          (concat raw-prompt ": ")
                        raw-prompt))
+                  ;; it is something to be eval
+                  (  (listp raw-prompt)
+                     (eval raw-prompt t))
                   ;; it is an invalid prompt
                   (t (sm-error (format "%s contains an invalid prompt." amenu)))))
       (mapc (lambda (x) (setq prompt (concat prompt x " ")))
@@ -530,7 +530,7 @@ TO and FROM are ints, FUN is a symbol."
                (fboundp command))
           (call-interactively command)
           (setq sm-run-menu-flag nil)
-          ;; (sm-quit)
+          ;; (sm-quit command)
           )
        ;;*removing this function call because key bindings
        ;;*could be easily seen in the help screen
@@ -538,8 +538,8 @@ TO and FROM are ints, FUN is a symbol."
        ;; it is something to eval
        (  (listp command)
           (setq sm-run-menu-flag nil)
-          (eval command)
-          ;; (sm-quit)
+          (eval command t)
+          ;; (sm-quit command)
           )
        ;; something to be returned
        (  (or (stringp command) (numberp command))

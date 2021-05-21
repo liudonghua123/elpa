@@ -1,4 +1,4 @@
-;;; dismal-model-extensions.el --- Specialized extensions to dismal
+;;; dismal-model-extensions.el --- Specialized extensions to dismal  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992-2021  Free Software Foundation, Inc.
 
@@ -25,6 +25,12 @@
 
 ;;; Code:
 
+(require 'dismal)
+
+;; FIXME: This file uses functions that seem not to be defined anywhere.
+(declare-function dis-model-matcher ":vaporware:") ;It's in a comment, below.
+(declare-function dismal-adjust-range-list ":vaporware:")
+
 ;;;; I.	model-match
 
 (defun dis-model-match (range-list)
@@ -33,16 +39,16 @@ with something in colA-1.  Only counts stuff that is in order."
   (interactive "P")
   (setq range-list (dismal-adjust-range-list range-list))
   (let* ((total 0) (matches 0))
-    (dismal-do (function (lambda (row col old-result)
-                  (let ((dc (dismal-get-val row col))
-                        (mdc (dismal-get-val row (1- col))) )
-                  (setq total (if dc (1+ total) total))
-                  (setq matches
-                        (if (and dc mdc)
-                            (1+ matches) 
-                           matches)))))
-             range-list 0)
-   (dis-div (float matches) (float total)) ))
+    (dismal-do (lambda (row col _old-result)
+                 (let ((dc (dismal-get-val row col))
+                       (mdc (dismal-get-val row (1- col))) )
+                   (setq total (if dc (1+ total) total))
+                   (setq matches
+                         (if (and dc mdc)
+                             (1+ matches) 
+                           matches))))
+               range-list 0)
+    (dis-div (float matches) (float total)) ))
 
 ;; these are not easily combined with the function abov
 (defun dis-model-match-op (range-list)
@@ -50,7 +56,7 @@ with something in colA-1.  Only counts stuff that is in order."
 with something in colA-2, and col A is an operator.  Only counts stuff
 that is in order."
   (interactive "P")
-  (model-matcher range-list "O: "))
+  (dis-model-matcher range-list "O: "))
 
 ;; (defun dis-model-matcher (range-list string-test)
 ;;   (setq range-list (dismal-adjust-range-list range-list))

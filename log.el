@@ -1,6 +1,6 @@
 ;;; log.el --- Command usage log for Michael Hucka  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2021  Free Software Foundation, Inc.
 
 ;; Author: Erik Altmann, Frank Ritter & Nick Jackson
 ;; Created-On: Sat Nov 14 19:24:27 1992
@@ -169,12 +169,12 @@
 ;;;###autoload
 (define-minor-mode log-session-mode
   "Minor mode to log a session (keystrokes, timestamps etc)."
-  :global t
+  :global t :group 'dismal
   (if log-session-mode
       (add-hook 'post-command-hook #'log-stamp-date)
     (remove-hook 'post-command-hook #'log-stamp-date)))
 
-(define-obsolete-function-alias 'log-initialize 'log-session-mode "Dismal-1.6")
+(define-obsolete-function-alias 'log-initialize #'log-session-mode "Dismal-1.6")
 
 ;; 11-17-94 -fer
 (defun log-quit ()
@@ -421,7 +421,7 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
     (set-buffer-modified-p t))	; temp output doesn't modify a buffer
   (log-temp-buffer buf))
 
-(defalias 'log-temp-buffer-show-function 'log-temp-buffer-show-hook)
+(defalias 'log-temp-buffer-show-function #'log-temp-buffer-show-hook)
 
 ;; automatically save log buffer and files visited by process buffers
 ;; when exiting.

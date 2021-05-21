@@ -1,6 +1,6 @@
-;;; vectors.el --- Vectors as arrays that grow automatically
+;;; vectors.el --- Vectors as arrays that grow automatically  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021  Free Software Foundation, Inc.
 
 ;; Author: David Fox, fox@cs.nyu.edu
 ;; Created-On: Mon Jan  6 14:19:40 1992

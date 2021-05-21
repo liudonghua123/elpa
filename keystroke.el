@@ -1,6 +1,6 @@
-;;; keystroke.el --- Keystroke-level model to be incorporated into Dismal
+;;; keystroke.el --- Keystroke-level model to be incorporated into Dismal  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2021  Free Software Foundation, Inc.
 
 ;; Author: Sarah Nichols, University of Nottingham
 
@@ -69,9 +69,9 @@
 ;;;
 ;;; 	I.	command-time: Time to enter a command
 ;;;
-;;; Takes COMMAND (a string) as arguement, automatically calculates
-;;; mental operators by looking for hyphens, and includes average typing
-;;; speed from wpm to return time to execute command in seconds.
+;; Takes COMMAND (a string) as arguement, automatically calculates
+;; mental operators by looking for hyphens, and includes average typing
+;; speed from wpm to return time to execute command in seconds.
 
 (add-hook 'dis-user-cell-functions #'klm-time)
 

@@ -1,6 +1,6 @@
-;;; rmatrix.el --- Matrices implemented as vector of vectors, gives rows priority
+;;; rmatrix.el --- Matrices implemented as vector of vectors, gives rows priority  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021  Free Software Foundation, Inc.
 
 ;; Author: David Fox, fox@cs.nyu.edu
 ;; Created-On: Mon Jan  6 14:17:56 1992

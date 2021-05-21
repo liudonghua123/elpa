@@ -1,4 +1,4 @@
-;;; semi-coder.el --- Let users insert codes from model into Soar/PA sheets.
+;;; semi-coder.el --- Let users insert codes from model into Soar/PA sheets.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992-2021  Free Software Foundation, Inc.
 
@@ -116,6 +116,8 @@
 
 (defconst dis-init-op-codes-prompt "Attempt to load codes from DSI or TAQL: ")
 
+(declare-function ilisp-send "ext:ilisp")
+
 (defun dis-initialize-operator-codes ()
   "Initialize the dismal operator codes."
   ;; used to require either SX+ latest pscm-stats, or taql and taql-stats
@@ -124,7 +126,7 @@
   (let ((completion-ignore-case t))
     ;; look in process, or query user for a file
     (cond
-     ((comint-check-proc "*soar*")
+     ((and (fboundp 'comint-check-proc) (comint-check-proc "*soar*"))
       (let ((operator-codes
              (car (read-from-string
                    (downcase
