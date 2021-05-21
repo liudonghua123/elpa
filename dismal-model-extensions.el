@@ -1,6 +1,6 @@
 ;;; dismal-model-extensions.el --- Specialized extensions to dismal
 
-;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021  Free Software Foundation, Inc.
 
 ;; Author: Frank E. Ritter, ritter@cs.cmu.edu
 ;; Created-On: Wed May 20 15:50:22 1992
@@ -52,23 +52,23 @@ that is in order."
   (interactive "P")
   (model-matcher range-list "O: "))
 
-(defun dis-model-matcher (range-list string-test)
-  (setq range-list (dismal-adjust-range-list range-list))
-  (let* ((total 0) (matches 0))
-    (dismal-do (function (lambda (row col old-result)
-                  (let ((dc (dismal-get-val row col))
-                        (mdc (dismal-get-val row (- col 2))) )
-    ;;(my-message "Row: %s  dc is %s, match is %s, total %s" row dc mdc total)
-                  (if (and dc (stringp dc) (or (not string-match-item)
-                                               (string-match string-match-item dc)))
-                     (progn
-                       (setq total (1+ total))
-                       (setq matches
-                             (if mdc
-                                 (1+ matches)
-                                matches)))))))
-             range-list 0)
-   (dis-div (float matches) (float total)) ))
+;; (defun dis-model-matcher (range-list string-test)
+;;   (setq range-list (dismal-adjust-range-list range-list))
+;;   (let* ((total 0) (matches 0))
+;;     (dismal-do (function (lambda (row col old-result)
+;;                   (let ((dc (dismal-get-val row col))
+;;                         (mdc (dismal-get-val row (- col 2))) )
+;;     ;;(my-message "Row: %s  dc is %s, match is %s, total %s" row dc mdc total)
+;;                   (if (and dc (stringp dc) (or (not string-match-item)
+;;                                                (string-match string-match-item dc)))
+;;                      (progn
+;;                        (setq total (1+ total))
+;;                        (setq matches
+;;                              (if mdc
+;;                                  (1+ matches)
+;;                                 matches)))))))
+;;              range-list 0)
+;;    (dis-div (float matches) (float total)) ))
 
 
 ;;;; II.	dis-model-rate

@@ -1,12 +1,12 @@
 ;;; dismal.el --- Dis Mode Ain't Lotus: Spreadsheet program Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2021  Free Software Foundation, Inc.
 
 ;; Author: David Fox, fox@cs.nyu.edu
 ;;         Frank E. Ritter, ritter@cs.cmu.edu
 ;; Maintainer: UnMaintainer <emacs-devel@gnu.org>
 ;; Created-On: 31 Oct 1991.
-;; Version: 1.5.1
+;; Version: 1.5.2
 ;; Package-Requires: ((cl-lib "0"))
 
 ;; This is free software: you can redistribute it and/or modify
@@ -493,7 +493,6 @@ with something in colA-1.  Only counts stuff that is in order." t)
 
 ;; cheap enough, so always include
 (require 'keystroke)
-(require 'make-km-aliases)
 
 
 ;;;; vii.	Former ritter-math

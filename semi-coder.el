@@ -1,6 +1,6 @@
 ;;; semi-coder.el --- Let users insert codes from model into Soar/PA sheets.
 
-;; Copyright (C) 1992-2019 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021  Free Software Foundation, Inc.
 
 ;; Author: Frank Ritter
 ;; Created-On: Sun Jul 19 02:04:03 1992
@@ -114,7 +114,7 @@
 
 ;;;; IV.	Utilities
 
-;; (defconst dis-init-op-codes-prompt "Attempt to load codes from DSI or TAQL: ")
+(defconst dis-init-op-codes-prompt "Attempt to load codes from DSI or TAQL: ")
 
 (defun dis-initialize-operator-codes ()
   "Initialize the dismal operator codes."

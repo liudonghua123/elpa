@@ -1,6 +1,6 @@
 ;;; dismal-metacolumn.el --- Implement metacolumn manipulations for dismal
 
-;; Copyright (C) 1992, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021  Free Software Foundation, Inc.
 
 ;; Author: Frank E. Ritter, ritter@cs.cmu.edu
 ;; Created-On: Mon Jun  1 13:05:14 1992
@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'dismal-data-structures)
+(require 'dismal)
 
 
 ;;;; I.	dis-set-metacolumn
@@ -76,25 +77,25 @@ at ROW (default, current-row)."
   "Insert ARG rows of cells on each side of dis-middle-col,
 starting at the rows of point and mark, which must be on opposite 
 sides of the middle-col."
- (interactive "P")
- (dismal-metacolumn-guards)
-        (setq r1r dismal-current-row)
-        (setq r1c dismal-current-col)
-        (setq r2r (dismal-mark-row))
-        (setq r2c (dismal-mark-col))
- (let* ((arg (or initial-arg (abs (- r1r r2r))))
-        (dismal-interactive-p nil))
- (if (not (or (and (<= r1c dis-middle-col) (> r2c dis-middle-col))
-              (and (<= r2c dis-middle-col) (> r1c dis-middle-col))))
-     (error 
-       "Point and mark must be on opposite sides of dis-middle-col, col %s" 
-       dis-middle-col))
- (message "Inserting Z box of %s cells at rows %s and %s..." arg r1r r2r)
- ;; Chose the row to go first
- (dismal-save-excursion
-   (dismal-insert-metacolumn-cells arg r1c r1r)
-   (dismal-insert-metacolumn-cells arg r2c r2r)
-   (dismal-redraw-range (min r1r r2r) (max r1r r2r)))))
+  (interactive "P")
+  (dismal-metacolumn-guards)
+  (let* ((r1r dismal-current-row)
+         (r1c dismal-current-col)
+         (r2r (dismal-mark-row))
+         (r2c (dismal-mark-col))
+         (arg (or initial-arg (abs (- r1r r2r))))
+         (dismal-interactive-p nil))
+    (if (not (or (and (<= r1c dis-middle-col) (> r2c dis-middle-col))
+                 (and (<= r2c dis-middle-col) (> r1c dis-middle-col))))
+        (error 
+         "Point and mark must be on opposite sides of dis-middle-col, col %s" 
+         dis-middle-col))
+    (message "Inserting Z box of %s cells at rows %s and %s..." arg r1r r2r)
+    ;; Chose the row to go first
+    (dismal-save-excursion
+     (dismal-insert-metacolumn-cells arg r1c r1r)
+     (dismal-insert-metacolumn-cells arg r2c r2r)
+     (dismal-redraw-range (min r1r r2r) (max r1r r2r)))))
 
 
 ;; (dismal-insert-range-cells 11 0 11 dismal-middle-col 1)
@@ -107,74 +108,74 @@ sides of the middle-col."
 (defun dis-align-metacolumns ()
   "Align the metacolumns so that point and mark are on the same line,
 keeping other parts of the columns still aligned."
- (interactive)
- (dismal-metacolumn-guards)
- (dismal-save-excursion
-        (setq r1r dismal-current-row)
-        (setq r1c dismal-current-col)
-        (setq r2r (dismal-mark-row))
-        (setq r2c (dismal-mark-col))
- (let* (first-row first-col-start first-col-end
-        ;; these are used to do insertion
-        second-row second-col-start second-col-end 
-        (arg (abs (- r1r r2r))) )
- (if (not (or (and (<= r1c dis-middle-col) (> r2c dis-middle-col))
-              (and (<= r2c dis-middle-col) (> r1c dis-middle-col))))
-     (error "Point & mark must be across dis-middle-col, col %s (aka #%s)"
-            (dismal-convert-number-to-colname dis-middle-col)
-            dis-middle-col))
- (if (= r1r r2r)
-     nil    ;; you are done, jump down to telling
- ;; Chose the row to go first, and set the columns up
- (cond ((> r1r r2r)  ;; point is after mark
-        (setq first-row r2r) (setq second-row r1r)
-        (cond ((> r1c dis-middle-col)  ;; point is left of mark
-               (setq first-col-start 0)
-               (setq first-col-end dis-middle-col)
-               (setq second-col-start (1+ dis-middle-col))
-               (setq second-col-end dismal-max-col))
-              (t  ;; point is right of mark
-               (setq first-col-start (1+ dis-middle-col))
-               (setq first-col-end dismal-max-col)
-               (setq second-col-start 0)
-               (setq second-col-end dis-middle-col))))
-       (t (setq first-row r1r) (setq second-row r2r)   ;; point is before mark
-        (cond ((> r1c dis-middle-col)  ;; point is left of mark
-               (setq first-col-start (1+ dis-middle-col))
-               (setq first-col-end dismal-max-col)
-               (setq second-col-start 0)
-               (setq second-col-end dis-middle-col))
-              (t  ;; point is right of mark
-               (setq first-col-start 0)
-               (setq first-col-end dis-middle-col)
-               (setq second-col-start (1+ dis-middle-col))
-               (setq second-col-end dismal-max-col)))))
- (if dismal-interactive-p
-     (if (= first-col-start 0)
-         (message "Aligning row %s (R) to row %s (L)..." second-row first-row)
-       (message "Aligning row %s (R) to row %s (L)..." first-row second-row)))
- ;; Insert some blank cells in front of earlier column
- ;; (my-message "inserting %s %s to %s %s  N cells %s" 
- ;;             first-row first-col-start first-row first-col-end arg)
- (dismal-insert-range-cells first-row first-col-start
-                            first-row first-col-end arg)
- ;; Insert some blank cells after the later column
- ;; (my-message "inserting %s %s to %s %s  N cells %s" 
- ;;       (1+ second-row) second-col-start (1+ second-row) second-col-end arg)
- ;; this appear to be taken care of in insert-range-cells, 13-Jan-94 -FER
- ;; (dismal-insert-range-cells (1+ second-row) second-col-start
- ;;                           (1+ second-row) second-col-end arg)
- ;; Delete blank lines in region
- (dis-delete-blank-rows (- first-row arg) (+ second-row arg))
- (dismal-redraw-range (max 0 (- first-row arg)) (+ second-row arg)))
+  (interactive)
+  (dismal-metacolumn-guards)
+  (dismal-save-excursion
+   (let* ((r1r dismal-current-row)
+          (r1c dismal-current-col)
+          (r2r (dismal-mark-row))
+          (r2c (dismal-mark-col))
+          first-row first-col-start first-col-end
+          ;; these are used to do insertion
+          second-row second-col-start second-col-end 
+          (arg (abs (- r1r r2r))) )
+     (if (not (or (and (<= r1c dis-middle-col) (> r2c dis-middle-col))
+                  (and (<= r2c dis-middle-col) (> r1c dis-middle-col))))
+         (error "Point & mark must be across dis-middle-col, col %s (aka #%s)"
+                (dismal-convert-number-to-colname dis-middle-col)
+                dis-middle-col))
+     (if (= r1r r2r)
+         nil        ;; you are done, jump down to telling
+       ;; Chose the row to go first, and set the columns up
+       (cond ((> r1r r2r) ;; point is after mark
+              (setq first-row r2r) (setq second-row r1r)
+              (cond ((> r1c dis-middle-col) ;; point is left of mark
+                     (setq first-col-start 0)
+                     (setq first-col-end dis-middle-col)
+                     (setq second-col-start (1+ dis-middle-col))
+                     (setq second-col-end dismal-max-col))
+                    (t ;; point is right of mark
+                     (setq first-col-start (1+ dis-middle-col))
+                     (setq first-col-end dismal-max-col)
+                     (setq second-col-start 0)
+                     (setq second-col-end dis-middle-col))))
+             (t (setq first-row r1r) (setq second-row r2r) ;; point is before mark
+                (cond ((> r1c dis-middle-col) ;; point is left of mark
+                       (setq first-col-start (1+ dis-middle-col))
+                       (setq first-col-end dismal-max-col)
+                       (setq second-col-start 0)
+                       (setq second-col-end dis-middle-col))
+                      (t ;; point is right of mark
+                       (setq first-col-start 0)
+                       (setq first-col-end dis-middle-col)
+                       (setq second-col-start (1+ dis-middle-col))
+                       (setq second-col-end dismal-max-col)))))
+       (if dismal-interactive-p
+           (if (= first-col-start 0)
+               (message "Aligning row %s (R) to row %s (L)..." second-row first-row)
+             (message "Aligning row %s (R) to row %s (L)..." first-row second-row)))
+       ;; Insert some blank cells in front of earlier column
+       ;; (my-message "inserting %s %s to %s %s  N cells %s" 
+       ;;             first-row first-col-start first-row first-col-end arg)
+       (dismal-insert-range-cells first-row first-col-start
+                                  first-row first-col-end arg)
+       ;; Insert some blank cells after the later column
+       ;; (my-message "inserting %s %s to %s %s  N cells %s" 
+       ;;       (1+ second-row) second-col-start (1+ second-row) second-col-end arg)
+       ;; this appear to be taken care of in insert-range-cells, 13-Jan-94 -FER
+       ;; (dismal-insert-range-cells (1+ second-row) second-col-start
+       ;;                           (1+ second-row) second-col-end arg)
+       ;; Delete blank lines in region
+       (dis-delete-blank-rows (- first-row arg) (+ second-row arg))
+       (dismal-redraw-range (max 0 (- first-row arg)) (+ second-row arg)))
 
- ;; this needs to be done, but its a mess to do right
- ;; (dismal-change-row-references dismal-current-row arg)
+     ;; this needs to be done, but its a mess to do right
+     ;; (dismal-change-row-references dismal-current-row arg)
 
- (and dismal-interactive-p
-      (progn
-        (message "Aligning rows %s to row %s...Finished." first-row second-row)
-        (beep t)))  )))
+     (and dismal-interactive-p
+          (progn
+            (message "Aligning rows %s to row %s...Finished." first-row second-row)
+            (beep t)))  )))
 
 
 ;;;; V.	Utilities

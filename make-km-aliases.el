@@ -1,12 +1,14 @@
 ;;; make-km-aliases.el --- A simple way to create Dismal aliases
 
-;; Copyright (C) 1994, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2021  Free Software Foundation, Inc.
 
 ;; Author: Frank Ritter & Nichols
 
 ;;; Commentary:
 
 ;;; Code:
+
+(require 'simple-menu)
 
 (defvar dismal-old-aliases nil "*Old commands that you have passed in.")
 (make-variable-buffer-local 'dismal-old-aliases)
