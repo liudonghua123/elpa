@@ -165,7 +165,7 @@ If EXPAND is non-nil, expand wildcards."
 
 (defun shell-command+-cmd-locate (command)
   "Convert COMMAND into a `locate' call."
-  (pcase-let ((`(,_ . ,search) (shell-command+-tokenize command)))
+  (pcase-let ((`(,_ ,search) (shell-command+-tokenize command)))
     (locate search)))
 
 (defun shell-command+-cmd-man (command)
