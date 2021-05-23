@@ -143,16 +143,18 @@ If EXPAND is non-nil, expand wildcards."
                 (or (: ?\" (group (* (not ?\"))) ?\")
                     (: (group (+ (not (any ?\" space)))))))
             (substring command pos))
-      (push (if (and expand (match-data 2))
-                (let ((tok (match-string 2 (substring command pos))))
-                  (or (file-expand-wildcards tok) (list tok)))
-              (list (or (match-string 2 (substring command pos))
-                        (match-string 1 (substring command pos)))))
+      (push (let ((tok (match-string 2 (substring command pos))))
+              (if (and expand tok)
+                  (or (file-expand-wildcards tok) (list tok))
+                (list (or (match-string 2 (substring command pos))
+                          (match-string 1 (substring command pos))))))
             tokens)
       (setq pos (+ pos (match-end 0))))
     (unless (= pos (length command))
       (error "Tokenization error at %s" (substring command pos)))
     (apply #'append (nreverse tokens))))
+
+(shell-command+-tokenize "a \"*\" *.el c" t)
 
 (defun shell-command+-cmd-grep (command)
   "Convert COMMAND into a `grep' call."
