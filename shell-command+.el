@@ -134,24 +134,29 @@ the command string"
 
 
 
-(defun shell-command+-tokenize (command)
-  "Return list of tokens of COMMAND."
+(defun shell-command+-tokenize (command &optional expand)
+  "Return list of tokens of COMMAND.
+If EXPAND is non-nil, expand wildcards."
   (let ((pos 0) tokens)
     (while (string-match
             (rx bos (* space)
-                (or (: ?\" (group-n 1 (* (not ?\"))) ?\")
-                    (: (group-n 1 (+ (not (any ?\" space)))))))
+                (or (: ?\" (group (* (not ?\"))) ?\")
+                    (: (group (+ (not (any ?\" space)))))))
             (substring command pos))
-      (push (match-string 1 (substring command pos))
+      (push (if (and expand (match-data 2))
+                (let ((tok (match-string 2 (substring command pos))))
+                  (or (file-expand-wildcards tok) (list tok)))
+              (list (or (match-string 2 (substring command pos))
+                        (match-string 1 (substring command pos)))))
             tokens)
       (setq pos (+ pos (match-end 0))))
     (unless (= pos (length command))
       (error "Tokenization error at %s" (substring command pos)))
-    (nreverse tokens)))
+    (apply #'append (nreverse tokens))))
 
 (defun shell-command+-cmd-grep (command)
   "Convert COMMAND into a `grep' call."
-  (pcase-let ((`(,command . ,args) (shell-command+-tokenize command)))
+  (pcase-let ((`(,command . ,args) (shell-command+-tokenize command t)))
     (let ((grep-command command))
       (grep (mapconcat #'identity args " ")))))
 
@@ -179,7 +184,7 @@ the command string"
 
 (defun shell-command+-cmd-diff (command)
   "Convert COMMAND into `diff' call."
-  (pcase-let ((`(,_ . ,args) (shell-command+-tokenize command)))
+  (pcase-let ((`(,_ . ,args) (shell-command+-tokenize command t)))
     (let (files flags)
       (dolist (arg args)
         (if (string-match-p (rx bos "-") arg)
