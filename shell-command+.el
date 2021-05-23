@@ -138,13 +138,15 @@ the command string"
   "Return list of tokens of COMMAND."
   (let ((pos 0) tokens)
     (while (string-match
-            (rx (* space)
+            (rx bos (* space)
                 (or (: ?\" (group-n 1 (* (not ?\"))) ?\")
-                    (: (group-n 1 (+ (not (any ?\" ?\s)))))))
-            command pos)
-      (push (match-string 1 command)
+                    (: (group-n 1 (+ (not (any ?\" space)))))))
+            (substring command pos))
+      (push (match-string 1 (substring command pos))
             tokens)
-      (setq pos (match-end 0)))
+      (setq pos (+ pos (match-end 0))))
+    (unless (= pos (length command))
+      (error "Tokenization error at %s" (substring command pos)))
     (nreverse tokens)))
 
 (defun shell-command+-cmd-grep (command)
