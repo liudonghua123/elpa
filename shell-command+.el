@@ -154,8 +154,6 @@ If EXPAND is non-nil, expand wildcards."
       (error "Tokenization error at %s" (substring command pos)))
     (apply #'append (nreverse tokens))))
 
-(shell-command+-tokenize "a \"*\" *.el c" t)
-
 (defun shell-command+-cmd-grep (command)
   "Convert COMMAND into a `grep' call."
   (grep (mapconcat #'identity (shell-command+-tokenize command t) " ")))
