@@ -52,9 +52,9 @@
 ;;
 ;;	man fprintf
 ;;
-;; Open a man-page using Emacs default man page viewer.  This feature
-;; is based on `eshell', and can be customized using
-;; `shell-command+-use-eshell'.
+;; Open a man-page using Emacs default man page viewer.
+;; `shell-command+' can be extended to use custom Elisp handlers via
+;; as specified in `shell-command+-substitute-alist'.
 ;;
 ;; See `shell-command+'s docstring for more details on how it's input
 ;; is interpreted..
@@ -278,8 +278,11 @@ When COMMAND starts with...
   |  the current selection is filtered through COMMAND
   !  COMMAND is simply executed (same as without any prefix)
 
-If `shell-command+-use-eshell' is non-nil, and the the first
-argument of COMMAND has a defined `eshell'-function, use that.
+If the first word in COMMAND, matches an entry in the alist
+`shell-command+-substitute-alist', the respective function is
+used to execute the command instead of passing it to a shell
+process.  This behaviour can be inhibited by prefixing COMMAND
+with !.
 
 Inside COMMAND, % is replaced with the current file name.  To
 insert a literal % quote it using a backslash.
