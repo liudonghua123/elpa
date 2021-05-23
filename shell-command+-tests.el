@@ -1,6 +1,6 @@
 ;;; shell-command+-tests.el --- Tests for shell-command+  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021  Philip Kaludercic
+;; Copyright (C) 2021  Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 
