@@ -156,9 +156,7 @@ If EXPAND is non-nil, expand wildcards."
 
 (defun shell-command+-cmd-grep (command)
   "Convert COMMAND into a `grep' call."
-  (pcase-let ((`(,command . ,args) (shell-command+-tokenize command t)))
-    (let ((grep-command command))
-      (grep (mapconcat #'identity args " ")))))
+  (grep (mapconcat #'identity (shell-command+-tokenize command t) " ")))
 
 (defun shell-command+-cmd-find (command)
   "Convert COMMAND into a `find-dired' call."
