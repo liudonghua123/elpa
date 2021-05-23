@@ -91,7 +91,7 @@ handlers if the symbol (eg. `man') is contained in the list."
                 (* (not space)))
          (+ space))
       ;; check for redirection indicator
-      (? (or (group ?<) (group ?>) (group ?|) ?!))
+      (? (group (or ?< ?> ?| ?!)))
       ;; allow whitespace after indicator
       (* space)
       ;; actual command (and command name)
@@ -122,22 +122,20 @@ proper upwards directory pointers.  This means that '....' becomes
     (unless (string-match shell-command+--command-regexp command)
       (error "Invalid command"))
     (list (match-string-no-properties 1 command)
-          (cond ((match-string-no-properties 2 command) ;<
+          (cond ((string= (match-string-no-properties 2 command) "<")
                  'input)
-                ((match-string-no-properties 3 command) ;>
+                ((string= (match-string-no-properties 2 command) ">")
                  'output)
-                ((match-string-no-properties 4 command) ;|
+                ((string= (match-string-no-properties 2 command) "|")
                  'pipe))
-          (match-string-no-properties 6 command)
+          (match-string-no-properties 4 command)
           (condition-case nil
               (replace-regexp-in-string
                (rx (* ?\\ ?\\) (or ?\\ (group "%")))
                buffer-file-name
-               (match-string-no-properties 5 command)
+               (match-string-no-properties 3 command)
                nil nil 1)
-            (error (match-string-no-properties 5 command))))))
-
-(shell-command+-parse "ls %")
+            (error (match-string-no-properties 3 command))))))
 
 ;;;###autoload
 (defun shell-command+ (command beg end)
