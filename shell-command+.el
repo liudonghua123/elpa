@@ -82,6 +82,10 @@ handlers if the symbol (eg. `man') is contained in the list."
   "Prompt to use when invoking `shell-command+'."
   :type 'string)
 
+(defcustom shell-command+-flip-redirection nil
+  "Flip the meaning of < and > at the beginning of a command."
+  :type 'boolean)
+
 (defconst shell-command+--command-regexp
   (rx bos
       ;; ignore all preceding whitespace
@@ -123,9 +127,11 @@ proper upwards directory pointers.  This means that '....' becomes
       (error "Invalid command"))
     (list (match-string-no-properties 1 command)
           (cond ((string= (match-string-no-properties 2 command) "<")
-                 'input)
+                 (if shell-command+-flip-redirection
+                     'output 'input))
                 ((string= (match-string-no-properties 2 command) ">")
-                 'output)
+                 (if shell-command+-flip-redirection
+                     'input 'output))
                 ((string= (match-string-no-properties 2 command) "|")
                  'pipe))
           (match-string-no-properties 4 command)
