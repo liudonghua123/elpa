@@ -2171,7 +2171,6 @@ for user to call `debbugs-gnu-maybe-use-picked-commits'."
   (let ((bugnum nil)
         (repo-dir default-directory))
     (with-temp-buffer
-      ;; %B = raw body (unwrapped subject and body)
       (debbugs-gnu--git-insert
        ;; %B: raw body (unwrapped subject and body).
        "show" "--no-patch" "--format=%B" commit-range)
