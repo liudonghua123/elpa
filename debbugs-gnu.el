@@ -2592,7 +2592,7 @@ If SELECTIVELY, query the user before applying the patch."
 	(delete-region (line-beginning-position) (point-max))
 	(save-restriction
 	  (narrow-to-region (point) (point))
-	  (insert changelog)
+	  (insert (string-replace "\r" "" changelog))
 	  (indent-region (point-min) (point-max))))
       (let ((point (point)))
 	(when (string-match "\\(bug#[0-9]+\\)" subject)
