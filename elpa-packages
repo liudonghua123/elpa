@@ -115,6 +115,8 @@
  ("debbugs"		:url nil :doc ("debbugs.texi" "debbugs-ug.texi"))
  ("delight"		:url "https://git.savannah.gnu.org/r/delight.git"
   :auto-sync t)
+ ("devdocs"		:url "https://github.com/astoff/devdocs.el"
+  :auto-sync t)
  ("dict-tree"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("diffview"            :url "https://github.com/mgalgs/diffview-mode.git")
  ("diff-hl"
@@ -182,7 +184,8 @@
   :make ("kotl/kotl-autoloads.el")
   :auto-sync t)
  ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git")
- ("isearch-mb"		:url "https://github.com/astoff/isearch-mb")
+ ("isearch-mb"		:url "https://github.com/astoff/isearch-mb"
+  :auto-sync t)
  ("iterators"		:url nil)
  ("ivy"
   :url "https://github.com/abo-abo/swiper"
