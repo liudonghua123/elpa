@@ -95,10 +95,11 @@
  ("company-ebdb"	:url nil)
  ("company-math"	:url "https://github.com/vspinu/company-math.git")
  ("company-statistics"	:url "https://github.com/company-mode/company-statistics")
- ("consult"		:url "https://github.com/minad/consult")
+ ("consult"		:url "https://github.com/minad/consult"
+  :auto-sync t)
  ("context-coloring"	:url "https://github.com/jacksonrayhamilton/context-coloring.git")
  ("corfu"		:url "https://github.com/minad/corfu"
-  :doc "README.org")
+  :doc "README.org" :auto-sync t)
  ("counsel"		:url "https://github.com/abo-abo/swiper")
  ("cpio-mode"		:url "https://github.com/dlewan/cpio-mode")
  ("crisp"		:url nil)
@@ -214,7 +215,8 @@
  ("loc-changes"		:url "https://github.com/rocky/emacs-loc-changes")
  ("loccur"		:url "https://github.com/fourier/loccur")
  ("map"                 :core "lisp/emacs-lisp/map.el")
- ("marginalia"		:url "https://github.com/minad/marginalia")
+ ("marginalia"		:url "https://github.com/minad/marginalia"
+  :auto-sync t)
  ("markchars"		:url nil)
  ("math-symbol-lists" 	:url "https://github.com/vspinu/math-symbol-lists.git")
  ("memory-usage"	:url nil)
@@ -385,7 +387,7 @@
  ("vlf"			:url "https://github.com/m00natic/vlfi")
  ("verilog-mode"        :core "lisp/progmodes/verilog-mode.el")
  ("vertico"		:url "https://github.com/minad/vertico"
-  :doc "README.org")
+  :doc "README.org" :auto-sync t)
  ("wcheck-mode"		:url "https://github.com/tlikonen/wcheck-mode")
  ("wconf"		:url "https://github.com/ilohmar/wconf")
  ("web-server"		:url "https://github.com/eschulte/emacs-web-server.git")
