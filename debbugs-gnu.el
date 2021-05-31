@@ -346,7 +346,7 @@ If this is `rmail', use Rmail instead."
 (defface debbugs-gnu-handled '((t (:foreground "ForestGreen")))
   "Face for reports that have been modified recently.")
 
-(defface debbugs-gnu-stale-1 '((t (:foreground "#b0b000")))
+(defface debbugs-gnu-stale-1 '((t (:foreground "#a0a000")))
   "Face for reports that have been touched two to four weeks ago.")
 
 (defface debbugs-gnu-stale-2 '((t (:foreground "#c0c000")))
