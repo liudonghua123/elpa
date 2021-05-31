@@ -96,7 +96,7 @@
  ("company-math"	:url "https://github.com/vspinu/company-math.git")
  ("company-statistics"	:url "https://github.com/company-mode/company-statistics")
  ("consult"		:url "https://github.com/minad/consult"
-  :auto-sync t)
+  :doc "README.org" :auto-sync t)
  ("context-coloring"	:url "https://github.com/jacksonrayhamilton/context-coloring.git")
  ("corfu"		:url "https://github.com/minad/corfu"
   :doc "README.org" :auto-sync t)
@@ -219,7 +219,7 @@
  ("loccur"		:url "https://github.com/fourier/loccur")
  ("map"                 :core "lisp/emacs-lisp/map.el")
  ("marginalia"		:url "https://github.com/minad/marginalia"
-  :auto-sync t)
+  :doc "README.org" :auto-sync t)
  ("markchars"		:url nil)
  ("math-symbol-lists" 	:url "https://github.com/vspinu/math-symbol-lists.git")
  ("memory-usage"	:url nil)
