@@ -153,7 +153,7 @@ present."
                      ", ")
           ")"
           (if throws-args
-              (concat "throws "
+              (concat " throws "
                       (mapconcat #'car throws-args ", ")))
           ))
 
@@ -253,31 +253,29 @@ same format as `javaimp--parse-arglist' (but here, only TYPE
 element component will be present).  Point is left at the
 position from where method signature parsing may be continued.
 Returns t if parsing failed and should not be continued."
-  (let ((pos (point))
-        res)
+  (let ((pos (point)))
     (when (re-search-backward "\\<throws\\s-+" nil t)
-      (setq res (save-match-data
-                  (javaimp--parse-arglist
-                   (match-end 0)
-                   (save-excursion
-                     (goto-char pos)
-                     (skip-syntax-backward "-")
-                     (point))
-                   t)))
-      (if res
-          (goto-char (match-beginning 0))
-        ;; If throws-args did not parse, then it could either 1) be
-        ;; malformed, 2) just belong to some other method.  In case 2
-        ;; we want to return to where we started and continue without
-        ;; throws.
-        (if (ignore-errors
-              ;; Is the next list construct the same which we're
-              ;; analyzing?  If yes, then assume throws is malformed.
-              (/= (scan-lists (match-end 0) 1 -1)
-                  (1+ (nth 1 state))))
-            (goto-char pos)
-          (setq res t))))
-    res))
+      (if (ignore-errors
+            ;; Does our found throws belong to the right block?
+            (= (scan-lists (match-end 0) 1 -1)
+               (1+ (nth 1 state))))
+          (let ((res (save-match-data
+                       (javaimp--parse-arglist (match-end 0)
+                                               (save-excursion
+                                                 (goto-char pos)
+                                                 (skip-syntax-backward "-")
+                                                 (point))
+                                               t))))
+            (if res
+                (goto-char (match-beginning 0))
+              ;; Something's wrong here: tell the caller to stop
+              ;; parsing
+              (setq res t))
+            res)
+        ;; just return to where we started
+        (goto-char pos)
+        nil))))
+
 
 (defun javaimp--parse-scope-unknown (state)
   (make-javaimp-scope :type 'unknown
