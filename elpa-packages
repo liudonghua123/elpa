@@ -381,6 +381,8 @@
  ("url-http-ntlm" 	:url nil)
  ("validate"		:url "https://github.com/Malabarba/validate.el")
  ("valign"		:url "https://github.com/casouri/valign")
+ ("vc-hgcmd"		:url "https://github.com/muffinmad/emacs-vc-hgcmd"
+  :auto-sync t)
  ("vcard"		:url nil)
  ("vdiff"               :url "https://github.com/justbur/emacs-vdiff")
  ("vcl-mode"	        :url "git://git.gnu.org.ua/vcl-mode")
