@@ -90,9 +90,15 @@ throws E1 {"
       simple-statement "try")
     '("\ntry\n{"
       simple-statement "try")
-    ;; static initializer also falls in this category
+    ;; static initializer
     '("static {"
-      simple-statement "static")))
+      simple-statement "static")
+    ;; lambda
+    '("it -> {"
+      simple-statement "lambda")
+    '("(x, y) -> {"
+      simple-statement "lambda")
+    ))
 
 (ert-deftest javaimp-test--parse-scope-array ()
   (javaimp-test--check-scope #'javaimp--parse-scope-array

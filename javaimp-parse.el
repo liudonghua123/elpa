@@ -183,8 +183,9 @@ function is to just skip whitespace / comments."
 ;;; Scopes
 
 (defvar javaimp--parse-scope-hook
-  '(;; should be before method/stmt because looks similar, but with
-    ;; "new" in front
+  '(javaimp--parse-scope-array
+    ;; anonymous-class should be before method/stmt because it looks
+    ;; similar, but with "new" in front
     javaimp--parse-scope-anonymous-class
     javaimp--parse-scope-class
     javaimp--parse-scope-simple-stmt
@@ -194,6 +195,12 @@ function is to just skip whitespace / comments."
 
 
 (defun javaimp--parse-preceding (regexp scope-start &optional skip-count)
+  "Returns non-nil if a match for REGEXP is found before point.
+Matches inside comments / strings are skipped.  Potential match
+is checked to be SKIP-COUNT lists away from the SCOPE-START (1 is
+for scope start itself, so if you want to skip one additional
+list, use 2 etc.).  If a match is found, then match-data is set,
+as for `re-search-backward'."
   (and (javaimp--rsb-outside-context regexp nil t)
        (ignore-errors
          ;; Does our match belong to the right block?
@@ -230,13 +237,18 @@ those may later become 'local-class' (see `javaimp--parse-scopes')."
 (defun javaimp--parse-scope-simple-stmt (state)
   "Attempts to parse `simple-statement' scope."
   (save-excursion
-    (if (javaimp--parse-preceding (regexp-opt javaimp--parse-stmt-keywords 'words)
-                                  (nth 1 state))
-        (make-javaimp-scope
-         :type 'simple-statement
-         :name (match-string 1)
-         :start (point)
-         :open-brace (nth 1 state)))))
+    (and (javaimp--parse-skip-back-until)
+         (looking-back (concat
+                        (regexp-opt javaimp--parse-stmt-keywords 'words)
+                        "\\|->")
+                       nil t)
+         (make-javaimp-scope
+          :type 'simple-statement
+          :name (or (match-string 1)
+                    "lambda")
+          :start (or (match-beginning 1)
+                     (- (point) 2))
+          :open-brace (nth 1 state)))))
 
 (defun javaimp--parse-scope-anonymous-class (state)
   "Attempts to parse `anonymous-class' scope."
