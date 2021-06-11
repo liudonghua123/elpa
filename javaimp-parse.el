@@ -33,7 +33,7 @@ present."
 
 (cl-defstruct javaimp-scope
   type ; one of anonymous-class, class, interface, enum, local-class,
-       ; method, statement, simple-statement, unknown
+       ; method, statement, simple-statement, array, unknown
   name
   start
   open-brace)
@@ -123,7 +123,8 @@ non-nil or t.  Otherwise the return value is nil.
 If STOP-P wants to look forward, it should be prepared to see
 whitespace / comments, this is because backward movement skips
 them before invoking STOP-P.  It should not move point.  If
-omitted, it defaults to `always'."
+omitted, it defaults to `always', in this case the effect of the
+function is to just skip whitespace / comments."
   (or stop-p (setq stop-p #'always))
   (catch 'done
     (let (last-what last-pos)
@@ -319,6 +320,16 @@ not be continued."
         ;; just return to where we started
         (goto-char pos)
         nil))))
+
+(defun javaimp--parse-scope-array (state)
+  "Attempts to parse 'array' scope."
+  (save-excursion
+    (and (javaimp--parse-skip-back-until)
+         (member (char-before) '(?, ?{ ?\]))
+         (make-javaimp-scope :type 'array
+                             :name ""
+                             :start nil
+                             :open-brace (nth 1 state)))))
 
 (defun javaimp--parse-scope-unknown (state)
   "Catch-all parser which produces `unknown' scope."

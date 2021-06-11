@@ -94,6 +94,14 @@ throws E1 {"
     '("static {"
       simple-statement "static")))
 
+(ert-deftest javaimp-test--parse-scope-array ()
+  (javaimp-test--check-scope #'javaimp--parse-scope-array
+    '("new String[] {"
+      array "")
+    '("new Object[][] { {"
+      array "")
+    '("new int[] {{1, 2}, {"
+      array "")))
 
 (ert-deftest javaimp-test--parse-arglist ()
   (dolist (data '(("")
