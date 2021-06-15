@@ -100,20 +100,17 @@ class name.  Lowest-order groups are placed earlier.
 
 The order of classes which were not matched is defined by
 `javaimp-import-default-order'."
-  :group 'javaimp
   :type '(alist :key-type string :value-type integer))
 
 (defcustom javaimp-import-default-order 50
   "Defines the order of classes which were not matched by
 `javaimp-import-group-alist'"
-  :group 'javaimp
   :type 'integer)
 
 (defcustom javaimp-java-home (getenv "JAVA_HOME")
   "Path to the JDK.  Should contain subdirectory
 \"jre/lib\" (pre-JDK9) or just \"lib\".  By default, it is
 initialized from the JAVA_HOME environment variable."
-  :group 'javaimp
   :type 'string)
 
 (defcustom javaimp-additional-source-dirs nil
@@ -132,19 +129,16 @@ of the leading slash.
 
 Custom values set in plugin configuration in pom.xml are not
 supported yet."
-  :group 'javaimp
   :type '(repeat (string :tag "Relative directory")))
 
 (defcustom javaimp-jar-program "jar"
   "Path to the `jar' program used to read contents of jar files.
 Customize it if the program is not on `exec-path'."
-  :group 'javaimp
   :type 'string)
 
 (defcustom javaimp-jmod-program "jmod"
   "Path to the `jmod' program used to read contents of jmod files.
 Customize it if the program is not on `exec-path'."
-  :group 'javaimp
   :type 'string)
 
 (defcustom javaimp-include-current-module-classes t
@@ -152,7 +146,6 @@ Customize it if the program is not on `exec-path'."
 completion alternatives.  `javaimp-add-import' will find all java
 files in the current project and add their fully-qualified names
 to the completion alternatives list."
-  :group 'javaimp
   :type 'boolean)
 
 
