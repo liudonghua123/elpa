@@ -64,7 +64,7 @@ Copying
 Public Domain Dedication][cc0] license.
 
 [autocrypt]: https://autocrypt.org/
-[public inbox]: https://lists.sr.ht/~zge/public-inbox
+[public inbox]: https://lists.sr.ht/~pkal/public-inbox
 [MELPA]: https://melpa.org/#/autocrypt
 [setup]: http://elpa.gnu.org/packages/setup.html
 [cl-generic]: http://elpa.gnu.org/packages/cl-generic.html
