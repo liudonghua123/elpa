@@ -51,5 +51,5 @@ Domain Dedication][cc0] license.
 
 [melpa]: https://melpa.org/#/face-shift
 [screenshot]: https://files.catbox.moe/1tuaic.png
-[mailing list]: https://lists.sr.ht/~zge/public-inbox
+[mailing list]: https://lists.sr.ht/~pkal/public-inbox
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
