@@ -331,9 +331,11 @@
  ("scroll-restore"	:url nil)
  ("sed-mode"		:url nil)
  ("seq"			:url nil)
- ("setup"		:url "https://git.sr.ht/~pkal/setup")
+ ("setup"		:url "https://git.sr.ht/~pkal/setup"
+  :auto-sync t)
  ("shelisp"		:url nil)
- ("shell-command+"	:url "https://git.sr.ht/~pkal/shell-command-plus")
+ ("shell-command+"	:url "https://git.sr.ht/~pkal/shell-command-plus"
+  :auto-sync t)
  ("shell-quasiquote"	:url nil)
  ("shen-mode"		:url nil)
  ("sisu-mode"		:url nil)
