@@ -405,7 +405,8 @@
  ("windresize"		:url nil)
  ("wisi"		:url nil)
  ("wisitoken-grammar-mode" :url nil)
- ("which-key"           :url "https://github.com/justbur/emacs-which-key")
+ ("which-key"           :url "https://github.com/justbur/emacs-which-key"
+  :auto-sync t)
  ("wpuzzle"		:url nil)
  ("xclip"		:url nil)
  ("xelb"		:url "https://github.com/ch11ng/xelb.git")
