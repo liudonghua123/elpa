@@ -1904,7 +1904,10 @@
   (load-file (expand-file-name "grey-slime.el.gz" slime-volleyball-base))
   (load-file (expand-file-name "green-slime.el.gz" slime-volleyball-base))
   (pop-to-buffer-same-window (get-buffer-create "*slime-volleyball*"))
-  (slime-volleyball-initialize-globals) ;Should these be made buffer-local?
+  ;; These aren't buffer local so that changing slime-volleyball
+  ;; global variables from anywhere in Emacs, e.g., in the *scratch*
+  ;; buffer, will work.
+  (slime-volleyball-initialize-globals)
   (slime-volleyball-mode)
   (slime-volleyball-new-game)
   (slime-volleyball-scene-update)
