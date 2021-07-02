@@ -1936,7 +1936,8 @@ NO-KILL is specified, do not kill the *slime-volleyball* buffer."
      'slime-volleyball-eval-god-mode-variables)
     (when (and (not no-kill)
                (get-buffer "*slime-volleyball*"))
-      (kill-buffer "*slime-volleyball*"))))
+      (kill-buffer "*slime-volleyball*")
+      (clear-image-cache))))
 
 (provide 'slime-volleyball)
 
