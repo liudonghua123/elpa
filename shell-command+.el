@@ -88,6 +88,10 @@ handlers if the symbol (eg. `man') is contained in the list."
   "Flip the meaning of < and > at the beginning of a command."
   :type 'boolean)
 
+(defcustom shell-command+-enable-file-substitution t
+  "Enable the substitution of \"%s\" with the current file name."
+  :type 'boolean)
+
 (defcustom shell-command+-substitute-alist
   (cond ((eq shell-command+-use-eshell t)
          (require 'eshell)
@@ -264,11 +268,13 @@ proper upwards directory pointers.  This means that '....' becomes
                  'literal))
           (match-string-no-properties 4 command)
           (condition-case nil
-              (replace-regexp-in-string
-               (rx (* ?\\ ?\\) (or ?\\ (group "%")))
-               buffer-file-name
-               (match-string-no-properties 3 command)
-               nil nil 1)
+              (if shell-command+-enable-file-substitution
+                  (replace-regexp-in-string
+                   (rx (* ?\\ ?\\) (or ?\\ (group "%")))
+                   buffer-file-name
+                   (match-string-no-properties 3 command)
+                   nil nil 1)
+                (match-string-no-properties 3 command))
             (error (match-string-no-properties 3 command))))))
 
 ;;;###autoload
