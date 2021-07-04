@@ -303,7 +303,11 @@ These extentions can all be combined with one-another.
 
 In case a region is active, `shell-command+' will only work with the region
 between BEG and END.  Otherwise the whole buffer is processed."
-  (interactive (list (read-shell-command shell-command+-prompt)
+  (interactive (list (read-shell-command
+                      (if shell-command-prompt-show-cwd
+                          (format shell-command+-prompt
+                                  (abbreviate-file-name default-directory))
+                        shell-command+-prompt))
                      (if (use-region-p) (region-beginning) (point-min))
                      (if (use-region-p) (region-end) (point-max))))
   (pcase-let* ((`(,path ,mode ,command ,rest) (shell-command+-parse command))
