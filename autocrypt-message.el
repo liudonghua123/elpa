@@ -63,7 +63,7 @@
             (lambda () (kill-buffer payload))
             nil t))
 
-(defun autocrypt--message-encrypted-p ()
+(defun autocrypt-message--encrypted-p ()
   "Check if the current message is encrypted."
   (mml-secure-is-encrypted-p))
 
