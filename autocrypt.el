@@ -3,7 +3,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Version: 0.4.0
 ;; Keywords: comm
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "24.3"))
 ;; URL: https://git.sr.ht/~pkal/autocrypt
 
 ;; This file is NOT part of Emacs.
