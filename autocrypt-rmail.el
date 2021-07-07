@@ -1,10 +1,6 @@
 ;;; autocrypt-rmail.el --- Autocrypt for Rmail -*- lexical-binding:t -*-
 
-;; Author: Philip K. <philip@warpmail.net>
-;; Version: 0.4.0
-;; Keywords: comm
-;; Package-Requires: ((emacs "25.1"))
-;; URL: https://git.sr.ht/~zge/autocrypt
+;; Author: Philip Kaludercic <philipk@posteo.net>
 
 ;; This file is NOT part of Emacs.
 ;;
