@@ -4,7 +4,7 @@
 ;; Version: 0.1.0
 ;; Keywords: faces
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
-;; URL: https://git.sr.ht/~zge/face-shift
+;; URL: https://git.sr.ht/~pkal/face-shift
 
 ;; This file is NOT part of Emacs.
 ;;
