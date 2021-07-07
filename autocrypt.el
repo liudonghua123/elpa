@@ -40,6 +40,27 @@
   :link '(url-link "https://autocrypt.org/")
   :prefix "autocrypt-")
 
+(defcustom autocrypt-accounts nil
+  "Alist of supported Autocrypt accounts.
+
+All elements have the form (MAIL FINGERPRINT PREFERENCE), where
+FINGERPRINT is the fingerprint of the PGP key that should be used
+by email address MAIL.  PREFERENCE must be one of `mutual' or
+`no-preference', `none' (if no preference should be inserted into
+headers), or nil if this account should be temporarily disabled.
+
+This variable doesn't have to be manually specified, as
+activating the command `autocrypt-mode' should automatically
+configure it, or by calling `autocrypt-create-account'."
+  :type '(alist :key-type (string :tag "Address")
+                :value-type
+                (group (string :tag "Fingerprint")
+                       (choice :tag "Encryption Preference"
+                               (const :tag "None" none)
+                               (const :tag "No Preference" no-preference)
+                               (const :tag "Mutual" mutual)
+                               (const :tag "Disable this Account" nil)))))
+
 (defcustom autocrypt-do-gossip t
   "Enable Autocrypt gossiping.
 
@@ -71,19 +92,6 @@ process \"Autocrypt-Gossip\" headers when received."
 
 ;;; INTERNAL STATE
 
-(defvar autocrypt-accounts nil
-  "Alist of supported Autocrypt accounts.
-
-All elements have the form (MAIL FINGERPRINT PREFERENCE), where
-FINGERPRINT is the fingerprint of the PGP key that should be used
-by email address MAIL.  PREFERENCE must be one of `mutual' or
-`no-preference', `none' (if no preference should be inserted into
-headers), or nil if this account should be temporarily disabled.
-
-This variable doesn't have to be manually specified, as
-activating the command `autocrypt-mode' should automatically
-configure it, or by calling `autocrypt-create-account'.")
-
 (defvar autocrypt-peers nil
   "List of known autocrypt peers.
 
@@ -91,7 +99,7 @@ Every member of this list has to be an instance of the
 `autocrypt-peer' structure.")
 
 (defconst autocrypt-save-variables
-  '(autocrypt-accounts autocrypt-peers)
+  '(autocrypt-peers)
   "List of variables to save to `autocrypt-save-data'.")
 
 (defvar autocrypt-loaded-version)       ;used by `autocrypt-load-data'
@@ -509,9 +517,11 @@ Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
     (let ((res (epg-context-result-for ctx 'generate-key)))
       (unless res
         (error "Could not determine fingerprint"))
-      (push (list email (cdr (assq 'fingerprint (car res))) 'none)
-            autocrypt-accounts))
-    (autocrypt-save-data)
+      (customize-save-variable
+       'autocrypt-accounts
+       (cons (list email (cdr (assq 'fingerprint (car res))) 'none)
+             autocrypt-accounts)
+       "Set by autocrypt.el"))
     (message "Successfully generated key for %s, and added to key chain."
              email)))
 
