@@ -343,7 +343,7 @@ Argument DATE contains the time value of the \"From\" tag."
                         :timestamp date
                         :pubkey keydata
                         :preference preference)))))
-    (when autocrypt-do-gossip
+    (when (memq autocrypt-do-gossip '(t only-receive))
       (autocrypt-process-gossip date))
     (when (string= from addr)
       (unless (time-less-p date (autocrypt-peer-timestamp peer))
@@ -416,7 +416,7 @@ preference (\"prefer-encrypt\")."
   "Find out if the current message should have gossip headers.
 Argument RECIPIENTS is a list of addresses this message is
 addressed to."
-  (and autocrypt-do-gossip
+  (and (memq autocrypt-do-gossip '(t only-send))
        (autocrypt-encrypted-p)
        (< 1 (length recipients))
        (cl-every
