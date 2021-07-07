@@ -100,14 +100,17 @@ Every member of this list has to be an instance of the
 ;;; MUA TRANSLATION LAYER
 
 (defvar autocrypt-backends
-  '(((mu4e-main-mode mu4e-view-mode) . mu4e)
-    ((gnus-mode) . gnus)
-    ((rmail-mode) . rmail)
-    ((message-mode) . message))
-  "Alist of known backends.
-Each entry has the form (MODES . NAME), where MODES is a list of
-major modes where the backend applies, and NAME is a symbol to
-designate this backend.")
+  (list (lambda () (and (derived-mode-p 'mu4e-main-mode 'mu4e-view-mode) 'mu4e))
+        (lambda () (and (derived-mode-p 'gnus-mode) 'gnus))
+        (lambda () (and (derived-mode-p 'rmail-mode) 'rmail))
+        (lambda () (and (derived-mode-p 'message-mode) 'message))
+        (lambda ()
+          ;; Guess backend from major mode
+          (when (string-match "-mode\\'" (symbol-name major-mode))
+            (intern (substring (symbol-name major-mode) 0 (match-beginning 0))))))
+  "Hook for finding a backend.
+Each function is called without any further arguments, and should
+return a symbol designating the backend to use.")
 
 (defvar-local autocrypt-backend-function nil
   "Override the function called by `autocrypt-find-function'.
@@ -119,19 +122,18 @@ with the right signature.")
   "Return a function for handling COMMAND."
   (if autocrypt-backend-function
       (funcall autocrypt-backend-function command)
-    (catch 'ok
-      (dolist (backend-data autocrypt-backends)
-        (let ((modes (car backend-data))
-              (backend (cdr backend-data)))
-          (when (apply #'derived-mode-p modes)
-            (dolist (fn (mapcar
-                         #'intern
-                         (list (format "autocrypt-%S--%S" backend command)
-                               (format "%S-autocrypt-%S" backend command)
-                               (format "%S--autocrypt-%S" backend command))))
-              (when (and fn (fboundp fn))
-                (throw 'ok fn))))))
-      (error "No autocrypt backend found"))))
+    (let ((backend (run-hook-with-args-until-success 'autocrypt-backends)))
+      (unless backend
+        (error "No backend found"))
+      (catch 'ok
+        (dolist (fn (mapcar
+                     #'intern-soft
+                     (list (format "autocrypt-%S--%S" backend command)
+                           (format "%S-autocrypt-%S" backend command)
+                           (format "%S--autocrypt-%S" backend command))))
+          (when (and fn (fboundp fn))
+            (throw 'ok fn)))
+        (error "Missing %S implementation for %S" command backend)))))
 
 (defun autocrypt-make-function (command signature)
   "Return a function to handle COMMAND.
