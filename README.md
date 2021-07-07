@@ -46,16 +46,28 @@ Bug reports and patches should be sent to my [public inbox].
 Extending `autocrypt.el`
 ------------------------
 
-The core functionality of autocrypt is based on [cl-generic], that is
-to say generic methods. The list of generic functions that should be
-implemented as methods are listed in `autocrypt.el` under the section
-"MUA TRANSLATION LAYER".
+Autocrypt.el uses a custom extension mechanism, comparable to
+vc-mode. Each time a "generic" function is invoked, either
+`autocrypt-backend-function` is used to return the right function or
+`autocrypt-backends` is used to find a function.
 
 Support for additional MUAs can be added to this package, but should
-preferably be part of the MUAs themself.
+preferably be part of the MUAs. An external MUA should either set
+autocrypt-backend-function in every buffer it handles, or modify
+`autocrypt-backends` to define a backend.
 
-To register a new back end, the variable `autocrypt-backends` should
-be modified.
+A backend is designated by a symbol.  This is used together with a
+generic command to check for a function. For example, given the
+backend `gnus` and the command `get-header`, autocrypt would check if
+any of the following functions are defined:
+
+- `autocrypt-gnus--get-header`
+- `gnus-autocrypt--get-header`
+- `gnus--autocrypt-get-header`
+
+and call the first one it finds.  All a backend has to do is to define
+these functions and ensure that they are visible (e.g. by autoloading
+when necessary).
 
 Copying
 -------
@@ -67,5 +79,4 @@ Public Domain Dedication][cc0] license.
 [public inbox]: https://lists.sr.ht/~pkal/public-inbox
 [MELPA]: https://melpa.org/#/autocrypt
 [setup]: http://elpa.gnu.org/packages/setup.html
-[cl-generic]: http://elpa.gnu.org/packages/cl-generic.html
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
