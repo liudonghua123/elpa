@@ -22,19 +22,22 @@
 
 ;;; Code:
 
+(require 'autocrypt)
 (require 'rmail)
 
-;;; NOTE: rmail does not use derived modes, so these methods match the
-;;;       exact mode.
+(defun autocrypt-rmail--install ()
+  "Install autocrypt functions into the current rmail buffer."
+  (add-hook 'rmail-show-message-hook #'autocrypt-process-header nil t))
 
-(cl-defmethod autocrypt-mode-hooks ((_mode (eql rmail-mode)))
-  "Return the hook to install autocrypt."
-  '(rmail-show-message-hook))
+(defun autocrypt-rmail--uninstall ()
+  "Remove autocrypt from current buffer."
+  (add-hook 'rmail-show-message-hook #'autocrypt-process-header t))
 
-(cl-defmethod autocrypt-get-header ((_mode (eql rmail-mode)) header)
+(defun autocrypt-rmail--get-header (header)
   "Ask Rmail to return HEADER."
-  (rmail-apply-in-message rmail-current-message
-                          (lambda () (mail-fetch-field header))))
+  (rmail-apply-in-message
+   rmail-current-message
+   (lambda () (mail-fetch-field header))))
 
 (provide 'autocrypt-rmail)
 

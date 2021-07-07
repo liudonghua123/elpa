@@ -22,19 +22,22 @@
 
 ;;; Code:
 
-(declare-function mu4e-view-raw-message "mu4e" () )
+(require 'autocrypt)
 
-(cl-defmethod autocrypt-install ((_mode (eql mu4e)))
+(declare-function mu4e-view-raw-message "mu4e" ())
+
+;;;###autocrypt
+(defun autocrypt-mu4e--install ()
   "Install autocrypt hooks for mu4e."
-  (add-hook 'mu4e-view-mode-hook #'autocrypt-process-header)
-  (add-hook 'mu4e-compose-mode-hook #'autocrypt-compose-setup))
+  (add-hook 'mu4e-view-mode-hook #'autocrypt-process-header nil t)
+  (add-hook 'mu4e-compose-mode-hook #'autocrypt-compose-setup nil t))
 
-(cl-defmethod autocrypt-uninstall ((_mode (eql mu4e)))
+(defun autocrypt-mu4e--uninstall ()
   "Remove autocrypt hooks for mu4e."
   (remove-hook 'mu4e-view-mode-hook #'autocrypt-process-header)
   (remove-hook 'mu4e-compose-mode-hook #'autocrypt-compose-setup))
 
-(cl-defmethod autocrypt-get-header ((_mode (eql mu4e)) header)
+(defun autocrypt-mu4e--get-header (header)
   "Ask mu4e to return HEADER."
   (save-window-excursion
     (with-current-buffer (mu4e-view-raw-message)

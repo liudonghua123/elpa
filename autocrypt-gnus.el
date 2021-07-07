@@ -23,13 +23,19 @@
 ;;; Code:
 
 (require 'gnus)
+(require 'autocrypt)
 
-(cl-defmethod autocrypt-mode-hooks ((_mode (eql gnus)))
-  "Return the hook to install autocrypt."
-  '(gnus-article-prepare-hook))
+;;;###autoload
+(defun autocrypt-gnus--install ()
+  "Prepare autocrypt for Gnus."
+  (add-hook 'gnus-article-prepare-hook #'autocrypt-process-header nil t))
 
-(cl-defmethod autocrypt-get-header ((_mode (eql gnus)) header)
-  "Return the value for HEADER."
+(defun autocrypt-gnus--uninstall ()
+  "Undo `autocrypt-gnus--install'."
+  (remove-hook 'gnus-article-prepare-hook #'autocrypt-process-header t))
+
+(defun autocrypt-gnus--get-header (header)
+  "Return value for HEADER from current message."
   (gnus-fetch-original-field header))
 
 (provide 'autocrypt-gnus)

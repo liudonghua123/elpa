@@ -23,35 +23,38 @@
 ;;; Code:
 
 (require 'message)
+(require 'autocrypt)
 
-(cl-defmethod autocrypt-install ((_mode (eql message)))
-  "Install autocrypt hooks for message mode."
-  (add-hook 'message-setup-hook #'autocrypt-compose-setup)
-  (add-hook 'message-send-hook #'autocrypt-compose-pre-send)
+;;;###autoload
+(defun autocrypt-message--install ()
+  "Prepare autocrypt for message buffers."
+  (add-hook 'message-setup-hook #'autocrypt-compose-setup nil t)
+  (add-hook 'message-send-hook #'autocrypt-compose-pre-send nil t)
   (unless (lookup-key message-mode-map (kbd "C-c RET C-a"))
-    (define-key message-mode-map (kbd "C-c RET C-a") #'autocrypt-compose-setup)))
+    (local-set-key (kbd "C-c RET C-a") #'autocrypt-compose-setup)))
 
-(defun autocrypt-message-uninstall ()
+(defun autocrypt-message--uninstall ()
   "Remove autocrypt hooks for message mode."
-  (remove-hook 'message-setup-hook #'autocrypt-compose-setup)
-  (remove-hook 'message-send-hook #'autocrypt-compose-pre-send)
+  (remove-hook 'message-setup-hook #'autocrypt-compose-setup t)
+  (remove-hook 'message-send-hook #'autocrypt-compose-pre-send t)
   (when (eq (lookup-key message-mode-map (kbd "C-c RET C-a"))
             #'autocrypt-compose-setup)
-    (define-key message-mode-map (kbd "C-c RET C-a") nil)))
+    (local-set-key (kbd "C-c RET C-a") nil)))
 
-(cl-defmethod autocrypt-get-header ((_ (eql message)) header)
+(defun autocrypt-message--get-header (header)
   "Return the value for HEADER."
   (message-fetch-field header))
 
-(cl-defmethod autocrypt-add-header ((_mode (eql message)) header value)
+(defun autocrypt-message--add-header (header value)
   "Insert HEADER with VALUE into the message head."
-  (message-add-header (concat header ": " value)))
+  (with-silent-modifications
+    (message-add-header (concat header ": " value))))
 
-(cl-defmethod autocrypt-sign-encrypt ((_mode (eql message)))
+(defun autocrypt-message--sign-encrypt ()
   "Sign and encrypt message."
   (mml-secure-message-sign-encrypt "pgpmime"))
 
-(cl-defmethod autocrypt-sign-secure-attach ((_mode (eql message)) payload)
+(defun autocrypt-message--sign-secure-attach (payload)
   "Attach and encrypt buffer PAYLOAD."
   (mml-attach-buffer payload)
   (mml-secure-part "pgpmime")
@@ -59,7 +62,7 @@
             (lambda () (kill-buffer payload))
             nil t))
 
-(cl-defmethod autocrypt-encrypted-p ((_mode (eql message)))
+(defun autocrypt--message-encrypted-p ()
   "Check if the current message is encrypted."
   (mml-secure-is-encrypted-p))
 
