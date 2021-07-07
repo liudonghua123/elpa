@@ -46,6 +46,11 @@
   (with-silent-modifications
     (message-add-header (concat header ": " value))))
 
+(defun autocrypt-message--remove-header (header)
+  "Insert HEADER with VALUE into the message head."
+  (with-silent-modifications
+    (message-remove-header header)))
+
 (defun autocrypt-message--sign-encrypt ()
   "Sign and encrypt message."
   (mml-secure-message-sign-encrypt "pgpmime"))
