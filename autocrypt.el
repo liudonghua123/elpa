@@ -126,8 +126,10 @@ This function must accept one argument, a symbol designating the
 command (`install', `get-header', ...) and returns a function
 with the right signature.")
 
-(defun autocrypt-find-function (command)
-  "Return a function for handling COMMAND."
+(defun autocrypt-find-function (command silent)
+  "Return a function for handling COMMAND.
+If SILENT is non-nil, return nil when no implementation could be
+found."
   (if autocrypt-backend-function
       (funcall autocrypt-backend-function command)
     (let ((backend (run-hook-with-args-until-success 'autocrypt-backends)))
@@ -141,13 +143,16 @@ with the right signature.")
                            (format "%S--autocrypt-%S" backend command))))
           (when (and fn (fboundp fn))
             (throw 'ok fn)))
-        (error "Missing %S implementation for %S" command backend)))))
+        (unless silent
+          (error "Missing %S implementation for %S" command backend))))))
 
-(defun autocrypt-make-function (command signature)
+(defun autocrypt-make-function (command signature &optional silent)
   "Return a function to handle COMMAND.
-The advertised calling convention is set to SIGNATURE."
+The advertised calling convention is set to SIGNATURE.  If SILENT
+is non-nil, return nil when no implementation could be found."
   (let ((f (lambda (&rest args)
-             (apply (autocrypt-find-function command) args))))
+             (let ((fn (autocrypt-find-function command silent)))
+               (and fn (apply fn args))))))
     (set-advertised-calling-convention f signature nil)
     f))
 
@@ -175,7 +180,7 @@ The advertised calling convention is set to SIGNATURE."
 (defalias 'autocrypt-encrypted-p (autocrypt-make-function 'encrypted-p '())
   "Check the the current message is encrypted.")
 
-(defalias 'autocrypt-get-part (autocrypt-make-function 'get-part '(index))
+(defalias 'autocrypt-get-part (autocrypt-make-function 'get-part '(index) t)
   "Return the INDEX'th part of the current message.")
 
 
