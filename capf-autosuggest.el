@@ -1,7 +1,7 @@
-;;; capf-autosuggest.el --- Show first completion-at-point as an overlay -*- lexical-binding: t; -*-
+;;; capf-autosuggest.el --- History autosuggestions for comint and eshell -*- lexical-binding: t; -*-
 
 ;; Filename: capf-autosuggest.el
-;; Description: Show first completion-at-point as an overlay
+;; Description: History autosuggestions for comint and eshell
 ;; Author: jakanakaevangeli <jakanakaevangeli@chiru.no>
 ;; Created: 2021-07-13
 ;; Version: 1.0
@@ -26,7 +26,7 @@
 
 ;; capf-autosuggest lets you preview the most recent matching history element,
 ;; similar to zsh-autosuggestions or fish.  It works in eshell and in modes
-;; derived from comint-mode, for example M-x shell or M-x run-python.
+;; derived from comint-mode, for example M-x shell and M-x run-python.
 ;;
 ;; Installation:
 ;;
