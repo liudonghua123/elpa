@@ -40,9 +40,9 @@ variable.")
 
 (defvar capf-autosuggest-all-completions-only-one nil
   "Non-nil if only the first result of `all-completions' is of interest.
-capf-autosuggest binds this to t around calls to `all-completions'. A dynamic
-completion table can take this as a hint to only return a list of one element
-for optimization.")
+capf-autosuggest binds this to t around calls to
+`all-completions'.  A dynamic completion table can take this as a
+hint to only return a list of one element for optimization.")
 
 (defvar-local capf-autosuggest--overlay nil)
 (defvar-local capf-autosuggest--str "")
@@ -53,10 +53,10 @@ for optimization.")
 (defmacro capf-autosuggest-define-partial-accept-cmd (name command)
   "Define a command NAME.
 It will call COMMAND interactively, allowing it to move point
-into an auto-suggested overlay. COMMAND must not modify buffer.
-NAME must not be called if variable `capf-autosuggest-active-mode' is
-inactive. NAME is suitable for binding in
-`capf-autosuggest-active-mode-map'."
+into an auto-suggested overlay.  COMMAND must not modify buffer.
+NAME must not be called if variable
+`capf-autosuggest-active-mode' is inactive.  NAME is suitable for
+binding in `capf-autosuggest-active-mode-map'."
   `(defun ,name ()
      ,(format "`%s', possibly moving point into an auto-suggested overlay."
               command)
@@ -66,9 +66,9 @@ inactive. NAME is suitable for binding in
 (defun capf-autosuggest-call-partial-accept-cmd (command)
   "Call COMMAND interactively, stepping into auto-suggested overlay.
 Temporarily convert the overlay to buffer text and call COMMAND
-interactively. Afterwards, the added text is deleted, but only
-the portion after point. Additionally, if point is outside of the
-added text, the whole text is deleted."
+interactively.  Afterwards, the added text is deleted, but only
+the portion after point.  Additionally, if point is outside of
+the added text, the whole text is deleted."
   (let (beg end text)
     (with-silent-modifications
       (catch 'cancel-atomic-change
@@ -117,12 +117,12 @@ added text, the whole text is deleted."
                  (let ((capf-autosuggest-all-completions-only-one t))
                    ;; Use `all-completions' rather than
                    ;; `completion-all-completions' to bypass completion styles
-                   ;; and strictly match only on prefix. This makes sense here
+                   ;; and strictly match only on prefix.  This makes sense here
                    ;; as we only use the string without the prefix for the
                    ;; overlay.
                    (all-completions string table pred)))
                 ;; `all-completions' may return strings that don't strictly
-                ;; match on our prefix. Ignore them.
+                ;; match on our prefix.  Ignore them.
                 ((string-prefix-p (substring string base) (car completions)))
                 (str (substring (car completions) (- end beg base)))
                 ((/= 0 (length str))))
