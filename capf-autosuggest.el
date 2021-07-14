@@ -197,7 +197,7 @@ point forward."
   (capf-autosuggest-call-partial-accept-cmd
    (lambda ()
      (interactive)
-     (goto-char (cdr capf-autosuggest--region)))))
+     (goto-char (overlay-start capf-autosuggest--overlay)))))
 
 (defun capf-autosuggest--active-acf (beg end _length)
   "Deactivate auto-suggestion on completion region changes."
