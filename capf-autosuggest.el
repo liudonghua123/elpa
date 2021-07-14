@@ -339,6 +339,14 @@ repetition."
                           #'eshell-send-input))
   (setq this-command #'eshell-send-input))
 
+(defun capf-autosuggest-minibuffer-send-input ()
+  "`capf-autosuggest-accept' and `exit-minibuffer'."
+  (interactive)
+  (capf-autosuggest-accept)
+  (call-interactively (or (command-remapping #'exit-minibuffer)
+                          #'exit-minibuffer))
+  (setq this-command #'exit-minibuffer))
+
 (defcustom capf-autosuggest-dwim-next-line t
   "Whether `next-line' can accept and send current suggestion.
 If t and point is on last line, `next-line' will accept the
@@ -396,11 +404,11 @@ suggestion and send input."
             (lambda (cmd)
               (if (and capf-autosuggest-dwim-next-line
                        (looking-at-p "[^\n]*\n?\\'"))
-                  (cond ((derived-mode-p 'comint-mode)
-                         #'capf-autosuggest-comint-send-input)
-                        ((derived-mode-p 'eshell-mode)
-                         #'capf-autosuggest-eshell-send-input)
-                        (t cmd))
+                  (cond
+                   ((derived-mode-p 'comint-mode) #'capf-autosuggest-comint-send-input)
+                   ((derived-mode-p 'eshell-mode) #'capf-autosuggest-eshell-send-input)
+                   ((minibufferp) #'capf-autosuggest-minibuffer-send-input)
+                   (t cmd))
                 cmd))))
     (define-key map [remap comint-next-prompt]
       (list 'menu-item "" #'comint-next-prompt :filter
@@ -487,7 +495,6 @@ Is only applicable if point is after the last prompt."
                (capf-autosuggest--completion-table ring)
                :exclusive 'no))))
 
-;;;###autoload
 (defun capf-autosuggest-eshell-capf ()
   "Completion-at-point function for eshell input history.
 Is only applicable if point is after the last prompt."
@@ -548,6 +555,26 @@ Is only applicable if point is after the last prompt."
   (capf-autosuggest-mode)
   (add-hook 'capf-autosuggest-capf-functions #'capf-autosuggest-eshell-capf nil t))
 
+;;;###autoload
+(defun capf-autosuggest-setup-minibuffer ()
+  "Setup capf-autosuggest for history suggestion in the minibuffer."
+  (let ((hist minibuffer-history-variable)
+        (should-prin1 nil))
+    (when (and (not (eq t hist))
+               (setq hist (symbol-value hist)))
+      (when (eq minibuffer-history-sexp-flag (minibuffer-depth))
+        (setq should-prin1 t))
+      (capf-autosuggest-mode)
+      (add-hook 'capf-autosuggest-capf-functions
+                (lambda ()
+                  (when should-prin1
+                    (setq hist (mapcar #'prin1-to-string hist)
+                          should-prin1 nil))
+                  (list (minibuffer-prompt-end)
+                        (point-max)
+                        hist
+                        :exclusive 'no))
+                nil t))))
 
 (provide 'capf-autosuggest)
 ;;; capf-autosuggest.el ends here
