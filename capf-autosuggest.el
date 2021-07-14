@@ -129,6 +129,8 @@ point forward."
              (setq capf-autosuggest--region (cons beg end)
                    capf-autosuggest--str (copy-sequence str))
              (move-overlay capf-autosuggest--overlay end end)
+             (when (eq ?\n (aref str 0))
+               (setq str (concat " " str)))
              (add-text-properties 0 1 (list 'cursor (length str)) str)
              (add-face-text-property 0 (length str) 'capf-autosuggest-face t str)
              (overlay-put capf-autosuggest--overlay 'after-string str)
