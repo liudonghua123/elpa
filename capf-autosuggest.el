@@ -56,47 +56,6 @@ hint to only return a list of one element for optimization.")
 (defvar-local capf-autosuggest--region '(nil)
   "Region of `completion-at-point'.")
 
-;;;###autoload
-(defmacro capf-autosuggest-define-partial-accept-cmd (name command)
-  "Define a command NAME.
-It will call COMMAND interactively, allowing it to move point
-into an auto-suggested overlay.  COMMAND must not modify buffer.
-NAME must not be called if variable
-`capf-autosuggest-active-mode' is inactive.  NAME is suitable for
-binding in `capf-autosuggest-active-mode-map'."
-  `(defun ,name ()
-     ,(format "`%s', possibly moving point into an auto-suggested overlay."
-              command)
-     (interactive)
-     (capf-autosuggest-call-partial-accept-cmd #',command)))
-
-(defun capf-autosuggest-call-partial-accept-cmd (command)
-  "Call COMMAND interactively, stepping into auto-suggested overlay.
-Temporarily convert the overlay to buffer text and call COMMAND
-interactively.  Afterwards, the added text is deleted, but only
-the portion after point.  Additionally, if point is outside of
-the added text, the whole text is deleted."
-  (let (beg end text)
-    (with-silent-modifications
-      (catch 'cancel-atomic-change
-        (atomic-change-group
-          (save-excursion
-            (goto-char (overlay-start capf-autosuggest--overlay))
-            (setq beg (point))
-            (insert capf-autosuggest--str)
-            (setq end (point)))
-          (call-interactively command)
-          (and (> (point) beg)
-               (<= (point) end)
-               (setq text (buffer-substring beg (point))))
-          (throw 'cancel-atomic-change nil))))
-    (when text
-      (if (= (point) beg)
-          (insert text)
-        (save-excursion
-          (goto-char beg)
-          (insert text))))))
-
 (defvar capf-autosuggest-active-mode)
 
 (defun capf-autosuggest--post-h ()
@@ -156,6 +115,47 @@ the added text, the whole text is deleted."
     (remove-hook 'completion-in-region-mode-hook #'capf-autosuggest--post-h t)
     (capf-autosuggest-active-mode -1)))
 
+;;;###autoload
+(defmacro capf-autosuggest-define-partial-accept-cmd (name command)
+  "Define a command NAME.
+It will call COMMAND interactively, allowing it to move point
+into an auto-suggested overlay.  COMMAND must not modify buffer.
+NAME must not be called if variable
+`capf-autosuggest-active-mode' is inactive.  NAME is suitable for
+binding in `capf-autosuggest-active-mode-map'."
+  `(defun ,name ()
+     ,(format "`%s', possibly moving point into an auto-suggested overlay."
+              command)
+     (interactive)
+     (capf-autosuggest-call-partial-accept-cmd #',command)))
+
+(defun capf-autosuggest-call-partial-accept-cmd (command)
+  "Call COMMAND interactively, stepping into auto-suggested overlay.
+Temporarily convert the overlay to buffer text and call COMMAND
+interactively.  Afterwards, the added text is deleted, but only
+the portion after point.  Additionally, if point is outside of
+the added text, the whole text is deleted."
+  (let (beg end text)
+    (with-silent-modifications
+      (catch 'cancel-atomic-change
+        (atomic-change-group
+          (save-excursion
+            (goto-char (overlay-start capf-autosuggest--overlay))
+            (setq beg (point))
+            (insert capf-autosuggest--str)
+            (setq end (point)))
+          (call-interactively command)
+          (and (> (point) beg)
+               (<= (point) end)
+               (setq text (buffer-substring beg (point))))
+          (throw 'cancel-atomic-change nil))))
+    (when text
+      (if (= (point) beg)
+          (insert text)
+        (save-excursion
+          (goto-char beg)
+          (insert text))))))
+
 (declare-function evil-forward-char "ext:evil-commands" nil t)
 (declare-function evil-end-of-line "ext:evil-commands" nil t)
 (declare-function evil-end-of-visual-line "ext:evil-commands" nil t)
@@ -183,6 +183,16 @@ the added text, the whole text is deleted."
 (capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-forward-WORD-begin evil-forward-WORD-begin)
 (capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-forward-WORD-end evil-forward-WORD-end)
 
+(defun capf-autosuggest-accept ()
+  "Accept current auto-suggestion.
+Do not call this command if variable `capf-autosuggest-active-mode' is
+inactive."
+  (interactive)
+  (capf-autosuggest-call-partial-accept-cmd
+   (lambda ()
+     (interactive)
+     (goto-char (overlay-start capf-autosuggest--overlay)))))
+
 (defvar capf-autosuggest-active-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap forward-word] #'capf-autosuggest-forward-word)
@@ -202,16 +212,6 @@ the added text, the whole text is deleted."
     (define-key map [remap evil-forward-WORD-end] #'capf-autosuggest-evil-forward-WORD-end)
     map)
   "Keymap active when an auto-suggestion is shown.")
-
-(defun capf-autosuggest-accept ()
-  "Accept current auto-suggestion.
-Do not call this command if variable `capf-autosuggest-active-mode' is
-inactive."
-  (interactive)
-  (capf-autosuggest-call-partial-accept-cmd
-   (lambda ()
-     (interactive)
-     (goto-char (overlay-start capf-autosuggest--overlay)))))
 
 (defun capf-autosuggest--active-acf (beg end _length)
   "Deactivate auto-suggestion on completion region modifications.
