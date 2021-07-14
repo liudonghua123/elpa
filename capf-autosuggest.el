@@ -50,31 +50,25 @@ for optimization.")
   "Region of `completion-at-point'.")
 
 ;;;###autoload
-(defmacro capf-autosuggest-define-partial-accept-cmd
-    (name command &optional must-land-inside)
+(defmacro capf-autosuggest-define-partial-accept-cmd (name command)
   "Define a command NAME.
 It will call COMMAND interactively, allowing it to move point
 into an auto-suggested overlay. COMMAND must not modify buffer.
 NAME must not be called if `capf-autosuggest-active-mode' in
 inactive. Usually, NAME is bound in
-`capf-autosuggest-active-mode-map'.
-
-If MUST-LAND-INSIDE is non-nil, the auto-suggestied text will not
-be kept if COMMAND moves point outside of the region."
+`capf-autosuggest-active-mode-map'."
   `(defun ,name ()
      ,(format "`%s', possibly moving point into an auto-suggested overlay."
               command)
      (interactive)
-     (capf-autosuggest-call-partial-accept-cmd #',command ,must-land-inside)))
+     (capf-autosuggest-call-partial-accept-cmd #',command)))
 
-(defun capf-autosuggest-call-partial-accept-cmd
-    (command &optional must-land-inside)
+(defun capf-autosuggest-call-partial-accept-cmd (command)
   "Call COMMAND interactively, stepping into auto-suggested overlay.
 Temporarily convert the overlay to buffer text and call COMMAND
 interactively. Afterwards, the added text is deleted, but only
-the portion after point. Additionally, if MUST-LAND-INSIDE is
-non-nil, the whole added text is deleted if point isn't located
-inside the added text."
+the portion after point. Additionally, if the point is outside of
+the added text, the whole text is deleted."
   (let (beg end text)
     (with-silent-modifications
       (catch 'cancel-atomic-change
@@ -86,9 +80,8 @@ inside the added text."
             (setq end (point)))
           (call-interactively command)
           (and (> (point) beg)
-               (or (not must-land-inside)
-                   (< (point) end))
-               (setq text (buffer-substring beg (min (point) end))))
+               (<= (point) end)
+               (setq text (buffer-substring beg (point))))
           (throw 'cancel-atomic-change nil))))
     (when text
       (if (= (point) beg)
