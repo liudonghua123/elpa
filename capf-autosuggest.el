@@ -33,7 +33,19 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'subr-x))
+(require 'ring)
+(eval-when-compile
+  (require 'subr-x)
+  (require 'cl-lib))
+
+(defvar comint-input-ring)
+(defvar comint-accum-marker)
+(defvar comint-use-prompt-regexp)
+(defvar eshell-history-ring)
+(defvar eshell-last-output-end)
+(declare-function eshell-bol "esh-mode")
+(declare-function comint-previous-matching-input-from-input "comint")
+(declare-function eshell-previous-matching-input-from-input "em-hist")
 
 (defface capf-autosuggest-face '((t :inherit file-name-shadow))
   "Face used for auto suggestions."
@@ -216,6 +228,7 @@ inactive."
     (define-key map [remap end-of-line] #'capf-autosuggest-end-of-line)
     (define-key map [remap move-end-of-line] #'capf-autosuggest-move-end-of-line)
     (define-key map [remap end-of-visual-line] #'capf-autosuggest-end-of-visual-line)
+
     (define-key map [remap evil-forward-char] #'capf-autosuggest-evil-forward-char)
     (define-key map [remap evil-end-of-line] #'capf-autosuggest-evil-end-of-line)
     (define-key map [remap evil-end-of-visual-line] #'capf-autosuggest-evil-end-of-visual-line)
@@ -226,6 +239,11 @@ inactive."
     (define-key map [remap evil-forward-word-end] #'capf-autosuggest-evil-forward-word-end)
     (define-key map [remap evil-forward-WORD-begin] #'capf-autosuggest-evil-forward-WORD-begin)
     (define-key map [remap evil-forward-WORD-end] #'capf-autosuggest-evil-forward-WORD-end)
+
+    (define-key map [remap eshell-previous-matching-input-from-input]
+      #'capf-autosuggest-eshell-previous-matching-input-from-input)
+    (define-key map [remap comint-previous-matching-input-from-input]
+      #'capf-autosuggest-comint-previous-matching-input-from-input)
     map)
   "Keymap active when an auto-suggestion is shown.")
 
@@ -246,6 +264,109 @@ BEG and END denote the changed region."
       (add-hook 'after-change-functions #'capf-autosuggest--active-acf nil t)
     (remove-hook 'after-change-functions #'capf-autosuggest--active-acf t)
     (delete-overlay capf-autosuggest--overlay)))
+
+;;;###autoload
+(defun capf-autosuggest-comint-capf ()
+  "Completion-at-point function for comint input history.
+Is only applicable if point is after the last prompt."
+  (let ((ring comint-input-ring)
+        (beg nil))
+    (and ring (ring-p ring) (not (ring-empty-p ring))
+         (or (and (setq beg comint-accum-marker)
+                  (setq beg (marker-position beg)))
+             (and (setq beg (get-buffer-process (current-buffer)))
+                  (setq beg (marker-position (process-mark beg)))))
+         (>= (point) beg)
+         (list beg (if comint-use-prompt-regexp
+                       (line-end-position)
+                     (field-end))
+               (capf-autosuggest--completion-table ring)
+               :exclusive 'no))))
+
+;;;###autoload
+(defun capf-autosuggest-eshell-capf ()
+  "Completion-at-point function for eshell input history.
+Is only applicable if point is after the last prompt."
+  (let ((ring eshell-history-ring)
+        (beg nil))
+    (and ring (ring-p ring) (not (ring-empty-p ring))
+         (setq beg eshell-last-output-end)
+         (setq beg (marker-position beg))
+         (>= (point) beg)
+         (list (save-excursion (eshell-bol) (point)) (point-max)
+               (capf-autosuggest--completion-table ring)
+               :exclusive 'no))))
+
+(defun capf-autosuggest--completion-table (ring)
+  "Return a completion table to complete on RING."
+  (let (self)
+    (setq
+     self
+     (lambda (input predicate action)
+       (cond
+        ((eq action t)
+         (cl-loop
+          with only-one = capf-autosuggest-all-completions-only-one
+          with regexps = completion-regexp-list
+          for i below (ring-size ring)
+          for elem = (ring-ref ring i)
+          if (string-prefix-p input elem)
+          if (cl-loop for regex in regexps
+                      always (string-match-p regex elem))
+          if (or (null predicate)
+                 (funcall predicate elem))
+          if only-one
+          return (list elem)
+          else collect elem))
+        ((eq action nil)
+         (complete-with-action
+          nil (let ((capf-autosuggest-all-completions-only-one nil))
+                (funcall self input predicate t))
+          input predicate))
+        ((eq action 'lambda)
+         (and (ring-member ring input)
+              (or (null predicate)
+                  (funcall predicate input))
+              (cl-loop for regex in completion-regexp-list
+                       always (string-match-p regex input))))
+        (t (complete-with-action
+            action (ring-elements ring) input predicate)))))))
+
+;;;###autoload
+(defun capf-autosuggest-setup-comint ()
+  "Setup capf-autosuggest for history suggestion in comint."
+  (capf-autosuggest-mode)
+  (add-hook 'capf-autosuggest-capf-functions #'capf-autosuggest-comint-capf nil t))
+
+;;;###autoload
+(defun capf-autosuggest-setup-eshell ()
+  "Setup capf-autosuggest for history suggestion in eshell."
+  (capf-autosuggest-mode)
+  (add-hook 'capf-autosuggest-capf-functions #'capf-autosuggest-eshell-capf nil t))
+
+(defun capf-autosuggest-comint-previous-matching-input-from-input (n)
+  "Like `comint-previous-matching-input-from-input'.
+But increase arument N by 1, if positive, but not on command
+repetition."
+  (interactive "p")
+  (and (not (memq last-command '(comint-previous-matching-input-from-input
+                                 comint-next-matching-input-from-input)))
+       (> n 0)
+       (setq n (1+ n)))
+  (comint-previous-matching-input-from-input n)
+  (setq this-command #'comint-previous-matching-input-from-input))
+
+(defun capf-autosuggest-eshell-previous-matching-input-from-input (n)
+  "Like `eshell-previous-matching-input-from-input'.
+But increase arument N by 1, if positive, but not on command
+repetition."
+  (interactive "p")
+  (and (not (memq last-command '(eshell-previous-matching-input-from-input
+                                 eshell-next-matching-input-from-input)))
+       (> n 0)
+       (setq n (1+ n)))
+  (eshell-previous-matching-input-from-input n)
+  (setq this-command #'eshell-previous-matching-input-from-input))
 
 (provide 'capf-autosuggest)
 ;;; capf-autosuggest.el ends here
