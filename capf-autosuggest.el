@@ -27,17 +27,7 @@
 
 ;;; Code:
 
-(defcustom capf-autosuggest-partial-accept-cmds
-  '(forward-word
-    forward-char end-of-line move-end-of-line end-of-visual-line
-    evil-forward-char evil-end-of-line evil-end-of-visual-line
-    evil-end-of-line-or-visual-line evil-middle-of-visual-line
-    evil-last-non-blank evil-forward-word-begin evil-forward-word-end
-    evil-forward-WORD-begin evil-forward-WORD-end
-    capf-autosuggest-accept)
-  "Commands that can move point into the auto-suggested overlay."
-  :type '(repeat symbol)
-  :group 'completion)
+(require 'subr-x)
 
 (defface capf-autosuggest-face '((t :inherit file-name-shadow))
   "Face used for auto suggestions."
@@ -58,30 +48,61 @@ for optimization.")
 (defvar-local capf-autosuggest--str "")
 (defvar-local capf-autosuggest--region '(nil)
   "Region of `completion-at-point'.")
-(defvar-local capf-autosuggest--end-inserted nil
-  "End boundary of text inserted `capf-autosuggest--pre-h'.
-`capf-autosuggest--post-h' will remove text from point to this boundary if
-point is placed before it.")
 
-(defun capf-autosuggest--pre-h ()
-  "Insert suggested text if appropriate."
-  (and capf-autosuggest-active-mode
-       (memq this-command capf-autosuggest-partial-accept-cmds)
-       (save-excursion
-         (goto-char (overlay-start capf-autosuggest--overlay))
-         (insert capf-autosuggest--str)
-         (set-marker capf-autosuggest--end-inserted (point)))))
+;;;###autoload
+(defmacro capf-autosuggest-define-partial-accept-cmd
+    (name command &optional must-land-inside)
+  "Define a command NAME.
+It will call COMMAND interactively, allowing it to move point
+into an auto-suggested overlay. COMMAND must not modify buffer.
+NAME must not be called if `capf-autosuggest-active-mode' in
+inactive. Usually, NAME is bound in
+`capf-autosuggest-active-mode-map'.
+
+If MUST-LAND-INSIDE is non-nil, the auto-suggestied text will not
+be kept if COMMAND moves point outside of the region."
+  `(defun ,name ()
+     ,(format "`%s', possibly moving point into an auto-suggested overlay."
+              command)
+     (interactive)
+     (capf-autosuggest-call-partial-accept-cmd #',command ,must-land-inside)))
+
+(defun capf-autosuggest-call-partial-accept-cmd
+    (command &optional must-land-inside)
+  "Call COMMAND interactively, stepping into auto-suggested overlay.
+Temporarily convert the overlay to buffer text and call COMMAND
+interactively. Afterwards, the added text is deleted, but only
+the portion after point. Additionally, if MUST-LAND-INSIDE is
+non-nil, the whole added text is deleted if point isn't located
+inside the added text."
+  (let (beg end text)
+    (with-silent-modifications
+      (catch 'cancel-atomic-change
+        (atomic-change-group
+          (save-excursion
+            (goto-char (overlay-start capf-autosuggest--overlay))
+            (setq beg (point))
+            (insert capf-autosuggest--str)
+            (setq end (point)))
+          (call-interactively command)
+          (and (> (point) beg)
+               (or (not must-land-inside)
+                   (< (point) end))
+               (setq text (buffer-substring beg (min (point) end))))
+          (throw 'cancel-atomic-change nil))))
+    (when text
+      (if (= (point) beg)
+          (insert text)
+        (save-excursion
+          (goto-char beg)
+          (insert text))))))
+
+(defvar capf-autosuggest-active-mode)
 
 (defun capf-autosuggest--post-h ()
   "Create an auto-suggest overlay.
 Remove text inserted by `capf-autosuggest--pre-h', but only from
 point forward."
-  (let ((end-inserted capf-autosuggest--end-inserted))
-    (when-let* ((pos (marker-position end-inserted))
-                ((< (point) pos)))
-      (delete-region (point) pos))
-    (set-marker end-inserted nil))
-
   (if completion-in-region-mode
       (capf-autosuggest-active-mode -1)
     (when capf-autosuggest-active-mode
@@ -122,26 +143,66 @@ point forward."
   (if capf-autosuggest-mode
       (progn
         (setq capf-autosuggest--overlay (make-overlay (point) (point) nil t t))
-        (setq capf-autosuggest--end-inserted (make-marker))
-        (add-hook 'pre-command-hook #'capf-autosuggest--pre-h nil t)
-        (add-hook 'post-command-hook #'capf-autosuggest--post-h nil t))
-    (remove-hook 'pre-command-hook #'capf-autosuggest--pre-h t)
+        (add-hook 'post-command-hook #'capf-autosuggest--post-h nil t)
+        (add-hook 'completion-in-region-mode-hook #'capf-autosuggest--post-h nil t))
     (remove-hook 'post-command-hook #'capf-autosuggest--post-h t)
-    (capf-autosuggest-active-mode -1)
-    (set-marker capf-autosuggest--end-inserted nil)))
+    (remove-hook 'completion-in-region-mode-hook #'capf-autosuggest--post-h t)
+    (capf-autosuggest-active-mode -1)))
+
+(declare-function evil-forward-char "ext:evil-commands" nil t)
+(declare-function evil-end-of-line "ext:evil-commands" nil t)
+(declare-function evil-end-of-visual-line "ext:evil-commands" nil t)
+(declare-function evil-end-of-line-or-visual-line "ext:evil-commands" nil t)
+(declare-function evil-middle-of-visual-line "ext:evil-commands" nil t)
+(declare-function evil-last-non-blank "ext:evil-commands" nil t)
+(declare-function evil-forward-word-begin "ext:evil-commands" nil t)
+(declare-function evil-forward-word-end "ext:evil-commands" nil t)
+(declare-function evil-forward-WORD-begin "ext:evil-commands" nil t)
+(declare-function evil-forward-WORD-end "ext:evil-commands" nil t)
+
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-forward-word forward-word)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-forward-char forward-char)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-end-of-line end-of-line)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-move-end-of-line move-end-of-line)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-end-of-visual-line end-of-visual-line)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-forward-char evil-forward-char)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-end-of-line evil-end-of-line)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-end-of-visual-line evil-end-of-visual-line)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-end-of-line-or-visual-line evil-end-of-line-or-visual-line)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-middle-of-visual-line evil-middle-of-visual-line)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-last-non-blank evil-last-non-blank)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-forward-word-begin evil-forward-word-begin)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-forward-word-end evil-forward-word-end)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-forward-WORD-begin evil-forward-WORD-begin)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-evil-forward-WORD-end evil-forward-WORD-end)
 
 (defvar capf-autosuggest-active-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap end-of-line] #'capf-autosuggest-accept)
-    (define-key map [remap move-end-of-line] #'capf-autosuggest-accept)
-    (define-key map [remap end-of-visual-line] #'capf-autosuggest-accept)
+    (define-key map [remap forward-word] #'capf-autosuggest-forward-word)
+    (define-key map [remap forward-char] #'capf-autosuggest-forward-char)
+    (define-key map [remap end-of-line] #'capf-autosuggest-end-of-line)
+    (define-key map [remap move-end-of-line] #'capf-autosuggest-move-end-of-line)
+    (define-key map [remap end-of-visual-line] #'capf-autosuggest-end-of-visual-line)
+    (define-key map [remap evil-forward-char] #'capf-autosuggest-evil-forward-char)
+    (define-key map [remap evil-end-of-line] #'capf-autosuggest-evil-end-of-line)
+    (define-key map [remap evil-end-of-visual-line] #'capf-autosuggest-evil-end-of-visual-line)
+    (define-key map [remap evil-end-of-line-or-visual-line] #'capf-autosuggest-evil-end-of-line-or-visual-line)
+    (define-key map [remap evil-middle-of-visual-line] #'capf-autosuggest-evil-middle-of-visual-line)
+    (define-key map [remap evil-last-non-blank] #'capf-autosuggest-evil-last-non-blank)
+    (define-key map [remap evil-forward-word-begin] #'capf-autosuggest-evil-forward-word-begin)
+    (define-key map [remap evil-forward-word-end] #'capf-autosuggest-evil-forward-word-end)
+    (define-key map [remap evil-forward-WORD-begin] #'capf-autosuggest-evil-forward-WORD-begin)
+    (define-key map [remap evil-forward-WORD-end] #'capf-autosuggest-evil-forward-WORD-end)
     map)
   "Keymap active when an auto-suggestion is shown.")
 
 (defun capf-autosuggest-accept ()
   "Accept current auto-suggestion."
   (interactive)
-  (goto-char (cdr capf-autosuggest--region)))
+  (capf-autosuggest-call-partial-accept-cmd
+   (lambda ()
+     (interactive)
+     (goto-char (cdr capf-autosuggest--region)))))
 
 (defun capf-autosuggest--active-acf (beg end _length)
   "Deactivate auto-suggestion on completion region changes."
