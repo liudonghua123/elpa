@@ -108,7 +108,7 @@
   :group 'completion)
 
 (defvar capf-autosuggest-capf-functions '(capf-autosuggest-orig-if-at-eol-capf)
-  "`completion-at-point-functions', used by capf-autossugest.
+  "`completion-at-point-functions', used by capf-autosuggest.
 It is used instead of the standard
 `completion-at-point-functions', but the default value contains
 `capf-autosuggest-orig-if-at-eol-capf' which searches the
