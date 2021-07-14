@@ -27,7 +27,7 @@
 
 ;;; Code:
 
-(require 'subr-x)
+(eval-when-compile (require 'subr-x))
 
 (defface capf-autosuggest-face '((t :inherit file-name-shadow))
   "Face used for auto suggestions."
