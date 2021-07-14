@@ -99,9 +99,10 @@ point forward."
   (if completion-in-region-mode
       (capf-autosuggest-active-mode -1)
     (when capf-autosuggest-active-mode
-      (unless (< (car capf-autosuggest--region) (point)
-                 (cdr capf-autosuggest--region))
-        (capf-autosuggest-active-mode -1)))
+      ;; `identity' is used to generate slightly faster byte-code
+      (pcase-let ((`(,beg . ,end) (identity capf-autosuggest--region)))
+        (unless (< beg (point) end)
+          (capf-autosuggest-active-mode -1))))
 
     (unless capf-autosuggest-active-mode
       (pcase (run-hook-wrapped (if capf-autosuggest-capf
