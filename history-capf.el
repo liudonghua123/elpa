@@ -83,13 +83,14 @@ Is only applicable if point is after the last prompt."
         ((eq action t)
          (cl-loop
           with only-one = capf-autosuggest-all-completions-only-one
+          with regexps = completion-regexp-list
           for i below (ring-size ring)
           for elem = (ring-ref ring i)
           if (string-prefix-p input elem)
+          if (cl-loop for regex in regexps
+                      always (string-match-p regex elem))
           if (or (null predicate)
                  (funcall predicate elem))
-          if (cl-loop for regex in completion-regexp-list
-                      always (string-match-p regex elem))
           if only-one
           return (list elem)
           else collect elem))
