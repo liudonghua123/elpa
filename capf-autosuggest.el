@@ -39,11 +39,12 @@
   "Face used for auto suggestions."
   :group 'completion)
 
-(defvar-local capf-autosuggest-capf nil
+(defvar capf-autosuggest-capf-functions '(capf-autosuggest-orig-if-at-eol-capf)
   "`completion-at-point-functions', used by capf-autossugest.
-If nil, capf-autosuggest will use
-`completion-at-point-functions', otherwise it will use this hook
-variable.")
+It is used instead of the standard
+`completion-at-point-functions', but the default value contains
+`capf-autosuggest-orig-if-at-eol-capf' which searches the
+standard capf functions, if point is at the end of line.")
 
 (defvar capf-autosuggest-all-completions-only-one nil
   "Non-nil if only the first result of `all-completions' is of interest.
@@ -58,6 +59,22 @@ hint to only return a list of one element for optimization.")
 
 (defvar capf-autosuggest-active-mode)
 
+(defun capf-autosuggest-orig-capf (&optional capf-functions)
+  "A capf that chooses from hook variable CAPF-FUNCTIONS.
+CAPF-FUNCTIONS defaults to `completion-at-point-functions'.
+Don't add this function to `completion-at-point-functions', as
+this will result in an infinite loop.  Useful for adding to
+`capf-autosuggest-capf-functions', making it search the standard
+capf functions."
+  (cdr (run-hook-wrapped (or capf-functions 'completion-at-point-functions)
+                         #'completion--capf-wrapper 'all)))
+
+(defun capf-autosuggest-orig-if-at-eol-capf ()
+  "`capf-autosuggest-orig-capf' if at the end of buffer.
+Otherwise, return nil."
+  (when (eolp)
+    (capf-autosuggest-orig-capf)))
+
 (defun capf-autosuggest--post-h ()
   "Create an auto-suggest overlay."
   (if completion-in-region-mode
@@ -69,11 +86,8 @@ hint to only return a list of one element for optimization.")
           (capf-autosuggest-active-mode -1))))
 
     (unless capf-autosuggest-active-mode
-      (pcase (run-hook-wrapped (if capf-autosuggest-capf
-                                   'capf-autosuggest-capf
-                                 'completion-at-point-functions)
-                               #'completion--capf-wrapper 'all)
-        (`(,_fun ,beg ,end ,table . ,plist)
+      (pcase (capf-autosuggest-orig-capf 'capf-autosuggest-capf-functions)
+        (`(,beg ,end ,table . ,plist)
          (let* ((pred (plist-get plist :predicate))
                 (string (buffer-substring-no-properties beg end))
                 ;; See `completion-emacs21-all-completions'

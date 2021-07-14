@@ -36,7 +36,7 @@
 (defvar comint-use-prompt-regexp)
 (defvar eshell-history-ring)
 (defvar eshell-last-output-end)
-(declare-function capf-autosuggest-mode "capf-autosuggest")
+(autoload 'capf-autosuggest-mode "capf-autosuggest")
 (declare-function eshell-bol "esh-mode")
 (declare-function comint-previous-matching-input-from-input "comint")
 (declare-function eshell-previous-matching-input-from-input "em-hist")
@@ -111,13 +111,13 @@ Is only applicable if point is after the last prompt."
 (defun history-capf-setup-autosuggest-comint ()
   "Setup capf-autosuggest for history suggestion in comint."
   (capf-autosuggest-mode)
-  (add-hook 'capf-autosuggest-capf #'history-capf-comint))
+  (add-hook 'capf-autosuggest-capf-functions #'history-capf-comint nil t))
 
 ;;;###autoload
 (defun history-capf-setup-autosuggest-eshell ()
   "Setup capf-autosuggest for history suggestion in eshell."
   (capf-autosuggest-mode)
-  (add-hook 'capf-autosuggest-capf #'history-capf-eshell))
+  (add-hook 'capf-autosuggest-capf-functions #'history-capf-eshell nil t))
 
 (with-eval-after-load 'capf-autosuggest
   (define-key capf-autosuggest-active-mode-map
