@@ -1,11 +1,10 @@
 ;;; capf-autosuggest.el --- Show first completion-at-point as an overlay -*- lexical-binding: t; -*-
 
 ;; Filename: capf-autosuggest.el
-;; Description: Mitigate frame creation performance.
+;; Description: Show first completion-at-point as an overlay
 ;; Author: jakanakaevangeli <jakanakaevangeli@chiru.no>
-;; Created: 2021-04-23
+;; Created: 2021-07-13
 ;; Version: 1.0
-;; Keywords: frames
 ;; URL: https://github.com/jakanakaevangeli/emacs-capf-autosuggest
 
 ;; This file is not part of GNU Emacs.
