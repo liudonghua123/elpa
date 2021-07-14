@@ -486,31 +486,40 @@ suggestion and send input."
   "Completion-at-point function for comint input history.
 Is only applicable if point is after the last prompt."
   (let ((ring comint-input-ring)
-        (beg nil))
-    (and ring (ring-p ring) (not (ring-empty-p ring))
-         (or (and (setq beg comint-accum-marker)
-                  (setq beg (marker-position beg)))
-             (and (setq beg (get-buffer-process (current-buffer)))
-                  (setq beg (marker-position (process-mark beg)))))
-         (>= (point) beg)
-         (list beg (if comint-use-prompt-regexp
-                       (line-end-position)
-                     (field-end))
-               (capf-autosuggest--completion-table ring)
-               :exclusive 'no))))
+        (beg nil) (end nil))
+    (or (and (setq beg comint-accum-marker)
+             (setq beg (marker-position beg)))
+        (and (setq beg (get-buffer-process (current-buffer)))
+             (setq beg (marker-position (process-mark beg)))))
+    (cond
+     ;; Return nil to allow possible further capf functions
+     ((null beg) nil)
+     ((< (point) beg) nil)
+     ((<= (setq end (if comint-use-prompt-regexp
+                        (line-end-position)
+                      (field-end)))
+          beg)
+      ;; Return non-nil but empty completion table to block possible further
+      ;; capf functions
+      (list (point) (point) nil))
+     ((and (ring-p ring) (not (ring-empty-p ring)))
+      (list beg end (capf-autosuggest--completion-table ring)
+            :exclusive 'no)))))
 
 (defun capf-autosuggest-eshell-capf ()
   "Completion-at-point function for eshell input history.
 Is only applicable if point is after the last prompt."
   (let ((ring eshell-history-ring)
-        (beg nil))
-    (and ring (ring-p ring) (not (ring-empty-p ring))
-         (setq beg eshell-last-output-end)
-         (setq beg (marker-position beg))
-         (>= (point) beg)
-         (list (save-excursion (eshell-bol) (point)) (point-max)
-               (capf-autosuggest--completion-table ring)
-               :exclusive 'no))))
+        (beg (save-excursion (eshell-bol) (point)))
+        (end (point-max)))
+    (cond
+     ((< (point) eshell-last-output-end) nil)
+     ((< (point) beg) nil)
+     ((and (= end beg) (eshell-interactive-process))
+      (list (point) (point) nil))
+     ((and (ring-p ring) (not (ring-empty-p ring)))
+      (list beg end (capf-autosuggest--completion-table ring)
+            :exclusive 'no)))))
 
 (defun capf-autosuggest--completion-table (ring)
   "Return a completion table to complete on RING."
