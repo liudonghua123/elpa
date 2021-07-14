@@ -1,4 +1,4 @@
-;;; capf-autosuggest.el --- Mitigate frame creation performance. -*- lexical-binding: t; -*-
+;;; capf-autosuggest.el --- Show first completion-at-point as an overlay -*- lexical-binding: t; -*-
 
 ;; Filename: capf-autosuggest.el
 ;; Description: Mitigate frame creation performance.
