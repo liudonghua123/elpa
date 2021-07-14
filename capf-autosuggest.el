@@ -24,6 +24,13 @@
 
 ;;; Commentary:
 
+;; capf-autosuggest-mode is a minor mode that lets you preview the first
+;; completion candidate of completion-at-point as an overlay.  This is very
+;; useful in combination with history-capf.el which implements
+;; completion-at-point functions for comint and eshell history.  Previewing the
+;; most recent matching history element gives you auto-suggestions, familiar to
+;; users of zsh-autosuggestions and fish.
+
 ;;; Code:
 
 (eval-when-compile (require 'subr-x))
