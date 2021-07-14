@@ -144,46 +144,44 @@ Otherwise, return nil."
 
 (defun capf-autosuggest--post-h ()
   "Create an auto-suggest overlay."
-  (if completion-in-region-mode
-      (capf-autosuggest-active-mode -1)
-    (when capf-autosuggest-active-mode
-      ;; `identity' is used to generate slightly faster byte-code
-      (pcase-let ((`(,beg . ,end) (identity capf-autosuggest--region)))
-        (unless (and (< beg (point) end)
-                     (eq (buffer-modified-tick) capf-autosuggest--tick))
-          (capf-autosuggest-active-mode -1))))
+  (when capf-autosuggest-active-mode
+    ;; `identity' is used to generate slightly faster byte-code
+    (pcase-let ((`(,beg . ,end) (identity capf-autosuggest--region)))
+      (unless (and (< beg (point) end)
+                   (eq (buffer-modified-tick) capf-autosuggest--tick))
+        (capf-autosuggest-active-mode -1))))
 
-    (unless capf-autosuggest-active-mode
-      (pcase (capf-autosuggest-orig-capf 'capf-autosuggest-capf-functions)
-        (`(,beg ,end ,table . ,plist)
-         (let* ((pred (plist-get plist :predicate))
-                (string (buffer-substring-no-properties beg end))
-                ;; See `completion-emacs21-all-completions'
-                (base (car (completion-boundaries string table pred ""))))
-           (when-let*
-               ((completions
-                 (let ((capf-autosuggest-all-completions-only-one t))
-                   ;; Use `all-completions' rather than
-                   ;; `completion-all-completions' to bypass completion styles
-                   ;; and strictly match only on prefix.  This makes sense here
-                   ;; as we only use the string without the prefix for the
-                   ;; overlay.
-                   (all-completions string table pred)))
-                ;; `all-completions' may return strings that don't strictly
-                ;; match on our prefix.  Ignore them.
-                ((string-prefix-p (substring string base) (car completions)))
-                (str (substring (car completions) (- end beg base)))
-                ((/= 0 (length str))))
-             (setq capf-autosuggest--region (cons beg end)
-                   capf-autosuggest--str (copy-sequence str)
-                   capf-autosuggest--tick (buffer-modified-tick))
-             (move-overlay capf-autosuggest--overlay end end)
-             (when (eq ?\n (aref str 0))
-               (setq str (concat " " str)))
-             (add-text-properties 0 1 (list 'cursor (length str)) str)
-             (add-face-text-property 0 (length str) 'capf-autosuggest-face t str)
-             (overlay-put capf-autosuggest--overlay 'after-string str)
-             (capf-autosuggest-active-mode))))))))
+  (unless capf-autosuggest-active-mode
+    (pcase (capf-autosuggest-orig-capf 'capf-autosuggest-capf-functions)
+      (`(,beg ,end ,table . ,plist)
+       (let* ((pred (plist-get plist :predicate))
+              (string (buffer-substring-no-properties beg end))
+              ;; See `completion-emacs21-all-completions'
+              (base (car (completion-boundaries string table pred ""))))
+         (when-let*
+             ((completions
+               (let ((capf-autosuggest-all-completions-only-one t))
+                 ;; Use `all-completions' rather than
+                 ;; `completion-all-completions' to bypass completion styles
+                 ;; and strictly match only on prefix.  This makes sense here
+                 ;; as we only use the string without the prefix for the
+                 ;; overlay.
+                 (all-completions string table pred)))
+              ;; `all-completions' may return strings that don't strictly
+              ;; match on our prefix.  Ignore them.
+              ((string-prefix-p (substring string base) (car completions)))
+              (str (substring (car completions) (- end beg base)))
+              ((/= 0 (length str))))
+           (setq capf-autosuggest--region (cons beg end)
+                 capf-autosuggest--str (copy-sequence str)
+                 capf-autosuggest--tick (buffer-modified-tick))
+           (move-overlay capf-autosuggest--overlay end end)
+           (when (eq ?\n (aref str 0))
+             (setq str (concat " " str)))
+           (add-text-properties 0 1 (list 'cursor (length str)) str)
+           (add-face-text-property 0 (length str) 'capf-autosuggest-face t str)
+           (overlay-put capf-autosuggest--overlay 'after-string str)
+           (capf-autosuggest-active-mode)))))))
 
 ;;;###autoload
 (define-minor-mode capf-autosuggest-mode
@@ -192,10 +190,8 @@ Otherwise, return nil."
   (if capf-autosuggest-mode
       (progn
         (setq capf-autosuggest--overlay (make-overlay (point) (point) nil t t))
-        (add-hook 'post-command-hook #'capf-autosuggest--post-h nil t)
-        (add-hook 'completion-in-region-mode-hook #'capf-autosuggest--post-h nil t))
+        (add-hook 'post-command-hook #'capf-autosuggest--post-h nil t))
     (remove-hook 'post-command-hook #'capf-autosuggest--post-h t)
-    (remove-hook 'completion-in-region-mode-hook #'capf-autosuggest--post-h t)
     (capf-autosuggest-active-mode -1)))
 
 ;;;###autoload
