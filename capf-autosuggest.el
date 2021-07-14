@@ -156,7 +156,7 @@ the added text, the whole text is deleted."
           (save-excursion
             (goto-char (overlay-start capf-autosuggest--overlay))
             (setq beg (point))
-            (insert capf-autosuggest--str)
+            (insert-and-inherit capf-autosuggest--str)
             (setq end (point)))
           (call-interactively command)
           (and (> (point) beg)
