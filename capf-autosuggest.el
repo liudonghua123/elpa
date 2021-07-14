@@ -190,7 +190,11 @@ Otherwise, return nil."
   (if capf-autosuggest-mode
       (progn
         (setq capf-autosuggest--overlay (make-overlay (point) (point) nil t t))
-        (add-hook 'post-command-hook #'capf-autosuggest--post-h nil t))
+        (add-hook 'post-command-hook #'capf-autosuggest--post-h nil t)
+        (add-hook 'change-major-mode-hook
+                  #'capf-autosuggest-active-mode-deactivate nil t))
+    (remove-hook 'change-major-mode-hook
+                 #'capf-autosuggest-active-mode-deactivate t)
     (remove-hook 'post-command-hook #'capf-autosuggest--post-h t)
     (capf-autosuggest-active-mode -1)))
 
@@ -305,6 +309,10 @@ inactive."
   :group 'completion
   (unless capf-autosuggest-active-mode
     (delete-overlay capf-autosuggest--overlay)))
+
+(defun capf-autosuggest-active-mode-deactivate ()
+  "Deactivate `capf-autosuggest-active-mode'."
+  (capf-autosuggest-active-mode -1))
 
 ;;;###autoload
 (defun capf-autosuggest-comint-capf ()
