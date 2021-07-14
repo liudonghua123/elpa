@@ -94,8 +94,11 @@
  ("company-ebdb"	:url nil)
  ("company-math"	:url "https://github.com/vspinu/company-math.git")
  ("company-statistics"	:url "https://github.com/company-mode/company-statistics")
- ("consult"		:url "https://github.com/minad/consult"
-  :doc "README.org" :auto-sync t)
+ ("consult"
+  :url "https://github.com/minad/consult"
+  :doc "README.org"
+  :ignored-files ("images")
+  :auto-sync t)
  ("context-coloring"	:url "https://github.com/jacksonrayhamilton/context-coloring.git")
  ("corfu"		:url "https://github.com/minad/corfu"
   :doc "README.org" :auto-sync t)
