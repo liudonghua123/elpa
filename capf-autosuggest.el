@@ -301,24 +301,28 @@ inactive."
 
 (defun capf-autosuggest-comint-previous-matching-input-from-input (n)
   "Like `comint-previous-matching-input-from-input'.
-But increase arument N by 1, if positive, but not on command
-repetition."
+If N is positive, the command isn't repeated and point is at
+auto-suggested overlay, increase argument N by 1.  This is done
+in order to skip the history element already shown by the overlay."
   (interactive "p")
   (and (not (memq last-command '(comint-previous-matching-input-from-input
                                  comint-next-matching-input-from-input)))
        (> n 0)
+       (= (point) (overlay-start capf-autosuggest--overlay))
        (setq n (1+ n)))
   (comint-previous-matching-input-from-input n)
   (setq this-command #'comint-previous-matching-input-from-input))
 
 (defun capf-autosuggest-eshell-previous-matching-input-from-input (n)
   "Like `eshell-previous-matching-input-from-input'.
-But increase arument N by 1, if positive, but not on command
-repetition."
+If N is positive, the command isn't repeated and point is at
+auto-suggested overlay, increase argument N by 1.  This is done
+in order to skip the history element already shown by the overlay."
   (interactive "p")
   (and (not (memq last-command '(eshell-previous-matching-input-from-input
                                  eshell-next-matching-input-from-input)))
        (> n 0)
+       (= (point) (overlay-start capf-autosuggest--overlay))
        (setq n (1+ n)))
   (eshell-previous-matching-input-from-input n)
   (setq this-command #'eshell-previous-matching-input-from-input))
