@@ -121,6 +121,9 @@ point forward."
                    ;; as we only use the string without the prefix for the
                    ;; overlay.
                    (all-completions string table pred)))
+                ;; `all-completions' may return strings that don't strictly
+                ;; match on our prefix. Ignore them.
+                ((string-prefix-p (substring string base) (car completions)))
                 (str (substring (car completions) (- end beg base)))
                 ((/= 0 (length str))))
              (setq capf-autosuggest--region (cons beg end)
