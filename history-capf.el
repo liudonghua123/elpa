@@ -43,6 +43,8 @@
 
 ;;;###autoload
 (defun history-capf-comint ()
+  "Completion-at-point function for comint input history.
+Is only applicable if point is after the last prompt."
   (let ((ring comint-input-ring)
         (beg nil))
     (and ring (ring-p ring) (not (ring-empty-p ring))
@@ -59,6 +61,8 @@
 
 ;;;###autoload
 (defun history-capf-eshell ()
+  "Completion-at-point function for eshell input history.
+Is only applicable if point is after the last prompt."
   (let ((ring eshell-history-ring)
         (beg nil))
     (and ring (ring-p ring) (not (ring-empty-p ring))
