@@ -109,25 +109,27 @@ point forward."
                                  'capf-autosuggest-capf)
                                #'completion--capf-wrapper 'all)
         (`(,_fun ,beg ,end ,table . ,plist)
-         (when-let*
-             ((completions
-               (let ((capf-autosuggest-all-completions-only-one t))
-                 ;; Use `all-completions' rather than
-                 ;; `completion-all-completions' to bypass completion
-                 ;; styles and perform only prefix completions. This makes
-                 ;; sense here as we only use the string without the
-                 ;; prefix for the overlay.
-                 (all-completions (buffer-substring-no-properties beg end)
-                                  table (plist-get plist :predicate))))
-              (str (substring (car completions) (- end beg)))
-              ((/= 0 (length str))))
-           (setq capf-autosuggest--region (cons beg end)
-                 capf-autosuggest--str (copy-sequence str))
-           (move-overlay capf-autosuggest--overlay end end)
-           (add-text-properties 0 1 (list 'cursor (length str)) str)
-           (add-face-text-property 0 (length str) 'capf-autosuggest-face t str)
-           (overlay-put capf-autosuggest--overlay 'after-string str)
-           (capf-autosuggest-active-mode)))))))
+         (let* ((pred (plist-get plist :predicate))
+                (string (buffer-substring-no-properties beg end))
+                (base (car (completion-boundaries string table pred ""))))
+           (when-let*
+               ((completions
+                 (let ((capf-autosuggest-all-completions-only-one t))
+                   ;; Use `all-completions' rather than
+                   ;; `completion-all-completions' to bypass completion styles
+                   ;; and strictly match only on prefix. This makes sense here
+                   ;; as we only use the string without the prefix for the
+                   ;; overlay.
+                   (all-completions string table pred)))
+                (str (substring (car completions) (- end beg base)))
+                ((/= 0 (length str))))
+             (setq capf-autosuggest--region (cons beg end)
+                   capf-autosuggest--str (copy-sequence str))
+             (move-overlay capf-autosuggest--overlay end end)
+             (add-text-properties 0 1 (list 'cursor (length str)) str)
+             (add-face-text-property 0 (length str) 'capf-autosuggest-face t str)
+             (overlay-put capf-autosuggest--overlay 'after-string str)
+             (capf-autosuggest-active-mode))))))))
 
 ;;;###autoload
 (define-minor-mode capf-autosuggest-mode
