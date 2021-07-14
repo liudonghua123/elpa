@@ -160,7 +160,10 @@ Otherwise, return nil."
         (capf-autosuggest-active-mode -1))))
 
   (unless capf-autosuggest-active-mode
-    (pcase (capf-autosuggest-orig-capf 'capf-autosuggest-capf-functions)
+    (pcase (let ((buffer-read-only t))
+             (condition-case _
+                 (capf-autosuggest-orig-capf 'capf-autosuggest-capf-functions)
+               (buffer-read-only t)))
       (`(,beg ,end ,table . ,plist)
        (let* ((pred (plist-get plist :predicate))
               (string (buffer-substring-no-properties beg end))
