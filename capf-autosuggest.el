@@ -35,7 +35,7 @@
 (defvar-local capf-autosuggest-capf nil
   "`completion-at-point-functions', used by capf-autossugest.
 If nil, capf-autosuggest will use
-`completion-at-point-functions', otherwise it will use this
+`completion-at-point-functions', otherwise it will use this hook
 variable.")
 
 (defvar capf-autosuggest-all-completions-only-one nil
@@ -54,8 +54,8 @@ for optimization.")
   "Define a command NAME.
 It will call COMMAND interactively, allowing it to move point
 into an auto-suggested overlay. COMMAND must not modify buffer.
-NAME must not be called if `capf-autosuggest-active-mode' in
-inactive. Usually, NAME is bound in
+NAME must not be called if variable `capf-autosuggest-active-mode' is
+inactive. NAME is suitable for binding in
 `capf-autosuggest-active-mode-map'."
   `(defun ,name ()
      ,(format "`%s', possibly moving point into an auto-suggested overlay."
@@ -67,8 +67,8 @@ inactive. Usually, NAME is bound in
   "Call COMMAND interactively, stepping into auto-suggested overlay.
 Temporarily convert the overlay to buffer text and call COMMAND
 interactively. Afterwards, the added text is deleted, but only
-the portion after point. Additionally, if the point is outside of
-the added text, the whole text is deleted."
+the portion after point. Additionally, if point is outside of the
+added text, the whole text is deleted."
   (let (beg end text)
     (with-silent-modifications
       (catch 'cancel-atomic-change
@@ -93,9 +93,7 @@ the added text, the whole text is deleted."
 (defvar capf-autosuggest-active-mode)
 
 (defun capf-autosuggest--post-h ()
-  "Create an auto-suggest overlay.
-Remove text inserted by `capf-autosuggest--pre-h', but only from
-point forward."
+  "Create an auto-suggest overlay."
   (if completion-in-region-mode
       (capf-autosuggest-active-mode -1)
     (when capf-autosuggest-active-mode
@@ -112,6 +110,7 @@ point forward."
         (`(,_fun ,beg ,end ,table . ,plist)
          (let* ((pred (plist-get plist :predicate))
                 (string (buffer-substring-no-properties beg end))
+                ;; See `completion-emacs21-all-completions'
                 (base (car (completion-boundaries string table pred ""))))
            (when-let*
                ((completions
@@ -198,7 +197,9 @@ point forward."
   "Keymap active when an auto-suggestion is shown.")
 
 (defun capf-autosuggest-accept ()
-  "Accept current auto-suggestion."
+  "Accept current auto-suggestion.
+Do not call this command if variable `capf-autosuggest-active-mode' is
+inactive."
   (interactive)
   (capf-autosuggest-call-partial-accept-cmd
    (lambda ()
@@ -206,7 +207,8 @@ point forward."
      (goto-char (overlay-start capf-autosuggest--overlay)))))
 
 (defun capf-autosuggest--active-acf (beg end _length)
-  "Deactivate auto-suggestion on completion region changes."
+  "Deactivate auto-suggestion on completion region modifications.
+BEG and END denote the changed region."
   ;; `identity' is used to generate slightly faster byte-code
   (when (pcase-let ((`(,beg1 . ,end1) (identity capf-autosuggest--region)))
           (if (< beg beg1)
