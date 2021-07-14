@@ -57,8 +57,6 @@ hint to only return a list of one element for optimization.")
 (defvar-local capf-autosuggest--region '(nil)
   "Region of `completion-at-point'.")
 
-(defvar capf-autosuggest-active-mode)
-
 (defun capf-autosuggest-orig-capf (&optional capf-functions)
   "A capf that chooses from hook variable CAPF-FUNCTIONS.
 CAPF-FUNCTIONS defaults to `completion-at-point-functions'.
@@ -74,6 +72,8 @@ capf functions."
 Otherwise, return nil."
   (when (eolp)
     (capf-autosuggest-orig-capf)))
+
+(defvar capf-autosuggest-active-mode)
 
 (defun capf-autosuggest--post-h ()
   "Create an auto-suggest overlay."
