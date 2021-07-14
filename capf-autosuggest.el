@@ -101,6 +101,8 @@
 (declare-function comint-previous-matching-input-from-input "comint")
 (declare-function eshell-previous-matching-input-from-input "em-hist")
 
+;;; Auto-suggestion overlay
+
 (defface capf-autosuggest-face '((t :inherit file-name-shadow))
   "Face used for auto suggestions."
   :group 'completion)
@@ -198,6 +200,8 @@ Otherwise, return nil."
     (remove-hook 'post-command-hook #'capf-autosuggest--post-h t)
     (capf-autosuggest-active-mode -1)))
 
+;;; Various commands and menu-items
+
 ;;;###autoload
 (defmacro capf-autosuggest-define-partial-accept-cmd (name command)
   "Define a command NAME.
@@ -277,6 +281,31 @@ inactive."
      (interactive)
      (goto-char (overlay-start capf-autosuggest--overlay)))))
 
+
+(defun capf-autosuggest-comint-previous-matching-input-from-input (n)
+  "Like `comint-previous-matching-input-from-input'.
+But increase arument N by 1, if positive, but not on command
+repetition."
+  (interactive "p")
+  (and (not (memq last-command '(comint-previous-matching-input-from-input
+                                 comint-next-matching-input-from-input)))
+       (> n 0)
+       (setq n (1+ n)))
+  (comint-previous-matching-input-from-input n)
+  (setq this-command #'comint-previous-matching-input-from-input))
+
+(defun capf-autosuggest-eshell-previous-matching-input-from-input (n)
+  "Like `eshell-previous-matching-input-from-input'.
+But increase arument N by 1, if positive, but not on command
+repetition."
+  (interactive "p")
+  (and (not (memq last-command '(eshell-previous-matching-input-from-input
+                                 eshell-next-matching-input-from-input)))
+       (> n 0)
+       (setq n (1+ n)))
+  (eshell-previous-matching-input-from-input n)
+  (setq this-command #'eshell-previous-matching-input-from-input))
+
 (defvar capf-autosuggest-active-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap forward-word] #'capf-autosuggest-forward-word)
@@ -313,6 +342,8 @@ inactive."
 (defun capf-autosuggest-active-mode-deactivate ()
   "Deactivate `capf-autosuggest-active-mode'."
   (capf-autosuggest-active-mode -1))
+
+;;;; History completion function
 
 ;;;###autoload
 (defun capf-autosuggest-comint-capf ()
@@ -393,29 +424,6 @@ Is only applicable if point is after the last prompt."
   (capf-autosuggest-mode)
   (add-hook 'capf-autosuggest-capf-functions #'capf-autosuggest-eshell-capf nil t))
 
-(defun capf-autosuggest-comint-previous-matching-input-from-input (n)
-  "Like `comint-previous-matching-input-from-input'.
-But increase arument N by 1, if positive, but not on command
-repetition."
-  (interactive "p")
-  (and (not (memq last-command '(comint-previous-matching-input-from-input
-                                 comint-next-matching-input-from-input)))
-       (> n 0)
-       (setq n (1+ n)))
-  (comint-previous-matching-input-from-input n)
-  (setq this-command #'comint-previous-matching-input-from-input))
-
-(defun capf-autosuggest-eshell-previous-matching-input-from-input (n)
-  "Like `eshell-previous-matching-input-from-input'.
-But increase arument N by 1, if positive, but not on command
-repetition."
-  (interactive "p")
-  (and (not (memq last-command '(eshell-previous-matching-input-from-input
-                                 eshell-next-matching-input-from-input)))
-       (> n 0)
-       (setq n (1+ n)))
-  (eshell-previous-matching-input-from-input n)
-  (setq this-command #'eshell-previous-matching-input-from-input))
 
 (provide 'capf-autosuggest)
 ;;; capf-autosuggest.el ends here
