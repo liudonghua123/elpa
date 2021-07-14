@@ -26,7 +26,7 @@
 
 ;; capf-autosuggest lets you preview the most recent matching history element,
 ;; similar to zsh-autosuggestions or fish.  It works in eshell and in modes
-;; derived from comint-mode, for example M-x shell or M-x run-python
+;; derived from comint-mode, for example M-x shell or M-x run-python.
 ;;
 ;; Installation:
 ;;
@@ -50,6 +50,11 @@
 ;;     movable-forward-sexp forward-sexp)
 ;;    (define-key capf-autosuggest-active-mode-map [remap forward-sexp]
 ;;      #'movable-forward-sexp))
+;;
+;; By default, C-n (next-line) will accept the currently displayed suggestion
+;; and send input to shell/eshell.  See the customization group
+;; capf-autosuggest do disable this behaviour or enable it for other commands,
+;; such as C-c C-n or M-n.
 ;;
 ;; Details:
 ;;
@@ -80,8 +85,8 @@
 ;; Alternatives:
 ;;
 ;; There is also esh-autosuggest[1] with similar functionality.  Differences:
-;; it optionally allows having a delay, it depends on emacs package company, it
-;; is implemented only for eshell.
+;; it is simpler and more concise, however it depends on company. It optionally
+;; allows having a delay and it is implemented only for eshell.
 ;;
 ;; [1]: http://github.com/dieggsy/esh-autosuggest
 
