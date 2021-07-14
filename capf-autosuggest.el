@@ -32,10 +32,11 @@
   "Face used for auto suggestions."
   :group 'completion)
 
-(defvar-local capf-autosuggest-capf t
+(defvar-local capf-autosuggest-capf nil
   "`completion-at-point-functions', used by capf-autossugest.
-If t, capf-autosuggest will use `completion-at-point-functions', otherwise it
-will use this variable.")
+If nil, capf-autosuggest will use
+`completion-at-point-functions', otherwise it will use this
+variable.")
 
 (defvar capf-autosuggest-all-completions-only-one nil
   "Non-nil if only the first result of `all-completions' is of interest.
@@ -103,9 +104,9 @@ point forward."
         (capf-autosuggest-active-mode -1)))
 
     (unless capf-autosuggest-active-mode
-      (pcase (run-hook-wrapped (if (eq capf-autosuggest-capf t)
-                                   'completion-at-point-functions
-                                 'capf-autosuggest-capf)
+      (pcase (run-hook-wrapped (if capf-autosuggest-capf
+                                   'capf-autosuggest-capf
+                                 'completion-at-point-functions)
                                #'completion--capf-wrapper 'all)
         (`(,_fun ,beg ,end ,table . ,plist)
          (let* ((pred (plist-get plist :predicate))
