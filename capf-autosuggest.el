@@ -120,6 +120,7 @@ hint to only return a list of one element for optimization.")
 
 (defvar-local capf-autosuggest--overlay nil)
 (defvar-local capf-autosuggest--str "")
+(defvar-local capf-autosuggest--tick nil)
 (defvar-local capf-autosuggest--region '(nil)
   "Region of `completion-at-point'.")
 
@@ -148,7 +149,8 @@ Otherwise, return nil."
     (when capf-autosuggest-active-mode
       ;; `identity' is used to generate slightly faster byte-code
       (pcase-let ((`(,beg . ,end) (identity capf-autosuggest--region)))
-        (unless (< beg (point) end)
+        (unless (and (< beg (point) end)
+                     (eq (buffer-modified-tick) capf-autosuggest--tick))
           (capf-autosuggest-active-mode -1))))
 
     (unless capf-autosuggest-active-mode
@@ -173,7 +175,8 @@ Otherwise, return nil."
                 (str (substring (car completions) (- end beg base)))
                 ((/= 0 (length str))))
              (setq capf-autosuggest--region (cons beg end)
-                   capf-autosuggest--str (copy-sequence str))
+                   capf-autosuggest--str (copy-sequence str)
+                   capf-autosuggest--tick (buffer-modified-tick))
              (move-overlay capf-autosuggest--overlay end end)
              (when (eq ?\n (aref str 0))
                (setq str (concat " " str)))
@@ -301,22 +304,10 @@ inactive."
     map)
   "Keymap active when an auto-suggestion is shown.")
 
-(defun capf-autosuggest--active-acf (beg end _length)
-  "Deactivate auto-suggestion on completion region modifications.
-BEG and END denote the changed region."
-  ;; `identity' is used to generate slightly faster byte-code
-  (when (pcase-let ((`(,beg1 . ,end1) (identity capf-autosuggest--region)))
-          (if (< beg beg1)
-              (>= end beg1)
-            (<= beg end1)))
-    (capf-autosuggest-active-mode -1)))
-
 (define-minor-mode capf-autosuggest-active-mode
   "Active when auto-suggested overlay is shown."
   :group 'completion
-  (if capf-autosuggest-active-mode
-      (add-hook 'after-change-functions #'capf-autosuggest--active-acf nil t)
-    (remove-hook 'after-change-functions #'capf-autosuggest--active-acf t)
+  (unless capf-autosuggest-active-mode
     (delete-overlay capf-autosuggest--overlay)))
 
 ;;;###autoload
