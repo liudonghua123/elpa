@@ -101,11 +101,17 @@
 (declare-function comint-previous-matching-input-from-input "comint")
 (declare-function eshell-previous-matching-input-from-input "em-hist")
 
+(defgroup capf-autosuggest nil
+  "Show completion-at-point as an overlay."
+  :group 'completion
+  :prefix "capf-autosuggest-"
+  :link
+  '(url-link "https://github.com/jakanakaevangeli/emacs-capf-autosuggest"))
+
 ;;; Auto-suggestion overlay
 
 (defface capf-autosuggest-face '((t :inherit file-name-shadow))
-  "Face used for auto suggestions."
-  :group 'completion)
+  "Face used for auto suggestions.")
 
 (defvar capf-autosuggest-capf-functions '(capf-autosuggest-orig-if-at-eol-capf)
   "`completion-at-point-functions', used by capf-autosuggest.
@@ -188,7 +194,7 @@ Otherwise, return nil."
 ;;;###autoload
 (define-minor-mode capf-autosuggest-mode
   "Auto-suggest first completion at point with an overlay."
-  :group 'completion
+  :group 'capf-autosuggest
   (if capf-autosuggest-mode
       (progn
         (setq capf-autosuggest--overlay (make-overlay (point) (point) nil t t))
@@ -281,7 +287,6 @@ inactive."
      (interactive)
      (goto-char (overlay-start capf-autosuggest--overlay)))))
 
-
 (defun capf-autosuggest-comint-previous-matching-input-from-input (n)
   "Like `comint-previous-matching-input-from-input'.
 But increase arument N by 1, if positive, but not on command
@@ -305,6 +310,49 @@ repetition."
        (setq n (1+ n)))
   (eshell-previous-matching-input-from-input n)
   (setq this-command #'eshell-previous-matching-input-from-input))
+
+(defun capf-autosuggest-comint-send-input ()
+  "`capf-autosuggest-accept' and `comint-send-input'."
+  (interactive)
+  (capf-autosuggest-accept)
+  (call-interactively (or (command-remapping #'comint-send-input)
+                          #'comint-send-input))
+  (setq this-command #'comint-send-input))
+
+(defun capf-autosuggest-eshell-send-input ()
+  "`capf-autosuggest-accept' and `eshell-send-input'."
+  (interactive)
+  (capf-autosuggest-accept)
+  (call-interactively (or (command-remapping #'eshell-send-input)
+                          #'eshell-send-input))
+  (setq this-command #'eshell-send-input))
+
+(defcustom capf-autosuggest-dwim-next-line t
+  "Whether `next-line' can accept and send current suggestion.
+If t and point is on last line, `next-line' will accept the
+current suggestion and send input."
+  :type 'boolean)
+(defcustom capf-autosuggest-dwim-next-prompt nil
+  "Whether next-prompt commands can send current suggestion.
+If t and point is after the last prompt, `comint-next-prompt' and
+`eshell-next-prompt' will accept the current suggestion and send
+input."
+  :type 'boolean)
+(defcustom capf-autosuggest-dwim-next-input nil
+  "Whether next-input commands can send current suggestion.
+If t and previous command wasn't a history command
+(next/previous-input or previous/next-matching-input-from-input),
+`comint-next-input' and `eshell-next-input' will accept the
+current suggestion and send input."
+  :type 'boolean)
+(defcustom capf-autosuggest-dwim-next-matching-input-from-input nil
+  "Whether next-input commands can send current suggestion.
+If t and previous command wasn't a history matching command
+(previous or next-matching-input-from-input),
+`comint-next-matching-input-from-input' and
+`eshell-next-matching-input-from-input' will accept the current
+suggestion and send input."
+  :type 'boolean)
 
 (defvar capf-autosuggest-active-mode-map
   (let ((map (make-sparse-keymap)))
@@ -330,12 +378,76 @@ repetition."
       #'capf-autosuggest-eshell-previous-matching-input-from-input)
     (define-key map [remap comint-previous-matching-input-from-input]
       #'capf-autosuggest-comint-previous-matching-input-from-input)
+
+    (define-key map [remap next-line]
+      (list 'menu-item "" #'next-line :filter
+            (lambda (cmd)
+              (if (and capf-autosuggest-dwim-next-line
+                       (looking-at-p "[^\n]*\n?\\'"))
+                  (cond ((derived-mode-p 'comint-mode)
+                         #'capf-autosuggest-comint-send-input)
+                        ((derived-mode-p 'eshell-mode)
+                         #'capf-autosuggest-eshell-send-input)
+                        (t cmd))
+                cmd))))
+    (define-key map [remap comint-next-prompt]
+      (list 'menu-item "" #'comint-next-prompt :filter
+            (lambda (cmd)
+              (if (and capf-autosuggest-dwim-next-prompt
+                       (comint-after-pmark-p))
+                  #'capf-autosuggest-comint-send-input
+                cmd))))
+    (define-key map [remap eshell-next-prompt]
+      (list 'menu-item "" #'eshell-next-prompt :filter
+            (lambda (cmd)
+              (if (and capf-autosuggest-dwim-next-prompt
+                       (>= (point) eshell-last-output-end))
+                  #'capf-autosuggest-comint-send-input
+                cmd))))
+    (define-key map [remap comint-next-input]
+      (list 'menu-item "" #'comint-next-input :filter
+            (lambda (cmd)
+              (if (or (not capf-autosuggest-dwim-next-input)
+                      (memq last-command
+                            '(comint-next-matching-input-from-input
+                              comint-previous-matching-input-from-input
+                              comint-next-input comint-previous-input)))
+                  cmd
+                #'capf-autosuggest-comint-send-input))))
+    (define-key map [remap eshell-next-input]
+      (list 'menu-item "" #'eshell-next-input :filter
+            (lambda (cmd)
+              (if (or (not capf-autosuggest-dwim-next-input)
+                      (memq last-command
+                            '(eshell-next-matching-input-from-input
+                              eshell-previous-matching-input-from-input
+                              eshell-next-input eshell-previous-input)))
+                  cmd
+                #'capf-autosuggest-eshell-send-input))))
+    (define-key map [remap comint-next-matching-input-from-input]
+      (list 'menu-item "" #'comint-next-matching-input-from-input :filter
+            (lambda (cmd)
+              (if (or (not capf-autosuggest-dwim-next-matching-input-from-input)
+                      (memq last-command
+                            '(comint-next-matching-input-from-input
+                              comint-previous-matching-input-from-input)))
+                  cmd
+                #'capf-autosuggest-comint-send-input))))
+    (define-key map [remap eshell-next-matching-input-from-input]
+      (list 'menu-item "" #'eshell-next-matching-input-from-input :filter
+            (lambda (cmd)
+              (if (or (not capf-autosuggest-dwim-next-matching-input-from-input)
+                      (memq last-command
+                            '(eshell-previous-matching-input-from-input
+                              eshell-next-matching-input-from-input)))
+                  cmd
+                #'capf-autosuggest-eshell-send-input))))
     map)
   "Keymap active when an auto-suggestion is shown.")
 
 (define-minor-mode capf-autosuggest-active-mode
   "Active when auto-suggested overlay is shown."
-  :group 'completion
+  :group 'capf-autosuggest
   (unless capf-autosuggest-active-mode
     (delete-overlay capf-autosuggest--overlay)))
 
