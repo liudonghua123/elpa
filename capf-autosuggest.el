@@ -183,6 +183,7 @@ the added text, the whole text is deleted."
 
 (capf-autosuggest-define-partial-accept-cmd capf-autosuggest-forward-word forward-word)
 (capf-autosuggest-define-partial-accept-cmd capf-autosuggest-forward-char forward-char)
+(capf-autosuggest-define-partial-accept-cmd capf-autosuggest-forward-sexp forward-sexp)
 (capf-autosuggest-define-partial-accept-cmd capf-autosuggest-end-of-line end-of-line)
 (capf-autosuggest-define-partial-accept-cmd capf-autosuggest-move-end-of-line move-end-of-line)
 (capf-autosuggest-define-partial-accept-cmd capf-autosuggest-end-of-visual-line end-of-visual-line)
@@ -211,6 +212,7 @@ inactive."
   (let ((map (make-sparse-keymap)))
     (define-key map [remap forward-word] #'capf-autosuggest-forward-word)
     (define-key map [remap forward-char] #'capf-autosuggest-forward-char)
+    (define-key map [remap forward-sexp] #'capf-autosuggest-forward-sexp)
     (define-key map [remap end-of-line] #'capf-autosuggest-end-of-line)
     (define-key map [remap move-end-of-line] #'capf-autosuggest-move-end-of-line)
     (define-key map [remap end-of-visual-line] #'capf-autosuggest-end-of-visual-line)
