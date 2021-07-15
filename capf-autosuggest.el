@@ -191,7 +191,8 @@ Otherwise, return nil."
               ;; match on our prefix.  Ignore them.
               ((string-prefix-p (substring string base) (car completions)))
               (str (substring (car completions) (- end beg base)))
-              ((/= 0 (length str))))
+              (len (length str))
+              ((/= 0 len)))
            (setq capf-autosuggest--region (cons beg end)
                  capf-autosuggest--str (copy-sequence str)
                  capf-autosuggest--tick (buffer-modified-tick))
@@ -199,11 +200,13 @@ Otherwise, return nil."
            ;; Make sure the overlay after-string doesn't start or end with a
            ;; newline, otherwise it can behave badly with cursor placement
            (when (eq ?\n (aref str 0))
-             (setq str (concat " " str)))
-           (when (eq ?\n (aref str (1- (length str))))
-             (setq str (concat str (propertize " " 'display ""))))
-           (add-text-properties 0 1 (list 'cursor (length str)) str)
-           (put-text-property 0 (length str) 'face 'capf-autosuggest-face str)
+             (setq str (concat " " str))
+             (setq len (1+ len)))
+           (when (eq ?\n (aref str (1- len)))
+             (setq str (concat str (propertize " " 'display "")))
+             (setq len (1+ len)))
+           (put-text-property 0 1 'cursor len str)
+           (put-text-property 0 len 'face 'capf-autosuggest-face str)
            (overlay-put capf-autosuggest--overlay 'after-string str)
            (capf-autosuggest-active-mode)))))))
 
