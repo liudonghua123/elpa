@@ -199,7 +199,7 @@ Otherwise, return nil."
            (when (eq ?\n (aref str 0))
              (setq str (concat " " str)))
            (add-text-properties 0 1 (list 'cursor (length str)) str)
-           (add-face-text-property 0 (length str) 'capf-autosuggest-face t str)
+           (put-text-property 0 (length str) 'face 'capf-autosuggest-face str)
            (overlay-put capf-autosuggest--overlay 'after-string str)
            (capf-autosuggest-active-mode)))))))
 
