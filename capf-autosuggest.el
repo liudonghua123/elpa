@@ -196,8 +196,12 @@ Otherwise, return nil."
                  capf-autosuggest--str (copy-sequence str)
                  capf-autosuggest--tick (buffer-modified-tick))
            (move-overlay capf-autosuggest--overlay end end)
+           ;; Make sure the overlay after-string doesn't start or end with a
+           ;; newline, otherwise it can behave badly with cursor placement
            (when (eq ?\n (aref str 0))
              (setq str (concat " " str)))
+           (when (eq ?\n (aref str (1- (length str))))
+             (setq str (concat str (propertize " " 'display ""))))
            (add-text-properties 0 1 (list 'cursor (length str)) str)
            (put-text-property 0 (length str) 'face 'capf-autosuggest-face str)
            (overlay-put capf-autosuggest--overlay 'after-string str)
