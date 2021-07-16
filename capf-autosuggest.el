@@ -106,6 +106,7 @@
 (declare-function comint-previous-matching-input-from-input "comint")
 (declare-function eshell-previous-matching-input-from-input "em-hist")
 (declare-function eshell-send-input "esh-mode")
+(declare-function eshell-interactive-process "esh-cmd")
 (declare-function eshell-next-prompt "em-prompt")
 (declare-function eshell-next-input "em-hist")
 (declare-function eshell-next-matching-input-from-input "em-hist")
