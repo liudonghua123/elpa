@@ -153,7 +153,7 @@ capf functions."
                          #'completion--capf-wrapper 'all)))
 
 (defun capf-autosuggest-orig-if-at-eol-capf ()
-  "`capf-autosuggest-orig-capf' if at the end of buffer.
+  "`capf-autosuggest-orig-capf' if at the end of line.
 Otherwise, return nil."
   (when (eolp)
     (capf-autosuggest-orig-capf)))
