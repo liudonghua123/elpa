@@ -169,9 +169,18 @@ Otherwise, return nil."
         (capf-autosuggest-active-mode -1))))
 
   (unless capf-autosuggest-active-mode
-    (pcase (let ((buffer-read-only t))
+    (pcase (let* ((catch-sym (make-symbol "cirf-catch"))
+                  ;; `pcomplete-completions-at-point' may illegally use
+                  ;; `completion-in-region' itself instead of returning a
+                  ;; collection.  Let's try to outsmart it.
+                  (completion-in-region-function
+                   (lambda (start end collection predicate)
+                     (throw catch-sym
+                            (list start end collection :predicate predicate))))
+                  (buffer-read-only t))
              (condition-case _
-                 (capf-autosuggest-orig-capf 'capf-autosuggest-capf-functions)
+                 (catch catch-sym
+                   (capf-autosuggest-orig-capf 'capf-autosuggest-capf-functions))
                (buffer-read-only t)))
       (`(,beg ,end ,table . ,plist)
        (let* ((pred (plist-get plist :predicate))
