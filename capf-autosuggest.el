@@ -443,7 +443,7 @@ suggestion and send input."
             (lambda (cmd)
               (if (and capf-autosuggest-dwim-next-prompt
                        (>= (point) eshell-last-output-end))
-                  #'capf-autosuggest-comint-send-input
+                  #'capf-autosuggest-eshell-send-input
                 cmd))))
     (define-key map [remap comint-next-input]
       (list 'menu-item "" #'comint-next-input :filter
