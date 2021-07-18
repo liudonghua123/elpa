@@ -33,7 +33,8 @@
 ;; Add the following to your Emacs init file:
 ;;
 ;;  (add-to-list 'load-path "/path/to/emacs-capf-autosuggest")
-;;  (require 'capf-autosuggest)
+;;  (autoload 'capf-autosuggest-setup-comint "capf-autosuggest")
+;;  (autoload 'capf-autosuggest-setup-eshell "capf-autosuggest")
 ;;  (add-hook 'comint-mode-hook #'capf-autosuggest-setup-comint)
 ;;  (add-hook 'eshell-mode-hook #'capf-autosuggest-setup-eshell)
 ;;
@@ -48,8 +49,8 @@
 ;;  (with-eval-after-load 'capf-autosuggest
 ;;    (capf-autosuggest-define-partial-accept-cmd
 ;;     movable-forward-sexp forward-sexp)
-;;    (define-key capf-autosuggest-active-mode-map [remap forward-sexp]
-;;      #'movable-forward-sexp))
+;;    (define-key capf-autosuggest-active-mode-map
+;;      [remap forward-sexp] #'movable-forward-sexp))
 ;;
 ;; By default, C-n (next-line) will accept the currently displayed suggestion
 ;; and send input to shell/eshell.  See the customization group
@@ -504,6 +505,7 @@ Is only applicable if point is after the last prompt."
       (list beg end (capf-autosuggest--completion-table ring)
             :exclusive 'no)))))
 
+;;;###autoload
 (defun capf-autosuggest-eshell-capf ()
   "Completion-at-point function for eshell input history.
 Is only applicable if point is after the last prompt."
