@@ -258,12 +258,13 @@ interactively.  Afterwards, the added text is deleted, but only
 the portion after point.  Additionally, if point is outside of
 the added text, the whole text is deleted."
   (let (beg end text)
+    (setq beg (overlay-start capf-autosuggest--overlay))
+    (capf-autosuggest-active-mode -1)
     (with-silent-modifications
       (catch 'cancel-atomic-change
         (atomic-change-group
           (save-excursion
-            (goto-char (overlay-start capf-autosuggest--overlay))
-            (setq beg (point))
+            (goto-char beg)
             (insert-and-inherit capf-autosuggest--str)
             (setq end (point)))
           (call-interactively command)
@@ -311,10 +312,9 @@ the added text, the whole text is deleted."
 Do not call this command if variable `capf-autosuggest-active-mode' is
 inactive."
   (interactive)
-  (capf-autosuggest-call-partial-accept-cmd
-   (lambda ()
-     (interactive)
-     (goto-char (overlay-start capf-autosuggest--overlay)))))
+  (when capf-autosuggest-active-mode
+    (goto-char (overlay-start capf-autosuggest--overlay))
+    (insert-and-inherit capf-autosuggest--str)))
 
 (defun capf-autosuggest-comint-previous-matching-input-from-input (n)
   "Like `comint-previous-matching-input-from-input'.
