@@ -409,15 +409,15 @@ suggestion and send input."
 
     (define-key map [remap next-line]
       (list 'menu-item "" nil :filter
-            (lambda (_cmd)
+            (lambda (cmd)
               (and capf-autosuggest-dwim-next-line
-                   (looking-at-p "[^\n]*\n?\\'"))
-              (when-let*
-                  ((cmd (cond
-                         ((derived-mode-p 'comint-mode) #'comint-send-input)
-                         ((derived-mode-p 'eshell-mode) #'eshell-send-input)
-                         ((minibufferp) #'exit-minibuffer))))
-                (capf-autosuggest--accept-and-remapping cmd)))))
+                   (looking-at-p "[^\n]*\n?\\'")
+                   (setq cmd
+                         (cond
+                          ((derived-mode-p 'comint-mode) #'comint-send-input)
+                          ((derived-mode-p 'eshell-mode) #'eshell-send-input)
+                          ((minibufferp) #'exit-minibuffer)))
+                   (capf-autosuggest--accept-and-remapping cmd)))))
     (define-key map [remap comint-next-prompt]
       (list 'menu-item "" #'comint-send-input :filter
             (lambda (cmd)
