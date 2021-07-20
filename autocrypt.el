@@ -406,7 +406,7 @@ preference (\"prefer-encrypt\")."
      ((setq acc (assoc addr autocrypt-accounts))
       (setq keydata (autocrypt-get-keydata acc)
             pref (caddr acc)))
-     ((setq peer (assoc addr autocrypt-peers))
+     ((setq peer (cdr (assoc addr autocrypt-peers)))
       (setq keydata (autocrypt-peer-pubkey peer)
             pref (autocrypt-peer-preference peer))))
     (when (and (not (and peer (autocrypt-peer-deactivated peer)))
