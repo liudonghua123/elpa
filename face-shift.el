@@ -92,7 +92,7 @@ information."
   "Relaxation factor when applying a colour-shift.
 
 See `face-shift--interpolate'."
-  :type 'float)
+  :type 'number)
 
 (defun face-shift--interpolate (col-ref col-base)
   "Attempt to find median colour between `col-ref' and `col-base'."
