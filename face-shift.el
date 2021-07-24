@@ -1,6 +1,6 @@
 ;;; face-shift.el --- Shift the colour of certain faces -*- lexical-binding: t -*-
 
-;; Author: Philip K. <philip@warpmail.net>
+;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Version: 0.1.0
 ;; Keywords: faces
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
