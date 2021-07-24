@@ -22,8 +22,8 @@
 
 (require 'color)
 (require 'face-remap)
+(require 'cl-lib)
 (eval-when-compile (require 'subr-x))
-(eval-when-compile (require 'cl-lib))
 
 ;;; Code:
 
