@@ -15,17 +15,18 @@
 ;; https://creativecommons.org/publicdomain/zero/1.0/legalcode
 
 ;;; Commentary:
-;;
+
 ;; This library provides a (global) minor mode to shift the fore- and
-;; background colours of all buffers towards a certain hue. Which hue
-;; which major mode should take on is described in `face-shift-shifts'.
+;; background colours of all buffers towards a certain hue.  Which hue
+;; which major mode should take on is described in
+;; `face-shift-shifts'.
+
+;;; Code:
 
 (require 'color)
 (require 'face-remap)
 (require 'cl-lib)
 (eval-when-compile (require 'subr-x))
-
-;;; Code:
 
 (defgroup face-shift nil
   "Distort colour of certain faces."
@@ -72,9 +73,9 @@
   "In what direction to shift what major mode and derivatives.
 
 The first element of each element is a symbol representing the
-major mode and all it's derivatives. If a buffer's major mode is
+major mode and all it's derivatives.  If a buffer's major mode is
 derived from this mode, it will use the string value to shift all
-colours in `face-shift-faces' towards the colour in string. If
+colours in `face-shift-faces' towards the colour in string.  If
 the colour name is invalid or doesn't exist, it will not apply
 any shift.
 
@@ -96,7 +97,7 @@ See `face-shift--interpolate'."
   :type 'number)
 
 (defun face-shift--interpolate (col-ref col-base)
-  "Attempt to find median colour between `col-ref' and `col-base'."
+  "Attempt to find median colour between COL-REF and COL-BASE."
   (cl-map 'list (lambda (ref base)
                   (if (> face-shift-intensity 0)
                       (- 1 (* (- 1 (* ref base)) face-shift-intensity))
