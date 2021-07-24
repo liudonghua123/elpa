@@ -44,22 +44,7 @@
     isearch-fail
     lazy-highlight
     match
-    query-replace
-    font-lock-regexp-grouping-construct
-    font-lock-regexp-grouping-backslash
-    font-lock-preprocessor-face
-    font-lock-negation-char-face
-    font-lock-warning-face
-    font-lock-constant-face
-    font-lock-type-face
-    font-lock-variable-name-face
-    font-lock-function-name-face
-    font-lock-builtin-face
-    font-lock-keyword-face
-    font-lock-doc-face
-    font-lock-string-face
-    font-lock-comment-delimiter-face
-    font-lock-comment-face)
+    query-replace)
   "Faces that command `face-shift-mode' should distort."
   :type '(list face))
 
