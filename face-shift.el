@@ -81,6 +81,10 @@ See info node `(emacs) Colors' or `color-name-to-rgb' for more
 information."
   :type '(alist :key-type face :value-type string))
 
+(defcustom face-shift-shift-foreground nil
+  "Non-nil means shift the forground color too."
+  :type 'boolean)
+
 (defvar-local face-shift--cookies nil
   "List of remapped faces in a single buffer.")
 
@@ -113,7 +117,9 @@ If BUFFER is nil, use current buffer."
            (col-rgb (and colour (color-name-to-rgb colour))))
       (when colour
         (dolist (face face-shift-faces)
-          (dolist (prop '(:foreground :background))
+          (dolist (prop (if face-shift-shift-foreground
+                            '(:background :foreground)
+                          '(:background)))
             (let* ((attr (face-attribute face prop))
                    (rgb (and attr (color-name-to-rgb attr)))
                    (shift (and rgb (face-shift--interpolate col-rgb rgb)))
