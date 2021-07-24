@@ -63,11 +63,12 @@
   :type '(list face))
 
 (defcustom face-shift-shifts
-  '((text-mode . "khaki")
-    (prog-mode . "pale green")
-    (dired-mode . "pale turquoise")
-    (comint-mode . "wheat")
-    (eshell-mode . "wheat"))
+  '((text-mode . "linen")
+    (help-mode . "lavender blush")
+    (prog-mode . "honeydew")
+    (dired-mode . "azure")
+    (comint-mode . "light yellow")
+    (eshell-mode . "light yellow"))
   "In what direction to shift what major mode and derivatives.
 
 The first element of each element is a symbol representing the
