@@ -3,7 +3,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Version: 0.2.0
 ;; Keywords: faces
-;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://git.sr.ht/~pkal/face-shift
 
 ;; This file is NOT part of Emacs.
@@ -25,7 +25,6 @@
 
 (require 'color)
 (require 'face-remap)
-(require 'cl-lib)
 (eval-when-compile (require 'subr-x))
 
 (defgroup face-shift nil
@@ -83,19 +82,24 @@ See `face-shift--interpolate'."
 
 (defun face-shift--interpolate (col-ref col-base)
   "Attempt to find median colour between COL-REF and COL-BASE."
-  (cl-map 'list (lambda (ref base)
-                  (if (> face-shift-intensity 0)
-                      (- 1 (* (- 1 (* ref base)) face-shift-intensity))
-                    (* (* ref base) (abs face-shift-intensity))))
-          col-ref col-base))
+  (let (results)
+    (while (and col-ref col-base)
+      (let ((ref (pop col-ref))
+            (base (pop col-base)))
+        (push (if (> face-shift-intensity 0)
+                  (- 1 (* (- 1 (* ref base)) face-shift-intensity))
+                (* (* ref base) (abs face-shift-intensity)))
+              results)))
+    (nreverse results)))
 
 (defun face-shift-setup (&optional buffer)
   "Shift colours in BUFFER according to `face-shift-shifts'.
 
 If BUFFER is nil, use current buffer."
   (with-current-buffer (or buffer (current-buffer))
-    (let* ((colour (cdr (cl-assoc-if #'derived-mode-p face-shift-shifts)))
-           (col-rgb (and colour (color-name-to-rgb colour))))
+    (let ((colour (cdr (assoc (apply #'derived-mode-p
+                                     (mapcar #'car face-shift-shifts))
+                              face-shift-shifts))))
       (when colour
         (dolist (face face-shift-faces)
           (dolist (prop (if face-shift-shift-foreground
@@ -103,7 +107,9 @@ If BUFFER is nil, use current buffer."
                           '(:background)))
             (let* ((attr (face-attribute face prop))
                    (rgb (and attr (color-name-to-rgb attr)))
-                   (shift (and rgb (face-shift--interpolate col-rgb rgb)))
+                   (shift (and rgb (face-shift--interpolate
+                                    (color-name-to-rgb colour)
+                                    rgb)))
                    (new (and shift (apply #'color-rgb-to-hex shift))))
               (when new
                 (push (face-remap-add-relative face `(,prop ,new))
