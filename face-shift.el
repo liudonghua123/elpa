@@ -74,7 +74,7 @@ information."
   "List of remapped faces in a single buffer.")
 (make-variable-buffer-local 'face-shift--cookies)
 
-(defcustom face-shift-intensity 0.8
+(defcustom face-shift-intensity (/ (1+ (sqrt 5)) 2)
   "Relaxation factor when applying a colour-shift.
 
 See `face-shift--interpolate'."
