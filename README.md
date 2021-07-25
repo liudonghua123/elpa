@@ -12,12 +12,11 @@ avoid confusion, although it certainly is possible.
 How to use
 ----------
 
-Using [MELPA][melpa] and `use-package`, a minimal setup might look
+Using [MELPA][melpa] and [`setup`][setup], a minimal setup might look
 something like this:
 
-	(use-package face-shift
-	  :config
-      (face-shift-mode t))
+	(setup (:package face-shift)
+	  (:option face-shift-mode t))
 
 The main function for users is `face-shift-mode`, that turns on a global
 minor mode, to shift all the faces in all buffers.
@@ -50,6 +49,7 @@ Copying
 Domain Dedication][cc0] license.
 
 [melpa]: https://melpa.org/#/face-shift
+[setup]: http://elpa.gnu.org/packages/setup.html
 [screenshot]: https://files.catbox.moe/1tuaic.png
 [mailing list]: https://lists.sr.ht/~pkal/public-inbox
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
