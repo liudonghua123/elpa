@@ -50,6 +50,6 @@ Domain Dedication][cc0] license.
 
 [melpa]: https://melpa.org/#/face-shift
 [setup]: http://elpa.gnu.org/packages/setup.html
-[screenshot]: https://files.catbox.moe/1tuaic.png
+[screenshot]: https://i.imgur.com/E3tGyNL.png
 [mailing list]: https://lists.sr.ht/~pkal/public-inbox
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
