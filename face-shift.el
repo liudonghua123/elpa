@@ -25,7 +25,6 @@
 
 (require 'color)
 (require 'face-remap)
-(eval-when-compile (require 'subr-x))
 
 (defgroup face-shift nil
   "Distort colour of certain faces."
