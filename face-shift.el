@@ -3,7 +3,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Version: 0.2.0
 ;; Keywords: faces
-;; Package-Requires: ((emacs "24.4"))
+;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://git.sr.ht/~pkal/face-shift
 
 ;; This file is NOT part of Emacs.
@@ -70,8 +70,9 @@ information."
   "Non-nil means shift the forground color too."
   :type 'boolean)
 
-(defvar-local face-shift--cookies nil
+(defvar face-shift--cookies nil
   "List of remapped faces in a single buffer.")
+(make-variable-buffer-local 'face-shift--cookies)
 
 (defcustom face-shift-intensity 0.8
   "Relaxation factor when applying a colour-shift.
