@@ -755,13 +755,19 @@ prefix arg to be prompted for the term to enter."
 	  (alist-get 'translation
 		     (gethash glossary-id ogt-glossary-table))
 	  this-translation
-	  (completing-read (format "Translation of %s: " orig)
-			   glossary-translation))
+	  (if (use-region-p)
+	      (buffer-substring (region-beginning)
+				(region-end))
+	    (completing-read (format "Translation of %s: " orig)
+			     glossary-translation)))
     (cl-pushnew
      this-translation
      (alist-get 'translation
 		(gethash glossary-id ogt-glossary-table))
      :test #'equal)
+    (when (use-region-p)
+      (delete-region (region-beginning)
+		     (region-end)))
     (insert (format "[[trans:%s][%s]]" glossary-id this-translation))))
 
 (defun ogt-stop-translating (project-name)
