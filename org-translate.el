@@ -137,6 +137,7 @@
 (require 'bookmark)
 (require 'ox)
 (require 'org-id)
+(require 'cl-lib)
 
 (defgroup org-translate nil
   "Customizations for the org-translate library."
@@ -365,7 +366,7 @@ By default, just remove it."
 		ogt-source-segment-overlay (make-overlay (point) (point)))
 	(error (org-translate-mode -1)
 	       (signal (car err) (cdr err))))
-      (push #'ogt-export-remove-segmenters org-export-filter-body-functions)
+      (cl-pushnew #'ogt-export-remove-segmenters org-export-filter-body-functions)
       (overlay-put ogt-source-segment-overlay
 		   'face 'highlight)
       ;; Doesn't actually delete it, just makes it "inactive" until we
