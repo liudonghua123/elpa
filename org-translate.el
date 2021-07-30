@@ -530,13 +530,14 @@ and applies a highlight to the appropriate segment of text."
 	 (point))
        (progn
 	 (or (and (re-search-forward
-		   (regexp-opt
-		    (list (string ogt-segmentation-character)
-			  "\n\n"
-			  org-heading-regexp))
+		   (rx
+		    (or
+		     (literal (string ogt-segmentation-character))
+		     "\n\n"
+		     (regexp org-heading-regexp)))
 		   nil t)
 		  (progn
-		    (backward-char)
+		    (goto-char (match-beginning 0))
 		    (skip-syntax-backward "-")
 		    (point)))
 	     (point-max)))))))
