@@ -33,7 +33,7 @@
 
 (("ace-window"		:url "https://github.com/abo-abo/ace-window")
  ("ack"			:url "https://github.com/leoliu/ack-el")
- ("ada-mode"		:url nil)
+ ("ada-mode"		:url nil :doc ("ada-mode.texi" "gpr-mode.texi"))
  ("ada-ref-man"		:url nil)
  ("adaptive-wrap"	:url nil)
  ("adjust-parens"	:url nil)
@@ -402,7 +402,7 @@
  ("websocket"		:url "https://github.com/ahyatt/emacs-websocket.git")
  ("windower"		:url "https://gitlab.com/ambrevar/emacs-windower")
  ("windresize"		:url nil)
- ("wisi"		:url nil)
+ ("wisi"		:url nil :doc ("wisi.texi" "wisitoken-user_guide.texinfo"))
  ("wisitoken-grammar-mode" :url nil)
  ("which-key"           :url "https://github.com/justbur/emacs-which-key"
   :auto-sync t)
