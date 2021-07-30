@@ -58,6 +58,8 @@ implements Interface1<Bar, Baz>, Interface2 {"
       class "Foo")
     '("class Foo<E extends Bar> {"
       class "Foo")
+    '("class Foo<Enum<?>> {"
+      class "Foo")
     '("class Foo<T extends Baz<? extends Baz2>> \
 extends Bar<? extends Baz<? extends Baz2>> {"
       class "Foo")

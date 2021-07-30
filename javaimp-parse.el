@@ -73,6 +73,19 @@ present."
         (string-trim (substring str 0 end))
       str)))
 
+(defun javaimp--parse-rsb-keyword (regexp &optional bound noerror count)
+  "Like `re-search-backward', but count only occurences outside
+syntactic context as given by `syntax-ppss-context'.  Assumes
+point is outside of any context initially."
+  (or count (setq count 1))
+  (let ((step (if (>= count 0) 1 -1))
+        (case-fold-search nil)
+        res)
+    (dotimes (_ (abs count))
+      (while (and (setq res (re-search-backward regexp bound noerror step))
+                  (syntax-ppss-context (syntax-ppss)))))
+    res))
+
 (defun javaimp--parse-arglist (beg end &optional only-type)
   "Parse arg list between BEG and END, of the form 'TYPE NAME,
 ...'.  Return list of conses (TYPE . NAME).  If ONLY-TYPE is
@@ -178,7 +191,7 @@ is checked to be SKIP-COUNT lists away from the SCOPE-START (1 is
 for scope start itself, so if you want to skip one additional
 list, use 2 etc.).  If a match is found, then match-data is set,
 as for `re-search-backward'."
-  (and (javaimp--rsb-outside-context regexp nil t)
+  (and (javaimp--parse-rsb-keyword regexp nil t)
        (ignore-errors
          ;; Does our match belong to the right block?
          (= (scan-lists (match-end 0) (or skip-count 1) -1)
@@ -192,7 +205,7 @@ is left before the match.  Otherwise, the result is nil and point
 is unchanged."
   (let ((pos (point)))
     (catch 'found
-      (while (javaimp--rsb-outside-context regexp bound t)
+      (while (javaimp--parse-rsb-keyword regexp bound t)
         (let ((scan-pos (match-end 0)))
           (javaimp--parse-with-arglist-syntax scan-pos
             (while (and scan-pos (<= scan-pos (nth 1 state)))
@@ -403,14 +416,14 @@ nil then goes all the way up."
 
 (defun javaimp--parse-get-package ()
   (goto-char (point-max))
-  (when (javaimp--rsb-outside-context
+  (when (javaimp--parse-rsb-keyword
          "^\\s-*package\\s-+\\([^;\n]+\\)\\s-*;" nil t 1)
     (match-string 1)))
 
 (defun javaimp--parse-get-file-classes ()
   (goto-char (point-max))
   (let (res)
-    (while (javaimp--rsb-outside-context
+    (while (javaimp--parse-rsb-keyword
             (regexp-opt javaimp--parse-class-keywords 'words) nil t)
       (save-excursion
         (let ((parse-sexp-ignore-comments t) ; FIXME remove with major mode
