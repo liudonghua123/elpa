@@ -304,7 +304,7 @@ fragilely, and deleted and re-set with abandon.")
  :keymap ogt-link-keymap
  :export #'ogt-export-link)
 
-(defun ogt-export-link (_path desc _backend)
+(defun ogt-export-link (_path desc _backend _plist)
   "Export a translation link.
 By default, just remove it."
   desc)
