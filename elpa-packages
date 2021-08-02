@@ -106,6 +106,7 @@
  ("cpio-mode"		:url "https://github.com/dlewan/cpio-mode")
  ("crisp"		:url nil)
  ;; ("crossword"		:url "https://github.com/Boruch-Baum/emacs-crossword")
+ ;; ("csharp-mode"		:url "https://github.com/emacs-csharp/csharp-mode")
  ("csv-mode"		:url nil)
  ("cycle-quotes"	:url nil)
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
@@ -160,6 +161,8 @@
  ("frame-tabs"		:url nil)
  ("frog-menu"		:url "https://github.com/clemera/frog-menu")
  ("fsm"			:url nil)
+ ("ftable"		:url "https://github.com/casouri/ftable"
+  :auto-sync t)
  ("gcmh"		:url "https://gitlab.com/koral/gcmh")
  ("ggtags"		:url "https://github.com/leoliu/ggtags")
  ("gited"		:url nil)
