@@ -179,11 +179,14 @@ Otherwise, return nil."
                    (lambda (start end collection predicate)
                      (throw catch-sym
                             (list start end collection :predicate predicate))))
-                  (buffer-read-only t))
-             (condition-case _
+                  (buffer-read-only t)
+                  (inhibit-quit nil))
+             (condition-case nil
                  (catch catch-sym
-                   (capf-autosuggest-orig-capf 'capf-autosuggest-capf-functions))
-               (buffer-read-only t)))
+                   (while-no-input
+                     (capf-autosuggest-orig-capf
+                      'capf-autosuggest-capf-functions)))
+               ((buffer-read-only quit) t)))
       (`(,beg ,end ,table . ,plist)
        (let* ((pred (plist-get plist :predicate))
               (string (buffer-substring-no-properties beg end))
