@@ -148,7 +148,10 @@ dt {
 }
 
 dd {
-  margin-bottom: 10px;
+  /* We should reduce vertical space use in the "header".
+     Yuan Fu <casouri@gmail.com> suggested to do that simply by
+     commenting this out:
+     margin-bottom: 10px; */
   width: 460px;
   display: inline-block;
 }
