@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2020  Free Software Foundation, Inc.
 
-;; Author: Philip K. <philipk@posteo.net>
+;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Version: 2.2.0
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.1"))
