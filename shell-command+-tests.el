@@ -17,6 +17,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; Tests for the `shell-command+' parsers.
+
 ;;; Code:
 
 (require 'ert)
@@ -142,7 +146,7 @@
     (should (string= rest (concat "command \\%")))))
 
 (ert-deftest sc+-expand ()
-  "Test that `shell-command+-expand-path' works as expected"
+  "Test that `shell-command+-expand-path' works as expected."
   (let ((default-directory "/some/path/to/dir"))
     (pcase-dolist (`(,path . ,expand)
                    '(("."                       . "/some/path/to/dir")
@@ -155,7 +159,7 @@
                        expand)))))
 
 (ert-deftest sc+-tokenize ()
-  "Test that `shell-command+-tokenize' works as expected"
+  "Test that `shell-command+-tokenize' works as expected."
   (pcase-dolist (`(,args ,expand ,list)
                  '(("a b c" nil ("a" "b" "c"))
                    ("a \"b c\" d" nil ("a" "b c" "d"))
