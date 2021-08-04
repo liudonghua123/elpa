@@ -138,21 +138,35 @@ the command string"
 
 
 
+(defconst shell-command+-token-regexp
+  (rx bos (* space)
+      (or (: ?\"
+             (group-n 1 (* (or (: ?\\ anychar) (not (any ?\\ ?\")))))
+             ?\")
+          (: ?\'
+             (group-n 1 (* (or (: ?\\ anychar) (not (any ?\\ ?\')))))
+             ?\')
+          (group (+ (not (any space ?\\ ?\" ?\')))
+                 (* ?\\ anychar (* (not (any space ?\\ ?\" ?\')))))))
+  "Regular expression for tokenizing shell commands.")
+
 (defun shell-command+-tokenize (command &optional expand)
   "Return list of tokens of COMMAND.
 If EXPAND is non-nil, expand wildcards."
   (let ((pos 0) tokens)
-    (while (string-match
-            (rx bos (* space)
-                (or (: ?\" (group (* (not ?\"))) ?\")
-                    (: (group (+ (not (any ?\" space)))))))
-            (substring command pos))
+    (while (string-match shell-command+-token-regexp (substring command pos))
       (push (let ((tok (match-string 2 (substring command pos))))
               (if (and expand tok)
                   (or (file-expand-wildcards tok) (list tok))
-                (list (or (match-string 2 (substring command pos))
-                          (match-string 1 (substring command pos))))))
+                (list (replace-regexp-in-string
+                       (rx (* ?\\ ?\\) (group ?\\ (group anychar)))
+                       "\\2"
+                       (or (match-string 2 (substring command pos))
+                           (match-string 1 (substring command pos)))
+                       nil nil 1))))
             tokens)
+      (when (= (match-end 0) 0)
+        (error "Zero-width token parsed"))
       (setq pos (+ pos (match-end 0))))
     (unless (= pos (length command))
       (error "Tokenization error at %s" (substring command pos)))
