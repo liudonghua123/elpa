@@ -67,7 +67,7 @@
 ;;; Code:
 
 (defgroup shell-command+ nil
-  "An extended `shell-command'"
+  "An extended `shell-command'."
   :group 'external
   :prefix "shell-command+-")
 
