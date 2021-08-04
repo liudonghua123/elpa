@@ -61,6 +61,8 @@
 
 (eval-when-compile (require 'rx))
 (eval-when-compile (require 'pcase))
+(require 'diff)
+(require 'info)
 
 ;;; Code:
 
