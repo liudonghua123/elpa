@@ -666,7 +666,7 @@ is `ordinary' or `static'.  Interactively, NEW-IMPORTS is nil."
         #'javaimp-imenu--function
         scope))
 
-(defun javaimp-imenu--function (index-name index-position scope)
+(defun javaimp-imenu--function (_index-name index-position _scope)
   (goto-char index-position)
   (back-to-indentation))
 
