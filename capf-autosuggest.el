@@ -184,8 +184,10 @@ Otherwise, return nil."
              (condition-case nil
                  (catch catch-sym
                    (while-no-input
-                     (capf-autosuggest-orig-capf
-                      'capf-autosuggest-capf-functions)))
+                     ;; `ielm-complete-filename' may illegaly move point
+                     (save-excursion
+                       (capf-autosuggest-orig-capf
+                        'capf-autosuggest-capf-functions))))
                ((buffer-read-only quit) t)))
       (`(,beg ,end ,table . ,plist)
        (let* ((pred (plist-get plist :predicate))
