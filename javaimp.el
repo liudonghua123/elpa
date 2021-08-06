@@ -79,7 +79,7 @@
 (require 'javaimp-gradle)
 (require 'javaimp-parse)
 (require 'cc-mode)                      ;for java-mode-syntax-table
-
+(require 'imenu)
 
 
 ;; User options
@@ -672,7 +672,9 @@ done in mode functions automatically."
 
 (defsubst javaimp-imenu--make-entry (scope)
   (list (javaimp-scope-name scope)
-        (javaimp-scope-start scope)
+        (if imenu-use-markers
+            (copy-marker (javaimp-scope-start scope))
+          (javaimp-scope-start scope))
         #'javaimp-imenu--function
         scope))
 
