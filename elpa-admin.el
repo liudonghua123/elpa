@@ -52,6 +52,7 @@
 (defvar elpaa--email-to nil) ;;"gnu-emacs-sources@gnu.org"
 (defvar elpaa--email-from nil) ;;"ELPA update <do.not.reply@elpa.gnu.org>"
 (defvar elpaa--email-reply-to nil)
+(defvar elpaa--email-revision-details nil)
 
 (defvar elpaa--sandbox-extra-ro-dirs nil)
 
@@ -193,6 +194,18 @@ commit which modified the \"Version:\" pseudo header."
         (if (stringp release-rev)
             (progn
               (elpaa--message "Found release rev: %S" release-rev)
+              (setq elpaa--email-revision-details
+                    (with-temp-buffer
+                      (elpaa--call
+                       (current-buffer)
+                       "git" "show" "--no-patch"
+                       (format "--pretty=format:%s\n%s\n%s\n%s"
+                               "%s" ; subject
+                               "Authored %ar on %aD"
+                               "Committed %cr on %cD"
+                               "Revision %H")
+                       release-rev)
+                      (buffer-string)))
               release-rev)
           (elpaa--message "Can't find release rev: %s" (cdr release-rev))
           nil))))
@@ -843,7 +856,8 @@ If DEVEL-ONLY is non-nil, only build the devel tarball."
                   (elpaa--release-email pkg-spec metadata dir)))))))
          (t
           (let ((tarball (concat elpaa--release-subdir
-                                 (format "%s-%s.tar" pkgname vers))))
+                                 (format "%s-%s.tar" pkgname vers)))
+                elpaa--email-revision-details)
             (when (elpaa--make-one-tarball
                    tarball dir pkg-spec metadata
                    (lambda ()
@@ -1746,6 +1760,9 @@ You can now find it in M-x package-list RET.
   " (nth 2 metadata) "
 
 More at " (elpaa--default-url pkgname))
+        (when elpaa--email-revision-details
+          (insert "\n\nBuild details:\n"
+                  elpaa--email-revision-details))
         (let ((news (elpaa--get-NEWS pkg-spec dir)))
           (when news
             (insert "\n\nRecent NEWS:\n\n" news)))
