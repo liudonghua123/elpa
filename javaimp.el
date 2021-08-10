@@ -612,6 +612,7 @@ Currently it requires some manual setup, something like this in
 the `java-mode-hook':
 
   (setq imenu-create-index-function #'javaimp-imenu-create-index)
+  (setq syntax-ppss-table javaimp-syntax-table)
   (setq javaimp--parse-dirty-pos (point-min))
   (add-hook 'after-change-functions #'javaimp--parse-update-dirty-pos)
 
