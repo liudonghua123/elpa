@@ -719,11 +719,9 @@ start (`javaimp-scope-start') instead."
                        (javaimp-scope-start scope)
                      (javaimp-scope-open-brace scope)))))))
 
-
-(defun javaimp-help-reparse-and-show-scopes ()
-  "Reparse scopes and show them in a *javaimp-scopes* buffer."
+(defun javaimp-help-show-scopes ()
+  "Show scopes in a *javaimp-scopes* buffer."
   (interactive)
-  (setq javaimp--parse-dirty-pos (point-min))
   (let ((scopes (save-excursion
                   (javaimp--parse-get-all-scopes)))
         (file buffer-file-name)
@@ -739,9 +737,11 @@ start (`javaimp-scope-start') instead."
           (while (setq tmp (javaimp-scope-parent tmp))
             (setq depth (1+ depth)))
           (insert (propertize
-                   (format "%d: %010s %s\n"
+                   (format "%d %s: %s%s\n"
                            depth
-                           (symbol-name (javaimp-scope-type scope))
+                           (cdr (assq (javaimp-scope-type scope)
+                                      javaimp--help-scope-type-abbrevs))
+                           (make-string depth ? )
                            (javaimp-scope-name scope))
                    'mouse-face 'highlight
                    'help-echo "mouse-2: go to this scope"
