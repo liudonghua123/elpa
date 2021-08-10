@@ -28,6 +28,8 @@
   '("if" "for" "while" "switch" "try" "catch" "finally"
     "static"                            ; static initializer block
     ))
+(defconst javaimp--parse-stmt-keyword-maxlen
+  (seq-max (mapcar #'length javaimp--parse-stmt-keywords)))
 
 (defvar-local javaimp--parse-dirty-pos nil
   "Buffer position after which all parsed information should be
@@ -187,6 +189,8 @@ is unchanged."
       (while (javaimp--parse-rsb-keyword regexp bound t)
         (let ((scan-pos (match-end 0)))
           (javaimp--parse-with-syntax-table javaimp--arglist-syntax-table scan-pos
+            ;; Skip over any number of lists, which may be
+            ;; exceptions in "throws", or something like that
             (while (and scan-pos (<= scan-pos (nth 1 state)))
               (if (ignore-errors
                     (= (scan-lists scan-pos 1 -1) ;As in javaimp--parse-preceding
@@ -239,23 +243,23 @@ those may later become 'local-class' (see `javaimp--parse-scopes')."
                                 :open-brace (nth 1 state)))))))
 
 (defun javaimp--parse-scope-simple-stmt (state)
-  "Attempts to parse `simple-statement' scope."
+  "Attempts to parse 'simple-statement' scope."
   (save-excursion
     (and (javaimp--parse-skip-back-until)
-         (looking-back (concat
-                        (regexp-opt javaimp--parse-stmt-keywords 'words)
-                        "\\|->")
-                       nil t)
-         (make-javaimp-scope
-          :type 'simple-statement
-          :name (or (match-string 1)
-                    "lambda")
-          :start (or (match-beginning 1)
-                     (- (point) 2))
-          :open-brace (nth 1 state)))))
+         (or (and (= (char-before (1- (point))) ?-) ; ->
+                  (= (char-before) ?>))
+             (looking-back (regexp-opt javaimp--parse-stmt-keywords 'words)
+                           (- (point) javaimp--parse-stmt-keyword-maxlen) nil)))
+    (make-javaimp-scope
+     :type 'simple-statement
+     :name (or (match-string 1)
+               "lambda")
+     :start (or (match-beginning 1)
+                (- (point) 2))
+     :open-brace (nth 1 state))))
 
 (defun javaimp--parse-scope-anonymous-class (state)
-  "Attempts to parse `anonymous-class' scope."
+  "Attempts to parse 'anonymous-class' scope."
   (save-excursion
     ;; skip arg-list and ws
     (when (and (progn
@@ -276,46 +280,52 @@ those may later become 'local-class' (see `javaimp--parse-scopes')."
                                 :open-brace (nth 1 state))))))))
 
 (defun javaimp--parse-scope-method-or-stmt (state)
-  "Attempts to parse `method' or `statement' scope."
+  "Attempts to parse 'method' or 'statement' scope."
   (save-excursion
-    (let ((throws-args
-           (let ((pos (javaimp--parse-decl-suffix "\\<throws\\>" state)))
-             (when pos
-               (or (javaimp--parse-arglist pos (nth 1 state) t)
-                   t)))))
-      (when (and (not (eq throws-args t))
-                 (progn
-                   (javaimp--parse-skip-back-until)
-                   (= (char-before) ?\)))
-                 (ignore-errors
-                   ;; for method this is arglist
-                   (goto-char
-                    (scan-lists (point) -1 0))))
-        (let* (;; leave open/close parens out
-               (arglist-region (cons (1+ (point))
-                                     (1- (scan-lists (point) 1 0))))
-               (count (progn
-                        (javaimp--parse-skip-back-until)
-                        (skip-syntax-backward "w_")))
-               (name (and (< count 0)
-                          (buffer-substring-no-properties
-                           (point) (+ (point) (abs count)))))
-               (type (when name
-                       (if (and (member name javaimp--parse-stmt-keywords)
-                                (not throws-args))
-                           'statement 'method))))
-          (when type
-            (make-javaimp-scope
-             :type type
-             :name (if (eq type 'statement)
-                       name
-                     (funcall javaimp-format-method-name
-                              name
-                              (javaimp--parse-arglist (car arglist-region)
-                                                      (cdr arglist-region))
-                              throws-args))
-             :start (point)
-             :open-brace (nth 1 state))))))))
+    (let (;; take the closest preceding closing paren as the bound
+          (search-bound (save-excursion
+                          (when (javaimp--parse-rsb-keyword ")" nil t 1)
+                            (1+ (point))))))
+      (when search-bound
+        (let ((throws-args
+               (let ((pos (javaimp--parse-decl-suffix
+                           "\\<throws\\>" state search-bound)))
+                 (when pos
+                   (or (javaimp--parse-arglist pos (nth 1 state) t)
+                       t)))))
+          (when (and (not (eq throws-args t))
+                     (progn
+                       (javaimp--parse-skip-back-until)
+                       (= (char-before) ?\)))
+                     (ignore-errors
+                       ;; for method this is arglist
+                       (goto-char
+                        (scan-lists (point) -1 0))))
+            (let* (;; leave open/close parens out
+                   (arglist-region (cons (1+ (point))
+                                         (1- (scan-lists (point) 1 0))))
+                   (count (progn
+                            (javaimp--parse-skip-back-until)
+                            (skip-syntax-backward "w_")))
+                   (name (and (< count 0)
+                              (buffer-substring-no-properties
+                               (point) (+ (point) (abs count)))))
+                   (type (when name
+                           (if (and (member name javaimp--parse-stmt-keywords)
+                                    (not throws-args))
+                               'statement 'method))))
+              (when type
+                (make-javaimp-scope
+                 :type type
+                 :name (if (eq type 'statement)
+                           name
+                         (funcall javaimp-format-method-name
+                                  name
+                                  (javaimp--parse-arglist (car arglist-region)
+                                                          (cdr arglist-region))
+                                  throws-args))
+                 :start (point)
+                 :open-brace (nth 1 state))))))))))
 
 (defun javaimp--parse-scope-array (state)
   "Attempts to parse 'array' scope."
