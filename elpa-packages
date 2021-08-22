@@ -107,6 +107,8 @@
  ("crisp"		:url nil)
  ;; ("crossword"		:url "https://github.com/Boruch-Baum/emacs-crossword")
  ;; ("csharp-mode"		:url "https://github.com/emacs-csharp/csharp-mode")
+ ("csharp-mode"		:url "https://github.com/emacs-csharp/csharp-mode"
+  :readme "README.org")
  ("csv-mode"		:url nil)
  ("cycle-quotes"	:url nil)
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
