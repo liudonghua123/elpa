@@ -1159,6 +1159,18 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 					       rt-liber-assoc-browser)
     (error "not viewing a ticket")))
 
+(defun rt-liber-viewer2-move-point-to-section (history-id)
+  "Move point to the beginning of section with HISTORY-ID."
+  (let ((current-history-id (alist-get 'id (rt-liber-viewer2-get-section-data)))
+	(previous-history-id nil))
+    (while (not (or (string-equal history-id current-history-id)
+		    (eq current-history-id previous-history-id)))
+      (setq previous-history-id current-history-id)
+      (rt-liber-viewer2-next-section-in)
+      (setq current-history-id (alist-get 'id (rt-liber-viewer2-get-section-data))))
+    (when (not (string-equal history-id current-history-id))
+      (error "Cannot find section."))))
+
 (defun rt-liber-viewer2-next-section-in ()
   (interactive)
   (when (looking-at rt-liber-viewer2-section-regexp)

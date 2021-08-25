@@ -61,6 +61,7 @@ Extensions
 * Tracking Updates::            Keeping up to date with ticket changes.
 * Batch Operations::            Performing operations on batches of tickets.
 * Local Storage::               Associate arbitrary data with tickets.
+* Org Integration::             Integration with Org mode.
 
 Copying and license
 * Copying::                     The GNU General Public License gives you
@@ -881,6 +882,41 @@ itself to creating private annotations about tickets.
 The implementation distributed with rt-liberation allows associating
 text with tickets but is not limited to text. The same implementation
 can be extended to associate any arbitrary data with any ticket.
+
+
+@c --------------------------------------------------
+@node Org Integration
+@chapter Org Integration
+@cindex Org Integration
+
+@file{rt-liberation-org.el} implements interation with Org Mode.
+
+To enable it first load @file{rt-liberation-org.el}:
+
+@lisp
+(require 'rt-liberation-org)
+@end lisp
+
+This enables two types of RT Org links:
+
+@enumerate
+@item Id link.
+For example, @code{rt:id:12345} links to ticket #12345 in the
+@xref{Ticket Viewer}.  Optionally you can also append history-id for a
+specific ticket section: @code{rt:id:12345/6789} links to section of
+ticket #12345 with history-id 6789.
+
+@item Query link.
+For example, @code{<rt:query:owner = 'nobody' and created > '7 days
+ago'>} runs the query for unowned tickets that were created more than
+a week ago and display the results in the @xref{Ticket Browser}.
+@end enumerate
+
+You may run @code{org-store-link} inside the Ticket Viewer or Ticket
+Browser to store an RT Org link. If you are inside the Ticket Viewer,
+@code{org-store-link} will store a link to the section of the ticket,
+and if you are inside the Ticket Browser, it will store a link to the
+ticket without specifying the section.
 
 
 @c --------------------------------------------------
