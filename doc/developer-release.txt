@@ -17,35 +17,4 @@ Update the NEWS file to tell all of the people the Good News.
 
 
 * documentation
-Update the manual, compile it, and update the copy of the info file in
-the root directory so that ELPA can install it.
-
-Compile an HTML version of the manual and update the Website:
-
-    $ cvs commit -m "update manual" rt-liber.html
-
-    $ cvs commit -m "update website" index.html
-
-
-* tag
-Tag the release with the ELPA version number, then push that tag to
-the VCS:
-
-    $ git tag -a 2.2 -m "2.2"
-
-    $ git push --tags origin "2.2"
-
-
-* push
-Push these updates to the git repo.
-
-
-* ELPA
-Merge the changes into the local externals/rt-liberation (git will
-complain) and then push the changes to externals/rt-liberation on
-elpa.git with:
-
-    $ git push
-
-...as long as externals/rt-liberation has the right remote and merge
-setup.
+Update the fine manual, compile it, and check for errors.

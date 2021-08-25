@@ -3,6 +3,8 @@ New in version 2.4
     * Versions are now in X.Y format in order to be more elpa
       friendly.
 
+    * Org mode integration.
+
 
 New in version 2.03
 
