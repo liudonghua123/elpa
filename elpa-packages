@@ -390,6 +390,8 @@
  ("valign"		:url "https://github.com/casouri/valign")
  ("vc-hgcmd"		:url "https://github.com/muffinmad/emacs-vc-hgcmd"
   :auto-sync t)
+ ("vc-backup"		:url "https://git.sr.ht/~pkal/vc-backup"
+  :auto-sync t) 
  ("vcard"		:url nil)
  ("vdiff"               :url "https://github.com/justbur/emacs-vdiff")
  ("vcl-mode"	        :url "git://git.gnu.org.ua/vcl-mode")
