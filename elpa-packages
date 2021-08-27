@@ -106,7 +106,6 @@
  ("cpio-mode"		:url "https://github.com/dlewan/cpio-mode")
  ("crisp"		:url nil)
  ;; ("crossword"		:url "https://github.com/Boruch-Baum/emacs-crossword")
- ;; ("csharp-mode"		:url "https://github.com/emacs-csharp/csharp-mode")
  ("csharp-mode"		:url "https://github.com/emacs-csharp/csharp-mode"
   :readme "README.org"
   :auto-sync t)
@@ -193,6 +192,8 @@
  ("hyperbole"           :url "https://git.savannah.gnu.org/r/hyperbole.git"
   :make ("kotl/kotl-autoloads.el")
   :auto-sync t)
+ ;; ("infix-notation-calculator"
+ ;;  :url "https://github.com/cjohansson/emacs-infix-notation-calculator")
  ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git")
  ("isearch-mb"		:url "https://github.com/astoff/isearch-mb"
   :auto-sync t)
@@ -363,6 +364,8 @@
  ("swiper"		:url "https://github.com/abo-abo/swiper")
  ("system-packages"	:url "https://gitlab.com/jabranham/system-packages")
  ("systemd"		:url nil)
+ ("taxy"                :url "https://github.com/alphapapa/taxy.el.git"
+  :auto-sync t)
  ("temp-buffer-browse"  :url "https://github.com/leoliu/temp-buffer-browse")
  ("test-simple"         :url "https://github.com/rocky/emacs-test-simple")
  ("timerfunctions"	:url nil)
