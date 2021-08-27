@@ -390,26 +390,40 @@ non-nil.  Resets this variable after parsing is done."
   (let (res)
     (while (javaimp--parse-rsb-keyword "\\_<abstract\\_>" nil t)
       (save-excursion
-        (save-match-data
-          (let ((enclosing (nth 1 (syntax-ppss))))
-            (when (and enclosing
-                       (javaimp--parse-rsb-keyword ";" nil t -1)
-                       ;; we're in the same nest
-                       (= (nth 1 (syntax-ppss)) enclosing))
-              (backward-char)      ;skip semicolon
-              ;; now parse as normal method scope
-              (when-let ((scope (javaimp--parse-scope-method-or-stmt (point)))
-                         ;; note that an abstract method with no
-                         ;; parents will be ignored
-                         (parent (javaimp--parse-scopes nil)))
-                (setf (javaimp-scope-parent scope) (javaimp--copy-scope parent))
-                (push scope res)))))))
+        (let ((enclosing (nth 1 (syntax-ppss))))
+          (when (and enclosing
+                     (javaimp--parse-rsb-keyword ";" nil t -1)
+                     ;; are we in the same nest?
+                     (= (nth 1 (syntax-ppss)) enclosing))
+            (backward-char)        ;skip semicolon
+            ;; now parse as normal method scope
+            (when-let ((scope (javaimp--parse-scope-method-or-stmt (point)))
+                       ;; note that an abstract method with no
+                       ;; parents will be ignored
+                       (parent (javaimp--parse-scopes nil)))
+              (setf (javaimp-scope-parent scope) (javaimp--copy-scope parent))
+              (push scope res))))))
     res))
 
-(defun javaimp--parse-abstract-interface-methods ()
-  ;; TODO
-  )
-
+(defun javaimp--parse-abstract-interface-methods (int-scope)
+  (let ((start (1+ (javaimp-scope-open-brace int-scope)))
+        (end (ignore-errors
+               (1- (scan-lists (javaimp-scope-open-brace int-scope) 1 0))))
+        res)
+    (when (and start end)
+      (goto-char end)
+      (while (and (> (point) start)
+                  (javaimp--parse-rsb-keyword ";" start t))
+        ;; are we in the same nest?
+        (if (= (nth 1 (syntax-ppss)) (javaimp-scope-open-brace int-scope))
+            (save-excursion
+              ;; now parse as normal method scope
+              (when-let ((scope (javaimp--parse-scope-method-or-stmt (point))))
+                (setf (javaimp-scope-parent scope) int-scope)
+                (push scope res)))
+          ;; we've entered another nest, go back to its start
+          (goto-char (nth 1 (syntax-ppss))))))
+    res))
 
 
 ;; Functions intended to be called from other parts of javaimp.
@@ -445,12 +459,13 @@ them should move point."
             (push scope res)))
         res))))
 
-(defun javaimp--parse-abstract-methods ()
+(defun javaimp--parse-abstract-methods (interfaces)
   (save-excursion
     (save-restriction
       (widen)
       (append (javaimp--parse-abstract-class-methods)
-              (javaimp--parse-abstract-interface-methods)))))
+              (seq-mapcat #'javaimp--parse-abstract-interface-methods
+                          interfaces)))))
 
 (defun javaimp--parse-update-dirty-pos (beg _end _old-len)
   "Function to add to `after-change-functions' hook."

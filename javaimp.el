@@ -679,12 +679,11 @@ done in mode functions automatically."
             forest)))))
 
 (defun javaimp-imenu--get-forest ()
-  (let* ((scopes
-          (javaimp--parse-get-all-scopes
-           (lambda (scope)
-             (javaimp-test-scope-type scope
-               '(class interface enum method)
-               javaimp--classlike-scope-types))))
+  (let* ((scopes (javaimp--parse-get-all-scopes
+                  (lambda (scope)
+                    (javaimp-test-scope-type scope
+                      '(class interface enum method)
+                      javaimp--classlike-scope-types))))
          (methods (seq-filter
                    (lambda (scope)
                      (eq (javaimp-scope-type scope) 'method))
@@ -696,7 +695,11 @@ done in mode functions automatically."
          (top-classes (seq-filter (lambda (s)
                                     (null (javaimp-scope-parent s)))
                                   classes))
-         (abstract-methods (javaimp--parse-abstract-methods)))
+         (abstract-methods (javaimp--parse-abstract-methods
+                            (seq-filter
+                             (lambda (scope)
+                               (eq (javaimp-scope-type scope) 'interface))
+                             scopes))))
     (mapcar
      (lambda (top-class)
        (message "Building tree for top-level class-like scope: %s"

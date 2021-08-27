@@ -314,11 +314,15 @@ package commented.block;
            ("baz()" . 1281)))
          ("IInner1"
           ("foo()" . 1603)
+          ("abstract_method()" . 1715)
           ("IInner1_CInner1"
            ("foo()" . 1798))
+          ("baz()" . 1934)
           ("defaultMethod(String)" . 1963)
           ("IInner1_IInner1"
-           ("defaultMethod(String)" . 2157)))
+           ("foo()" . 2122)
+           ("defaultMethod(String)" . 2157)
+           ("baz()" . 2258)))
          ("EnumInner1"
           ("EnumInner1()" . 2353)
           ("foo()" . 2399)
@@ -342,13 +346,17 @@ package commented.block;
     (javaimp-test--imenu-method-list
      '("foo() [Top.CInner1]"
        "foo() [Top.CInner1.CInner1_CInner1]"
-       "abstract_method()"
+       "abstract_method() [Top.CInner1.CInner1_CInner1]"
        "bar()"
-       "baz()"
+       "baz() [Top.CInner1.CInner1_CInner1]"
        "foo() [Top.IInner1]"
+       "abstract_method() [Top.IInner1]"
        "foo() [Top.IInner1.IInner1_CInner1]"
+       "baz() [Top.IInner1]"
        "defaultMethod(String) [Top.IInner1]"
+       "foo() [Top.IInner1.IInner1_IInner1]"
        "defaultMethod(String) [Top.IInner1.IInner1_IInner1]"
+       "baz() [Top.IInner1.IInner1_IInner1]"
        "EnumInner1()"
        "foo() [Top.EnumInner1]"
        "foo() [ColocatedTop]"
@@ -364,9 +372,13 @@ package commented.block;
        "Top.CInner1.CInner1_CInner1.bar()"
        "Top.CInner1.CInner1_CInner1.baz()"
        "Top.IInner1.foo()"
+       "Top.IInner1.abstract_method()"
        "Top.IInner1.IInner1_CInner1.foo()"
+       "Top.IInner1.baz()"
        "Top.IInner1.defaultMethod(String)"
+       "Top.IInner1.IInner1_IInner1.foo()"
        "Top.IInner1.IInner1_IInner1.defaultMethod(String)"
+       "Top.IInner1.IInner1_IInner1.baz()"
        "Top.EnumInner1.EnumInner1()"
        "Top.EnumInner1.foo()"
        "ColocatedTop.foo()"
