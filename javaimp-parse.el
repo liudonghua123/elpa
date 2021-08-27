@@ -208,8 +208,7 @@ is unchanged."
 the position of opening brace.")
 
 (defun javaimp--parse-scope-class (brace-pos)
-  "Attempts to parse 'class' / 'interface' / 'enum' scope.  Some of
-those may later become 'local-class' (see `javaimp--parse-scopes')."
+  "Attempts to parse 'class' / 'interface' / 'enum' scope."
   (save-excursion
     (if (javaimp--parse-preceding (regexp-opt javaimp--parse-classlike-keywords 'symbols)
                                   brace-pos)
@@ -334,8 +333,9 @@ those may later become 'local-class' (see `javaimp--parse-scopes')."
                       :open-brace brace-pos))
 
 (defun javaimp--parse-scopes (count)
-  "Attempts to parse COUNT enclosing scopes at point.  If COUNT is
-nil then goes all the way up.  Examines and sets property
+  "Attempts to parse COUNT enclosing scopes at point.  Returns most
+nested one, with its parents sets accordingly.  If COUNT is nil
+then goes all the way up.  Examines and sets property
 'javaimp-parse-scope' at each scope's open brace."
   (let ((state (syntax-ppss))
         res)
@@ -356,19 +356,12 @@ nil then goes all the way up.  Examines and sets property
             (if (javaimp-scope-start scope)
                 (goto-char (javaimp-scope-start scope)))))
         (setq state (syntax-ppss))))
-    ;; if a class is enclosed in anything other than a class, then it
-    ;; should be local
-    (let ((tmp res)
-          in-local parent)
-      (while tmp
-        (if (javaimp--is-classlike (car tmp))
-            (when in-local
-              (setf (javaimp-scope-type (car tmp)) 'local-class))
-          (setq in-local t))
-        (setf (javaimp-scope-parent (car tmp)) parent)
-        (setq parent (car tmp))
-        (setq tmp (cdr tmp))))
-    res))
+    (let (parent)
+      (while res
+        (setf (javaimp-scope-parent (car res)) parent)
+        (setq parent (car res))
+        (setq res (cdr res)))
+      parent)))
 
 (defun javaimp--parse-all-scopes ()
   "Entry point to the scope parsing.  Parses scopes in this
@@ -403,20 +396,26 @@ non-nil.  Resets this variable after parsing is done."
                        (javaimp--parse-rsb-keyword ";" nil t -1)
                        ;; we're in the same nest
                        (= (nth 1 (syntax-ppss)) enclosing))
-              (backward-char)     ;skip semicolon
+              (backward-char)      ;skip semicolon
               ;; now parse as normal method scope
               (when-let ((scope (javaimp--parse-scope-method-or-stmt (point)))
-                         ;; note that an abstract method with no parents
-                         ;; will be ignored
-                         (parents (javaimp--parse-scopes nil)))
-                (setf (javaimp-scope-parent scope) (car (last parents)))
+                         ;; note that an abstract method with no
+                         ;; parents will be ignored
+                         (parent (javaimp--parse-scopes nil)))
+                (setf (javaimp-scope-parent scope) (javaimp--copy-scope parent))
                 (push scope res)))))))
     res))
+
+(defun javaimp--parse-abstract-interface-methods ()
+  ;; TODO
+  )
+
 
 
 ;; Functions intended to be called from other parts of javaimp.
 
 (defun javaimp--parse-get-package ()
+  "Return the package declared in the current file."
   (save-excursion
     (save-restriction
       (widen)
@@ -424,39 +423,6 @@ non-nil.  Resets this variable after parsing is done."
       (when (javaimp--parse-rsb-keyword
              "^[ \t]*package[ \t]+\\([^ \t;\n]+\\)[ \t]*;" nil t 1)
         (match-string 1)))))
-
-(defun javaimp--parse-get-all-classlikes ()
-  (mapcar (lambda (scope)
-            (let ((name (javaimp-scope-name scope))
-                  (parent-names (javaimp--concat-scope-parents scope)))
-              (if (string-empty-p parent-names)
-                  name
-                (concat parent-names "." name))))
-          (javaimp--parse-get-all-scopes #'javaimp--is-classlike)))
-
-(defun javaimp--parse-get-imenu-forest ()
-  (let* ((methods (javaimp--parse-get-all-scopes
-                   #'javaimp--is-imenu-included-method #'javaimp--is-classlike))
-         (classes (javaimp--parse-get-all-scopes #'javaimp--is-classlike))
-         (top-classes (seq-filter (lambda (s)
-                                    (null (javaimp-scope-parent s)))
-                                  classes))
-         (ac-methods (javaimp--parse-abstract-class-methods)))
-    (mapcar
-     (lambda (top-class)
-       (message "Building tree for top-level class-like scope: %s"
-                (javaimp-scope-name top-class))
-       (javaimp--build-tree top-class
-                            (append methods
-                                    classes
-                                    ac-methods)
-                            (lambda (el tested)
-                              (equal el (javaimp-scope-parent tested)))
-                            nil
-                            (lambda (s1 s2)
-                              (< (javaimp-scope-start s1)
-                                 (javaimp-scope-start s2)))))
-     top-classes)))
 
 (defun javaimp--parse-get-all-scopes (&optional pred parent-pred)
   "Return all scopes in the current buffer, optionally filtering
@@ -478,6 +444,13 @@ them should move point."
               (javaimp--filter-scope-parents scope parent-pred))
             (push scope res)))
         res))))
+
+(defun javaimp--parse-abstract-methods ()
+  (save-excursion
+    (save-restriction
+      (widen)
+      (append (javaimp--parse-abstract-class-methods)
+              (javaimp--parse-abstract-interface-methods)))))
 
 (defun javaimp--parse-update-dirty-pos (beg _end _old-len)
   "Function to add to `after-change-functions' hook."

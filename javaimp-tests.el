@@ -173,7 +173,7 @@ throws E1 {"
         (should (equal (javaimp-scope-name (car scopes)) (nth 2 item)))))))
 
 
-;; Tests for javaimp-parse.el "package-private" API.
+;; Tests for parsing
 
 (ert-deftest javaimp-test--parse-get-package ()
   (with-temp-buffer
@@ -185,126 +185,107 @@ package commented.block;
     (setq syntax-ppss-table javaimp-syntax-table)
     (should (equal (javaimp--parse-get-package) "foo.bar.baz"))))
 
-(ert-deftest javaimp-test--parse-get-all-classlikes ()
-  (with-temp-buffer
-    (insert-file-contents
-     (concat javaimp--basedir "testdata/test1-misc-classes.java"))
-    (setq syntax-ppss-table javaimp-syntax-table)
-    (setq javaimp--parse-dirty-pos (point-min))
-    (should (equal (javaimp--parse-get-all-classlikes)
-                   '("Top"
-                     "Top.CInner1"
-                     "Top.CInner1.CInner1_CInner1"
-                     "Top.IInner1"
-                     "Top.IInner1.IInner1_CInner1"
-                     "Top.IInner1.IInner1_IInner1"
-                     "Top.EnumInner1"
-                     "Top.EnumInner1.EnumInner1_EInner1"
-                     "ColocatedTop")))))
-
 (ert-deftest javaimp-test--parse-get-all-scopes ()
   (with-temp-buffer
     (insert-file-contents
      (concat javaimp--basedir "testdata/test1-misc-classes.java"))
     (setq syntax-ppss-table javaimp-syntax-table)
     (let ((javaimp-format-method-name #'javaimp-format-method-name-types))
-      ;;
       ;; parse full buffer
       (setq javaimp--parse-dirty-pos (point-min))
-      (javaimp-test--check-named-scopes
-       (javaimp--parse-get-all-scopes
-        #'javaimp--is-named #'javaimp--is-named))
+      (javaimp-test--check-named-scopes)
       ;;
       ;; reparse half of buffer
       (setq javaimp--parse-dirty-pos (/ (- (point-max) (point-min)) 2))
-      (javaimp-test--check-named-scopes
-       (javaimp--parse-get-all-scopes
-        #'javaimp--is-named #'javaimp--is-named))
+      (javaimp-test--check-named-scopes)
       ;;
       ;; don't reparse
-      (javaimp-test--check-named-scopes
-       (javaimp--parse-get-all-scopes
-        #'javaimp--is-named #'javaimp--is-named)))))
+      (javaimp-test--check-named-scopes))))
 
-(defun javaimp-test--check-named-scopes (scopes)
-  (let ((actual
-         (mapcar (lambda (s)
-                   (let (res)
-                     (while s
-                       (push (list (javaimp-scope-type s)
-                                   (javaimp-scope-name s))
-                             res)
-                       (setq s (javaimp-scope-parent s)))
-                     (nreverse res)))
-                 scopes))
-        (expected
-         '(((class "Top"))
-           ((class "CInner1") (class "Top"))
-           ((method "foo()") (class "CInner1") (class "Top"))
-           ((local-class "CInner1_CLocal1")
-            (method "foo()") (class "CInner1") (class "Top"))
-           ((method "foo()")
-            (local-class "CInner1_CLocal1")
-            (method "foo()") (class "CInner1") (class "Top"))
-           ((local-class "CInner1_CLocal1_CLocal1")
-            (method "foo()")
-            (local-class "CInner1_CLocal1")
-            (method "foo()") (class "CInner1") (class "Top"))
-           ((method "foo()")
-            (local-class "CInner1_CLocal1_CLocal1")
-            (method "foo()")
-            (local-class "CInner1_CLocal1")
-            (method "foo()") (class "CInner1") (class "Top"))
+(defun javaimp-test--check-named-scopes ()
+  (let* ((scopes (javaimp--parse-get-all-scopes
+                  (lambda (scope)
+                    (memq (javaimp-scope-type scope) '(class interface enum method)))
+                  (lambda (scope)
+                    (memq (javaimp-scope-type scope) '(class interface enum method)))))
+         (actual (mapcar
+                  (lambda (s)
+                    (let (res)
+                      (while s
+                        (push (list (javaimp-scope-type s)
+                                    (javaimp-scope-name s))
+                              res)
+                        (setq s (javaimp-scope-parent s)))
+                      (nreverse res)))
+                  scopes))
+         (expected
+          '(((class "Top"))
+            ((class "CInner1") (class "Top"))
+            ((method "foo()") (class "CInner1") (class "Top"))
+            ((class "CInner1_CLocal1")
+             (method "foo()") (class "CInner1") (class "Top"))
+            ((method "foo()")
+             (class "CInner1_CLocal1")
+             (method "foo()") (class "CInner1") (class "Top"))
+            ((class "CInner1_CLocal1_CLocal1")
+             (method "foo()")
+             (class "CInner1_CLocal1")
+             (method "foo()") (class "CInner1") (class "Top"))
+            ((method "foo()")
+             (class "CInner1_CLocal1_CLocal1")
+             (method "foo()")
+             (class "CInner1_CLocal1")
+             (method "foo()") (class "CInner1") (class "Top"))
 
-           ((local-class "CInner1_CLocal2")
-            (method "foo()") (class "CInner1") (class "Top"))
-           ((method "foo()")
-            (local-class "CInner1_CLocal2")
-            (method "foo()") (class "CInner1") (class "Top"))
+            ((class "CInner1_CLocal2")
+             (method "foo()") (class "CInner1") (class "Top"))
+            ((method "foo()")
+             (class "CInner1_CLocal2")
+             (method "foo()") (class "CInner1") (class "Top"))
 
-           ((method "toString()")
-            (class "CInner1") (class "Top"))
+            ((method "toString()")
+             (class "CInner1") (class "Top"))
 
-           ((class "CInner1_CInner1") (class "CInner1") (class "Top"))
-           ((method "foo()")
-            (class "CInner1_CInner1") (class "CInner1") (class "Top"))
-           ((method "bar()")
-            (class "CInner1_CInner1") (class "CInner1") (class "Top"))
+            ((class "CInner1_CInner1") (class "CInner1") (class "Top"))
+            ((method "foo()")
+             (class "CInner1_CInner1") (class "CInner1") (class "Top"))
+            ((method "bar()")
+             (class "CInner1_CInner1") (class "CInner1") (class "Top"))
 
-           ((interface "IInner1") (class "Top"))
-           ((method "foo()") (interface "IInner1") (class "Top"))
-           ((class "IInner1_CInner1") (interface "IInner1") (class "Top"))
-           ((method "foo()")
-            (class "IInner1_CInner1") (interface "IInner1") (class "Top"))
-           ((method "defaultMethod(String)")
-            (interface "IInner1") (class "Top"))
+            ((interface "IInner1") (class "Top"))
+            ((method "foo()") (interface "IInner1") (class "Top"))
+            ((class "IInner1_CInner1") (interface "IInner1") (class "Top"))
+            ((method "foo()")
+             (class "IInner1_CInner1") (interface "IInner1") (class "Top"))
+            ((method "defaultMethod(String)")
+             (interface "IInner1") (class "Top"))
 
-           ((interface "IInner1_IInner1") (interface "IInner1") (class "Top"))
-           ((method "defaultMethod(String)")
-            (interface "IInner1_IInner1") (interface "IInner1") (class "Top"))
+            ((interface "IInner1_IInner1") (interface "IInner1") (class "Top"))
+            ((method "defaultMethod(String)")
+             (interface "IInner1_IInner1") (interface "IInner1") (class "Top"))
 
-           ((enum "EnumInner1") (class "Top"))
-           ((method "EnumInner1()") (enum "EnumInner1") (class "Top"))
-           ((method "foo()") (enum "EnumInner1") (class "Top"))
-           ((enum "EnumInner1_EInner1") (enum "EnumInner1") (class "Top"))
+            ((enum "EnumInner1") (class "Top"))
+            ((method "EnumInner1()") (enum "EnumInner1") (class "Top"))
+            ((method "foo()") (enum "EnumInner1") (class "Top"))
+            ((enum "EnumInner1_EInner1") (enum "EnumInner1") (class "Top"))
 
-           ((class "ColocatedTop"))
-           ((method "foo()") (class "ColocatedTop"))
-           ((method "bar(String, String)") (class "ColocatedTop")))))
+            ((class "ColocatedTop"))
+            ((method "foo()") (class "ColocatedTop"))
+            ((method "bar(String, String)") (class "ColocatedTop")))))
     (should (= (length expected) (length actual)))
     (dotimes (i (length expected))
-      (should (equal (nth i expected) (nth i actual)))))
-  ;;
-  (let ((data
+      (should (equal (nth i expected) (nth i actual))))
+    ;;
+    (let ((data
          `((,(nth 0 scopes) "Top" 26 36)
            (,(nth 16 scopes) "foo()" 1798 1804)
            (,(nth 23 scopes) "EnumInner1_EInner1" 2462 2486)
            (,(nth 25 scopes) "foo()" 2554 2560))))
-    (dolist (elt data)
-      (let ((scope (nth 0 elt)))
-        (should (equal (nth 1 elt) (javaimp-scope-name scope)))
-        (should (equal (nth 2 elt) (javaimp-scope-start scope)))
-        (should (equal (nth 3 elt) (javaimp-scope-open-brace scope)))))))
+      (dolist (elt data)
+        (let ((scope (nth 0 elt)))
+          (should (equal (nth 1 elt) (javaimp-scope-name scope)))
+          (should (equal (nth 2 elt) (javaimp-scope-start scope)))
+          (should (equal (nth 3 elt) (javaimp-scope-open-brace scope))))))))
 
 
 
@@ -403,5 +384,24 @@ package commented.block;
     (should (= (length expected-names) (length actual)))
     (dotimes (i (length expected-names))
       (should (equal (nth i expected-names) (car (nth i actual)))))))
+
+
+(ert-deftest javaimp-test--get-file-classes ()
+  (with-temp-buffer
+    (insert-file-contents
+     (concat javaimp--basedir "testdata/test1-misc-classes.java"))
+    (setq syntax-ppss-table javaimp-syntax-table)
+    (setq javaimp--parse-dirty-pos (point-min))
+    (should (equal (javaimp--get-file-classes-1)
+                   '("org.foo.Top"
+                     "org.foo.Top.CInner1"
+                     "org.foo.Top.CInner1.CInner1_CInner1"
+                     "org.foo.Top.IInner1"
+                     "org.foo.Top.IInner1.IInner1_CInner1"
+                     "org.foo.Top.IInner1.IInner1_IInner1"
+                     "org.foo.Top.EnumInner1"
+                     "org.foo.Top.EnumInner1.EnumInner1_EInner1"
+                     "org.foo.ColocatedTop")))))
+
 
 (provide 'javaimp-tests)
