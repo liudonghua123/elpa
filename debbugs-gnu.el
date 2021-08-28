@@ -52,6 +52,15 @@
 ;; the default), whether archived bugs shall be shown, and whether
 ;; closed bugs shall be suppressed from being retrieved.
 
+;; If you want all bugs for a given package, sorted by severity and
+;; whether already resolved, call
+;;
+;;   M-x debbugs-gnu-package
+
+;; Per default it shows the bugs for package "emacs", but with a
+;; prefix given to the command, different package names can be
+;; specified (comma-separated).
+
 ;; Another command is
 ;;
 ;;   M-x debbugs-gnu-search
@@ -266,6 +275,10 @@ If nil, the value of `send-mail-function' is used instead."
   (mapcar #'cadr (cdr (get 'debbugs-gnu-default-severities 'custom-type)))
   "List of all possible severities.")
 
+(defconst debbugs-gnu-applicable-severities
+  (remove "tagged" debbugs-gnu-all-severities)
+  "List of all applicable severities.")
+
 (defcustom debbugs-gnu-default-packages '("emacs")
   "The list of packages to be searched for."
   ;; <https://debbugs.gnu.org/Packages.html>
@@ -346,7 +359,7 @@ If this is `rmail', use Rmail instead."
 (defface debbugs-gnu-handled '((t (:foreground "ForestGreen")))
   "Face for reports that have been modified recently.")
 
-(defface debbugs-gnu-stale-1 '((t (:foreground "#a0a000")))
+(defface debbugs-gnu-stale-1 '((t (:foreground "#b0b000")))
   "Face for reports that have been touched two to four weeks ago.")
 
 (defface debbugs-gnu-stale-2 '((t (:foreground "#c0c000")))
@@ -375,6 +388,9 @@ If this is `rmail', use Rmail instead."
 
 (defface debbugs-gnu-marked '((t (:background "DarkGrey")))
   "Face for reports that have been marked locally.")
+
+(defface debbugs-gnu-title '((t (:height 1.2 :bold t)))
+  "Face for titles.")
 
 (defvar debbugs-gnu-local-tags nil
   "List of bug numbers tagged locally, and kept persistent.")
@@ -415,14 +431,14 @@ a date, value is the cons cell (BEFORE . AFTER).")
 The specification which bugs shall be suppressed is taken from
   `debbugs-gnu-default-suppress-bugs'.")
 
-(defcustom debbugs-gnu-emacs-current-release "27.2"
+(defcustom debbugs-gnu-emacs-current-release "28.1"
   "The current Emacs relase developped for."
   :type '(choice (const "24.5")
 		 (const "25.1") (const "25.2")
 		 (const "26.1") (const "26.3")
 		 (const "27.1") (const "27.2")
 		 (const "28.1"))
-  :version "27.2")
+  :version "28.1")
 
 (defconst debbugs-gnu-emacs-blocking-reports
   '(("24.5" . 19758)
@@ -645,6 +661,50 @@ depend on PHRASE being a string, or nil.  See Info node
   "List the bug reports that have been tagged locally."
   (interactive)
   (debbugs-gnu '("tagged")))
+
+;;;###autoload
+(defun debbugs-gnu-package (&optional packages)
+  "List the bug reports of default packages, divided by severity."
+  (interactive
+     (list
+      (if current-prefix-arg
+	  (completing-read-multiple
+	   "Packages: " debbugs-gnu-applicable-packages nil t
+	   (string-join debbugs-gnu-default-packages ","))
+	debbugs-gnu-default-packages)))
+
+  (debbugs-gnu debbugs-gnu-applicable-severities packages)
+  (let ((inhibit-read-only t)
+	(entries tabulated-list-entries))
+    (kill-region (point-min) (point-max))
+    (dolist (done '(t nil))
+      (dolist (severity (reverse debbugs-gnu-applicable-severities))
+	(setq tabulated-list-entries
+	      (delq nil
+		    (mapcar
+		     (lambda (x)
+		       (and (equal severity (alist-get 'severity (car x)))
+			    (equal (if done "done" "pending")
+				   (alist-get 'pending (car x)))
+			    x))
+		     entries)))
+	(when tabulated-list-entries
+	  (narrow-to-region (point-min) (point-max))
+	  (tabulated-list-print nil 'update)
+	  (goto-char (point-min))
+	  (insert
+	   (propertize
+	    (format
+	     "\n%s bugs - %s:\n\n"
+	     (capitalize severity) (if done "resolved" "outstanding"))
+	    'face 'debbugs-gnu-title))
+	  (widen))))
+
+    (goto-char (point-min))
+    (insert
+     (propertize
+      (format "GNU bug reports: package(s) %s\n" (string-join packages ","))
+      'face 'debbugs-gnu-title))))
 
 (defvar debbugs-gnu-show-reports-function #'debbugs-gnu-show-reports
   "Which function to apply showing bug reports.
