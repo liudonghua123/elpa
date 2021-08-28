@@ -105,6 +105,8 @@
  ("counsel"		:url "https://github.com/abo-abo/swiper")
  ("cpio-mode"		:url "https://github.com/dlewan/cpio-mode")
  ("crisp"		:url nil)
+ ("crdt"		:url "https://code.librehq.com/qhong/crdt.el"
+  :auto-sync t)
  ;; ("crossword"		:url "https://github.com/Boruch-Baum/emacs-crossword")
  ("csharp-mode"		:url "https://github.com/emacs-csharp/csharp-mode"
   :readme "README.org"
