@@ -150,6 +150,20 @@ options @code{debbugs-gnu-default-severities} and
 @end deffn
 
 
+@deffn  {Command} debbugs-gnu-package &optional packages
+
+This command shows all bugs for a given list of @var{packages}, sorted
+by severity and whether already resolved.  It is
+@code{debbugs-gnu-default-packages} per default.
+
+If the package @code{"emacs"} is member of the @var{packages} list,
+also all unresolved bugs for the next Emacs release are shown, like
+@code{debbugs-gnu-emacs-release-blocking-reports} does (see below).
+
+@ref{Presenting Bugs} for the presentation of the results.
+@end deffn
+
+
 @deffn  {Command} debbugs-gnu-bugs &rest bugs
 @deffnx {Command} debbugs-org-bugs &rest bugs
 

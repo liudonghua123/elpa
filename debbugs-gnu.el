@@ -52,8 +52,8 @@
 ;; the default), whether archived bugs shall be shown, and whether
 ;; closed bugs shall be suppressed from being retrieved.
 
-;; If you want all bugs for a given package, sorted by severity and
-;; whether already resolved, call
+;; If you want to see all bugs for a given package, sorted by severity
+;; and whether already resolved, call
 ;;
 ;;   M-x debbugs-gnu-package
 
@@ -662,6 +662,10 @@ depend on PHRASE being a string, or nil.  See Info node
   (interactive)
   (debbugs-gnu '("tagged")))
 
+(defvar debbugs-gnu-print-function #'tabulated-list-print
+  "Which function to apply printing the tabulated list..
+See `debbugs-gnu-package' for an alternative.")
+
 ;;;###autoload
 (defun debbugs-gnu-package (&optional packages)
   "List the bug reports of default packages, divided by severity."
@@ -673,9 +677,20 @@ depend on PHRASE being a string, or nil.  See Info node
 	   (string-join debbugs-gnu-default-packages ","))
 	debbugs-gnu-default-packages)))
 
-  (debbugs-gnu debbugs-gnu-applicable-severities packages)
+  (let ((debbugs-gnu-print-function #'debbugs-gnu-package-tabulated-list-print))
+    (debbugs-gnu debbugs-gnu-applicable-severities packages))
+  (setq-local debbugs-gnu-print-function
+	      #'debbugs-gnu-package-tabulated-list-print))
+
+(defun debbugs-gnu-package-tabulated-list-print ()
+  "Print the tabulated list for `tramp-gnu-package'."
   (let ((inhibit-read-only t)
-	(entries tabulated-list-entries))
+	(entries tabulated-list-entries)
+	(packages
+	 (delq nil
+	       (mapcar
+		(lambda (x) (when (eq (car x) 'package) (cdr x)))
+		debbugs-gnu-current-query))))
     (kill-region (point-min) (point-max))
     (dolist (done '(t nil))
       (dolist (severity (reverse debbugs-gnu-applicable-severities))
@@ -697,6 +712,34 @@ depend on PHRASE being a string, or nil.  See Info node
 	    (format
 	     "\n%s bugs - %s:\n\n"
 	     (capitalize severity) (if done "resolved" "outstanding"))
+	    'face 'debbugs-gnu-title))
+	  (widen))))
+
+    (when (member "emacs" packages)
+      (when-let ((blockers
+		  (alist-get
+		   'blockedby
+		   (car
+		    (debbugs-get-status
+		     (alist-get
+		      debbugs-gnu-emacs-current-release
+		      debbugs-gnu-emacs-blocking-reports nil nil #'equal))))))
+	(setq tabulated-list-entries
+	      (delq nil
+		    (mapcar
+		     (lambda (x)
+		       (and (memq (alist-get 'id (car x)) blockers)
+			    (equal "pending" (alist-get 'pending (car x)))
+			    x))
+		     entries)))
+	(when tabulated-list-entries
+	  (narrow-to-region (point-min) (point-max))
+	  (tabulated-list-print nil 'update)
+	  (goto-char (point-min))
+	  (insert
+	   (propertize
+	    (format "\nBugs blocking Emacs %s release\n\n"
+		    debbugs-gnu-emacs-current-release)
 	    'face 'debbugs-gnu-title))
 	  (widen))))
 
@@ -973,7 +1016,7 @@ are taken from the cache instead."
 	   'append))))
 
     (tabulated-list-init-header)
-    (tabulated-list-print)
+    (funcall debbugs-gnu-print-function)
 
     (set-buffer-modified-p nil)
     (goto-char (point-min))))
@@ -1298,7 +1341,7 @@ Interactively, it is non-nil with the prefix argument."
     (setq debbugs-gnu-sort-state 'number)
     (setq tabulated-list-sort-key (cons "State" nil)))
   (tabulated-list-init-header)
-  (tabulated-list-print))
+  (funcall debbugs-gnu-print-function))
 
 (defun debbugs-gnu-widen ()
   "Display all the currently selected bug reports."
@@ -1307,7 +1350,7 @@ Interactively, it is non-nil with the prefix argument."
 	(inhibit-read-only t))
     (setq debbugs-gnu-limit nil)
     (tabulated-list-init-header)
-    (tabulated-list-print)
+    (funcall debbugs-gnu-print-function)
     (when id
       (debbugs-gnu-goto id))))
 
@@ -1482,7 +1525,7 @@ interesting to you."
   (interactive)
   (setq debbugs-gnu-local-suppress (not debbugs-gnu-local-suppress))
   (tabulated-list-init-header)
-  (tabulated-list-print))
+  (funcall debbugs-gnu-print-function))
 
 (defvar debbugs-gnu-bug-number nil)
 (defvar debbugs-gnu-subject nil)
