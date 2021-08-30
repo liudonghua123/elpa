@@ -225,6 +225,7 @@
 (defvar debbugs-gnu-local-query)
 (defvar debbugs-gnu-local-filter)
 (defvar debbugs-gnu-local-suppress)
+(defvar debbugs-gnu-local-print-function)
 (defvar debbugs-gnu-sort-state)
 (defvar debbugs-gnu-limit)
 
@@ -430,6 +431,10 @@ a date, value is the cons cell (BEFORE . AFTER).")
   "Whether bugs shall be suppressed.
 The specification which bugs shall be suppressed is taken from
   `debbugs-gnu-default-suppress-bugs'.")
+
+(defvar debbugs-gnu-current-print-function #'tabulated-list-print
+  "Which function to apply printing the tabulated list..
+See `debbugs-gnu-package' for an alternative.")
 
 (defcustom debbugs-gnu-emacs-current-release "28.1"
   "The current Emacs relase developped for."
@@ -662,10 +667,6 @@ depend on PHRASE being a string, or nil.  See Info node
   (interactive)
   (debbugs-gnu '("tagged")))
 
-(defvar debbugs-gnu-print-function #'tabulated-list-print
-  "Which function to apply printing the tabulated list..
-See `debbugs-gnu-package' for an alternative.")
-
 ;;;###autoload
 (defun debbugs-gnu-package (&optional packages)
   "List the bug reports of default packages, divided by severity."
@@ -677,10 +678,9 @@ See `debbugs-gnu-package' for an alternative.")
 	   (string-join debbugs-gnu-default-packages ","))
 	debbugs-gnu-default-packages)))
 
-  (let ((debbugs-gnu-print-function #'debbugs-gnu-package-tabulated-list-print))
-    (debbugs-gnu debbugs-gnu-applicable-severities packages))
-  (setq-local debbugs-gnu-print-function
-	      #'debbugs-gnu-package-tabulated-list-print))
+  (let ((debbugs-gnu-current-print-function
+	 #'debbugs-gnu-package-tabulated-list-print))
+    (debbugs-gnu debbugs-gnu-applicable-severities packages)))
 
 (defun debbugs-gnu-package-tabulated-list-print ()
   "Print the tabulated list for `tramp-gnu-package'."
@@ -690,7 +690,8 @@ See `debbugs-gnu-package' for an alternative.")
 	 (delq nil
 	       (mapcar
 		(lambda (x) (when (eq (car x) 'package) (cdr x)))
-		debbugs-gnu-current-query))))
+		debbugs-gnu-local-query)))
+	tabulated-list-entries)
     (kill-region (point-min) (point-max))
     (dolist (done '(t nil))
       (dolist (severity (reverse debbugs-gnu-applicable-severities))
@@ -728,9 +729,7 @@ See `debbugs-gnu-package' for an alternative.")
 	      (delq nil
 		    (mapcar
 		     (lambda (x)
-		       (and (memq (alist-get 'id (car x)) blockers)
-			    (equal "pending" (alist-get 'pending (car x)))
-			    x))
+		       (and (memq (alist-get 'id (car x)) blockers) x))
 		     entries)))
 	(when tabulated-list-entries
 	  (narrow-to-region (point-min) (point-max))
@@ -1016,7 +1015,7 @@ are taken from the cache instead."
 	   'append))))
 
     (tabulated-list-init-header)
-    (funcall debbugs-gnu-print-function)
+    (funcall debbugs-gnu-local-print-function)
 
     (set-buffer-modified-p nil)
     (goto-char (point-min))))
@@ -1206,6 +1205,7 @@ Interactively, it is non-nil with the prefix argument."
 	(debbugs-gnu-current-query debbugs-gnu-local-query)
 	(debbugs-gnu-current-filter debbugs-gnu-local-filter)
 	(debbugs-gnu-current-suppress debbugs-gnu-local-suppress)
+	(debbugs-gnu-current-print-function debbugs-gnu-local-print-function)
 	(debbugs-cache-expiry (if nocache t debbugs-cache-expiry)))
     (funcall debbugs-gnu-show-reports-function)
     (when id
@@ -1223,6 +1223,8 @@ Interactively, it is non-nil with the prefix argument."
        debbugs-gnu-current-filter)
   (set (make-local-variable 'debbugs-gnu-local-suppress)
        debbugs-gnu-current-suppress)
+  (set (make-local-variable 'debbugs-gnu-local-print-function)
+       debbugs-gnu-current-print-function)
   (setq tabulated-list-format [("Id"         5 debbugs-gnu-sort-id)
 			       ("State"     10 debbugs-gnu-sort-state)
 			       ("Submitter" 18 debbugs-gnu-sort-submitter)
@@ -1341,7 +1343,7 @@ Interactively, it is non-nil with the prefix argument."
     (setq debbugs-gnu-sort-state 'number)
     (setq tabulated-list-sort-key (cons "State" nil)))
   (tabulated-list-init-header)
-  (funcall debbugs-gnu-print-function))
+  (funcall debbugs-gnu-local-print-function))
 
 (defun debbugs-gnu-widen ()
   "Display all the currently selected bug reports."
@@ -1350,7 +1352,7 @@ Interactively, it is non-nil with the prefix argument."
 	(inhibit-read-only t))
     (setq debbugs-gnu-limit nil)
     (tabulated-list-init-header)
-    (funcall debbugs-gnu-print-function)
+    (funcall debbugs-gnu-local-print-function)
     (when id
       (debbugs-gnu-goto id))))
 
@@ -1525,7 +1527,7 @@ interesting to you."
   (interactive)
   (setq debbugs-gnu-local-suppress (not debbugs-gnu-local-suppress))
   (tabulated-list-init-header)
-  (funcall debbugs-gnu-print-function))
+  (funcall debbugs-gnu-local-print-function))
 
 (defvar debbugs-gnu-bug-number nil)
 (defvar debbugs-gnu-subject nil)
