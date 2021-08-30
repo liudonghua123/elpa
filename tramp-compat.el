@@ -320,6 +320,15 @@ A nil value for either argument stands for the current time."
     (lambda (reporter &optional value _suffix)
       (progress-reporter-update reporter value))))
 
+;; `ignore-error' is new in Emacs Emacs 27.1.
+(defmacro tramp-compat-ignore-error (condition &rest body)
+  "Execute BODY; if the error CONDITION occurs, return nil.
+Otherwise, return result of last form in BODY.
+
+CONDITION can also be a list of error conditions."
+  (declare (debug t) (indent 1))
+  `(condition-case nil (progn ,@body) (,condition nil)))
+
 ;; `file-modes', `set-file-modes' and `set-file-times' got argument
 ;; FLAG in Emacs 28.1.
 (defalias 'tramp-compat-file-modes
@@ -376,7 +385,17 @@ A nil value for either argument stands for the current time."
   (if (fboundp 'string-replace)
       #'string-replace
     (lambda (fromstring tostring instring)
-      (replace-regexp-in-string (regexp-quote fromstring) tostring instring))))
+      (let ((case-fold-search nil))
+        (replace-regexp-in-string
+         (regexp-quote fromstring) tostring instring t t)))))
+
+;; Function `string-search' is new in Emacs 28.1.
+(defalias 'tramp-compat-string-search
+  (if (fboundp 'string-search)
+      #'string-search
+    (lambda (needle haystack &optional start-pos)
+      (let ((case-fold-search nil))
+        (string-match-p (regexp-quote needle) haystack start-pos)))))
 
 ;; Function `make-lock-file-name' is new in Emacs 28.1.
 (defalias 'tramp-compat-make-lock-file-name
