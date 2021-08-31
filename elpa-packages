@@ -152,6 +152,8 @@
  ("emms"		:url "https://git.savannah.gnu.org/git/emms.git"
   :doc "doc/emms.texinfo"
   :auto-sync t)
+ ("engrave-faces"	:url "https://github.com/tecosaur/engrave-faces.git"
+  :auto-sync t)
  ("enwc"		:url "hg::https://hg.savannah.nongnu.org/hgweb/enwc/")
  ("epoch-view"		:url nil)
  ("ergoemacs-mode"	:url "https://github.com/ergoemacs/ergoemacs-mode.git")
@@ -346,6 +348,8 @@
  ("shell-quasiquote"	:url nil)
  ("shen-mode"		:url nil)
  ("sisu-mode"		:url nil)
+ ;; ("sketch-mode"		:url "https://github.com/dalanicolai/sketch-mode"
+ ;;  :auto-sync t)
  ("slime-volleyball"	:url nil)
  ("sm-c-mode" 		:url nil)
  ("smalltalk-mode"	:url nil) ;; Was "git://git.sv.gnu.org/smalltalk"
