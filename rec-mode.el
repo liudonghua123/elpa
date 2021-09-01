@@ -64,7 +64,7 @@
 Valid values are `edit' and `navigation'.  The default is `navigation'"
   :type 'symbol
   :safe (lambda (x) (member x '(edit navigation))))
-;;;###autoload (put rec-open-mode 'safe-local-variable (lambda (x) (member x '(edit navigation))
+;;;###autoload (put 'rec-open-mode 'safe-local-variable (lambda (x) (member x '(edit navigation))))
 
 (defcustom rec-popup-calendar t
   "Whether to use a popup calendar to select dates when editing field values.
