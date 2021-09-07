@@ -125,6 +125,7 @@ handlers if the symbol (eg. `man') is contained in the list."
              ("fgrep" . shell-command+-cmd-grep)
              ("agrep" . shell-command+-cmd-grep)
              ("egrep" . shell-command+-cmd-grep)
+             ("rgrep" . shell-command+-cmd-grep)
              ("find" . shell-command+-cmd-find)
              ("locate" . shell-command+-cmd-locate)
              ("man" . shell-command+-cmd-man)
