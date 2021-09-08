@@ -1,6 +1,6 @@
 ;;; shell-command+.el --- An extended shell-command -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021  Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Version: 2.2.1
