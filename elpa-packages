@@ -397,6 +397,10 @@
  ("url-http-ntlm" 	:url nil)
  ("validate"		:url "https://github.com/Malabarba/validate.el")
  ("valign"		:url "https://github.com/casouri/valign")
+ ("vc-got"		:url "https://git.omarpolo.com/vc-got"
+  ;; Mirror: https://github.com/omar-polo/vc-got/
+  :ignored-files ("targets")
+  :auto-sync t)
  ("vc-hgcmd"		:url "https://github.com/muffinmad/emacs-vc-hgcmd"
   :auto-sync t)
  ("vc-backup"		:url "https://git.sr.ht/~pkal/vc-backup"
