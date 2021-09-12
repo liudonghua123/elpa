@@ -1,0 +1,114 @@
+#+TITLE: IList
+#+AUTHOR: Durand
+#+DATE: <2021-09-12 Dim 11:00>
+
+* About
+
+This is a little library package that can "display a list in an
+ibuffer fashion".  The core functionality it provides is a function
+that can accept a list, and produce a string showing the contents of
+the list according to the specifications of columns and groups.
+
+* Entry point
+
+The one main function this package provides is =ilist-string=.  It is
+called as follows.
+
+#+begin_src emacs-lisp :eval no :exports code
+(ilist-string LIST COLUMNS GROUPS DISCARD-EMPTY-P)
+#+end_src
+
+Here the LIST is the list that the user wants to display.
+
+And DISCARD-EMPTY-P determines whether to display empty groups or not.
+
+** Columns
+
+Like in ibuffer, the user can specify columns to display.  Each column
+comprises the following specifications:
+
+- NAME: The name to display in the header.
+- FUN: A function that will be given the elements of the list (one at
+  a time) that should return a string as the representation of that
+  element in this column.
+- MIN: The minimal number of width this column takes.
+- MAX
+- ALIGN: Either :left, :right, or :center.  How the contents of the
+  column are aligned.
+- ELIDE: If the content of an element takes more space than the MAX,
+  whether to substitute the last few characters of that content by a
+  fixed "eliding string".  If this ELIDE is not a string, then it
+  means not to elide, but to truncate the contents.
+
+**  GROUPS
+
+*** Fixed groups
+
+Like in ibuffer, we can group elements together in the display.  One
+difference with ibuffer is that elements that are not in any group are
+ignored.  If one wants a "default" group, specify that explicitly.
+The specifications of GROUPS are as follows.
+
+- NAME: The name of the group.  This will be enclosed in square
+  brackets and displayed on a separate line.
+- FUN: A function with one argument.  If the function returns non-nil,
+  then that element is considered to pertain to the group.
+
+So a default group just uses a function that always returns t, and is
+put at the end of the list GROUPS.
+
+Empty groups might or might not be displayed, depending on the value
+of DISCARD-EMPTY-P.
+
+*** Automatic groups (planned)
+
+I plan to add support for automatic groups.  This means that, instead
+of providing a list of groups, one provides a function with one
+argument.  That argument will be fed the list of elements.  Then the
+function is supposed to return a list of the following form:
+
+#+begin_src emacs-lisp :eval no :exports code
+  (list
+   (NAME
+    (INDEX1 . ELEMENT1)
+    (INDEX2 . ELEMENT2)
+    ...)
+   ...)
+#+end_src
+
+That is, it should return cons cells of indices and elements, where
+the indices mean the indices of the corresponding element, in the
+original list.
+
+Then the user can provide functions to automatically group elements
+based on the criteria that fit the domain of application.
+
+* Mapping over lines
+
+For the convenience of package-users, this package also provides some
+auxiliary functions to operate on the displayed list.  One is
+=ilist-map-lines=.  It is called as follows.
+
+#+begin_src emacs-lisp :eval no :exports code
+  (ilist-map-lines FUN PREDICATE START END)
+#+end_src
+
+- FUN: The function to execute on each matching line.
+- PREDICATE: This should be a function with no arguments.  It will be
+  executed on each line.  If it returns non-nil, that line is
+  considered to be matched.
+- START and END limit the range of the mapping.
+
+* Moving
+
+It might be desired to move between the displayed list items in a
+/cyclic/ manner, that is, assuming the top of the buffer is identified
+with the bottom of the buffer.  So the package provides four functions
+for moving.
+
+- =ilist-backward-line=
+- =ilist-forward-line=: Move between lines.  One can control whether
+  to skip group headers or to move cyclicly, through the function
+  parameters.
+- =ilist-backward-group-header=
+- =ilist-forward-group-header=: Move between group headers.
