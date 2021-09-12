@@ -531,7 +531,6 @@ over which the function is executed."
     (setq end nil)))
   (save-excursion
     (goto-char (cond (start) ((point-min))))
-    (ilist-forward-line 1)
     (let (res)
       (while (and (not (ilist-boundary-buffer-p t))
                   (or (null end)
@@ -545,6 +544,14 @@ over which the function is executed."
                  res))))
         (ilist-forward-line 1))
       (nreverse res))))
+
+;;; Get index at point
+
+(defun ilist-get-index ()
+  "Return the index of the element at point.
+If point is not at an element, return nil."
+  (declare (side-effect-free t))
+  (get-text-property (point) 'ilist-index))
 
 ;;; marks related
 
@@ -814,6 +821,41 @@ If ROUNDED is non-nil, assume the top of the buffer is connected
 to the bottom of the buffer."
   (ilist-forward-group-header
    (- (prefix-numeric-value arg)) rounded))
+
+;;; Delete from ALIST
+
+(defun ilist-delete-from-list (ls elements)
+  "Remove ELEMENTS from LS.
+ELEMENTS are indices of elements to be removed in LS.
+
+Assumes that ELEMENTS is sorted, so that the larger indices come
+later.
+
+And the indices are zero-based.
+
+This does not modify LS or ELEMENTS.  It returns a copy of LS
+with ELEMENTS removed."
+  (declare (pure t) (side-effect-free t))
+  ;; REVIEW: In our case, since both LS and ELEMENTS are sorted, we
+  ;; might have a faster implementation which employs the sorted-ness
+  ;; of the arguments, but I think it is pre-mature optimisation.
+  (let* ((temp (copy-tree ls)))
+    ;; NOTE: Using `mapc' is faster than a while loop, as the manual
+    ;; says. Since `dolist' is in essence a while loop, using `mapc'
+    ;; will be faster. Of course for our purposes this is premature
+    ;; optimisation.
+    (mapc
+     (lambda (index)
+       (cond
+        ((> index 0)
+         ;; Using `setcdr' is more efficient but destructively
+         ;; modifies the list. So we used `copy-tree' to prevent the
+         ;; destructions.
+         (setcdr (nthcdr (1- index) temp)
+                 (nthcdr (1+ index) temp)))
+        ((setq temp (cdr temp)))))
+     (reverse elements))
+    temp))
 
 ;;; major mode
 
