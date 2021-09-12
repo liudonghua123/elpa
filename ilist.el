@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-;;; dependency
+;;; dependencies
 
 (require 'text-property-search)
 
@@ -262,7 +262,7 @@ columns."
 
 ;;; produce the string
 
-(defun ilist-string (ls columns groups &optional discard-empty-p)
+(defun ilist-string (ls columns groups &optional discard-empty-p sorter)
   "Display list LS as the returned string.
 COLUMNS will be passed to `ilist-define-column'.
 
@@ -282,12 +282,23 @@ higher priority over those that occur later.
 The display of each group is done by `ilist-display'.
 
 If DISCARD-EMPTY-P is non-nil, then empty groups will not be
-displayed."
+displayed.
+
+If SORTER is non-nil, it should be a function with two arguments,
+X and Y, and should return non-nil if X should come before Y."
   (declare (pure t) (side-effect-free t))
-  (let ((ls (copy-tree ls))
-        (temp-groups (copy-tree groups))
-        column-widths temp-group group-results group-strs
-        all-cols all-cols-indices header title-sep)
+  ;; normalize SORTER
+  (cond
+   ((null sorter))
+   ((not (functionp sorter))
+    (user-error "SORTER should be a function, but got %S"
+                sorter)))
+  ;; we sort the list at the beginning
+  (let* ((ls (copy-tree ls))
+         (ls (cond ((null sorter) ls) ((sort ls sorter))))
+         (temp-groups (copy-tree groups))
+         column-widths temp-group group-results group-strs
+         all-cols all-cols-indices header title-sep)
     ;; If we want to operate on the displayed list, then we should
     ;; store the original list, and the indices of each displayed
     ;; element.  But we re-order the elements while preparing the
