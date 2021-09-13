@@ -65,8 +65,9 @@
 
 ;; * Support `term-mode' like `shell-mode'
 
-;; * Provide support for creation of shell commands for command shells
-;;   other than bash -- csh, tcsh, zsh, ksh, ash, dash, fish, mosh, sh.
+;; * Support for bash, ksh, and fish is provided (thank you for
+;;   motivation and effort, Eduardo Ochs <eduardoochs@gmail.com>);
+;;   support for csh, tcsh, ksh, ash, dash, mosh, and sh is welcomed.
 ;;
 ;;   Support for non-Linux shells is left as an exercise for a
 ;;   masochistic hacker.
@@ -90,6 +91,7 @@
 ;;; Code:
 (require 'cl-lib)
 (require 'pp)
+(require 'term)
 
 ;;;###autoload
 (define-minor-mode shelisp-mode
@@ -110,8 +112,12 @@ while in a shell mode buffer."
 (defvar shelisp-debug nil
   "When non-nil, display messages showing the elisp expression.")
 
-(defvar shelisp-shell 'bash
-  "Identifies the shell scripting environment in use.")
+(defvar shelisp-shell nil
+  "Identifies the shell scripting environment in use.
+
+If nil, the shell is inferred from the from the `shell'
+settings (`explicit-shell-file-name', the environment variable
+`ESHELL', or `shell-file-name').")
 
 (defvar shelisp--wrapper-commands
   '((bash
@@ -200,7 +206,7 @@ convert it to a string."
 ;;;###autoload
 (defvar shelisp-commands (let ((cmds '(("e" .     "(find-file-other-window (f \"%s\"))")
                                        ("v" .     "(view-file-other-window (f \"%s\"))")
-                                       ("dired" . "(dired \"%s\")")
+                                       ("dired" . "(dired (f \"%s\"))")
                                        ("ediff" . "(ediff (f \"%s\") (f \"%s\"))"))))
                            (when (locate-library "magit")
                              (push '("magit" . "(magit-status)") cmds))
@@ -229,7 +235,15 @@ expression and cannot be used elsewhere.")
 (defun shelisp-add-commands ()
   "Add Emacs Lisp to shell aliases (assumes GNU bash syntax)."
 
-  (when (and shelisp-mode shelisp-commands
+  ;; Infer the shell
+  (unless shelisp-shell
+    (let ((sh (or explicit-shell-file-name
+                  (getenv "ESHELL")
+                  shell-file-name)))
+      (when sh
+        (setq-local shelisp-shell (intern (file-name-base sh))))))
+
+  (when (and shelisp-mode shelisp-commands shelisp-shell
              (assoc shelisp-shell shelisp--wrapper-commands))
     (let ((proc (get-buffer-process (current-buffer))))
       (dolist (c shelisp-commands)
@@ -243,8 +257,8 @@ expression and cannot be used elsewhere.")
                                                  shelisp--wrapper-commands))
                                      '(""))
                              shelisp--wrapper-separator)
-                  (list cmd
-		        (replace-regexp-in-string "\"" "\\\\\"" expr))))))
+                  (list cmd expr)))))
+
       (process-send-string proc "\n"))))
 
 (provide 'shelisp)
