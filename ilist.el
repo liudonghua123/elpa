@@ -553,6 +553,14 @@ If point is not at an element, return nil."
   (declare (side-effect-free t))
   (get-text-property (point) 'ilist-index))
 
+;;; Get group header
+
+(defun ilist-get-group ()
+  "Return the group header at point.
+If point is not at a group header return nil."
+  (declare (side-effect-free t))
+  (get-text-property (point) 'ilist-group-header))
+
 ;;; marks related
 
 ;; It is possible that some user-package does not need the
@@ -607,6 +615,27 @@ If END is non-nil, it specifies the end of the search."
              (prop-match-end prop-match))
             res)))
         res))))
+
+;;;; find marks
+
+(defun ilist-get-marks ()
+  "Return the list of marks on the line.
+The marks are in descending order, i.e. the mark that occurs
+later on the line come earlier in the result list.
+
+It is considered a mark only if the value is not t or nil.
+Non-mark values are simply ignored."
+  (delq
+   nil
+   (mapcar
+    (lambda (cons-cell)
+      (let ((value (get-text-property
+                    (car cons-cell) 'ilist-mark-column)))
+        (cond
+         ((and value
+               (not (eq value t)))
+          value))))
+    (ilist-mark-columns (point)))))
 
 ;;;; mark
 
