@@ -353,6 +353,7 @@ range, unless region is active."
 
 ;;;###autoload
 (defun blist-open-other-window ()
+  "Open the bookmark at point in another window."
   (interactive)
   (blist-assert-mode)
   (cond ((ilist-get-index)
@@ -556,7 +557,7 @@ range, unless region is active."
 
 ;;;###autoload
 (defun blist-toggle-marks ()
-  "Toggle marks in the buffer.
+   "Toggle the mark statuses in the buffer.
 Lines marked with `blist-default-mark' become unmarked, and lines
 not marked become marked with `blist-default-mark'.
 
@@ -584,7 +585,7 @@ If the point is on a group header, then only operate on that group."
 
 ;;;###autoload
 (defun blist-change-marks (old new)
-  "Change all OLD marks to NEW marks.
+  "Change all OLD mark to NEW mark.
 OLD and NEW are both characters used to mark buffers."
   (interactive
    (let* ((cursor-in-echo-area t)
@@ -654,7 +655,7 @@ groups to unmark."
 ;;;###autoload
 (defun blist-unmark-all-mark (a-mark)
   "Unmark all lines marked with a specific A-MARK.
-If A-MARK is RET (= C-m), then unmark all marks."
+If A-MARK is RET, then unmark all marks."
   (interactive "cUnmark marks (RET means all): ")
   (blist-assert-mode)
   (cond
@@ -755,7 +756,9 @@ groups to mark for deletion."
 
 (defun blist-mark-for-deletion-backward (arg)
   "Mark for deletion.
-Like `blist-mark-for-deletion', but go backwards."
+Like `blist-mark-for-deletion', but go backwards.
+
+The negative of ARG is send to `blist-mark-for-deletion'."
   (interactive "p")
   (blist-mark-for-deletion
    (- (prefix-numeric-value arg))))
