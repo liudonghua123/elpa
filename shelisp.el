@@ -1,6 +1,6 @@
 ;;; shelisp.el --- execute elisp in shell          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2019  Free Software Foundation, Inc.
+;; Copyright (C) 2018-2021  Free Software Foundation, Inc.
 
 ;; Author: Michael R. Mauger <michael@mauger.com>
 ;; Version: 0.9.1
@@ -110,6 +110,39 @@ while in a shell mode buffer."
 (defvar shelisp-debug nil
   "When non-nil, display messages showing the elisp expression.")
 
+(defvar shelisp-shell 'bash
+  "Identifies the shell scripting environment in use.")
+
+(defvar shelisp--wrapper-commands
+  '((bash
+     "unset -f shelisp_%1$s"
+     "function shelisp_%1$s { printf '\\e_#EMACS# %2$s \\a' \"$@\" ; }"
+     "alias %1$s=shelisp_%1$s")
+    (zsh
+     "unfunction shelisp_%1$s >/dev/null 2>&1"
+     "function shelisp_%1$s { printf '\\e_#EMACS# %2$s \\a' \"$@\" ; }"
+     "alias %1$s=shelisp_%1$s")
+    (fish
+     "function %1$s"
+     "printf '\\e_#EMACS# %2$s \\a' $argv"
+     "end"))
+
+  "Alist of shell commands necessary to make ShElisp work.
+
+The key of the alist is either an atom that identifies the type
+of shell (See `shelisp-shell' for defining the type of shell).
+
+The value is a series of strings which will be sent to the shell.
+Each string will be separated by the `shelisp--wrapper-separator'
+string.  The assempled string is used as a specification for the
+`format' function.  The first format parameter (\"%1$s\") is the
+command to be defined with \"%1$s\" set to the command; the
+second parameter (\"%2$s\") is the elisp expression to be
+executed when the command is used.")
+
+(defvar shelisp--wrapper-separator " ; "
+  "String to separate commands sent to the shell.")
+
 (defun shelisp--file-name (file)
   "Apply remote host in `default-directory' to FILE."
   (if (and (file-name-absolute-p file)
@@ -196,7 +229,8 @@ expression and cannot be used elsewhere.")
 (defun shelisp-add-commands ()
   "Add Emacs Lisp to shell aliases (assumes GNU bash syntax)."
 
-  (when (and shelisp-mode shelisp-commands)
+  (when (and shelisp-mode shelisp-commands
+             (assoc shelisp-shell shelisp--wrapper-commands))
     (let ((proc (get-buffer-process (current-buffer))))
       (dolist (c shelisp-commands)
         (let ((cmd (car c))
@@ -205,13 +239,12 @@ expression and cannot be used elsewhere.")
            proc
            (apply #'format
                   (mapconcat #'identity
-                             '("unset -f shelisp_%s"
-                               "function shelisp_%s { printf '\\e_#EMACS# %s \\a' \"$@\"; }"
-                               "alias %s=shelisp_%s" "")
-                             " ; ")
-                (list cmd cmd
-		      (replace-regexp-in-string "\"" "\\\\\"" expr)
-		      cmd cmd)))))
+                             (append (cdr (assoc shelisp-shell
+                                                 shelisp--wrapper-commands))
+                                     '(""))
+                             shelisp--wrapper-separator)
+                  (list cmd
+		        (replace-regexp-in-string "\"" "\\\\\"" expr))))))
       (process-send-string proc "\n"))))
 
 (provide 'shelisp)
