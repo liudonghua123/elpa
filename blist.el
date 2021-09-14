@@ -64,7 +64,7 @@
 Remember to put the default group at the end, otherwise some
 bookmarks might not be displayed."
   :group 'blist
-  :type '(list (cons string function)))
+  :type '(repeat (cons string function)))
 
 ;;;; Empty groups
 
@@ -150,6 +150,12 @@ follows.
                    is also present, spiral vertically; otherwise
                    spiral horizontally.  By default toward right
                    / down, unless left / up is present.
+- main-side:       open bookmarks with the first in a main
+                   window, and the other windows are put in side
+                   splits.  If vertical, then the side splits are
+                   either at the bottom or at the top; if
+                   horizontal, then the sides are at the left or
+                   the right.  This overrides spiral.
 - left:            the direction to open.  The bookmarks that are
                    higher on the list are opened on the right.
 - right, up, down: similar to left.  Left takes precedence over
@@ -157,10 +163,24 @@ follows.
 - tab:             open the bookmarks in a new tab.  Requires
                    'tab-bar if used.
 
+As a quick shortcut, if the list does not contain left, it means
+to use right; if no up, it means down; if no vertical, it means
+horizontal.
+
 There will be no errors if there are unrecognized symbols in the
 list; they are simply ignored."
   :group 'blist
-  :type '(list symbol))
+  :type '(repeat
+          (choice
+           (const :tag "Vertically" vertical)
+           (const :tag "Horizontally" horizontal)
+           (const :tag "Spirally" spiral)
+           (const :tag "A main window along with side splits" main-side)
+           (const :tag "Towards Left" left)
+           (const :tag "Towards Right" right)
+           (const :tag "Towards Up" up)
+           (const :tag "Towards Down" down)
+           (const :tag "In a new tab" tab))))
 
 ;;; Variables
 
@@ -465,7 +485,8 @@ NUM should be a positive integer."
    ((or (not (integerp num))
         (<= num 0))
     (error "NUM should be a positive integer, but got %S" num)))
-  (let* ((tabp (memq 'tab blist-select-manner))
+  (let* ((mainp (memq 'main-side blist-select-manner))
+         (tabp (cond (mainp nil) ((memq 'tab blist-select-manner))))
          (verticalp (memq 'vertical blist-select-manner))
          (leftp (memq 'left blist-select-manner))
          (upp (memq 'up blist-select-manner))
@@ -473,13 +494,19 @@ NUM should be a positive integer."
          (size (cond
                 ;; spirals split in half
                 (spiralp nil)
+                ((and mainp (> num 1) verticalp)
+                 (floor (frame-width) (1- num)))
+                ((and mainp (> num 1))
+                 (floor (frame-height) (1- num)))
+                (mainp nil)
                 (verticalp (floor (frame-height) num))
                 ((floor (frame-width) num))))
          (current-direction verticalp)
          (orig-window (selected-window))
-         temp-window windows)
+         temp-window windows main-side-splitted-p)
     (cond (tabp (require 'tab-bar) (tab-bar-new-tab)))
-    ;; create a new window so that we are definitely in a normal window
+    ;; create a new window so that we are not inside some window that
+    ;; cannot be splitted, like a side window
     (select-window (split-window (frame-root-window) nil 'below))
     (delete-other-windows)
     (setq orig-window (selected-window))
@@ -489,7 +516,11 @@ NUM should be a positive integer."
     (while (> num 0)
       (setq
        temp-window
-       (split-window temp-window size
+       (split-window temp-window
+                     (cond
+                      ((and mainp (not main-side-splitted-p))
+                       nil)
+                      (size))
                      (cond
                       (current-direction
                        ;; vertical
@@ -498,9 +529,12 @@ NUM should be a positive integer."
                       (leftp 'left)
                       ('right))))
       (setq windows (cons temp-window windows))
-      ;; change direction for spirals
-      (cond (spiralp
-             (setq current-direction (not current-direction))))
+      ;; change direction for spirals and change direction only once
+      ;; for main-side
+      (cond ((or spiralp
+                 (and mainp (not main-side-splitted-p)))
+             (setq current-direction (not current-direction))
+             (setq main-side-splitted-p t)))
       (setq num (1- num)))
     (reverse windows)))
 
@@ -605,11 +639,169 @@ but got %S and %S"
   ;; save if the user wants to
   (cond ((bookmark-time-to-save-p) (bookmark-save))))
 
+;;;; locate
+
+;;;###autoload
+(defun blist-locate ()
+  "Display the location of the bookmark at point in the echo area."
+  (interactive)
+  (blist-assert-mode)
+  (cond
+   ((and (ilist-get-index)
+         (blist-get-location
+          (nth (ilist-get-index) bookmark-alist)))
+    (message (blist-get-location
+              (nth (ilist-get-index) bookmark-alist))))
+   ((user-error "Unknown location"))))
+
 ;;;; relocate
+
+(defvar blist-relocate-history nil
+  "The history variable of `blist-relocate'.")
+
+;;;###autoload
+(defun blist-relocate (bookmark)
+  "Relocate BOOKMARK to another location.
+
+If the BOOKMARK has a attribute called relocater, call the value
+of the attribute, which should be a function with one argument:
+the BOOKMARK itself, to ask for the new location.  Custom
+bookmark records can set this attribute to offer customized
+relocating behaviour.
+
+If not, use `read-file-name' to specify the new file name to
+point to.
+
+Otherwise, signal an error.
+
+If called with \\[universal-argument], or if point is not at a
+bookmark, use `completing-read' to let the user choose which
+bookmark to relocate.
+
+Otherwise, if point is at a bookmark, relocate that bookmark."
+  (interactive
+   (list
+    (let* ((default (cond
+                     ((ilist-get-index)
+                      (bookmark-name-from-full-record
+                       (nth (ilist-get-index) bookmark-alist)))))
+           (prompt (cond (default
+                           (format "Bookmark to relocate [%s]: "
+                                   default))
+                         ("Bookmark to relocate: "))))
+      (cond
+       (current-prefix-arg
+        (completing-read
+         prompt
+         ;; copied from `bookmark-relocate'
+         (lambda (str pred action)
+           (if (eq action 'metadata)
+               '(metadata (category . bookmark))
+             (complete-with-action action bookmark-alist str pred)))
+         nil t nil 'blist-relocate-history default))
+       (default)
+       ((user-error "No bookmark to relocate"))))))
+  (blist-assert-mode)
+  ;; paranoid
+  (bookmark-maybe-load-default-file)
+  (let* ((file-name (bookmark-get-filename bookmark))
+         (location (bookmark-prop-get bookmark 'location))
+         (file-or-location (or file-name location))
+         (relocater (bookmark-prop-get bookmark 'relocater))
+         (prompt (format "Relocate %s to: " bookmark))
+         (new-location
+          (cond
+           ((functionp relocater)
+            (funcall relocater bookmark))
+           ((read-file-name
+             prompt (file-name-directory file-or-location)
+             file-or-location)))))
+    (cond
+     (file-name (bookmark-set-filename boomark new-location))
+     (location (bookmark-prop-set bookmark 'location new-location)))
+    (setq bookmark-alist-modification-count
+          (1+ bookmark-alist-modification-count))
+    (cond ((bookmark-time-to-save-p) (bookmark-save)))
+    (cond ((derived-mode-p 'blist-mode) (revert-buffer)))))
 
 ;;;; show annotations
 
+;;;###autoload
+(defun blist-show-annotation ()
+  "Show the annotation of the bookmark(s) in another window.
+If there are marked bookmarks, show the annotations of the marked
+bookmarks; otherwise show the annotations of the bookmark at
+point.  If there is no bookmark at point, use `completing-read'
+to choose one."
+  (interactive)
+  (blist-assert-mode)
+  (let* ((marked-items
+          (mapcar
+           (lambda (index)
+             (bookmark-name-from-full-record
+              (nth index bookmark-alist)))
+           (ilist-map-lines
+            #'ilist-get-index #'ilist-is-marked)))
+         (targets
+          (cond
+           (marked-items)
+           ((mapcar
+             (lambda (index)
+               (bookmark-name-from-full-record
+                (nth index bookmark-alist)))
+             (delq nil (list (ilist-get-index)))))
+           ((let ((items (mapcar
+                          (lambda (index)
+                            (bookmark-name-from-full-record
+                             (nth index bookmark-alist)))
+                          (blist-all-bookmarks))))
+              (list
+               (completing-read
+                "Choose a bookmark to show annotation: "
+                (lambda (str pred action)
+                  (if (eq action 'metadata)
+                      '(metadata (category . bookmark))
+                    (complete-with-action
+                     action items str pred))))))))))
+    (blist-show-annotations targets)))
+
 ;;;; show all annotations
+
+;;;###autoload
+(defun blist-show-all-annotations (targets)
+  "Show the annotation of all bookmarks of TARGETS in another \
+window."
+  (interactive (list (mapcar
+                      (lambda (index)
+                        (bookmark-name-from-full-record
+                         (nth index bookmark-alist)))
+                      (blist-all-bookmarks))))
+  (blist-assert-mode)
+  (save-selected-window
+    (pop-to-buffer (get-buffer-create "*Bookmark Annotation*"))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (mapc
+       (lambda (bookmark)
+         ;; make sure we are dealing with records
+         (let* ((bookmark (bookmark-get-bookmark bookmark))
+                (name (bookmark-name-from-full-record
+                       bookmark))
+                (anno (bookmark-get-annotation bookmark))
+                (anno (cond ((and anno (stringp anno)
+                                  (not (string= anno "")))
+                             (concat
+                              (mapconcat
+                               (lambda (str)
+                                 (concat (make-string 4 #x20) str))
+                               (split-string (format "%s\n" anno))
+                               (string #xa))
+                              "\n"))
+                            (""))))
+           (insert (format "%s:\n%s" name anno))))
+       targets))
+    (goto-char (point-min))
+    (special-mode)))
 
 ;;;; edit annotations
 
