@@ -122,6 +122,46 @@ See `blist-sorter'."
           (const nil :tag "No sorting")
           (function :tag "Sorting function")))
 
+;;;; Annotation Column Name
+
+(defcustom blist-annotation-column-name "A"
+  "The name of the column showing whether a bookmark has \
+annotations.
+
+Only the first letter will be shown.
+
+If one changes this, run `blist-set-annotation-column' to set the
+annotation column again."
+  :group 'blist
+  :type 'string
+  :set #'blist-set-annotation-column)
+
+;;;; How to open multiple bookmarks?
+
+(defcustom blist-select-manner (list 'vertical)
+  "How to select multiple bookmarks.
+The value should be a list of symbols.  Allowed symbols are as
+follows.
+
+- vertical:        open bookmarks vertically.
+- horizontal:      open bookmarks horizontally.  Vertical takes
+                   precedence.
+- spiral:          open bookmark in a spiral manner.  If vertical
+                   is also present, spiral vertically; otherwise
+                   spiral horizontally.  By default toward right
+                   / down, unless left / up is present.
+- left:            the direction to open.  The bookmarks that are
+                   higher on the list are opened on the right.
+- right, up, down: similar to left.  Left takes precedence over
+                   right, and up takes precedence over down.
+- tab:             open the bookmarks in a new tab.  Requires
+                   'tab-bar if used.
+
+There will be no errors if there are unrecognized symbols in the
+list; they are simply ignored."
+  :group 'blist
+  :type '(list symbol))
+
 ;;; Variables
 
 ;;;; Sorter
@@ -129,6 +169,12 @@ See `blist-sorter'."
 (defvar blist-sorter blist-default-sorter
   "The function used to sort the bookmark list.
 See `ilist-string' for how the sorter should behave.")
+
+;;;; Rename history
+
+(defvar blist-rename-history nil
+  "The variable that stores the strings that the user has inputted \
+to rename bookmarks.")
 
 ;;; Display
 
@@ -152,6 +198,30 @@ See `ilist-string' for how the sorter should behave.")
 an integer or a float between 0 and 1")))
    :left
    "..."))
+
+;;;;; Annotation column
+
+(defun blist-get-annotation (bookmark)
+  "Return if BOOKMARK has annotation.
+If BOOKMARK has no annotation, return a space string."
+  (cond
+   ((let ((annotation (bookmark-get-annotation bookmark)))
+      (and (stringp annotation)
+           (not (string= annotation ""))))
+    "*")
+   (" ")))
+
+(defvar blist-annotation-column
+  (list blist-annotation-column-name #'blist-get-annotation
+        1 1 :left nil)
+  "The specification of the ANNOTATION column.")
+
+(defun blist-set-annotation-column (&rest _args)
+  "Set the annotation column.
+ARGS are there to conform to the customization interface."
+  (setq blist-annotation-column
+        (list blist-annotation-column-name #'blist-get-annotation
+              1 1 :left nil)))
 
 ;;;;; Location column
 
@@ -207,6 +277,9 @@ of the required type."
 
 ;;;; List function
 
+;; REVIEW: Maybe I shall call `delete-trailing-whitespace' at the end
+;; of the function to avoid surprises of the trailing whitespaces?
+
 ;;;###autoload
 (defun blist-list-bookmarks (&rest _args)
   "List bookmarks in an ibuffer fashion.
@@ -218,7 +291,9 @@ used as a `revert-buffer-function'."
   (bookmark-maybe-load-default-file)
   (let ((buffer (get-buffer-create bookmark-bmenu-buffer)))
     (with-current-buffer buffer
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+            ;; a final newline is important
+            (delete-trailing-lines nil))
         (widen)
         (delete-region (point-min) (point-max))
         (insert
@@ -226,13 +301,15 @@ used as a `revert-buffer-function'."
           bookmark-alist
           (append
            (list ilist-mark-column
+                 blist-annotation-column
                  (blist-name-column))
            (cond
             (blist-display-location-p (list blist-location-column))))
           blist-filter-groups
           blist-discard-empty-p
           blist-sorter))
-        (insert (string #xa)))
+        (insert (string #xa))
+        (delete-trailing-whitespace))
       (goto-char (point-min))
       (blist-mode))
     (display-buffer buffer)
@@ -253,7 +330,7 @@ used as a `revert-buffer-function'."
 
 (let ((map blist-mode-map))
   (define-key map (vector ?n) #'blist-next-line)
-  (define-key map (vector #x20) #'forward-line)
+  (define-key map (vector #x20) #'next-line)
   (define-key map (vector ?p) #'blist-prev-line)
   (define-key map (vector ?N) #'blist-next-item)
   (define-key map (vector ?P) #'blist-prev-item)
@@ -263,8 +340,19 @@ used as a `revert-buffer-function'."
   (define-key map (vector 'backtab) #'blist-prev-group)
   (define-key map (vector 'return) #'blist-return)
   (define-key map (vector ?o) #'blist-open-other-window)
+  (define-key map (vector ?v) #'blist-select)
+  (define-key map (vector ?r) #'blist-rename)
+  (define-key map (vector ?w) #'blist-locate)
+  (define-key map (vector ?R) #'blist-relocate)
+  (define-key map (vector ?a) #'blist-show-annotation)
+  (define-key map (vector ?A) #'blist-show-all-annotations)
+  (define-key map (vector ?e) #'blist-edit-annotation)
+  (define-key map (vector ?/) #'blist-search)
+  (define-key map (vector ?s) #'blist-save)
   (define-key map (vector #x29) #'blist-next-marked)
   (define-key map (vector #x28) #'blist-prev-marked)
+  (define-key map (vector ?\M-}) #'blist-next-marked)
+  (define-key map (vector ?\M-{) #'blist-prev-marked)
   (define-key map (vector ?m) #'blist-mark)
   (define-key map (vector ?d) #'blist-mark-for-deletion)
   (define-key map (vector ?\C-d) #'blist-mark-for-deletion-backward)
@@ -283,6 +371,7 @@ used as a `revert-buffer-function'."
   (define-key map (vector ?% ?l) #'blist-mark-by-location)
   (define-key map (vector ?j) #'blist-jump-to-line)
   (define-key map (vector ?J) #'blist-jump-to-group)
+  (define-key map (vector ?\M-j) #'blist-jump-to-group)
   (define-key map (vector ?\M-g) #'blist-jump-to-line)
   (define-key map (vector ?\M-G) #'blist-jump-to-group))
 
@@ -329,7 +418,7 @@ range, unless region is active."
       (setq end default-end))
      ((setq start (point))
       (setq end (progn
-                  (ilist-forward-line arg)
+                  (ilist-forward-line arg nil t)
                   (point)))))
     (cond
      (no-sort-p (cons start end))
@@ -347,7 +436,8 @@ range, unless region is active."
   (cond
    ((ilist-get-index)
     (bookmark-jump
-     (nth (ilist-get-index) bookmark-alist)))))
+     (nth (ilist-get-index) bookmark-alist)))
+   ((user-error "No bookmark to open on this line"))))
 
 ;;;; Open in another window
 
@@ -359,7 +449,175 @@ range, unless region is active."
   (cond ((ilist-get-index)
          (bookmark--jump-via
           (nth (ilist-get-index) bookmark-alist)
-          #'switch-to-buffer-other-window))))
+          #'switch-to-buffer-other-window))
+        ((user-error "No bookmark to open on this line"))))
+
+;;;; blist-select
+
+;;;;; Prepare windows
+
+(defun blist-prepare-select-windows (num)
+  "Create and return NUM windows according to \
+`blist-select-manner'.
+
+NUM should be a positive integer."
+  (cond
+   ((or (not (integerp num))
+        (<= num 0))
+    (error "NUM should be a positive integer, but got %S" num)))
+  (let* ((tabp (memq 'tab blist-select-manner))
+         (verticalp (memq 'vertical blist-select-manner))
+         (leftp (memq 'left blist-select-manner))
+         (upp (memq 'up blist-select-manner))
+         (spiralp (memq 'spiral blist-select-manner))
+         (size (cond
+                ;; spirals split in half
+                (spiralp nil)
+                (verticalp (floor (frame-height) num))
+                ((floor (frame-width) num))))
+         (current-direction verticalp)
+         (orig-window (selected-window))
+         temp-window windows)
+    (cond (tabp (require 'tab-bar) (tab-bar-new-tab)))
+    ;; create a new window so that we are definitely in a normal window
+    (select-window (split-window (frame-root-window) nil 'below))
+    (delete-other-windows)
+    (setq orig-window (selected-window))
+    (setq windows (cons orig-window windows))
+    (setq temp-window orig-window)
+    (setq num (1- num))
+    (while (> num 0)
+      (setq
+       temp-window
+       (split-window temp-window size
+                     (cond
+                      (current-direction
+                       ;; vertical
+                       (cond (upp 'above) ('below)))
+                      ;; horizontal
+                      (leftp 'left)
+                      ('right))))
+      (setq windows (cons temp-window windows))
+      ;; change direction for spirals
+      (cond (spiralp
+             (setq current-direction (not current-direction))))
+      (setq num (1- num)))
+    (reverse windows)))
+
+;;;;; select function
+
+;;;###autoload
+(defun blist-select ()
+  "Open all marked bookmarks.
+If there are no marked bookmarks, and if the point is on a group
+header, open all bookmarks of the group.
+
+If there are no marked bookmarks, and if the point is on a
+bookmark line, then open the bookmark on that line.
+
+Otherwise signal an error.
+
+How the bookmarks are opened are controlled by the variable
+`blist-select-manner'."
+  (interactive)
+  (blist-assert-mode)
+  (let* ((marked-items (ilist-map-lines #'ilist-get-index
+                                        #'ilist-is-marked))
+         (marked-items
+          (cond
+           (marked-items)
+           ((ilist-get-group)
+            (let ((start (point))
+                  (end (save-excursion
+                         (ilist-forward-group-header 1)
+                         (point))))
+              (ilist-map-lines
+               #'ilist-get-index #'ilist-get-index start end)))
+           ;; HACK: if not on a normal line, it will return nil, so
+           ;; that cond will skip this clause
+           ((delq nil (list (ilist-get-index))))
+           ((user-error "No bookmarks to open"))))
+         (marked-items (mapcar
+                        (lambda (index) (nth index bookmark-alist))
+                        marked-items))
+         (windows (blist-prepare-select-windows
+                   (length marked-items)))
+         (orig-window (car windows)))
+    (while (consp windows)
+      (select-window (car windows))
+      (bookmark-jump (car marked-items))
+      (setq marked-items (cdr marked-items))
+      (setq windows (cdr windows)))
+    (select-window orig-window)))
+
+;;;; rename
+
+;;;###autoload
+(defun blist-rename (old new)
+  "Rename the bookmark at point by NEW.
+If the current buffer is in `blist-mode', this also runs
+`revert-buffer' afterwards.
+
+If called with \\[universal-argument], or if there is no bookmark
+at point, prompt for the OLD bookmark to rename."
+  (interactive
+   (list
+    (cond
+     ((or current-prefix-arg
+          (null (ilist-get-index)))
+      (let* ((names (mapcar
+                     #'bookmark-name-from-full-record
+                     bookmark-alist))
+             (default (cond
+                       ((ilist-get-index)
+                        (bookmark-name-from-full-record
+                         (nth (ilist-get-index)
+                              bookmark-alist)))))
+             (prompt (cond
+                      (default (format "Rename bookmark (%s): "
+                                       default))
+                      ("Rename bookmark: "))))
+        (completing-read prompt names nil t nil
+                         'blist-rename-history default)))
+     ((bookmark-name-from-full-record
+       (nth (ilist-get-index) bookmark-alist))))
+    (read-string "Rename bookmark to: " nil 'blist-rename-history
+                 (cond
+                  ((ilist-get-index)
+                   (bookmark-name-from-full-record
+                    (nth (ilist-get-index) bookmark-alist)))))))
+  ;; error out for invalid input
+  (cond
+   ((or (not (and
+              (stringp old)
+              (not (string= old ""))))
+        (not (and
+              (stringp new)
+              (not (string= new "")))))
+    (error "OLD and NEW should be non-empty strings, \
+but got %S and %S"
+           old new)))
+  (bookmark-set-name old new)
+  (cond ((derived-mode-p 'blist-mode) (revert-buffer)))
+  ;; increase modification count
+  (setq bookmark-alist-modification-count
+        (1+ bookmark-alist-modification-count))
+  ;; save if the user wants to
+  (cond ((bookmark-time-to-save-p) (bookmark-save))))
+
+;;;; relocate
+
+;;;; show annotations
+
+;;;; show all annotations
+
+;;;; edit annotations
+
+;;;; search (limit)
+
+;;;; save
+
+;;;; load
 
 ;;;; blist-toggle-group
 
@@ -400,8 +658,7 @@ range, unless region is active."
   "Either open the bookmark or toggle the group."
   (interactive)
   (cond
-   ((ilist-get-group)
-    (blist-toggle-group))
+   ((ilist-get-group) (blist-toggle-group))
    ((ilist-get-index) (blist-open))
    ((user-error "Nothing to do here"))))
 
@@ -412,9 +669,11 @@ range, unless region is active."
   "Toggle the display of locations of bookmarks."
   (interactive)
   (let (temp)
-    (setq-local blist-display-location-p
-                (not blist-display-location-p))
-    (setq temp blist-display-location-p)
+    ;; a little C-like hacky style
+    (setq
+     temp
+     (setq-local blist-display-location-p
+                 (not blist-display-location-p)))
     (blist-list-bookmarks)
     ;; restore the value of the variable
     (setq-local blist-display-location-p temp)))
@@ -425,11 +684,7 @@ range, unless region is active."
   "Return the list of all bookmark indices, even the hidden ones."
   (append
    ;; normal lines
-   (ilist-map-lines
-    (lambda ()
-      (bookmark-name-from-full-record
-       (nth (ilist-get-index) bookmark-alist)))
-    #'ilist-get-index)
+   (ilist-map-lines #'ilist-get-index #'ilist-get-index)
    ;; hidden lines
    (apply
     #'append
@@ -443,12 +698,8 @@ range, unless region is active."
              temp)
          (setq
           temp
-          (ilist-map-lines
-           (lambda ()
-             (bookmark-name-from-full-record
-              (nth (ilist-get-index) bookmark-alist)))
-           #'ilist-get-index
-           start end))
+          (ilist-map-lines #'ilist-get-index #'ilist-get-index
+                           start end))
          (blist-toggle-group)
          temp))
      (lambda ()
@@ -463,7 +714,12 @@ range, unless region is active."
    (list
     (completing-read
      "Jump to bookmark: "
-     (blist-all-bookmarks) nil t)))
+     (mapcar
+      (lambda (index)
+        (bookmark-name-from-full-record
+         (nth index bookmark-alist)))
+      (blist-all-bookmarks))
+     nil t)))
   (blist-assert-mode)
   (let (res pos)
     (save-excursion
