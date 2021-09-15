@@ -312,6 +312,7 @@ The bookmarks are taken from `bookmark-alist'.
 
 The ARGS is there so as to accept arguments in order for it to be
 used as a `revert-buffer-function'."
+  (interactive)
   ;; load the bookmark if needed
   (bookmark-maybe-load-default-file)
   (let ((buffer (get-buffer-create bookmark-bmenu-buffer))
