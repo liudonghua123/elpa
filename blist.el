@@ -859,7 +859,7 @@ to choose one."
                       '(metadata (category . bookmark))
                     (complete-with-action
                      action items str pred))))))))))
-    (blist-show-annotations targets)))
+    (blist-show-all-annotations targets)))
 
 ;;;; show all annotations
 
