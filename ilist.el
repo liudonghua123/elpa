@@ -132,7 +132,7 @@ but got %S" align)))
 
 ;;; display a row
 
-(defun ilist-display (ls columns)
+(defun ilist-display (ls columns &optional no-trailing-space)
   "Return a list of lists of strings displaying the list LS.
 COLUMNS is a list of column specificationss, which will be passed
 to `ilist-define-column'.  See the documentation string of
@@ -140,7 +140,10 @@ to `ilist-define-column'.  See the documentation string of
 
 The return value is a cons cell, the `car' of which is the list
 of lists of strings and the `cdr' of which is a list of widths of
-columns."
+columns.
+
+If NO-TRAILING-SPACE is non-nil, the last column will not have
+trailing spaces."
   (declare (pure t) (side-effect-free t))
   (setq columns (mapcar (lambda (column)
                           (apply #'ilist-define-column column))
@@ -188,6 +191,8 @@ columns."
              (cons (length str) str)))
          columns))
       ls))
+    ;; The list column-widths has a special convention: if a width is
+    ;; negative, don't leave trailing whitespaces in that column.
     (setq
      column-widths
      (mapcar
@@ -199,7 +204,11 @@ columns."
               ((> (car (nth n element)) len)
                (setq len (car (nth n element))))))
            result)
-          len))
+          (cond
+           ((and (= n (1- column-len))
+                 no-trailing-space)
+            (- len))
+           (len))))
       (number-sequence 0 (1- column-len))))
     (cons
      (mapcar
@@ -215,22 +224,28 @@ columns."
             ;; if the width is < min-width, then set the width to the
             ;; min-width.
             (cond
-             ((< (nth index column-widths)
+             ((< (abs (nth index column-widths))
                  (nth index column-mins))
               (setq temp-width (nth index column-mins))
-              (setcar (nthcdr index column-widths) temp-width))
-             ((setq temp-width (nth index column-widths))))
+              (setcar (nthcdr index column-widths)
+                      (* temp-width
+                         (floor (nth index column-widths)
+                                (abs (nth index column-widths))))))
+             ((setq temp-width (abs (nth index column-widths)))))
             ;; pad according to the alignment.
             (cond
              ((eq temp-align :left)
               (setq
                row
                (cons
-                (concat (cdr temp)
-                        (make-string
-                         (- temp-width
-                            (car temp))
-                         #x20))
+                (cond
+                 ((>= (nth index column-widths) 0)
+                  (concat (cdr temp)
+                          (make-string
+                           (- temp-width
+                              (car temp))
+                           #x20)))
+                 ((cdr temp)))
                 row)))
              ((eq temp-align :right)
               (setq
@@ -251,18 +266,23 @@ columns."
                   (concat
                    (make-string pad-left-len #x20)
                    (cdr temp)
-                   (make-string (- temp-width pad-left-len
-                                   (car temp))
-                                #x20)))
+                   (cond
+                    ((>= (nth index column-widths) 0)
+                     (make-string (- temp-width pad-left-len
+                                     (car temp))
+                                  #x20))
+                    (""))))
                 row))))
             (setq index (1- index)))
           row))
       result)
-     column-widths)))
+     (mapcar #'abs column-widths))))
 
 ;;; produce the string
 
-(defun ilist-string (ls columns groups &optional discard-empty-p sorter)
+(defun ilist-string
+    (ls columns groups
+        &optional discard-empty-p sorter no-trailing-space)
   "Display list LS as the returned string.
 COLUMNS will be passed to `ilist-define-column'.
 
@@ -285,7 +305,10 @@ If DISCARD-EMPTY-P is non-nil, then empty groups will not be
 displayed.
 
 If SORTER is non-nil, it should be a function with two arguments,
-X and Y, and should return non-nil if X should come before Y."
+X and Y, and should return non-nil if X should come before Y.
+
+If NO-TRAILING-SPACE is non-nil, the last column will not have
+trailing spaces."
   (declare (pure t) (side-effect-free t))
   ;; normalize SORTER
   (cond
@@ -369,7 +392,7 @@ X and Y, and should return non-nil if X should come before Y."
     (setq all-cols (mapcar #'cdr all-cols))
     ;; `ilist-display' is called on all elements, so that it can
     ;; calculate the maximal width correctly.
-    (setq all-cols (ilist-display all-cols columns))
+    (setq all-cols (ilist-display all-cols columns no-trailing-space))
     (setq column-widths (cdr all-cols))
     ;; we zip the indices back
     (setq all-cols
@@ -399,7 +422,8 @@ X and Y, and should return non-nil if X should come before Y."
          (setq index (+ index step)))
        group-strs))
     ;; calculate the headers and the titles
-    (let ((index 0))
+    (let ((column-len (length columns))
+          (index 0))
       (setq
        header
        ;; `mapconcat' uses a `mapcar' under the hood, so the order of
@@ -416,9 +440,12 @@ X and Y, and should return non-nil if X should come before Y."
             (setq index (1+ index))
             (cond
              ((eq alignment :left)
-              (concat
-               name
-               (make-string complement #x20)))
+              (cond
+               ((< index column-len)
+                (concat
+                 name
+                 (make-string complement #x20)))
+               (name)))
              ((eq alignment :right)
               (concat
                (make-string complement #x20)
@@ -427,7 +454,10 @@ X and Y, and should return non-nil if X should come before Y."
              ((concat
                (make-string floor-len #x20)
                name
-               (make-string (- complement floor-len) #x20))))))
+               (cond
+                ((< index column-len)
+                 (make-string (- complement floor-len) #x20))
+                ("")))))))
         columns
         (string #x20)))
       ;; don't forget to reset the index
@@ -446,9 +476,12 @@ X and Y, and should return non-nil if X should come before Y."
             (setq index (1+ index))
             (cond
              ((eq alignment :left)
-              (concat
-               name-sep
-               (make-string complement #x20)))
+              (cond
+               ((< index column-len)
+                (concat
+                 name-sep
+                 (make-string complement #x20)))
+               (name-sep)))
              ((eq alignment :right)
               (concat
                (make-string complement #x20)
@@ -456,7 +489,10 @@ X and Y, and should return non-nil if X should come before Y."
              ((concat
                (make-string floor-len #x20)
                name-sep
-               (make-string (- complement floor-len) #x20))))))
+               (cond
+                ((< index column-len)
+                 (make-string (- complement floor-len) #x20))
+                ("")))))))
         columns
         (string #x20))))
     ;; delete empty groups if demanded
