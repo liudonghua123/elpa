@@ -130,6 +130,28 @@ but got %S" align)))
   "Return the ELIDE in COLUMN."
   (nth 5 column))
 
+;;; Calculate the length of a string correctly
+
+(defun ilist-length (str)
+  "Return the length of STR.
+Characters that take up more than one column will be counted with
+1.7 columns."
+  (declare (side-effect-free t) (pure t))
+  (let ((len 0))
+    (mapc (lambda (char)
+            (let ((name (get-char-code-property char 'name))
+                  (decomposition (get-char-code-property char 'decomposition)))
+              (cond
+               ((or (and
+                     (stringp name)
+                     (string-match (rx-to-string '(seq bos "CJK"))
+                                   name))
+                    (eq (car decomposition) 'wide))
+                (setq len (+ len 1.7)))
+               ((setq len (1+ len))))))
+          str)
+    (floor len)))
+
 ;;; display a row
 
 (defun ilist-display (ls columns &optional no-trailing-space)
@@ -170,7 +192,7 @@ trailing spaces."
            (let* ((str (funcall
                         (ilist-column-fun column)
                         element))
-                  (str-len (length str))
+                  (str-len (ilist-length str))
                   (max-len (ilist-column-max column))
                   (elide (ilist-column-elide column))
                   (str
@@ -183,12 +205,12 @@ trailing spaces."
                         (substring
                          str
                          0
-                         (max (- max-len (length elide))
+                         (max (- max-len (ilist-length elide))
                               0))
                         elide))
                       ((substring str 0 max-len))))
                     (str))))
-             (cons (length str) str)))
+             (cons (ilist-length str) str)))
          columns))
       ls))
     ;; The list column-widths has a special convention: if a width is
@@ -434,7 +456,7 @@ trailing spaces."
           (let* ((width (nth index column-widths))
                  (alignment (ilist-column-align col))
                  (name (ilist-column-name col))
-                 (complement (- width (length name)))
+                 (complement (- width (ilist-length name)))
                  (floor-len (floor complement 2)))
             ;; we increase the index before the end of the form
             (setq index (1+ index))
@@ -470,8 +492,9 @@ trailing spaces."
           (let* ((width (nth index column-widths))
                  (alignment (ilist-column-align col))
                  (name (ilist-column-name col))
-                 (name-sep (make-string (length name) ?-))
-                 (complement (- width (length name)))
+                 (name-len (ilist-length name))
+                 (name-sep (make-string name-len ?-))
+                 (complement (- width name-len))
                  (floor-len (floor complement 2)))
             (setq index (1+ index))
             (cond
