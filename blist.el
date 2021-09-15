@@ -196,6 +196,13 @@ See `ilist-string' for how the sorter should behave.")
   "The variable that stores the strings that the user has inputted \
 to rename bookmarks.")
 
+;;;; Deleted entries
+
+(defvar-local blist-deleted-indices nil
+  "The variable that stores deleted indices.
+This is used to record which indices have been deleted in
+re-building the list of bookmarks.")
+
 ;;; Display
 
 ;;;; Columns
@@ -297,9 +304,6 @@ of the required type."
 
 ;;;; List function
 
-;; REVIEW: Maybe I shall call `delete-trailing-whitespace' at the end
-;; of the function to avoid surprises of the trailing whitespaces?
-
 ;;;###autoload
 (defun blist-list-bookmarks (&rest _args)
   "List bookmarks in an ibuffer fashion.
@@ -309,12 +313,59 @@ The ARGS is there so as to accept arguments in order for it to be
 used as a `revert-buffer-function'."
   ;; load the bookmark if needed
   (bookmark-maybe-load-default-file)
-  (let ((buffer (get-buffer-create bookmark-bmenu-buffer)))
+  (let ((buffer (get-buffer-create bookmark-bmenu-buffer))
+        (first-time-generated t))
     (with-current-buffer buffer
       (let ((inhibit-read-only t)
             ;; a final newline is important
-            (delete-trailing-lines nil))
+            (delete-trailing-lines nil)
+            front rear group pos)
         (widen)
+        (cond
+         ((and (derived-mode-p 'blist-mode)
+               (or (ilist-get-index)
+                   (ilist-get-group)))
+          (setq first-time-generated nil)
+          ;; already in the bookmark; find the previous and the next
+          ;; bookmarks that still exist, only if the point is on a
+          ;; group or an item
+          (let ((orig (line-beginning-position)))
+            (ilist-map-lines
+             (lambda ()
+               (cond
+                ((and
+                  (ilist-get-index)
+                  (memq (ilist-get-index) blist-deleted-indices)))
+                ;; we don't use the index of the line to find the
+                ;; entry since that index, after possibly a previous
+                ;; deletion, might no longer be valid
+                ((setq front
+                       (buffer-substring-no-properties
+                        (+ (line-beginning-position) 4)
+                        (line-end-position))))))
+             nil nil orig)
+            (save-excursion
+              (goto-char orig)
+              (forward-line 1)
+              (while (and (not (eobp)) (null rear))
+                (cond
+                 ((and
+                   (ilist-get-index)
+                   (memq (ilist-get-index) blist-deleted-indices)))
+                 ((setq
+                   rear
+                   (buffer-substring-no-properties
+                    (+ (line-beginning-position) 4)
+                    (line-end-position)))))
+                (forward-line 1)))
+            ;; reset the indices
+            (setq blist-deleted-indices nil))
+          ;; if on a group, try to restore the position at that group
+          (setq group (ilist-get-group)))
+         ((derived-mode-p 'blist-mode)
+          (setq first-time-generated nil)
+          ;; not on a group or an item: simply record the position
+          (setq pos (line-beginning-position))))
         (delete-region (point-min) (point-max))
         (insert
          (ilist-string
@@ -329,12 +380,35 @@ used as a `revert-buffer-function'."
           blist-discard-empty-p
           blist-sorter))
         (insert (string #xa))
-        (delete-trailing-whitespace))
-      (goto-char (point-min))
+        (delete-trailing-whitespace)
+        (goto-char (point-min))
+        (cond
+         ((and
+           (stringp rear)
+           (search-forward rear nil t))
+          (goto-char (match-beginning 0)))
+         ;; if no rear is found, but there is a front, then go to the
+         ;; end of the buffer so that we can search the front
+         ((stringp front) (goto-char (point-max))))
+        (cond
+         ((and
+           (stringp front)
+           (search-backward front nil t))
+          (goto-char (1+ (match-end 0)))))
+        (cond
+         ((stringp group)
+          ;; ignore errors
+          (condition-case nil
+              (blist-jump-to-group group)
+            (user-error))))
+        (cond ((integer-or-marker-p pos) (goto-char pos))
+              ((goto-char (line-beginning-position)))))
       (blist-mode))
     (display-buffer buffer)
     (select-window (get-buffer-window bookmark-bmenu-buffer))
-    (ilist-forward-line 1 nil t)))
+    ;; if generated for the first time, advance a line
+    (cond
+     (first-time-generated (ilist-forward-line 1 nil t)))))
 
 ;;; Major mode
 
@@ -369,6 +443,7 @@ used as a `revert-buffer-function'."
   (define-key map (vector ?e) #'blist-edit-annotation)
   (define-key map (vector ?/) #'blist-search)
   (define-key map (vector ?s) #'blist-save)
+  (define-key map (vector ?l) #'blist-load)
   (define-key map (vector #x29) #'blist-next-marked)
   (define-key map (vector #x28) #'blist-prev-marked)
   (define-key map (vector ?\M-}) #'blist-next-marked)
@@ -1138,8 +1213,12 @@ If A-MARK is RET, then unmark all marks."
       (cond
        (marked-list
         (setq bookmark-alist
-              (ilist-delete-from-list bookmark-alist marked-list)))
+              (ilist-delete-from-list bookmark-alist marked-list))
+        (setq blist-deleted-indices
+              (append marked-list blist-deleted-indices)))
        ((ilist-get-index)
+        (setq blist-deleted-indices
+              (cons (ilist-get-index) blist-deleted-indices))
         (setq
          bookmark-alist
          (ilist-delete-from-list
@@ -1175,6 +1254,8 @@ If A-MARK is RET, then unmark all marks."
       (user-error "No bookmarks marked for deletion"))
      ((or blist-expert
           (y-or-n-p "Confirm deletion? "))
+      (setq blist-deleted-indices
+            (append marked-list blist-deleted-indices))
       (setq
        bookmark-alist
        (ilist-delete-from-list bookmark-alist marked-list))
