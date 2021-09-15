@@ -350,8 +350,8 @@
  ("shell-quasiquote"	:url nil)
  ("shen-mode"		:url nil)
  ("sisu-mode"		:url nil)
- ;; ("sketch-mode"		:url "https://github.com/dalanicolai/sketch-mode"
- ;;  :auto-sync t)
+ ("sketch-mode"		:url "https://github.com/dalanicolai/sketch-mode"
+  :auto-sync t)
  ("slime-volleyball"	:url nil)
  ("sm-c-mode" 		:url nil)
  ("smalltalk-mode"	:url nil) ;; Was "git://git.sv.gnu.org/smalltalk"
