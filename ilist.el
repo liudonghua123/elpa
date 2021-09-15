@@ -205,7 +205,9 @@ trailing spaces."
                         (substring
                          str
                          0
-                         (max (- max-len (ilist-length elide))
+                         (max (- (min max-len
+                                      (length str))
+                                 (ilist-length elide))
                               0))
                         elide))
                       ((substring str 0 max-len))))
