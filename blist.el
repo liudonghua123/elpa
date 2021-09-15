@@ -122,7 +122,28 @@ See `blist-sorter'."
           (const nil :tag "No sorting")
           (function :tag "Sorting function")))
 
-;;;; Annotation Column Name
+;;;; Annotation Column
+
+;;;;; Annotation column setter
+
+(defun blist-get-annotation (bookmark)
+  "Return if BOOKMARK has annotation.
+If BOOKMARK has no annotation, return a space string."
+  (cond
+   ((let ((annotation (bookmark-get-annotation bookmark)))
+      (and (stringp annotation)
+           (not (string= annotation ""))))
+    "*")
+   (" ")))
+
+(defun blist-set-annotation-column (&rest _args)
+  "Set the annotation column.
+ARGS are there to conform to the customization interface."
+  (setq blist-annotation-column
+        (list blist-annotation-column-name #'blist-get-annotation
+              1 1 :left nil)))
+
+;;;;; Real column definition
 
 (defcustom blist-annotation-column-name "A"
   "The name of the column showing whether a bookmark has \
@@ -133,8 +154,12 @@ Only the first letter will be shown.
 If one changes this, run `blist-set-annotation-column' to set the
 annotation column again."
   :group 'blist
-  :type 'string
-  :set #'blist-set-annotation-column)
+  :type 'string)
+
+(defvar blist-annotation-column
+  (list blist-annotation-column-name #'blist-get-annotation
+        1 1 :left nil)
+  "The specification of the ANNOTATION column.")
 
 ;;;; How to open multiple bookmarks?
 
@@ -225,30 +250,6 @@ re-building the list of bookmarks.")
 an integer or a float between 0 and 1")))
    :left
    "..."))
-
-;;;;; Annotation column
-
-(defun blist-get-annotation (bookmark)
-  "Return if BOOKMARK has annotation.
-If BOOKMARK has no annotation, return a space string."
-  (cond
-   ((let ((annotation (bookmark-get-annotation bookmark)))
-      (and (stringp annotation)
-           (not (string= annotation ""))))
-    "*")
-   (" ")))
-
-(defvar blist-annotation-column
-  (list blist-annotation-column-name #'blist-get-annotation
-        1 1 :left nil)
-  "The specification of the ANNOTATION column.")
-
-(defun blist-set-annotation-column (&rest _args)
-  "Set the annotation column.
-ARGS are there to conform to the customization interface."
-  (setq blist-annotation-column
-        (list blist-annotation-column-name #'blist-get-annotation
-              1 1 :left nil)))
 
 ;;;;; Location column
 
