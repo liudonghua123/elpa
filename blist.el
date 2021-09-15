@@ -903,6 +903,124 @@ window."
 
 ;;;; load
 
+;;;;; Import
+
+;; The original import function looks quite weird to me, so I define
+;; my own version.
+
+(defun blist-import-new-list (new-list &optional reporter)
+  "Add NEW-LIST of bookmarks to `bookmark-alist'.
+Rename new bookmarks as needed using suffix \"<N>\" (N=1,2,3...),
+when they conflict with existing bookmark names.
+
+If REPORTER is non-nil, it should be a reporter created by
+`make-progress-reporter', and will be used to report the
+progress."
+  (let* ((names (mapcar
+                 #'bookmark-name-from-full-record
+                 bookmark-alist))
+         (name-len (length names))
+         (new-len (length new-list))
+         (table (make-hash-table :test 'equal :size name-len))
+         (count 0))
+    ;; use a hash table so that testing for membership is a constant
+    ;; time operation
+    (mapc
+     (lambda (name) (puthash name t table))
+     names)
+    (cond (reporter
+           (progress-reporter-force-update reporter count)))
+    (mapc
+     (lambda (new-record)
+       (setq count (1+ count))
+       (cond (reporter
+              (progress-reporter-update
+               reporter (floor count new-len))))
+       ;; rename the new bookmark if needed
+       (let ((temp-name (bookmark-name-from-full-record new-record))
+             (new-name temp-name)
+             (suffix-count 2))
+         (while (gethash new-name table)
+           (setq new-name (format "%s<%d>" temp-name suffix-count))
+           (setq suffix-count (1+ suffix-count)))
+         (bookmark-set-name new-record new-name)
+         (setq bookmark-alist (cons new-record bookmark-alist))
+         (puthash new-name t table)))
+     new-list)))
+
+;;;;; Load function
+
+;;;###autoload
+(defun blist-load (file &optional overwrite no-msg default)
+  "Load bookmarks from FILE (which must be in bookmark format).
+Appends the loaded bookmarks to the front of the list of bookmarks.
+
+If argument OVERWRITE is non-nil, existing bookmarks are
+destroyed.
+
+Optional third arg NO-MSG means don't display any messages while
+loading.
+
+If DEFAULT is non-nil make FILE the new bookmark file to watch.
+
+Interactively, a prefix arg makes OVERWRITE and DEFAULT non-nil.
+
+If you load a file that doesn't contain a proper bookmark alist,
+you will corrupt Emacs's bookmark list.  Generally, you should
+only load in files that were created with the bookmark functions
+in the first place.  Your own personal bookmark file, specified
+by the variable `bookmark-default-file', is maintained
+automatically by Emacs; you shouldn't need to load it explicitly.
+
+If you load a file containing bookmarks with the same names as
+bookmarks already present in your Emacs, the new bookmarks will
+get unique numeric suffixes \"<2>\", \"<3>\", etc."
+  (interactive
+   (let ((default (abbreviate-file-name
+		   (or (car bookmark-bookmarks-timestamp)
+		       (expand-file-name bookmark-default-file)))))
+     (list
+      (read-file-name
+       (format "Load bookmarks from: [%s] " default)
+       (file-name-directory default) default t)
+      current-prefix-arg nil current-prefix-arg)))
+  (let ((file (expand-file-name file)))
+    (cond
+     ((not (file-readable-p file))
+      (user-error "Cannot read bookmark file %s"
+                  (abbreviate-file-name file))))
+    (let ((reporter
+           (cond ((null no-msg)
+                  (make-progress-reporter
+                   (format "Loading bookmarks from %s..."
+                           file)
+                   0 100 nil nil 0.01))))
+          bookmark-list)
+      (with-temp-buffer
+        (setq buffer-undo-list t)
+        (insert-file-contents file)
+        (goto-char (point-min))
+        (setq bookmark-list (bookmark-alist-from-buffer))
+        (cond ((not (listp blist))
+               (user-error "Invalid bookmark list in %s" file)))
+        (cond
+         (overwrite
+          (setq bookmark-alist bookmark-list)
+          (setq bookmark-alist-modification-count 0))
+         (t
+          (blist-import-new-list bookmark-list reporter)
+          (setq bookmark-alist-modification-count
+                (1+ bookmark-alist-modification-count))))
+        (cond
+         ((or default
+	      (string=
+               file
+               (or (car bookmark-bookmarks-timestamp)
+		   (expand-file-name bookmark-default-file))))
+	  (setq bookmark-bookmarks-timestamp
+		(cons file (nth 5 (file-attributes file)))))))
+      (blist-list-bookmarks))))
+
 ;;;; blist-toggle-group
 
 ;;;###autoload
@@ -1240,6 +1358,9 @@ If A-MARK is RET, then unmark all marks."
          bookmark-alist
          (ilist-delete-from-list
           bookmark-alist (list (ilist-get-index))))))
+      (setq bookmark-alist-modification-count
+            (1+ bookmark-alist-modification-count))
+      (cond ((bookmark-time-to-save-p) (bookmark-save)))
       (blist-list-bookmarks)))))
 
 ;;;; Is it marked for deletion?
@@ -1276,6 +1397,9 @@ If A-MARK is RET, then unmark all marks."
       (setq
        bookmark-alist
        (ilist-delete-from-list bookmark-alist marked-list))
+      (setq bookmark-alist-modification-count
+            (1+ bookmark-alist-modification-count))
+      (cond ((bookmark-time-to-save-p) (bookmark-save)))
       (blist-list-bookmarks)))))
 
 ;;;; blist-mark-for-deletion
