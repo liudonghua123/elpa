@@ -317,8 +317,6 @@ used as a `revert-buffer-function'."
         (first-time-generated t))
     (with-current-buffer buffer
       (let ((inhibit-read-only t)
-            ;; a final newline is important
-            (delete-trailing-lines nil)
             front rear group pos)
         (widen)
         (cond
@@ -378,9 +376,10 @@ used as a `revert-buffer-function'."
             (blist-display-location-p (list blist-location-column))))
           blist-filter-groups
           blist-discard-empty-p
-          blist-sorter))
+          blist-sorter
+          t))
         (insert (string #xa))
-        (delete-trailing-whitespace)
+        ;; (delete-trailing-whitespace)
         (goto-char (point-min))
         (cond
          ((and
@@ -441,8 +440,7 @@ used as a `revert-buffer-function'."
   (define-key map (vector ?a) #'blist-show-annotation)
   (define-key map (vector ?A) #'blist-show-all-annotations)
   (define-key map (vector ?e) #'blist-edit-annotation)
-  (define-key map (vector ?/) #'blist-search)
-  (define-key map (vector ?s) #'blist-save)
+  (define-key map (vector ?s) #'bookmark-save)
   (define-key map (vector ?l) #'blist-load)
   (define-key map (vector #x29) #'blist-next-marked)
   (define-key map (vector #x28) #'blist-prev-marked)
@@ -551,21 +549,22 @@ range, unless region is active."
 
 ;;;;; Prepare windows
 
-(defun blist-prepare-select-windows (num)
-  "Create and return NUM windows according to \
-`blist-select-manner'.
+(defun blist-prepare-select-windows (num manner)
+  "Create and return NUM windows according to MANNER.
 
-NUM should be a positive integer."
+NUM should be a positive integer.
+
+See `blist-select-manner' for what MANNER should look like."
   (cond
    ((or (not (integerp num))
         (<= num 0))
     (error "NUM should be a positive integer, but got %S" num)))
-  (let* ((mainp (memq 'main-side blist-select-manner))
-         (tabp (cond (mainp nil) ((memq 'tab blist-select-manner))))
-         (verticalp (memq 'vertical blist-select-manner))
-         (leftp (memq 'left blist-select-manner))
-         (upp (memq 'up blist-select-manner))
-         (spiralp (memq 'spiral blist-select-manner))
+  (let* ((mainp (memq 'main-side manner))
+         (tabp (cond (mainp nil) ((memq 'tab manner))))
+         (verticalp (memq 'vertical manner))
+         (leftp (memq 'left manner))
+         (upp (memq 'up manner))
+         (spiralp (memq 'spiral manner))
          (size (cond
                 ;; spirals split in half
                 (spiralp nil)
@@ -606,8 +605,15 @@ NUM should be a positive integer."
       (setq windows (cons temp-window windows))
       ;; change direction for spirals and change direction only once
       ;; for main-side
-      (cond ((or spiralp
-                 (and mainp (not main-side-splitted-p)))
+      (cond (spiralp
+             (setq current-direction (not current-direction))
+             ;; spirals change the horizontal / vertical directions as
+             ;; well
+             (cond
+              (current-direction
+               (setq leftp (not leftp)))
+              ((setq upp (not upp)))))
+            ((and mainp (not main-side-splitted-p))
              (setq current-direction (not current-direction))
              (setq main-side-splitted-p t)))
       (setq num (1- num)))
@@ -616,7 +622,7 @@ NUM should be a positive integer."
 ;;;;; select function
 
 ;;;###autoload
-(defun blist-select ()
+(defun blist-select (&optional arg)
   "Open all marked bookmarks.
 If there are no marked bookmarks, and if the point is on a group
 header, open all bookmarks of the group.
@@ -626,9 +632,11 @@ bookmark line, then open the bookmark on that line.
 
 Otherwise signal an error.
 
-How the bookmarks are opened are controlled by the variable
-`blist-select-manner'."
-  (interactive)
+If called with \\[universal-argument], read a list for how to
+select multiple bookmarks.  Otherwise, the variable
+`blist-select-manner' controls how multiple bookmarks are
+selected."
+  (interactive "P")
   (blist-assert-mode)
   (let* ((marked-items (ilist-map-lines #'ilist-get-index
                                         #'ilist-is-marked))
@@ -649,8 +657,19 @@ How the bookmarks are opened are controlled by the variable
          (marked-items (mapcar
                         (lambda (index) (nth index bookmark-alist))
                         marked-items))
+         (manner (cond
+                  (arg
+                   (mapcar
+                    #'intern
+                    (completing-read-multiple
+                     "How to select multiple bookmarks: "
+                     (list
+                      'vertical 'horizontal 'spiral 'main-side
+                      'left 'right 'up 'down 'tab)
+                     nil t)))
+                  (blist-select-manner)))
          (windows (blist-prepare-select-windows
-                   (length marked-items)))
+                   (length marked-items) manner))
          (orig-window (car windows)))
     (while (consp windows)
       (select-window (car windows))
@@ -869,7 +888,7 @@ window."
                               (mapconcat
                                (lambda (str)
                                  (concat (make-string 4 #x20) str))
-                               (split-string (format "%s\n" anno))
+                               (split-string (format "%s" anno))
                                (string #xa))
                               "\n"))
                             (""))))
@@ -879,10 +898,6 @@ window."
     (special-mode)))
 
 ;;;; edit annotations
-
-;;;; search (limit)
-
-;;;; save
 
 ;;;; load
 
