@@ -1,0 +1,149 @@
+#+TITLE: BList: List Bookmarks in an Ibuffer way
+#+AUTHOR: Durand
+#+DATE: <2021-09-16 Jeu 12:26>
+
+* About
+
+The built-in library "bookmark" is useful for storing information that
+can be retrieved later.  But I find the built-in mechanism to display
+the list of bookmarks not so satisfactory, so I wrote this little
+package to display the list of bookmarks in an Ibuffer way.
+
+* Dependency
+
+This package is driven by another package: [[https://gitlab.com/mmemmew/ilist.git][ilist]].  So make sure to
+install that before using this package.  In fact, the package "ilist"
+was written as an abstraction of the mechanisms of this package.
+
+* Usage
+
+After installing, one can call the function =blist-list-bookmarks= to
+display the list of bookmarks.  Of course, one can bind a key to that
+function for easier invocations.
+
+** Screenshot
+
+A picture says more about the package than a thousand words.  Below is
+how the list of bookmarks looks like on my end:
+
+[[file:/Users/durand/elisp_packages/blist/screenshot1.png]]
+
+** Columns
+
+As one can se, the display has two columns: a name column and a
+location column.  The name column shows the names of the bookmarks,
+while the location column shows the /locations/, which are either the
+*filename* or the *location* attributes of the bookmarks.
+
+The variable =blist-display-location-p= controls whether to display
+the locations or not.  Also, one can toggle the display of the
+locations interactively by =blist-toggle-location=.
+
+The variable =blist-maximal-name-len= determines the maximal length of
+the name column.  And the variable =blist-elide-string= determines how
+to elide the name, when it gets too long.
+
+If one feels like so, then one can play with the function
+=blist-name-column= to control the name column.
+
+** Groups
+
+An important feature of this package is the /filter groups/.  They are
+criteria that group bookmarks together under various sections.  So one
+can find all bookmarks of, say, "Eshell buffers" in one section.
+
+The groups are stored in the variable =blist-filter-groups=.  One can
+add or remove filter groups to that variable.  That variable is a list
+of filter groups, while each filter group is a cons cell of the form
+=(NAME . FUN)=, where =NAME= is a string which will be displayed as
+the section header, and =FUN= is a function that accepts a bookmark as
+its argument, and returns non-nil when and only when that bookmark
+belongs to the group.
+
+Since defining the group functions might be tedious, the package also
+provides a convenient macro =blist-define-criterion= for the users to
+define filter groups easily.  See the documentation string of that
+macro for details.
+
+Also, the order of the filter groups matters: the filter groups that
+occur earlier on the list have higher priority.  So if an item belongs
+to multiple groups, it will be classified under the group that is the
+earliest on the list.
+
+In addition, the default filter group simply returns =t= for every
+bookmark.  It is important to have the default group since items that
+belong to no groups will not be shown in the buffer.  This design is
+intentional, so that other packages that use =ilist= can have display
+the lists more flexibly.
+
+** Navigations
+
+The following is a list of default key-bindings to navigate in the
+list of bookmarks.
+
+- =n=/=p=: go to next/previous line.  Whether it treats the top of the
+  buffer as identified with the bottom of the buffer is controlled by
+  the variable =blist-movement-cycle=.
+- =N=/=P=: go to next/previous line that is not a group heading.
+- =M-n=/=M-p=: go to next/previous group heading.
+- =j=, =M-g=: Use =completing-read= to choose a bookmark to go to.
+- =J=, =M-j=, =M-G=: Use =completing-read= to choose a group heading
+  to go to.
+- =M-{=, =(=: go to the previous marked bookmark.
+- =)=, =M-}=: go to the next marked bookmark.
+
+** Marking
+
+The following is a list of default key-bindings to mark bookmarks and
+to operate on the bookmarks.
+
+There is the MRGP convention, that is to say, if there are marked
+bookmarks, they operate on the marked bookmarks.  Otherwise they
+operate on the region, the group at point, the bookmark at point, in
+the order of precedence.
+
+- =m=: Mark the bookmark with the default mark (=blist-default-mark=)
+  and advance.
+- =d=, =k=: Mark for deletion and advance.
+- =C-d=: Mark for deletion and go backwards.
+- =x=: Delete all bookmarks that are marked for deletion.
+- =D=: Delete the bookmark immediately (the MRGP convention).
+- =u=: Unmark the bookmark and advance.
+- =DEL=: Unmark the bookmark and go backwards.
+- =U=: Unmark all bookmarks.
+- =M-DEL=, =* *=: prompt for a mark and unmark all boomarks that are
+  marked with the entered mark.
+- =% n=: Mark bookmarks whose name matches a regular expression.
+- =% l=: Mark bookmarks whose location matches a regular expression.
+- =* c=: Change the marks from OLD to NEW.
+
+** Jump to bookmarks
+
+The following lists the default key-bindings for jumping to, or
+opening bookmarks.
+
+- =RET=: Either open the bookmark in this window or toggle the group
+  at point.
+- =o=: Open the bookmark in another window.
+- =v=: Select the bookmarks (the *MGP* convention).  How multiple
+  bookmarks are opened is controlled by the variable
+  =blist-select-manner=.  See its documentation for details.
+
+** Annotations
+
+The following lists the default key-bindings for operating on the
+annotations of bookmarks.
+
+- =a=: View the annotations of bookmarks: If there are marked
+  bookmarks, show the annotations of the marked bookmarks; otherwise
+  show the annotations of the bookmark at point.  If there is no
+  bookmark at point, use =completing-read= to choose one.
+- =A=: View the annotations of all bookmarks.
+- =e=: edit the annotation of the bookmark at point.  If called with
+  =universal-argument=, prompt for the bookmark to edit with
+  completion.
+
+** Others
+
+Some functions are too minor to record here.  Use =describe-mode= in
+the list of bookmarks to see all available key-bindings.
