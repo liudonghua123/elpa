@@ -833,6 +833,9 @@ Otherwise, if point is at a bookmark, relocate that bookmark."
 ;;;###autoload
 (defun blist-show-annotation ()
   "Show the annotation of the bookmark(s) in another window.
+Only the annotations of bookmarks with annotations will be shown.
+So empty annotations are ignored.
+
 If there are marked bookmarks, show the annotations of the marked
 bookmarks; otherwise show the annotations of the bookmark at
 point.  If there is no bookmark at point, use `completing-read'
@@ -845,7 +848,9 @@ to choose one."
              (bookmark-name-from-full-record
               (nth index bookmark-alist)))
            (ilist-map-lines
-            #'ilist-get-index #'ilist-is-marked)))
+            #'ilist-get-index
+            (lambda ()
+              (and (ilist-is-marked) (blist-is-annotated-p))))))
          (targets
           (cond
            (marked-items)
@@ -853,12 +858,23 @@ to choose one."
              (lambda (index)
                (bookmark-name-from-full-record
                 (nth index bookmark-alist)))
-             (delq nil (list (ilist-get-index)))))
-           ((let ((items (mapcar
-                          (lambda (index)
-                            (bookmark-name-from-full-record
-                             (nth index bookmark-alist)))
-                          (blist-all-bookmarks))))
+             (delq nil (list (cond ((blist-is-annotated-p)
+                                    (ilist-get-index)))))))
+           ((let ((items (delq
+                          nil
+                          (mapcar
+                           (lambda (index)
+                             (cond
+                              ((let* ((bookmark
+                                       (nth index bookmark-alist))
+                                      (annotation
+                                       (bookmark-get-annotation
+                                        bookmark)))
+                                 (and (stringp annotation)
+                                      (not (string= annotation ""))))
+                               (bookmark-name-from-full-record
+                                (nth index bookmark-alist)))))
+                           (blist-all-bookmarks)))))
               (list
                (completing-read
                 "Choose a bookmark to show annotation: "
@@ -874,12 +890,23 @@ to choose one."
 ;;;###autoload
 (defun blist-show-all-annotations (targets)
   "Show the annotation of all bookmarks of TARGETS in another \
-window."
-  (interactive (list (mapcar
-                      (lambda (index)
-                        (bookmark-name-from-full-record
-                         (nth index bookmark-alist)))
-                      (blist-all-bookmarks))))
+window.
+
+If called interactively, show all annotations of bookmarks with
+annotations."
+  (interactive
+   (list
+    (delq
+     nil
+     (mapcar
+      (lambda (index)
+        (cond
+         ((let* ((bookmark (nth index bookmark-alist))
+                 (annotation (bookmark-get-annotation bookmark)))
+            (and (stringp annotation) (not (string= annotation ""))))
+          (bookmark-name-from-full-record
+           (nth index bookmark-alist)))))
+      (blist-all-bookmarks)))))
   (blist-assert-mode)
   (save-selected-window
     (pop-to-buffer (get-buffer-create "*Bookmark Annotation*"))
@@ -949,6 +976,8 @@ Lines beginning with `#' are ignored."
   (let ((annotation (buffer-substring-no-properties
                      (point-min) (point-max)))
         (bookmark-name bookmark-annotation-name))
+    ;; an empty annotation is nihil
+    (cond ((string= annotation "") (setq annotation nil)))
     (bookmark-set-annotation bookmark-name annotation)
     (setq bookmark-alist-modification-count
           (1+ bookmark-alist-modification-count))
@@ -969,6 +998,18 @@ This only does something if the major mode is derived from
    ((not (derived-mode-p 'blist-edit-annotation-mode))
     (user-error "Not in blist-edit-annotation-mode")))
   (quit-window t))
+
+;;;;; Is it annotated?
+
+(defun blist-is-annotated-p ()
+  "Return non-nil if the bookmark at point has non-empty annotations."
+  (let* ((index (ilist-get-index))
+         (bookmark (cond (index (nth index bookmark-alist))))
+         annotation)
+    (and bookmark
+         (setq annotation (bookmark-get-annotation bookmark))
+         (stringp annotation)
+         (not (string= annotation "")))))
 
 ;;;;; Edit function
 
