@@ -207,6 +207,13 @@ list; they are simply ignored."
            (const :tag "Towards Down" down)
            (const :tag "In a new tab" tab))))
 
+;;;; Edit bookmark annotation buffer name
+
+(defcustom blist-edit-annotation-buffer-name "*Edit Bookmark Annotation*"
+  "The name of the buffer used for editing bookmark annotation."
+  :group 'blist
+  :type 'string)
+
 ;;; Variables
 
 ;;;; Sorter
@@ -443,6 +450,7 @@ used as a `revert-buffer-function'."
   (define-key map (vector ?A) #'blist-show-all-annotations)
   (define-key map (vector ?e) #'blist-edit-annotation)
   (define-key map (vector ?s) #'bookmark-save)
+  (define-key map (vector ?\C-x ?\C-s) #'bookmark-save)
   (define-key map (vector ?l) #'blist-load)
   (define-key map (vector #x29) #'blist-next-marked)
   (define-key map (vector #x28) #'blist-prev-marked)
@@ -890,7 +898,8 @@ window."
                               (mapconcat
                                (lambda (str)
                                  (concat (make-string 4 #x20) str))
-                               (split-string (format "%s" anno))
+                               (split-string (format "%s" anno)
+                                             (string #xa #xd))
                                (string #xa))
                               "\n"))
                             (""))))
@@ -900,6 +909,92 @@ window."
     (special-mode)))
 
 ;;;; edit annotations
+
+;;;;; Edit mode
+
+(define-derived-mode blist-edit-annotation-mode
+  bookmark-edit-annotation-mode "BListea"
+  "The major mode for editing bookmark annotations.
+When editing is done, type \\[blist-send-edit-annotation].
+
+Simply delete the buffer if you want to cancel this edit.  Or you
+can type \\[blist-abort-edit-annotation] to kill the buffer and
+quit the window at the same time.
+
+This differs from `bookmark-edit-annotation-mode' only in that it
+will always regenerate the list of bookmarks and go to the list
+of bookmarks after the edit is done, since this mode is not used
+for editing annotation in other situations."
+  :group 'blist)
+
+(let ((map blist-edit-annotation-mode-map))
+  (define-key map (vector 3 3) #'blist-send-edit-annotation)
+  (define-key map (vector 3 11) #'blist-abort-edit-annotation))
+
+;;;;;; Send edit
+
+;;;###autoload
+(defun blist-send-edit-annotation ()
+  "Use buffer contents as annotation for a bookmark.
+Lines beginning with `#' are ignored."
+  (interactive)
+  (cond
+   ((not (derived-mode-p 'blist-edit-annotation-mode))
+    (user-error "Not in blist-edit-annotation-mode")))
+  (goto-char (point-min))
+  (while (not (eobp))
+    (cond
+     ((= (following-char) ?#) (bookmark-kill-line t))
+     ((forward-line 1))))
+  (let ((annotation (buffer-substring-no-properties
+                     (point-min) (point-max)))
+        (bookmark-name bookmark-annotation-name))
+    (bookmark-set-annotation bookmark-name annotation)
+    (setq bookmark-alist-modification-count
+          (1+ bookmark-alist-modification-count))
+    (cond ((bookmark-time-to-save-p) (bookmark-save)))
+    (message "Annotation updated for \"%s\"" bookmark-name)
+    (quit-window t)
+    (blist-list-bookmarks)))
+
+;;;;;; Abort edit
+
+;;;###autoload
+(defun blist-abort-edit-annotation ()
+  "Kill the current buffer and quit the window.
+This only does something if the major mode is derived from
+`blist-edit-annotation-mode'."
+  (interactive)
+  (cond
+   ((not (derived-mode-p 'blist-edit-annotation-mode))
+    (user-error "Not in blist-edit-annotation-mode")))
+  (quit-window t))
+
+;;;;; Edit function
+
+;;;###autoload
+(defun blist-edit-annotation (bookmark)
+  "Edit annotation for BOOKMARK.
+If called with \\[universal-argument], prompt for the bookmark to
+edit with completion."
+  (interactive
+   (list
+    (cond
+     (current-prefix-arg
+      (completing-read "Edit bookmark: "
+                       (mapcar #'bookmark-name-from-full-record
+                               bookmark-alist)
+                       nil t))
+     ((ilist-get-index)
+      (nth (ilist-get-index) bookmark-alist))
+     ((user-error "No bookmark to edit")))))
+  (setq bookmark (bookmark-name-from-full-record
+                  (bookmark-get-bookmark bookmark t)))
+  (pop-to-buffer
+   (generate-new-buffer blist-edit-annotation-buffer-name))
+  (bookmark-insert-annotation bookmark)
+  (blist-edit-annotation-mode)
+  (setq bookmark-annotation-name bookmark))
 
 ;;;; load
 
