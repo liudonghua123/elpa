@@ -26,7 +26,7 @@ function for easier invocations.
 A picture says more about the package than a thousand words.  Below is
 how the list of bookmarks looks like on my end:
 
-[[file:/Users/durand/elisp_packages/blist/screenshot1.png]]
+[[file:./screenshot1.png]]
 
 ** Columns
 
@@ -81,16 +81,16 @@ the lists more flexibly.
 The following is a list of default key-bindings to navigate in the
 list of bookmarks.
 
-- =n=/=p=: go to next/previous line.  Whether it treats the top of the
-  buffer as identified with the bottom of the buffer is controlled by
-  the variable =blist-movement-cycle=.
-- =N=/=P=: go to next/previous line that is not a group heading.
-- =M-n=/=M-p=: go to next/previous group heading.
+- =n=, =p=: go to next/previous line.  Whether it treats the top of
+  the buffer as identified with the bottom of the buffer is controlled
+  by the variable =blist-movement-cycle=.
+- =N=, =P=: go to next/previous line that is not a group heading.
+- =M-n=, =M-p=: go to next/previous group heading.
 - =j=, =M-g=: Use =completing-read= to choose a bookmark to go to.
 - =J=, =M-j=, =M-G=: Use =completing-read= to choose a group heading
   to go to.
-- =M-{=, =(=: go to the previous marked bookmark.
-- =)=, =M-}=: go to the next marked bookmark.
+- =M-{= and =)=: go to the previous marked bookmark.
+- =)= and =M-}=: go to the next marked bookmark.
 
 ** Marking
 
