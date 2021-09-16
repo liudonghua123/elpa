@@ -26,7 +26,7 @@ function for easier invocations.
 A picture says more about the package than a thousand words.  Below is
 how the list of bookmarks looks like on my end:
 
-[[file:./screenshot1.png]]
+#+html: <p align="center"><img width=700 src="./screenshot1.png" /></p>
 
 ** Columns
 
