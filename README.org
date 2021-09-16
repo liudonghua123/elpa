@@ -26,7 +26,39 @@ function for easier invocations.
 A picture says more about the package than a thousand words.  Below is
 how the list of bookmarks looks like on my end:
 
-#+html: <p align="center"><img width=700 src="./screenshot1.png" /></p>
+#+html: <p align="center"><img width=800 src="./screenshot1.png" /></p>
+
+** Example configuration
+
+An example configuration is included so that it is easier to begin
+configuring the package.
+
+#+begin_src emacs-lisp :eval no :exports code
+  (setq blist-filter-groups
+        (list
+         (cons "Eshell" #'blist-eshell-p)
+         (cons "ELisp" #'blist-elisp-p)
+         (cons "PDF" #'blist-pdf-p)
+         (cons "Info" #'blist-info-p)
+         (cons "Default" #'blist-default-p)))
+
+  ;; Eshell and Default are defined in the package by default
+
+  (blist-define-criterion "elisp" "ELisp"
+    (string-match-p
+     "\\.el$"
+     (bookmark-get-filename bookmark)))
+
+  (blist-define-criterion "pdf" "PDF"
+    (eq (bookmark-get-handler bookmark)
+        #'pdf-view-bookmark-jump))
+
+  (blist-define-criterion "info" "Info"
+    (eq (bookmark-get-handler bookmark)
+        #'Info-bookmark-jump))
+#+end_src
+
+See the following subsections for more details.
 
 ** Columns
 
@@ -76,19 +108,37 @@ belong to no groups will not be shown in the buffer.  This design is
 intentional, so that other packages that use =ilist= can have display
 the lists more flexibly.
 
+** Calling convention(s)
+
+For the ease and brevity of writing, let's establish a convention for
+describing the interactive arguments of functions.
+
+In this document, the phrase "XYZ convention" should be understood as
+a specification of how the arguments to a function are supposed to be
+obtained when called interactively.  Here the letters "XYZ" have
+special meanings:
+
+- "M": marked bookmarks
+- "R": the bookmarks in the region, if the region is active
+- "G": the bookmarks of a group, if the point is at the heading of
+  that group
+- "0": the 0-th bookmark, that is, the bookmark at point, if any
+- "C": use =completing-read= to let the user choose a bookmark
+- "P": the ARG next bookmarks, where ARG is the prefix argument
+
 ** Navigations
 
 The following is a list of default key-bindings to navigate in the
-list of bookmarks.
+list of bookmarks.  Except for the two "jump" commands, they all
+follow the P-convention.
 
 - =n=, =p=: go to next/previous line.  Whether it treats the top of
   the buffer as identified with the bottom of the buffer is controlled
   by the variable =blist-movement-cycle=.
 - =N=, =P=: go to next/previous line that is not a group heading.
 - =M-n=, =M-p=: go to next/previous group heading.
-- =j=, =M-g=: Use =completing-read= to choose a bookmark to go to.
-- =J=, =M-j=, =M-G=: Use =completing-read= to choose a group heading
-  to go to.
+- =j=, =M-g=: jump to a bookmark, using the C-convention
+- =J=, =M-j=, =M-G=: jump to a group heading, using the C-convention
 - =M-{= and =)=: go to the previous marked bookmark.
 - =)= and =M-}=: go to the next marked bookmark.
 
@@ -97,35 +147,33 @@ list of bookmarks.
 The following is a list of default key-bindings to mark bookmarks and
 to operate on the bookmarks.
 
-There is the MRGP convention, that is to say, if there are marked
-bookmarks, they operate on the marked bookmarks.  Otherwise they
-operate on the region, the group at point, the bookmark at point, in
-the order of precedence.
+Unless stated otherwise, they all follow the P-convention.
 
 - =m=: Mark the bookmark with the default mark (=blist-default-mark=)
   and advance.
 - =d=, =k=: Mark for deletion and advance.
 - =C-d=: Mark for deletion and go backwards.
 - =x=: Delete all bookmarks that are marked for deletion.
-- =D=: Delete the bookmark immediately (the MRGP convention).
+- =D=: Delete the bookmark immediately (the MRG0-convention).
 - =u=: Unmark the bookmark and advance.
 - =DEL=: Unmark the bookmark and go backwards.
 - =U=: Unmark all bookmarks.
 - =M-DEL=, =* *=: prompt for a mark and unmark all boomarks that are
-  marked with the entered mark.
+  marked with the entered mark (using =read-char=).
 - =% n=: Mark bookmarks whose name matches a regular expression.
 - =% l=: Mark bookmarks whose location matches a regular expression.
-- =* c=: Change the marks from OLD to NEW.
+- =* c=: Change the marks from OLD to NEW (using =read-char=)
 
 ** Jump to bookmarks
 
 The following lists the default key-bindings for jumping to, or
-opening bookmarks.
+opening bookmarks.  Except for =v=, they operate on the bookmark (or
+group) at point.
 
 - =RET=: Either open the bookmark in this window or toggle the group
   at point.
 - =o=: Open the bookmark in another window.
-- =v=: Select the bookmarks (the *MGP* convention).  How multiple
+- =v=: Select the bookmarks (the MG0-convention).  How multiple
   bookmarks are opened is controlled by the variable
   =blist-select-manner=.  See its documentation for details.
 
@@ -134,10 +182,7 @@ opening bookmarks.
 The following lists the default key-bindings for operating on the
 annotations of bookmarks.
 
-- =a=: View the annotations of bookmarks: If there are marked
-  bookmarks, show the annotations of the marked bookmarks; otherwise
-  show the annotations of the bookmark at point.  If there is no
-  bookmark at point, use =completing-read= to choose one.
+- =a=: View the annotations of bookmarks (the MGC-convention).
 - =A=: View the annotations of all bookmarks.
 - =e=: edit the annotation of the bookmark at point.  If called with
   =universal-argument=, prompt for the bookmark to edit with
