@@ -821,7 +821,7 @@ Otherwise, if point is at a bookmark, relocate that bookmark."
              prompt (file-name-directory file-or-location)
              file-or-location)))))
     (cond
-     (file-name (bookmark-set-filename boomark new-location))
+     (file-name (bookmark-set-filename bookmark new-location))
      (location (bookmark-prop-set bookmark 'location new-location)))
     (setq bookmark-alist-modification-count
           (1+ bookmark-alist-modification-count))
