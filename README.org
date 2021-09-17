@@ -62,7 +62,7 @@ See the following subsections for more details.
 
 ** Columns
 
-As one can se, the display has two columns: a name column and a
+As one can see, the display has two columns: a name column and a
 location column.  The name column shows the names of the bookmarks,
 while the location column shows the /locations/, which are either the
 *filename* or the *location* attributes of the bookmarks.
@@ -113,7 +113,7 @@ the lists more flexibly.
 For the ease and brevity of writing, let's establish a convention for
 describing the interactive arguments of functions.
 
-In this document, the phrase "XYZ convention" should be understood as
+In this document, the phrase "XYZ-convention" should be understood as
 a specification of how the arguments to a function are supposed to be
 obtained when called interactively.  Here the letters "XYZ" have
 special meanings:

@@ -1,0 +1,363 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename blist.info
+@settitle BList
+@c %**end of header
+@copying
+Display bookmarks in an Ibuffer way.
+
+Copyright @copyright{} 2021  Durand
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+A copy of the license is included in the section entitled ``GNU
+Free Documentation License''.
+
+A copy of the license is also available from the Free Software
+Foundation Web site at @url{https://www.gnu.org/licenses/fdl.html}.
+
+@end quotation
+
+The document was typeset with
+@uref{https://www.gnu.org/software/texinfo/, GNU Texinfo}.
+
+@end copying
+
+@titlepage
+@title BList
+@subtitle Display bookmarks in an Ibuffer way.
+@author Durand <mmemmew@@gmail.com>
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c Output the table of the contents at the beginning.
+@contents
+
+@ifnottex
+@node Top, About, (dir), (dir)
+@top BList
+
+@insertcopying
+@end ifnottex
+
+@c Generate the nodes for this menu with `C-c C-u C-m'.
+@menu
+* About::
+* Dependency::
+* Usage::
+* Copying This Manual::
+* Index::
+@end menu
+
+@c Update all node entries with `C-c C-u C-n'.
+@c Insert new nodes with `C-c C-c n'.
+@node About, Dependency, Top, Top
+@chapter About
+
+The built-in library @file{bookmark.el} is useful for storing
+information that can be retrieved later.  But I find the built-in
+mechanism to display the list of bookmarks not so satisfactory, so I
+wrote this little package to display the list of bookmarks in an Ibuffer
+way.
+
+@node Dependency, Usage, About, Top
+@comment  node-name,  next,  previous,  up
+@chapter Dependency
+
+This package is driven by another package:
+@url{https://gitlab.com/mmemmew/ilist.git, ilist}.  So make sure to
+install that before using this package.  In fact, the package
+@file{ilist} was written as an abstraction of the mechanisms of this
+package.
+
+@node Usage, Copying This Manual, Dependency, Top
+@comment  node-name,  next,  previous,  up
+@chapter Usage
+
+After installing, one can call the function @code{blist-list-bookmarks}
+to display the list of bookmarks.  Of course, one can bind a key to that
+function for easier invocations.
+
+@menu
+* Screenshot::
+* Example configuration::
+* Columns::
+* Groups::
+* Calling convention(s)::
+* Navigations::
+* Marking::
+* Jump to bookmarks::
+* Annotations::
+* Others::
+@end menu
+
+@node Screenshot, Example configuration, Usage, Usage
+@comment  node-name,  next,  previous,  up
+@section Screenshot
+
+A picture says more about the package than a thousand words.  Below is
+how the list of bookmarks looks like on my end:
+
+@image{scaled-screenshot1}
+
+@node Example configuration, Columns, Screenshot, Usage
+@comment  node-name,  next,  previous,  up
+@section Example configuration
+
+An example configuration is included so that it is easier to begin
+configuring the package.
+
+@lisp
+(setq blist-filter-groups
+      (list
+       (cons "Eshell" #'blist-eshell-p)
+       (cons "ELisp" #'blist-elisp-p)
+       (cons "PDF" #'blist-pdf-p)
+       (cons "Info" #'blist-info-p)
+       (cons "Default" #'blist-default-p)))
+
+;; Eshell and Default are defined in the package by default
+
+(blist-define-criterion "elisp" "ELisp"
+  (string-match-p
+   "\\.el$"
+   (bookmark-get-filename bookmark)))
+
+(blist-define-criterion "pdf" "PDF"
+  (eq (bookmark-get-handler bookmark)
+      #'pdf-view-bookmark-jump))
+
+(blist-define-criterion "info" "Info"
+  (eq (bookmark-get-handler bookmark)
+      #'Info-bookmark-jump))
+@end lisp
+
+See the following subsections for more details.
+
+@node Columns, Groups, Example configuration, Usage
+@comment  node-name,  next,  previous,  up
+@section Columns
+
+As one can see, the display has two columns: a name column and a
+location column.  The name column shows the names of the bookmarks,
+while the location column shows the @emph{locations}, which are either
+the @strong{filename} or the @strong{location} attributes of the
+bookmarks.
+
+The variable @code{blist-display-location-p} controls whether to display
+the locations or not.  Also, one can toggle the display of the locations
+interactively by @code{blist-toggle-location}.
+
+The variable @code{blist-maximal-name-len} determines the maximal length
+of the name column.  And the variable @code{blist-elide-string}
+determines how to elide the name, when it gets too long.
+
+If one feels like so, then one can play with the function
+@code{blist-name-column} to control the name column.
+
+@node Groups, Calling convention(s), Columns, Usage
+@comment  node-name,  next,  previous,  up
+@section Groups
+
+An important feature of this package is the @emph{filter groups}.  They
+are criteria that group bookmarks together under various sections.  So
+one can find all bookmarks of, say, @emph{Eshell buffers} in one
+section.
+
+The groups are stored in the variable @code{blist-filter-groups}.  One
+can add or remove filter groups to that variable.  That variable is a
+list of filter groups, while each filter group is a cons cell of the
+form @code{(NAME . FUN)}, where @code{NAME} is a string which will be
+displayed as the section header, and @code{FUN} is a function that
+accepts a bookmark as its argument, and returns non-nil when and only
+when that bookmark belongs to the group.
+
+Since defining the group functions might be tedious, the package also
+provides a convenient macro @code{blist-define-criterion} for the users
+to define filter groups easily.  See the documentation string of that
+macro for details.
+
+Also, the order of the filter groups matters: the filter groups that
+occur earlier on the list have higher priority.  So if an item belongs
+to multiple groups, it will be classified under the group that is the
+earliest on the list.
+
+In addition, the default filter group simply returns @code{t} for every
+bookmark.  It is important to have the default group since items that
+belong to no groups will not be shown in the buffer.  This design is
+intentional, so that other packages that use @file{ilist} can display
+the lists more flexibly.
+
+@node Calling convention(s), Navigations, Groups, Usage
+@comment  node-name,  next,  previous,  up
+@section Calling convention(s)
+
+For the ease and brevity of writing, let's establish a convention for
+describing the interactive arguments of functions.
+
+In this document, the phrase @strong{XYZ-convention} should be
+understood as a specification of how the arguments to a function are
+supposed to be obtained when called interactively.  Here the letters
+@strong{XYZ} have special meanings:
+
+@table @kbd
+@item M
+Use marked bookmarks.
+
+@item R
+Use the bookmarks in the region, if the region is active.
+
+@item G
+Use the bookmarks of a group, if the point is at the heading of that
+group.
+
+@item 0
+Use the 0-th bookmark, that is, the bookmark at point, if any.
+
+@item C
+Use use @code{completing-read} to let the user choose a bookmark.
+
+@item P
+Use the ARG next bookmarks, where ARG is the prefix argument.
+@end table
+
+@node Navigations, Marking, Calling convention(s), Usage
+@comment  node-name,  next,  previous,  up
+@section Navigations
+
+The following is a list of default key-bindings to navigate in the list
+of bookmarks.  Except for the two @emph{jump} commands, they all follow
+the @strong{P-convention}.
+
+@table @kbd
+@item n
+@itemx p
+go to next/previous line.  Whether it treats the top of the buffer as
+identified with the bottom of the buffer is controlled by the variable
+@code{blist-movement-cycle}.
+@item N
+@itemx P
+go to next/previous line that is not a group heading.
+@item M-n
+@itemx M-p
+go to next/previous group heading.
+@item j
+@itemx M-g
+jump to a bookmark, using the @strong{C-convention}.
+@item J
+@itemx M-j
+@itemx M-G
+jump to a group heading, using the @strong{C-convention}.
+@item M-@{
+@itemx (
+go to the previous marked bookmark.
+@item )
+@itemx M-@}
+go to the next marked bookmark.
+@end table
+
+@node Marking, Jump to bookmarks, Navigations, Usage
+@comment  node-name,  next,  previous,  up
+@section Marking
+
+The following is a list of default key-bindings to mark bookmarks and to
+operate on the bookmarks.
+
+Unless stated otherwise, they all follow the @strong{P-convention}.
+
+@table @kbd
+@item m
+Mark the bookmark with the default mark (@code{blist-default-mark}) and
+advance.
+@item d
+@itemx k
+Mark for deletion and advance.
+@item C-d
+Mark for deletion and go backwards.
+@item x
+Delete all bookmarks that are marked for deletion.
+@item D
+Delete the bookmark immediately (the @strong{MRG0-convention}).
+@item u
+Unmark the bookmark and advance.
+@item @key{DEL}
+Unmark the bookmark and go backwards.
+@item U
+Unmark all bookmarks.
+@item M-@key{DEL}
+@itemx * *
+prompt for a mark and unmark all boomarks that are marked with the
+entered mark (using @code{read-char}).
+@item % n
+Mark bookmarks whose name matches a regular expression.
+@item % l
+Mark bookmarks whose location matches a regular expression.
+@item * c
+Change the marks from OLD to NEW (using @code{read-char})
+@end table
+
+@node Jump to bookmarks, Annotations, Marking, Usage
+@comment  node-name,  next,  previous,  up
+@section Jump to bookmarks
+
+The following lists the default key-bindings for jumping to, or opening
+bookmarks.  Except for @kbd{v}, they operate on the bookmark (or group)
+at point.
+
+@table @kbd
+@item @key{RET}
+Either open the bookmark in this window or toggle the group at point.
+@item o
+Open the bookmark in another window.
+@item v
+Select the bookmarks (the @strong{MG0-convention}).  How multiple
+bookmarks are opened is controlled by the variable
+@code{blist-select-manner}.  See its documentation for details.
+@end table
+
+@node Annotations, Others, Jump to bookmarks, Usage
+@comment  node-name,  next,  previous,  up
+@section Annotations
+
+The following lists the default key-bindings for operating on the
+annotations of bookmarks.
+
+@table @kbd
+@item a
+View the annotations of bookmarks (the @strong{MGC-convention}).
+@item A
+View the annotations of all bookmarks.
+@item e
+Edit the annotation of the bookmark at point.  If called with
+@code{universal-argument}, prompt for the bookmark to edit with
+completion.
+@end table
+
+@node Others,  , Annotations, Usage
+@comment  node-name,  next,  previous,  up
+@section Others
+
+Some functions are too minor to record here.  Use @code{describe-mode}
+in the list of bookmarks to see all available key-bindings.
+
+@node Copying This Manual, Index, Usage, Top
+@appendix Copying This Manual
+
+@c @menu
+@c * GNU Free Documentation License:  License for copying this manual.
+@c @end menu
+
+@c Get fdl.texi from https://www.gnu.org/licenses/fdl.html
+@include fdl-1.3.texi
+
+@node Index,  , Copying This Manual, Top
+@unnumbered Index
+
+@printindex cp
+
+@bye
