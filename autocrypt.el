@@ -146,15 +146,17 @@ found."
         (unless silent
           (error "Missing %S implementation for %S" command backend))))))
 
-(defun autocrypt-make-function (command signature &optional silent)
+(defun autocrypt-make-function (command signature &optional default)
   "Return a function to handle COMMAND.
-The advertised calling convention is set to SIGNATURE.  If SILENT
-is non-nil, return nil when no implementation could be found."
-  (let ((f (lambda (&rest args)
-             (let ((fn (autocrypt-find-function command silent)))
-               (and fn (apply fn args))))))
-    (set-advertised-calling-convention f signature nil)
-    f))
+The advertised calling convention is set to SIGNATURE.  If
+DEFAULT is non-nil, return DEFAULT when no implementation could
+be found."
+  (let ((fn (lambda (&rest args)
+              (let* ((silent (not (null default)))
+                     (fn (autocrypt-find-function command silent)))
+                (if fn (apply fn args) default)))))
+    (set-advertised-calling-convention fn signature nil)
+    fn))
 
 (defalias 'autocrypt-install (autocrypt-make-function 'install '())
   "Install necessary autocrypt functions into the MUA.")
@@ -180,7 +182,7 @@ is non-nil, return nil when no implementation could be found."
 (defalias 'autocrypt-encrypted-p (autocrypt-make-function 'encrypted-p '())
   "Check the the current message is encrypted.")
 
-(defalias 'autocrypt-get-part (autocrypt-make-function 'get-part '(index) t)
+(defalias 'autocrypt-get-part (autocrypt-make-function 'get-part '(index) 'n/a)
   "Return the INDEX'th part of the current message.")
 
 
