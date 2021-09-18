@@ -831,16 +831,16 @@ Otherwise, if point is at a bookmark, relocate that bookmark."
 ;;;; show annotations
 
 ;;;###autoload
-(defun blist-show-annotation ()
+(defun blist-show-annotation (&optional arg)
   "Show the annotation of the bookmark(s) in another window.
 Only the annotations of bookmarks with annotations will be shown.
 So empty annotations are ignored.
 
 If there are marked bookmarks, show the annotations of the marked
 bookmarks; otherwise show the annotations of the bookmark at
-point.  If there is no bookmark at point, use `completing-read'
-to choose one."
-  (interactive)
+point.  If called with \\[universal-argument] and if there is no
+bookmark at point, use `completing-read' to choose one."
+  (interactive "P")
   (blist-assert-mode)
   (let* ((marked-items
           (mapcar
@@ -860,7 +860,8 @@ to choose one."
                 (nth index bookmark-alist)))
              (delq nil (list (cond ((blist-is-annotated-p)
                                     (ilist-get-index)))))))
-           ((let ((items (delq
+           (arg
+            (let ((items (delq
                           nil
                           (mapcar
                            (lambda (index)
@@ -875,14 +876,19 @@ to choose one."
                                (bookmark-name-from-full-record
                                 (nth index bookmark-alist)))))
                            (blist-all-bookmarks)))))
-              (list
-               (completing-read
-                "Choose a bookmark to show annotation: "
-                (lambda (str pred action)
-                  (if (eq action 'metadata)
-                      '(metadata (category . bookmark))
-                    (complete-with-action
-                     action items str pred))))))))))
+              (cond
+               (items
+                (list
+                 (completing-read
+                  "Choose a bookmark to show annotation: "
+                  (lambda (str pred action)
+                    (if (eq action 'metadata)
+                        '(metadata (category . bookmark))
+                      (complete-with-action
+                       action items str pred)))
+                  nil t)))
+               ((user-error "No bookmarks to show")))))
+           ((user-error "No bookmarks to show")))))
     (blist-show-all-annotations targets)))
 
 ;;;; show all annotations
@@ -908,32 +914,35 @@ annotations."
            (nth index bookmark-alist)))))
       (blist-all-bookmarks)))))
   (blist-assert-mode)
-  (save-selected-window
-    (pop-to-buffer (get-buffer-create "*Bookmark Annotation*"))
-    (let ((inhibit-read-only t))
-      (erase-buffer)
-      (mapc
-       (lambda (bookmark)
-         ;; make sure we are dealing with records
-         (let* ((bookmark (bookmark-get-bookmark bookmark))
-                (name (bookmark-name-from-full-record
-                       bookmark))
-                (anno (bookmark-get-annotation bookmark))
-                (anno (cond ((and anno (stringp anno)
-                                  (not (string= anno "")))
-                             (concat
-                              (mapconcat
-                               (lambda (str)
-                                 (concat (make-string 4 #x20) str))
-                               (split-string (format "%s" anno)
-                                             (string #xa #xd))
-                               (string #xa))
-                              "\n"))
-                            (""))))
-           (insert (format "%s:\n%s" name anno))))
-       targets))
-    (goto-char (point-min))
-    (special-mode)))
+  (cond
+   ((null targets)
+    (user-error "No annotations to show"))
+   ((save-selected-window
+      (pop-to-buffer (get-buffer-create "*Bookmark Annotation*"))
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (mapc
+         (lambda (bookmark)
+           ;; make sure we are dealing with records
+           (let* ((bookmark (bookmark-get-bookmark bookmark))
+                  (name (bookmark-name-from-full-record
+                         bookmark))
+                  (anno (bookmark-get-annotation bookmark))
+                  (anno (cond ((and anno (stringp anno)
+                                    (not (string= anno "")))
+                               (concat
+                                (mapconcat
+                                 (lambda (str)
+                                   (concat (make-string 4 #x20) str))
+                                 (split-string (format "%s" anno)
+                                               (string #xa))
+                                 (string #xa))
+                                "\n"))
+                              (""))))
+             (insert (format "%s:\n%s" name anno))))
+         targets))
+      (goto-char (point-min))
+      (special-mode)))))
 
 ;;;; edit annotations
 
