@@ -15,12 +15,18 @@ The one main function this package provides is =ilist-string=.  It is
 called as follows.
 
 #+begin_src emacs-lisp :eval no :exports code
-(ilist-string LIST COLUMNS GROUPS DISCARD-EMPTY-P)
+  (ilist-string LIST COLUMNS GROUPS DISCARD-EMPTY-P
+                SORTER NO-TRAILING-SPACE)
 #+end_src
 
-Here the LIST is the list that the user wants to display.
-
-And DISCARD-EMPTY-P determines whether to display empty groups or not.
+- LIST is the list that the user wants to display
+- COLUMNS and GROUPS are described in the following sections
+- DISCARD-EMPTY-P determines whether to display empty groups or not
+- SORTER is either nil, or a function with two arguments which returns
+  non-nil if and only if the first argument should be sorted before
+  the second argument
+- NO-TRAILING-SPACE is non-nil if the function should not produce
+  trailing whitespaces
 
 ** Columns
 
@@ -31,8 +37,7 @@ comprises the following specifications:
 - FUN: A function that will be given the elements of the list (one at
   a time) that should return a string as the representation of that
   element in this column.
-- MIN: The minimal number of width this column takes.
-- MAX
+- MIN, MAX: The minimal (resp. maximal) width this column takes.
 - ALIGN: Either :left, :right, or :center.  How the contents of the
   column are aligned.
 - ELIDE: If the content of an element takes more space than the MAX,
@@ -40,7 +45,7 @@ comprises the following specifications:
   fixed "eliding string".  If this ELIDE is not a string, then it
   means not to elide, but to truncate the contents.
 
-**  GROUPS
+**  Groups
 
 *** Fixed groups
 

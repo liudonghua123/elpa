@@ -1,0 +1,244 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename ilist.info
+@settitle IList
+@c %**end of header
+@copying
+Display a list in an Ibuffer way.
+
+Copyright @copyright{} 2021  Durand
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+A copy of the license is included in the section entitled ``GNU
+Free Documentation License''.
+
+A copy of the license is also available from the Free Software
+Foundation Web site at @url{https://www.gnu.org/licenses/fdl.html}.
+
+@end quotation
+
+The document was typeset with
+@uref{https://www.gnu.org/software/texinfo/, GNU Texinfo}.
+
+@end copying
+
+@titlepage
+@title IList
+@subtitle Display a list in an Ibuffer way.
+@author Durand <mmemmew@@gmail.com>
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c Output the table of the contents at the beginning.
+@contents
+
+@ifnottex
+@node Top, About, (dir), (dir)
+@top IList
+
+@insertcopying
+@end ifnottex
+
+@c Generate the nodes for this menu with `C-c C-u C-m'.
+@menu
+* About::
+* Entry point::
+* Mapping over lines::
+* Moving::
+* Copying This Manual::
+* Index::
+@end menu
+
+@c Update all node entries with `C-c C-u C-n'.
+@c Insert new nodes with `C-c C-c n'.
+@node About, Entry point, Top, Top
+@chapter About
+
+This is a little library package that can @emph{display a list in an
+Ibuffer fashion}.  The core functionality it provides is a function that
+can accept a list, and produce a string showing the contents of the list
+according to the specifications of columns, groups, and sorters.
+
+@node Entry point, Mapping over lines, About, Top
+@comment  node-name,  next,  previous,  up
+@chapter Entry point
+
+The one main function this package provides is @code{ilist-string}.
+It is called as follows.
+
+@lisp
+(ilist-string LIST COLUMNS GROUPS DISCARD-EMPTY-P)
+@end lisp
+
+@table @code
+@item LIST
+This denotes the list that the user wants to display.
+@item COLUMNS
+@itemx GROUPS
+They are described in the following sections.
+@item DISCARD-EMPTY-P
+This determines whether to display empty groups or not.
+@item SORTER
+This is either nil, or a function with two arguments which returns
+non-nil if and only if the first argument should be sorted before the
+second argument.
+@item NO-TRAILING-SPACE
+This is non-nil if the function should not produce trailing
+whitespaces.
+@end table
+
+@menu
+* Columns::
+* Groups::
+@end menu
+
+@node Columns, Groups, Entry point, Entry point
+@comment  node-name,  next,  previous,  up
+@section Columns
+
+Like in Ibuffer, the user can specify columns to display.  Each column
+comprises the following specifications:
+
+@table @code
+@item NAME
+The name to display in the header.
+@item FUN
+A function that will be given the elements of the list (one at a time)
+that should return a string as the representation of that element in
+this column.
+@item MIN
+@itemx MAX
+The minimal (resp. maximal) width this column takes.
+@item ALIGN
+Either :left, :right, or :center.  How the contents of the column are
+aligned.
+@item ELIDE
+If the content of an element takes more space than the MAX, whether to
+substitute the last few characters of that content by a fixed
+@emph{eliding string}.  If this ELIDE is not a string, then it means
+not to elide, but to truncate the contents.
+@end table
+
+@node Groups,  , Columns, Entry point
+@comment  node-name,  next,  previous,  up
+@section Groups
+
+The first subsection of this section describes the specifications of
+groups.  And the second describes a planned feature that is not yet
+implemented.
+
+@menu
+* Fixed groups::
+* Automatic groups (planned)::
+@end menu
+
+@node Fixed groups, Automatic groups (planned), Groups, Groups
+@comment  node-name,  next,  previous,  up
+@subsection Fixed groups
+
+Like in Ibuffer, we can group elements together in the display.  One
+difference with Ibuffer is that elements that are not in any group are
+ignored.  If one wants a "default" group, specify that explicitly.
+The specifications of GROUPS are as follows.
+
+@table @code
+@item NAME
+The name of the group.  This will be enclosed in square brackets and
+displayed on a separate line.
+@item FUN
+A function with one argument.  If the function returns non-nil, then
+that element is considered to pertain to the group.
+@end table
+
+So a default group just uses a function that always returns @code{t},
+and is put at the end of the list @code{GROUPS}.
+
+Empty groups might or might not be displayed, depending on the value
+of @code{DISCARD-EMPTY-P}.
+
+@node Automatic groups (planned),  , Fixed groups, Groups
+@comment  node-name,  next,  previous,  up
+@subsection Automatic groups (planned)
+
+I plan to add support for automatic groups.  This means that, instead
+of providing a list of groups, one provides a function with one
+argument.  That argument will be fed the list of elements.  Then the
+function is supposed to return a list of the following form:
+
+@lisp
+(list
+ (NAME
+  (INDEX1 . ELEMENT1)
+  (INDEX2 . ELEMENT2)
+  ...)
+ ...)
+@end lisp
+
+That is, it should return cons cells of indices and elements, where
+the indices mean the indices of the corresponding element, in the
+original list.
+
+Then the user can provide functions to automatically group elements
+based on the criteria that fit the domain of application.
+
+@node Mapping over lines, Moving, Entry point, Top
+@comment  node-name,  next,  previous,  up
+@chapter Mapping over lines
+
+For the convenience of package-users, this package also provides some
+auxiliary functions to operate on the displayed list.  One is
+@code{ilist-map-lines}.  It is called as follows.
+
+@lisp
+(ilist-map-lines FUN PREDICATE START END)
+@end lisp
+
+@table @code
+@item FUN
+The function to execute on each matching line.
+@item PREDICATE
+This should be a function with no arguments.  It will be executed on
+each line.  If it returns non-nil, that line is considered to be
+matched.
+@item START
+@itemx END
+They limit the range of the mapping.
+@end table
+
+@node Moving, Copying This Manual, Mapping over lines, Top
+@comment  node-name,  next,  previous,  up
+@chapter Moving
+
+It might be desired to move between the displayed list items in a
+@emph{cyclic} manner, that is, assuming the top of the buffer is
+identified with the bottom of the buffer.  So the package provides
+four functions for moving.
+
+@table @code
+@item ilist-backward-line
+@itemx ilist-forward-line
+Move between lines.  One can control whether to skip group headers or
+to move cyclicly, through the function parameters.
+@item ilist-backward-group-header
+@itemx ilist-forward-group-header
+Move between group headers.
+@end table
+
+@node Copying This Manual, Index, Moving, Top
+@appendix Copying This Manual
+
+@c Get fdl.texi from https://www.gnu.org/licenses/fdl.html
+@include fdl-1.3.texi
+
+@node Index,  , Copying This Manual, Top
+@unnumbered Index
+
+@printindex cp
+
+@bye
