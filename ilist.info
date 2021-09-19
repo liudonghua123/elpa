@@ -142,7 +142,7 @@ File: ilist.info,  Node: Fixed groups,  Next: Automatic groups (planned),  Prev:
 Like in Ibuffer, we can group elements together in the display.  One
 difference with Ibuffer is that elements that are not in any group are
 ignored.  If one wants a "default" group, specify that explicitly.  The
-specifications of GROUPS are as follows.
+specifications of 'GROUPS' are as follows.
 
 'NAME'
      The name of the group.  This will be enclosed in square brackets
@@ -720,11 +720,11 @@ Node: Entry point2012
 Node: Columns2809
 Node: Groups3694
 Node: Fixed groups3995
-Node: Automatic groups (planned)4854
-Node: Mapping over lines5658
-Node: Moving6304
-Node: Copying This Manual6911
-Node: Index32019
+Node: Automatic groups (planned)4856
+Node: Mapping over lines5660
+Node: Moving6306
+Node: Copying This Manual6913
+Node: Index32021
 
 End Tag Table
 

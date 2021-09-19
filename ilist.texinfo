@@ -144,8 +144,8 @@ implemented.
 
 Like in Ibuffer, we can group elements together in the display.  One
 difference with Ibuffer is that elements that are not in any group are
-ignored.  If one wants a "default" group, specify that explicitly.
-The specifications of GROUPS are as follows.
+ignored.  If one wants a "default" group, specify that explicitly.  The
+specifications of @code{GROUPS} are as follows.
 
 @table @code
 @item NAME
