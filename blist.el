@@ -40,6 +40,13 @@
   "Display bookmarks in an Ibuffer manner."
   :group 'bookmark)
 
+;;;; Buffer name
+
+(defcustom blist-buffer-name "*Bookmark List*"
+  "The name of the buffer used to display bookmarks."
+  :group 'blist
+  :type 'string)
+
 ;;;; Display location or not
 
 (defcustom blist-display-location-p t
@@ -56,6 +63,8 @@
   :type 'boolean)
 
 ;;;; Filter groups
+
+;; Maybe it will be better to add an automatic default group?
 
 (defcustom blist-filter-groups (list
                                 (cons "Eshell" #'blist-eshell-p)
@@ -131,17 +140,9 @@ See `blist-sorter'."
 If BOOKMARK has no annotation, return a space string."
   (cond
    ((let ((annotation (bookmark-get-annotation bookmark)))
-      (and (stringp annotation)
-           (not (string= annotation ""))))
+      (and (stringp annotation) (not (string= annotation ""))))
     "*")
    (" ")))
-
-(defun blist-set-annotation-column (&rest _args)
-  "Set the annotation column.
-ARGS are there to conform to the customization interface."
-  (setq blist-annotation-column
-        (list blist-annotation-column-name #'blist-get-annotation
-              1 1 :left nil)))
 
 ;;;;; Real column definition
 
@@ -149,17 +150,15 @@ ARGS are there to conform to the customization interface."
   "The name of the column showing whether a bookmark has \
 annotations.
 
-Only the first letter will be shown.
-
-If one changes this, run `blist-set-annotation-column' to set the
-annotation column again."
+Only the first letter will be shown."
   :group 'blist
   :type 'string)
 
-(defvar blist-annotation-column
+(defun blist-annotation-column ()
+  "The specification of the ANNOTATION column."
+  (declare (side-effect-free t))
   (list blist-annotation-column-name #'blist-get-annotation
-        1 1 :left nil)
-  "The specification of the ANNOTATION column.")
+        1 1 :left nil))
 
 ;;;; How to open multiple bookmarks?
 
@@ -312,6 +311,10 @@ of the required type."
 
 ;;;; List function
 
+;; an alias for discoverability
+
+(defalias #'blist #'blist-list-bookmarks)
+
 ;;;###autoload
 (defun blist-list-bookmarks (&rest _args)
   "List bookmarks in an ibuffer fashion.
@@ -322,7 +325,7 @@ used as a `revert-buffer-function'."
   (interactive)
   ;; load the bookmark if needed
   (bookmark-maybe-load-default-file)
-  (let ((buffer (get-buffer-create bookmark-bmenu-buffer))
+  (let ((buffer (get-buffer-create blist-buffer-name))
         (first-time-generated t))
     (with-current-buffer buffer
       (let ((inhibit-read-only t)
@@ -379,7 +382,7 @@ used as a `revert-buffer-function'."
           bookmark-alist
           (append
            (list ilist-mark-column
-                 blist-annotation-column
+                 (blist-annotation-column)
                  (blist-name-column))
            (cond
             (blist-display-location-p (list blist-location-column))))
@@ -413,7 +416,7 @@ used as a `revert-buffer-function'."
               ((goto-char (line-beginning-position)))))
       (blist-mode))
     (display-buffer buffer)
-    (select-window (get-buffer-window bookmark-bmenu-buffer))
+    (select-window (get-buffer-window blist-buffer-name))
     ;; if generated for the first time, advance a line
     (cond
      (first-time-generated (ilist-forward-line 1 nil t)))))
@@ -887,8 +890,14 @@ bookmark at point, use `completing-read' to choose one."
                       (complete-with-action
                        action items str pred)))
                   nil t)))
-               ((user-error "No bookmarks to show")))))
-           ((user-error "No bookmarks to show")))))
+               ((user-error
+                 (concat
+                  "No bookmarks selected or the selected "
+                  "bookmarks have no annotations"))))))
+           ((user-error
+             (concat
+              "No bookmarks selected or the selected "
+              "bookmarks have no annotations"))))))
     (blist-show-all-annotations targets)))
 
 ;;;; show all annotations
