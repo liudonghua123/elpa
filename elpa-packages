@@ -387,6 +387,12 @@
  ("system-packages"	:url "https://gitlab.com/jabranham/system-packages")
  ("systemd"		:url nil)
  ("taxy"                :url "https://github.com/alphapapa/taxy.el.git"
+  :doc "taxy.info"
+  :ignored-files ("images")
+  :auto-sync t)
+ ("taxy-magit-section"  :url "https://github.com/alphapapa/taxy.el.git"
+  :branch "package/taxy-magit-section"
+  :doc "taxy-magit-section.info"
   :auto-sync t)
  ("temp-buffer-browse"  :url "https://github.com/leoliu/temp-buffer-browse")
  ("test-simple"         :url "https://github.com/rocky/emacs-test-simple")
