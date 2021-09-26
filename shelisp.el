@@ -56,14 +56,16 @@
 ;; to your Emacs initialization script:
 
 ;;   (add-hook 'shell-mode-hook #'shelisp-mode)
+;;   (add-hook 'term-mode-hook #'shelisp-mode)
+
+;;   ;; iff `vterm' package was installed
+;;   (add-hook 'vterm-mode-hook #'shelisp-mode)
 
 ;; TO DOs:
 
 ;; * Provide a security feature that prompts the Emacs user to approve
-;; * the execution of any elisp expressions submitted thru the shelisp
-;; * escape sequence.
-
-;; * Support `term-mode' like `shell-mode'
+;;   the execution of any elisp expressions submitted thru the shelisp
+;;   escape sequence.
 
 ;; * Support for bash, ksh, and fish is provided (thank you for
 ;;   motivation and effort, Eduardo Ochs <eduardoochs@gmail.com>);
@@ -93,20 +95,17 @@
 (require 'pp)
 (require 'term)
 
+(declare-function internal-default-process-filter "process.c")
+
 ;;;###autoload
 (define-minor-mode shelisp-mode
   "Enable elisp expressions embedded in ANSI APC (Application
 Program Control) escape sequences to be located and executed
 while in a shell mode buffer."
   nil " ShElisp" nil
-
-  (if (not shelisp-mode)
-      (remove-hook 'comint-preoutput-filter-functions
-	           #'shelisp-exec-lisp)
-    ;; Parse elisp escape sequences
-    (add-hook 'comint-preoutput-filter-functions
-	      #'shelisp-exec-lisp 'append)
-    (shelisp-add-commands)))
+  (if shelisp-mode
+      (shelisp--enable)
+    (shelisp--disable)))
 
 ;;;###autoload
 (defvar shelisp-debug nil
@@ -119,18 +118,24 @@ If nil, the shell is inferred from the from the `shell'
 settings (`explicit-shell-file-name', the environment variable
 `ESHELL', or `shell-file-name').")
 
+(defvar-local shelisp--previous-process-filter nil
+  "Previous value of process filter.  See `set-process-filter'.")
+
 (defvar shelisp--wrapper-commands
   '((bash
      "unset -f shelisp_%1$s"
-     "function shelisp_%1$s { printf '\\e_#EMACS# %2$s \\a' \"$@\" ; }"
+     "function shelisp_%1$s { printf '\\e_#EMACS# %2$s \e\\' \"$@\" ; }"
+     "alias %1$s=shelisp_%1$s")
+    (dash
+     "shelisp_%1$s () {; printf '\\e_#EMACS# %2$s \e\\' \"$@\" ; }"
      "alias %1$s=shelisp_%1$s")
     (zsh
      "unfunction shelisp_%1$s >/dev/null 2>&1"
-     "function shelisp_%1$s { printf '\\e_#EMACS# %2$s \\a' \"$@\" ; }"
+     "function shelisp_%1$s { printf '\\e_#EMACS# %2$s \e\\' \"$@\" ; }"
      "alias %1$s=shelisp_%1$s")
     (fish
      "function %1$s"
-     "printf '\\e_#EMACS# %2$s \\a' $argv"
+     "printf '\\e_#EMACS# %2$s \e\\' $argv"
      "end"))
 
   "Alist of shell commands necessary to make ShElisp work.
@@ -202,12 +207,20 @@ convert it to a string."
                    t t str)))))
   str)
 
+(defun shelisp--process-output-filter (proc str)
+  "Insert STR into buffer owned by PROC after executing elisp."
+
+  (funcall (or shelisp--previous-process-filter
+               #'internal-default-process-filter)
+           proc
+           (shelisp-exec-lisp str)))
 
 ;;;###autoload
 (defvar shelisp-commands (let ((cmds '(("e" .     "(find-file-other-window (f \"%s\"))")
                                        ("v" .     "(view-file-other-window (f \"%s\"))")
                                        ("dired" . "(dired (f \"%s\"))")
-                                       ("ediff" . "(ediff (f \"%s\") (f \"%s\"))"))))
+                                       ("ediff" . "(ediff (f \"%s\") (f \"%s\"))")
+                                       ("man"   . "(man \"%s\")"))))
                            (when (locate-library "magit")
                              (push '("magit" . "(magit-status)") cmds))
                            (when (or (bound-and-true-p viper-mode)
@@ -260,6 +273,39 @@ expression and cannot be used elsewhere.")
                   (list cmd expr)))))
 
       (process-send-string proc "\n"))))
+
+
+(defun shelisp--enable ()
+  "Enable `shelisp-mode' in the current buffer."
+
+  (let ((proc (get-buffer-process (current-buffer))))
+    (cond
+     ((derived-mode-p 'comint-mode)
+      ;; Parse elisp escape sequences
+      (add-hook 'comint-preoutput-filter-functions
+	        #'shelisp-exec-lisp 'append)
+      (shelisp-add-commands))
+
+     (proc
+      (setq shelisp--previous-process-filter (process-filter proc))
+      (set-process-filter proc #'shelisp--process-output-filter)
+      (shelisp-add-commands))
+
+     (:else
+      (message"ShElisp is not active")))))
+
+(defun shelisp--disable ()
+  "Disable `shelisp-mode' in the current buffer."
+
+  (let ((proc (get-buffer-process (current-buffer))))
+    (cond
+     ((derived-mode-p 'comint-mode)
+      (remove-hook 'comint-preoutput-filter-functions
+	           #'shelisp-exec-lisp))
+
+     (proc
+      (set-process-filter proc shelisp--previous-process-filter)
+      (setq shelisp--previous-process-filter nil)))))
 
 (provide 'shelisp)
 ;;; shelisp.el ends here
