@@ -369,6 +369,8 @@
  ("stream"		:url nil)
  ("svg"			:core ("lisp/svg.el"))
  ("svg-clock"		:url nil)
+ ("svg-lib"		:url "https://github.com/rougier/svg-lib"
+  :auto-sync t)
  ("swiper"		:url "https://github.com/abo-abo/swiper")
  ("system-packages"	:url "https://gitlab.com/jabranham/system-packages")
  ("systemd"		:url nil)
