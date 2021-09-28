@@ -136,8 +136,10 @@ handlers if the symbol (e.g. `man') is contained in the list."
              ("cd" . shell-command+-cmd-cd))))
   "Association of command substitutes in Elisp.
 Each entry has the form (COMMAND . FUNC), where FUNC is passed
-the command string"
-  :type 'boolean)
+the command string.  To disable all command substitutions, set
+this option to nil."
+  :type '(alist :key-type (string :tag "Command Name")
+                :value-type (function :tag "Substitute")))
 
 
 
