@@ -74,7 +74,7 @@
 (defcustom shell-command+-use-eshell nil
   "Check for eshell handlers.
 If t, always invoke eshell handlers.  If a list, only invoke
-handlers if the symbol (eg. `man') is contained in the list."
+handlers if the symbol (e.g. `man') is contained in the list."
   :type '(choice (boolean :tag "Always active?")
                  (repeat :tag "Selected commands" symbol)))
 
