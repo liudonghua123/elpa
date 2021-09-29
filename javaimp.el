@@ -149,17 +149,13 @@ files in the current project and add their fully-qualified names
 to the completion alternatives list."
   :type 'boolean)
 
-(defcustom javaimp-imenu-group-methods t
-  "How to lay out methods in Imenu index.
-If t (the default), methods are grouped in their enclosing
-scopes.  nil means use just flat list of simple method names.
-`qualified' means use flat list where each method name is
-prepended with nested scopes.  See also
-`javaimp-format-method-name'."
+(defcustom javaimp-imenu-group-methods nil
+  "Non-nil means group methods in their enclosing scopes.
+nil (the default) means just use flat list of simple method
+names.  See also `javaimp-format-method-name'."
   :type '(choice :tag "Group methods"
-		 (const :tag "Group into enclosing scopes" t)
-		 (const :tag "Flat list of simple name" nil)
-		 (const :tag "Flat list of qualified names" qualified)))
+		 (const :tag "Grouped" t)
+		 (const :tag "Simple list" nil)))
 
 (defcustom javaimp-cygpath-program
   (if (eq system-type 'cygwin) "cygpath")
@@ -479,7 +475,6 @@ prefix arg is given, don't do this filtering."
           (javaimp--get-file-classes-1))
       (with-temp-buffer
         (insert-file-contents file)
-        (setq javaimp--parse-dirty-pos (point-min))
         (javaimp--get-file-classes-1)))))
 
 (defun javaimp--get-file-classes-1 ()
@@ -625,58 +620,38 @@ is `ordinary' or `static'.  Interactively, NEW-IMPORTS is nil."
 
 ;;;###autoload
 (defun javaimp-imenu-create-index ()
-  "Function to use as `imenu-create-index-function'.
-
-Currently it requires some manual setup, something like this in
-the `java-mode-hook':
-
-  (setq imenu-create-index-function #'javaimp-imenu-create-index)
-  (setq syntax-ppss-table javaimp-syntax-table)
-  (setq javaimp--parse-dirty-pos (point-min))
-  (add-hook 'after-change-functions #'javaimp--parse-update-dirty-pos)
-
-In future, when we implement a minor / major mode, it will be
-done in mode functions automatically."
+  "Function to use as `imenu-create-index-function', can be set
+in a major mode hook."
   (let ((forest (javaimp-imenu--get-forest)))
-    (cond ((not javaimp-imenu-group-methods)
-           ;; plain list of methods
-           (let ((entries (javaimp-imenu--make-entries-simple forest))
-                 name-alist)
-             (mapc (lambda (entry)
-                     (setf (alist-get (car entry) name-alist 0 nil #'equal)
-                           (1+ (alist-get (car entry) name-alist 0 nil #'equal))))
-                   entries)
-             (mapc (lambda (entry)
-                     ;; disambiguate same method names
-                     (when (> (alist-get (car entry) name-alist 0 nil #'equal) 1)
-                       (setcar entry
-                               (format "%s [%s]"
-                                       (car entry)
-                                       (javaimp--concat-scope-parents
-                                        (nth 3 entry))))))
-                   entries)))
-          ((eq javaimp-imenu-group-methods 'qualified)
-           ;; list of qualified methods
-           (mapc (lambda (entry)
-                   ;; prepend parents to name
-                   (setcar entry (concat (javaimp--concat-scope-parents
-                                          (nth 3 entry))
-                                         "."
-                                         (car entry))))
-                 (javaimp-imenu--make-entries-simple forest)))
-          (t
-           ;; group methods inside their enclosing class
-           (javaimp--map-nodes
-            (lambda (scope)
-              (if (eq (javaimp-scope-type scope) 'method)
-                  ;; entry
-                  (cons nil (javaimp-imenu--make-entry scope))
-                ;; sub-alist
-                (cons t (javaimp-scope-name scope))))
-            (lambda (res)
-              (or (functionp (nth 2 res)) ;entry
-                  (cdr res)))             ;non-empty sub-alist
-            forest)))))
+    (if javaimp-imenu-group-methods
+        ;; group methods inside parents
+        (javaimp--map-nodes
+         (lambda (scope)
+           (if (eq (javaimp-scope-type scope) 'method)
+               ;; entry
+               (cons nil (javaimp-imenu--make-entry scope))
+             ;; sub-alist
+             (cons t (javaimp-scope-name scope))))
+         (lambda (res)
+           (or (functionp (nth 2 res)) ;entry
+               (cdr res)))             ;non-empty sub-alist
+         forest)
+      ;; plain list of methods
+      (let ((entries (javaimp-imenu--make-entries-simple forest))
+            name-alist)
+        (mapc (lambda (entry)
+                (setf (alist-get (car entry) name-alist 0 nil #'equal)
+                      (1+ (alist-get (car entry) name-alist 0 nil #'equal))))
+              entries)
+        (mapc (lambda (entry)
+                ;; disambiguate same method names
+                (when (> (alist-get (car entry) name-alist 0 nil #'equal) 1)
+                  (setcar entry
+                          (format "%s [%s]"
+                                  (car entry)
+                                  (javaimp--concat-scope-parents
+                                   (nth 3 entry))))))
+              entries)))))
 
 (defun javaimp-imenu--get-forest ()
   (let* ((scopes (javaimp--parse-get-all-scopes
@@ -695,11 +670,9 @@ done in mode functions automatically."
          (top-classes (seq-filter (lambda (s)
                                     (null (javaimp-scope-parent s)))
                                   classes))
-         (abstract-methods (javaimp--parse-abstract-methods
-                            (seq-filter
-                             (lambda (scope)
-                               (eq (javaimp-scope-type scope) 'interface))
-                             scopes))))
+         (abstract-methods (append
+                            (javaimp--parse-get-class-abstract-methods)
+                            (javaimp--parse-get-interface-abstract-methods))))
     (mapcar
      (lambda (top-class)
        (message "Building tree for top-level class-like scope: %s"

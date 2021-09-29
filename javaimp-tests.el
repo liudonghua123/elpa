@@ -62,7 +62,7 @@ Exception4<? super Exception5>>")
 
 
 
-;; Tests for scope parsers, which should be in
+;; Tests for single scope parsers, which should be in
 ;; `javaimp--parse-scope-hook'.
 
 (ert-deftest javaimp-test--parse-scope-class ()
@@ -165,8 +165,6 @@ throws E1 {"
   (dolist (item test-items)
     (with-temp-buffer
       (insert (nth 0 item))
-      (setq syntax-ppss-table javaimp-syntax-table)
-      (setq javaimp--parse-dirty-pos (point-min))
       (let ((scopes (javaimp--parse-get-all-scopes)))
         (should (= 1 (length scopes)))
         (should (eq (javaimp-scope-type (car scopes)) (nth 1 item)))
@@ -182,17 +180,14 @@ throws E1 {"
 /*
 package commented.block;
 */")
-    (setq syntax-ppss-table javaimp-syntax-table)
     (should (equal (javaimp--parse-get-package) "foo.bar.baz"))))
 
 (ert-deftest javaimp-test--parse-get-all-scopes ()
   (with-temp-buffer
     (insert-file-contents
      (concat javaimp--basedir "testdata/test1-misc-classes.java"))
-    (setq syntax-ppss-table javaimp-syntax-table)
     (let ((javaimp-format-method-name #'javaimp-format-method-name-types))
       ;; parse full buffer
-      (setq javaimp--parse-dirty-pos (point-min))
       (javaimp-test--check-named-scopes)
       ;;
       ;; reparse half of buffer
@@ -289,121 +284,12 @@ package commented.block;
 
 
 
-;; Tests for imenu function
-
-(ert-deftest javaimp-test--imenu-group ()
-  (let* ((javaimp-imenu-group-methods t)
-         (javaimp-format-method-name #'javaimp-format-method-name-types)
-         (actual (with-temp-buffer
-                   (insert-file-contents
-                    (concat javaimp--basedir "testdata/test1-misc-classes.java"))
-                   (setq syntax-ppss-table javaimp-syntax-table)
-                   (setq javaimp--parse-dirty-pos (point-min))
-                   (let ((imenu-use-markers nil))
-                     (javaimp-imenu-create-index)))))
-    (javaimp-test--imenu-simplify-entries actual)
-    (should
-     (equal
-      '(("Top"
-         ("CInner1"
-          ("foo()" . 98)
-          ("CInner1_CInner1"
-           ("foo()" . 1099)
-           ("abstract_method()" . 1148)
-           ("bar()" . 1192)
-           ("baz()" . 1281)))
-         ("IInner1"
-          ("foo()" . 1603)
-          ("abstract_method()" . 1715)
-          ("IInner1_CInner1"
-           ("foo()" . 1798))
-          ("baz()" . 1934)
-          ("defaultMethod(String)" . 1963)
-          ("IInner1_IInner1"
-           ("foo()" . 2122)
-           ("defaultMethod(String)" . 2157)
-           ("baz()" . 2258)))
-         ("EnumInner1"
-          ("EnumInner1()" . 2353)
-          ("foo()" . 2399)
-          ;; "EnumInner1_EInner1" omitted because no methods inside
-          ))
-        ("ColocatedTop"
-         ("foo()" . 2554)
-         ("bar(String, String)" . 2578)))
-      actual))))
-
-(defun javaimp-test--imenu-simplify-entries (alist)
-  (dolist (elt alist)
-    (if (and (= (length elt) 4)
-             (functionp (nth 2 elt)))
-        (setcdr elt (nth 1 elt))
-      (javaimp-test--imenu-simplify-entries (cdr elt)))))
-
-(ert-deftest javaimp-test--imenu-simple ()
-  (let ((javaimp-format-method-name #'javaimp-format-method-name-types)
-        (javaimp-imenu-group-methods nil))
-    (javaimp-test--imenu-method-list
-     '("foo() [Top.CInner1]"
-       "foo() [Top.CInner1.CInner1_CInner1]"
-       "abstract_method() [Top.CInner1.CInner1_CInner1]"
-       "bar()"
-       "baz() [Top.CInner1.CInner1_CInner1]"
-       "foo() [Top.IInner1]"
-       "abstract_method() [Top.IInner1]"
-       "foo() [Top.IInner1.IInner1_CInner1]"
-       "baz() [Top.IInner1]"
-       "defaultMethod(String) [Top.IInner1]"
-       "foo() [Top.IInner1.IInner1_IInner1]"
-       "defaultMethod(String) [Top.IInner1.IInner1_IInner1]"
-       "baz() [Top.IInner1.IInner1_IInner1]"
-       "EnumInner1()"
-       "foo() [Top.EnumInner1]"
-       "foo() [ColocatedTop]"
-       "bar(String, String)"))))
-
-(ert-deftest javaimp-test--imenu-qualified ()
-  (let ((javaimp-format-method-name #'javaimp-format-method-name-types)
-        (javaimp-imenu-group-methods 'qualified))
-    (javaimp-test--imenu-method-list
-     '("Top.CInner1.foo()"
-       "Top.CInner1.CInner1_CInner1.foo()"
-       "Top.CInner1.CInner1_CInner1.abstract_method()"
-       "Top.CInner1.CInner1_CInner1.bar()"
-       "Top.CInner1.CInner1_CInner1.baz()"
-       "Top.IInner1.foo()"
-       "Top.IInner1.abstract_method()"
-       "Top.IInner1.IInner1_CInner1.foo()"
-       "Top.IInner1.baz()"
-       "Top.IInner1.defaultMethod(String)"
-       "Top.IInner1.IInner1_IInner1.foo()"
-       "Top.IInner1.IInner1_IInner1.defaultMethod(String)"
-       "Top.IInner1.IInner1_IInner1.baz()"
-       "Top.EnumInner1.EnumInner1()"
-       "Top.EnumInner1.foo()"
-       "ColocatedTop.foo()"
-       "ColocatedTop.bar(String, String)"))))
-
-(defun javaimp-test--imenu-method-list (expected-names)
-  (let ((actual
-         (with-temp-buffer
-           (insert-file-contents
-            (concat javaimp--basedir "testdata/test1-misc-classes.java"))
-           (setq syntax-ppss-table javaimp-syntax-table)
-           (setq javaimp--parse-dirty-pos (point-min))
-           (let ((imenu-use-markers nil))
-             (javaimp-imenu-create-index)))))
-    (should (= (length expected-names) (length actual)))
-    (dotimes (i (length expected-names))
-      (should (equal (nth i expected-names) (car (nth i actual)))))))
-
+;; Tests for javaimp--get-file-classes-1
 
 (ert-deftest javaimp-test--get-file-classes ()
   (with-temp-buffer
     (insert-file-contents
      (concat javaimp--basedir "testdata/test1-misc-classes.java"))
-    (setq syntax-ppss-table javaimp-syntax-table)
-    (setq javaimp--parse-dirty-pos (point-min))
     (should (equal (javaimp--get-file-classes-1)
                    '("org.foo.Top"
                      "org.foo.Top.CInner1"
@@ -414,6 +300,85 @@ package commented.block;
                      "org.foo.Top.EnumInner1"
                      "org.foo.Top.EnumInner1.EnumInner1_EInner1"
                      "org.foo.ColocatedTop")))))
+
+
+;; Tests for imenu function
+
+(ert-deftest javaimp-test--imenu ()
+  (let* ((javaimp-format-method-name #'javaimp-format-method-name-types)
+         (actual
+          (with-temp-buffer
+            (insert-file-contents
+             (concat javaimp--basedir "testdata/test1-misc-classes.java"))
+            (let ((imenu-use-markers nil))
+              (javaimp-imenu-create-index))))
+         (expected-names
+          '("foo() [Top.CInner1]"
+            "foo() [Top.CInner1.CInner1_CInner1]"
+            "abstract_method() [Top.CInner1.CInner1_CInner1]"
+            "bar()"
+            "baz() [Top.CInner1.CInner1_CInner1]"
+            "foo() [Top.IInner1]"
+            "abstract_method() [Top.IInner1]"
+            "foo() [Top.IInner1.IInner1_CInner1]"
+            "baz() [Top.IInner1]"
+            "defaultMethod(String) [Top.IInner1]"
+            "foo() [Top.IInner1.IInner1_IInner1]"
+            "defaultMethod(String) [Top.IInner1.IInner1_IInner1]"
+            "baz() [Top.IInner1.IInner1_IInner1]"
+            "EnumInner1()"
+            "foo() [Top.EnumInner1]"
+            "foo() [ColocatedTop]"
+            "bar(String, String)")))
+    (should (= (length expected-names) (length actual)))
+    (dotimes (i (length expected-names))
+      (should (equal (nth i expected-names) (car (nth i actual)))))))
+
+(ert-deftest javaimp-test--imenu-group-methods ()
+  (let* ((javaimp-format-method-name #'javaimp-format-method-name-types)
+         (javaimp-imenu-group-methods t)
+         (actual (with-temp-buffer
+                   (insert-file-contents
+                    (concat javaimp--basedir "testdata/test1-misc-classes.java"))
+                   (let ((imenu-use-markers nil))
+                     (javaimp-imenu-create-index))))
+         (expected
+          '(("Top"
+             ("CInner1"
+              ("foo()" . 98)
+              ("CInner1_CInner1"
+               ("foo()" . 1099)
+               ("abstract_method()" . 1148)
+               ("bar()" . 1192)
+               ("baz()" . 1281)))
+             ("IInner1"
+              ("foo()" . 1603)
+              ("abstract_method()" . 1715)
+              ("IInner1_CInner1"
+               ("foo()" . 1798))
+              ("baz()" . 1934)
+              ("defaultMethod(String)" . 1963)
+              ("IInner1_IInner1"
+               ("foo()" . 2122)
+               ("defaultMethod(String)" . 2157)
+               ("baz()" . 2258)))
+             ("EnumInner1"
+              ("EnumInner1()" . 2353)
+              ("foo()" . 2399)
+              ;; "EnumInner1_EInner1" omitted because no methods inside
+              ))
+            ("ColocatedTop"
+             ("foo()" . 2554)
+             ("bar(String, String)" . 2578)))))
+    (javaimp-test--imenu-simplify-entries actual)
+    (should (equal expected actual))))
+
+(defun javaimp-test--imenu-simplify-entries (alist)
+  (dolist (elt alist)
+    (if (and (= (length elt) 4)
+             (functionp (nth 2 elt)))
+        (setcdr elt (nth 1 elt))
+      (javaimp-test--imenu-simplify-entries (cdr elt)))))
 
 
 (provide 'javaimp-tests)

@@ -31,10 +31,9 @@
 (defconst javaimp--parse-stmt-keyword-maxlen
   (seq-max (mapcar #'length javaimp--parse-stmt-keywords)))
 
-(defvar-local javaimp--parse-dirty-pos nil
+(defvar-local javaimp--parse-dirty-pos 'init
   "Buffer position after which all parsed information should be
-considered as stale.  Usually set by modification change hooks.
-Should be set to (point-min) in major mode hook.")
+considered as stale.  Usually set by modification change hooks.")
 
 (defsubst javaimp--parse-substr-before-< (str)
   (let ((end (string-search "<" str)))
@@ -367,10 +366,13 @@ then goes all the way up.  Examines and sets property
   "Entry point to the scope parsing.  Parses scopes in this
 buffer which are after `javaimp--parse-dirty-pos', if it is
 non-nil.  Resets this variable after parsing is done."
-  ;; FIXME Set parse-sexp-.. vars, as well as syntax-table and
-  ;; syntax-ppss-table, in major mode function.  Remove let-binding of
-  ;; inhibit-modification-hooks here.
   (when javaimp--parse-dirty-pos
+    (when (eq javaimp--parse-dirty-pos 'init)
+      ;; TODO better way to do this
+      (setq javaimp--parse-dirty-pos (point-min))
+      (setq syntax-ppss-table javaimp-syntax-table)
+      (add-hook 'after-change-functions #'javaimp--parse-update-dirty-pos))
+    ;; FIXME this inhibits costly cc-mode hooks on prop updates
     (let ((inhibit-modification-hooks t))
       (remove-text-properties javaimp--parse-dirty-pos (point-max)
                               '(javaimp-parse-scope nil))
@@ -385,7 +387,7 @@ non-nil.  Resets this variable after parsing is done."
               (javaimp--parse-scopes nil)))))
       (setq javaimp--parse-dirty-pos nil))))
 
-(defun javaimp--parse-abstract-class-methods ()
+(defun javaimp--parse-class-abstract-methods ()
   (goto-char (point-max))
   (let (res)
     (while (javaimp--parse-rsb-keyword "\\_<abstract\\_>" nil t)
@@ -405,7 +407,7 @@ non-nil.  Resets this variable after parsing is done."
               (push scope res))))))
     res))
 
-(defun javaimp--parse-abstract-interface-methods (int-scope)
+(defun javaimp--parse-interface-abstract-methods (int-scope)
   (let ((start (1+ (javaimp-scope-open-brace int-scope)))
         (end (ignore-errors
                (1- (scan-lists (javaimp-scope-open-brace int-scope) 1 0))))
@@ -425,6 +427,13 @@ non-nil.  Resets this variable after parsing is done."
           (goto-char (nth 1 (syntax-ppss))))))
     res))
 
+(defun javaimp--parse-update-dirty-pos (beg _end _old-len)
+  "Function to add to `after-change-functions' hook."
+  (when (or (not javaimp--parse-dirty-pos)
+            (and (numberp javaimp--parse-dirty-pos)
+                 (< beg javaimp--parse-dirty-pos)))
+    (setq javaimp--parse-dirty-pos beg)))
+
 
 ;; Functions intended to be called from other parts of javaimp.
 
@@ -433,6 +442,7 @@ non-nil.  Resets this variable after parsing is done."
   (save-excursion
     (save-restriction
       (widen)
+      (javaimp--parse-all-scopes)
       (goto-char (point-max))
       (when (javaimp--parse-rsb-keyword
              "^[ \t]*package[ \t]+\\([^ \t;\n]+\\)[ \t]*;" nil t 1)
@@ -459,18 +469,23 @@ them should move point."
             (push scope res)))
         res))))
 
-(defun javaimp--parse-abstract-methods (interfaces)
+(defun javaimp--parse-get-class-abstract-methods ()
   (save-excursion
     (save-restriction
       (widen)
-      (append (javaimp--parse-abstract-class-methods)
-              (seq-mapcat #'javaimp--parse-abstract-interface-methods
-                          interfaces)))))
+      (javaimp--parse-all-scopes)
+      (javaimp--parse-class-abstract-methods))))
 
-(defun javaimp--parse-update-dirty-pos (beg _end _old-len)
-  "Function to add to `after-change-functions' hook."
-  (when (or (not javaimp--parse-dirty-pos)
-            (< beg javaimp--parse-dirty-pos))
-    (setq javaimp--parse-dirty-pos beg)))
+(defun javaimp--parse-get-interface-abstract-methods ()
+  (save-excursion
+    (save-restriction
+      (widen)
+      (let ((interfaces
+             (javaimp--parse-get-all-scopes
+              (lambda (scope)
+                (javaimp-test-scope-type scope
+                  '(interface) javaimp--classlike-scope-types)))))
+        (seq-mapcat #'javaimp--parse-interface-abstract-methods
+                    interfaces)))))
 
 (provide 'javaimp-parse)
