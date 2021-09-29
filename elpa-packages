@@ -260,6 +260,8 @@
  ("nadvice"		:url nil)
  ("nameless"		:url "https://github.com/Malabarba/Nameless")
  ("names"		:url "https://github.com/Malabarba/names")
+ ("nano-theme"		:url "https://github.com/rougier/nano-theme"
+  :auto-sync t)
  ("nhexl-mode"		:url nil)
  ("nlinum"		:url nil)
  ("notes-mode"		:url nil)
@@ -291,6 +293,9 @@
  ("path-iterator"	:url nil)
  ("peg"			:url) ;Was in "https://github.com/ellerh/peg.el"
  ("persist"             :url "https://gitlab.com/phillord/persist.git")
+ ;; FIXME: Waiting for copyright paperwork.
+ ;; ("phpinspect"		:url "https://git.sr.ht/~hugot/phpinspect.el"
+ ;;  :auto-sync t)
  ("phps-mode"		:url "https://github.com/cjohansson/emacs-phps-mode")
  ("pinentry"		:url "https://github.com/ueno/pinentry-el.git")
  ("poker"		:url nil)
