@@ -183,7 +183,7 @@ See the variable `tramp-encoding-shell' for more information."
   :version "24.1"
   :type '(choice (const nil) string))
 
-;; Since Emacs 26.1, `system-name' can return `nil' at build time if
+;; Since Emacs 26.1, `system-name' can return nil at build time if
 ;; Emacs is compiled with "--no-build-details".  We do expect it to be
 ;; a string.  (Bug#44481)
 (defconst tramp-system-name (or (system-name) "")
@@ -5463,8 +5463,8 @@ this file, if that variable is non-nil."
     ;; Create directory.
     (unless (or (null tramp-auto-save-directory)
 		(file-exists-p tramp-auto-save-directory))
-      (make-directory tramp-auto-save-directory t)
-      (set-file-modes tramp-auto-save-directory #o0700))
+      (with-file-modes #o0700
+        (make-directory tramp-auto-save-directory t)))
 
     (let ((system-type
 	   (if (and (stringp tramp-auto-save-directory)
