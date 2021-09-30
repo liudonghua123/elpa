@@ -367,12 +367,9 @@ then goes all the way up.  Examines and sets property
 buffer which are after `javaimp--parse-dirty-pos', if it is
 non-nil.  Resets this variable after parsing is done."
   (when javaimp--parse-dirty-pos
-    (when (eq javaimp--parse-dirty-pos 'init)
-      ;; TODO better way to do this
-      (setq javaimp--parse-dirty-pos (point-min))
-      (setq syntax-ppss-table javaimp-syntax-table)
-      (add-hook 'after-change-functions #'javaimp--parse-update-dirty-pos))
-    ;; FIXME this inhibits costly cc-mode hooks on prop updates
+    (javaimp--parse-ensure-buffer-setup)
+    ;; cc-mode sets some costly modification hooks, we can inhibit
+    ;; them because we update only our private props here
     (let ((inhibit-modification-hooks t))
       (remove-text-properties javaimp--parse-dirty-pos (point-max)
                               '(javaimp-parse-scope nil))
@@ -386,6 +383,13 @@ non-nil.  Resets this variable after parsing is done."
               ;; Set props at this brace and all the way up
               (javaimp--parse-scopes nil)))))
       (setq javaimp--parse-dirty-pos nil))))
+
+(defun javaimp--parse-ensure-buffer-setup ()
+  ;; FIXME This may be done in major/minor mode setup
+  (when (eq javaimp--parse-dirty-pos 'init)
+    (setq javaimp--parse-dirty-pos (point-min))
+    (setq syntax-ppss-table javaimp-syntax-table)
+    (add-hook 'after-change-functions #'javaimp--parse-update-dirty-pos)))
 
 (defun javaimp--parse-class-abstract-methods ()
   (goto-char (point-max))
@@ -435,57 +439,46 @@ non-nil.  Resets this variable after parsing is done."
     (setq javaimp--parse-dirty-pos beg)))
 
 
-;; Functions intended to be called from other parts of javaimp.
+;; Functions intended to be called from other parts of javaimp.  They
+;; do not preserve excursion / restriction - it's the caller's
+;; responsibility.
 
 (defun javaimp--parse-get-package ()
   "Return the package declared in the current file."
-  (save-excursion
-    (save-restriction
-      (widen)
-      (javaimp--parse-all-scopes)
-      (goto-char (point-max))
-      (when (javaimp--parse-rsb-keyword
-             "^[ \t]*package[ \t]+\\([^ \t;\n]+\\)[ \t]*;" nil t 1)
-        (match-string 1)))))
+  (javaimp--parse-all-scopes)
+  (goto-char (point-max))
+  (when (javaimp--parse-rsb-keyword
+         "^[ \t]*package[ \t]+\\([^ \t;\n]+\\)[ \t]*;" nil t 1)
+    (match-string 1)))
 
 (defun javaimp--parse-get-all-scopes (&optional pred parent-pred)
   "Return all scopes in the current buffer, optionally filtering
 them with PRED, and their parents with PARENT-PRED.  Neither of
 them should move point."
-  (save-excursion
-    (save-restriction
-      (widen)
-      (javaimp--parse-all-scopes)
-      (let ((pos (point-max))
-            scope res)
-        (while (setq pos (previous-single-property-change pos 'javaimp-parse-scope))
-          (setq scope (get-text-property pos 'javaimp-parse-scope))
-          (when (and scope
-                     (or (null pred)
-                         (funcall pred scope)))
-            (setq scope (javaimp--copy-scope scope))
-            (when parent-pred
-              (javaimp--filter-scope-parents scope parent-pred))
-            (push scope res)))
-        res))))
+  (javaimp--parse-all-scopes)
+  (let ((pos (point-max))
+        scope res)
+    (while (setq pos (previous-single-property-change pos 'javaimp-parse-scope))
+      (setq scope (get-text-property pos 'javaimp-parse-scope))
+      (when (and scope
+                 (or (null pred)
+                     (funcall pred scope)))
+        (setq scope (javaimp--copy-scope scope))
+        (when parent-pred
+          (javaimp--filter-scope-parents scope parent-pred))
+        (push scope res)))
+    res))
 
 (defun javaimp--parse-get-class-abstract-methods ()
-  (save-excursion
-    (save-restriction
-      (widen)
-      (javaimp--parse-all-scopes)
-      (javaimp--parse-class-abstract-methods))))
+  (javaimp--parse-all-scopes)
+  (javaimp--parse-class-abstract-methods))
 
 (defun javaimp--parse-get-interface-abstract-methods ()
-  (save-excursion
-    (save-restriction
-      (widen)
-      (let ((interfaces
-             (javaimp--parse-get-all-scopes
-              (lambda (scope)
-                (javaimp-test-scope-type scope
-                  '(interface) javaimp--classlike-scope-types)))))
-        (seq-mapcat #'javaimp--parse-interface-abstract-methods
-                    interfaces)))))
+  (let ((interfaces (javaimp--parse-get-all-scopes
+                     (lambda (scope)
+                       (javaimp-test-scope-type scope
+                         '(interface) javaimp--classlike-scope-types)))))
+    (seq-mapcat #'javaimp--parse-interface-abstract-methods
+                interfaces)))
 
 (provide 'javaimp-parse)

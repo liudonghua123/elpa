@@ -199,10 +199,10 @@ package commented.block;
 
 (defun javaimp-test--check-named-scopes ()
   (let* ((scopes (javaimp--parse-get-all-scopes
-                  (lambda (scope)
-                    (memq (javaimp-scope-type scope) '(class interface enum method)))
-                  (lambda (scope)
-                    (memq (javaimp-scope-type scope) '(class interface enum method)))))
+                  (lambda (s)
+                    (memq (javaimp-scope-type s) '(class interface enum method)))
+                  (lambda (s)
+                    (memq (javaimp-scope-type s) '(class interface enum method)))))
          (actual (mapcar
                   (lambda (s)
                     (let (res)
@@ -284,13 +284,13 @@ package commented.block;
 
 
 
-;; Tests for javaimp--get-file-classes-1
+;; Tests for javaimp--get-classes
 
-(ert-deftest javaimp-test--get-file-classes ()
+(ert-deftest javaimp-test--get-classes ()
   (with-temp-buffer
     (insert-file-contents
      (concat javaimp--basedir "testdata/test1-misc-classes.java"))
-    (should (equal (javaimp--get-file-classes-1)
+    (should (equal (javaimp--get-classes)
                    '("org.foo.Top"
                      "org.foo.Top.CInner1"
                      "org.foo.Top.CInner1.CInner1_CInner1"

@@ -453,12 +453,13 @@ prefix arg is given, don't do this filtering."
                javaimp-additional-source-dirs)))
 
 (defun javaimp--dir-above-current-package ()
-  (let ((package (javaimp--parse-get-package)))
-    (when package
-      (string-remove-suffix
-       (mapconcat #'file-name-as-directory
-                  (split-string package "\\." t) nil)
-       default-directory))))
+  (when-let ((package (save-excursion
+                        (save-restriction
+                          (widen)
+                          (javaimp--parse-get-package)))))
+    (string-remove-suffix
+     (mapconcat #'file-name-as-directory (split-string package "\\." t) nil)
+     default-directory)))
 
 (defun javaimp--get-directory-classes (dir)
   (when (file-accessible-directory-p dir)
@@ -468,16 +469,17 @@ prefix arg is given, don't do this filtering."
                             (directory-files-recursively dir "\\.java\\'")))))
 
 (defun javaimp--get-file-classes (file)
-  (let ((buf (seq-find (lambda (b) (equal (buffer-file-name b) file))
-                       (buffer-list))))
-    (if buf
-        (with-current-buffer buf
-          (javaimp--get-file-classes-1))
-      (with-temp-buffer
-        (insert-file-contents file)
-        (javaimp--get-file-classes-1)))))
+  (if-let ((buf (get-file-buffer file)))
+      (with-current-buffer buf
+        (save-excursion
+          (save-restriction
+            (widen)
+            (javaimp--get-classes))))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (javaimp--get-classes))))
 
-(defun javaimp--get-file-classes-1 ()
+(defun javaimp--get-classes ()
   "Return fully-qualified names of all class-like scopes."
   (let ((package (javaimp--parse-get-package))
         (scopes (javaimp--parse-get-all-scopes
@@ -748,7 +750,10 @@ start (`javaimp-scope-start') instead."
 (defun javaimp-help-show-scopes ()
   "Show scopes in a *javaimp-scopes* buffer."
   (interactive)
-  (let ((scopes (javaimp--parse-get-all-scopes))
+  (let ((scopes (save-excursion
+                  (save-restriction
+                    (widen)
+                    (javaimp--parse-get-all-scopes))))
         (file buffer-file-name)
         (buf (get-buffer-create "*javaimp-scopes*")))
     (with-current-buffer buf
