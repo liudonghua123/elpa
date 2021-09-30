@@ -66,106 +66,102 @@ Exception4<? super Exception5>>")
 ;; `javaimp--parse-scope-hook'.
 
 (ert-deftest javaimp-test--parse-scope-class ()
-  (let ((javaimp--parse-scope-hook #'javaimp--parse-scope-class))
-    (javaimp-test--check-single-scope
-     '("class Foo {"
-       class "Foo")
-     '("class Foo extends Bar {"
-       class "Foo")
-     '("class Foo implements Bar {"
-       class "Foo")
-     '("class Foo implements Bar, Baz {"
-       class "Foo")
-     '("public class Foo extends Bar implements Baz1 , Baz2 {"
-       class "Foo")
-     `(,(subst-char-in-string
-         ?  ?\n
-         "public class Foo extends Bar implements Baz1 , Baz2 {")
-       class "Foo")
-     '("class Foo<Bar, Baz> extends FooSuper<Bar, Baz> \
+  (javaimp-test--single-parser #'javaimp--parse-scope-class
+    '("class Foo {"
+      class "Foo")
+    '("class Foo extends Bar {"
+      class "Foo")
+    '("class Foo implements Bar {"
+      class "Foo")
+    '("class Foo implements Bar, Baz {"
+      class "Foo")
+    '("public class Foo extends Bar implements Baz1 , Baz2 {"
+      class "Foo")
+    `(,(subst-char-in-string
+        ?  ?\n
+        "public class Foo extends Bar implements Baz1 , Baz2 {")
+      class "Foo")
+    '("class Foo<Bar, Baz> extends FooSuper<Bar, Baz> \
 implements Interface1<Bar, Baz>, Interface2 {"
-       class "Foo")
-     '("class Foo<E extends Bar> {"
-       class "Foo")
-     '("class Foo<Enum<?>> {"
-       class "Foo")
-     '("class Foo<T extends Baz<? extends Baz2>> \
+      class "Foo")
+    '("class Foo<E extends Bar> {"
+      class "Foo")
+    '("class Foo<Enum<?>> {"
+      class "Foo")
+    '("class Foo<T extends Baz<? extends Baz2>> \
 extends Bar<? extends Baz<? extends Baz2>> {"
-       class "Foo")
-     '("interface Foo<Bar, Baz> {"
-       interface "Foo")
-     '("private enum Foo {"
-       enum "Foo")
-     )))
+      class "Foo")
+    '("interface Foo<Bar, Baz> {"
+      interface "Foo")
+    '("private enum Foo {"
+      enum "Foo")
+    ))
 
 (ert-deftest javaimp-test--parse-scope-anonymous-class ()
-  (let ((javaimp--parse-scope-hook #'javaimp--parse-scope-anonymous-class))
-    (javaimp-test--check-single-scope
-     '(" = new Object < Class1 , Class2 > ( 1 + 1 , baz ) {"
-       anonymous-class "Object")
-     `(,(subst-char-in-string
-         ?  ?\n
-         " = new Object < Class1 , Class2 > ( 1 + 1 , baz ) {")
-       anonymous-class "Object")
-     '(" = (obj.getField()).new Object<Class1, Class2>(1, baz) {"
-       anonymous-class "Object")
-     '(" = obj.new Object<>(1, baz) {"
-       anonymous-class "Object")
-     )))
+  (javaimp-test--single-parser #'javaimp--parse-scope-anonymous-class
+    '(" = new Object < Class1 , Class2 > ( 1 + 1 , baz ) {"
+      anonymous-class "Object")
+    `(,(subst-char-in-string
+        ?  ?\n
+        " = new Object < Class1 , Class2 > ( 1 + 1 , baz ) {")
+      anonymous-class "Object")
+    '(" = (obj.getField()).new Object<Class1, Class2>(1, baz) {"
+      anonymous-class "Object")
+    '(" = obj.new Object<>(1, baz) {"
+      anonymous-class "Object")
+    ))
 
 (ert-deftest javaimp-test--parse-scope-method-or-stmt ()
-  (let ((javaimp--parse-scope-hook #'javaimp--parse-scope-method-or-stmt)
-        (javaimp-format-method-name #'javaimp-format-method-name-full))
-    (javaimp-test--check-single-scope
-     '("static void foo_bar ( String a , int b ) {"
-       method "foo_bar(String a, int b)")
-     `(,(subst-char-in-string
-         ?  ?\n
-         "static void foo_bar ( String a , int b ) {")
-       method "foo_bar(String a, int b)")
-     '("void foo_bar(String a, int b) throws E1, E2 {"
-       method "foo_bar(String a, int b) throws E1, E2")
-     '("void foo_bar()
+  (javaimp-test--single-parser #'javaimp--parse-scope-method-or-stmt
+    '("static void foo_bar ( String a , int b ) {"
+      method "foo_bar(String,int)")
+    `(,(subst-char-in-string
+        ?  ?\n
+        "static void foo_bar ( String a , int b ) {")
+      method "foo_bar(String,int)")
+    '("void foo_bar(String a, int b) throws E1, E2 {"
+      method "foo_bar(String,int)")
+    '("void foo_bar()
 throws E1 {"
-       method "foo_bar() throws E1")
-     '("if (foo_bar(a, b) < 2) {"
-       statement "if")
-     )))
+      method "foo_bar()")
+    '("if (foo_bar(a, b) < 2) {"
+      statement "if")
+    ))
 
 (ert-deftest javaimp-test--parse-scope-simple-stmt ()
-  (let ((javaimp--parse-scope-hook #'javaimp--parse-scope-simple-stmt))
-    (javaimp-test--check-single-scope
-     '(" try {"
-       simple-statement "try")
-     `(,(subst-char-in-string ?  ?\n " try {")
-       simple-statement "try")
-     ;; static initializer
-     '("static {"
-       simple-statement "static")
-     ;; lambda
-     '("it -> {"
-       simple-statement "lambda")
-     '("(x, y) -> {"
-       simple-statement "lambda")
-     )))
+  (javaimp-test--single-parser #'javaimp--parse-scope-simple-stmt
+    '(" try {"
+      simple-statement "try")
+    `(,(subst-char-in-string ?  ?\n " try {")
+      simple-statement "try")
+    ;; static initializer
+    '("static {"
+      simple-statement "static")
+    ;; lambda
+    '("it -> {"
+      simple-statement "lambda")
+    '("(x, y) -> {"
+      simple-statement "lambda")
+    ))
 
 (ert-deftest javaimp-test--parse-scope-array ()
-  (let ((javaimp--parse-scope-hook #'javaimp--parse-scope-array))
-    (javaimp-test--check-single-scope
-     '("new String[] {"
-       array "")
-     ;; TODO fix
-     ;; '("new Object[][] { {"
-     ;;   array "")
-     ;; '("new int[] {{1, 2}, {"
-     ;;   array "")
-     )))
+  (javaimp-test--single-parser #'javaimp--parse-scope-array
+    '("new String[] {"
+      array "")
+    ;; TODO fix
+    ;; '("new Object[][] { {"
+    ;;   array "")
+    ;; '("new int[] {{1, 2}, {"
+    ;;   array "")
+    ))
 
-(defun javaimp-test--check-single-scope (&rest test-items)
+(defun javaimp-test--single-parser (parser &rest test-items)
+  (declare (indent 1))
   (dolist (item test-items)
     (with-temp-buffer
       (insert (nth 0 item))
-      (let ((scopes (javaimp--parse-get-all-scopes)))
+      (let* ((javaimp--parse-scope-hook parser)
+             (scopes (javaimp--parse-get-all-scopes)))
         (should (= 1 (length scopes)))
         (should (eq (javaimp-scope-type (car scopes)) (nth 1 item)))
         (should (equal (javaimp-scope-name (car scopes)) (nth 2 item)))))))
@@ -186,16 +182,15 @@ package commented.block;
   (with-temp-buffer
     (insert-file-contents
      (concat javaimp--basedir "testdata/test1-misc-classes.java"))
-    (let ((javaimp-format-method-name #'javaimp-format-method-name-types))
-      ;; parse full buffer
-      (javaimp-test--check-named-scopes)
-      ;;
-      ;; reparse half of buffer
-      (setq javaimp--parse-dirty-pos (/ (- (point-max) (point-min)) 2))
-      (javaimp-test--check-named-scopes)
-      ;;
-      ;; don't reparse
-      (javaimp-test--check-named-scopes))))
+    ;; parse full buffer
+    (javaimp-test--check-named-scopes)
+    ;;
+    ;; reparse half of buffer
+    (setq javaimp--parse-dirty-pos (/ (- (point-max) (point-min)) 2))
+    (javaimp-test--check-named-scopes)
+    ;;
+    ;; don't reparse
+    (javaimp-test--check-named-scopes)))
 
 (defun javaimp-test--check-named-scopes ()
   (let* ((scopes (javaimp--parse-get-all-scopes
@@ -266,7 +261,7 @@ package commented.block;
 
             ((class "ColocatedTop"))
             ((method "foo()") (class "ColocatedTop"))
-            ((method "bar(String, String)") (class "ColocatedTop")))))
+            ((method "bar(String,String)") (class "ColocatedTop")))))
     (should (= (length expected) (length actual)))
     (dotimes (i (length expected))
       (should (equal (nth i expected) (nth i actual))))
@@ -305,71 +300,68 @@ package commented.block;
 ;; Tests for imenu function
 
 (ert-deftest javaimp-test--imenu ()
-  (let* ((javaimp-format-method-name #'javaimp-format-method-name-types)
-         (actual
-          (with-temp-buffer
-            (insert-file-contents
-             (concat javaimp--basedir "testdata/test1-misc-classes.java"))
-            (let ((imenu-use-markers nil))
-              (javaimp-imenu-create-index))))
-         (expected-names
-          '("foo() [Top.CInner1]"
-            "foo() [Top.CInner1.CInner1_CInner1]"
-            "abstract_method() [Top.CInner1.CInner1_CInner1]"
-            "bar()"
-            "baz() [Top.CInner1.CInner1_CInner1]"
-            "foo() [Top.IInner1]"
-            "abstract_method() [Top.IInner1]"
-            "foo() [Top.IInner1.IInner1_CInner1]"
-            "baz() [Top.IInner1]"
-            "defaultMethod(String) [Top.IInner1]"
-            "foo() [Top.IInner1.IInner1_IInner1]"
-            "defaultMethod(String) [Top.IInner1.IInner1_IInner1]"
-            "baz() [Top.IInner1.IInner1_IInner1]"
-            "EnumInner1()"
-            "foo() [Top.EnumInner1]"
-            "foo() [ColocatedTop]"
-            "bar(String, String)")))
+  (let ((actual (with-temp-buffer
+                  (insert-file-contents
+                   (concat javaimp--basedir "testdata/test1-misc-classes.java"))
+                  (let ((imenu-use-markers nil))
+                    (javaimp-imenu-create-index))))
+        (expected-names
+         '("foo() [Top.CInner1]"
+           "foo() [Top.CInner1.CInner1_CInner1]"
+           "abstract_method() [Top.CInner1.CInner1_CInner1]"
+           "bar()"
+           "baz() [Top.CInner1.CInner1_CInner1]"
+           "foo() [Top.IInner1]"
+           "abstract_method() [Top.IInner1]"
+           "foo() [Top.IInner1.IInner1_CInner1]"
+           "baz() [Top.IInner1]"
+           "defaultMethod(String) [Top.IInner1]"
+           "foo() [Top.IInner1.IInner1_IInner1]"
+           "defaultMethod(String) [Top.IInner1.IInner1_IInner1]"
+           "baz() [Top.IInner1.IInner1_IInner1]"
+           "EnumInner1()"
+           "foo() [Top.EnumInner1]"
+           "foo() [ColocatedTop]"
+           "bar(String,String)")))
     (should (= (length expected-names) (length actual)))
     (dotimes (i (length expected-names))
       (should (equal (nth i expected-names) (car (nth i actual)))))))
 
-(ert-deftest javaimp-test--imenu-group-methods ()
-  (let* ((javaimp-format-method-name #'javaimp-format-method-name-types)
-         (javaimp-imenu-group-methods t)
-         (actual (with-temp-buffer
-                   (insert-file-contents
-                    (concat javaimp--basedir "testdata/test1-misc-classes.java"))
-                   (let ((imenu-use-markers nil))
-                     (javaimp-imenu-create-index))))
-         (expected
-          '(("Top"
-             ("CInner1"
-              ("foo()" . 98)
-              ("CInner1_CInner1"
-               ("foo()" . 1099)
-               ("abstract_method()" . 1148)
-               ("bar()" . 1192)
-               ("baz()" . 1281)))
-             ("IInner1"
-              ("foo()" . 1603)
-              ("abstract_method()" . 1715)
-              ("IInner1_CInner1"
-               ("foo()" . 1798))
-              ("baz()" . 1934)
-              ("defaultMethod(String)" . 1963)
-              ("IInner1_IInner1"
-               ("foo()" . 2122)
-               ("defaultMethod(String)" . 2157)
-               ("baz()" . 2258)))
-             ("EnumInner1"
-              ("EnumInner1()" . 2353)
-              ("foo()" . 2399)
-              ;; "EnumInner1_EInner1" omitted because no methods inside
-              ))
-            ("ColocatedTop"
-             ("foo()" . 2554)
-             ("bar(String, String)" . 2578)))))
+(ert-deftest javaimp-test--imenu-use-sub-alists ()
+  (let ((actual (with-temp-buffer
+                  (insert-file-contents
+                   (concat javaimp--basedir "testdata/test1-misc-classes.java"))
+                  (let ((imenu-use-markers nil)
+                        (javaimp-imenu-use-sub-alists t))
+                    (javaimp-imenu-create-index))))
+        (expected
+         '(("Top"
+            ("CInner1"
+             ("foo()" . 98)
+             ("CInner1_CInner1"
+              ("foo()" . 1099)
+              ("abstract_method()" . 1148)
+              ("bar()" . 1192)
+              ("baz()" . 1281)))
+            ("IInner1"
+             ("foo()" . 1603)
+             ("abstract_method()" . 1715)
+             ("IInner1_CInner1"
+              ("foo()" . 1798))
+             ("baz()" . 1934)
+             ("defaultMethod(String)" . 1963)
+             ("IInner1_IInner1"
+              ("foo()" . 2122)
+              ("defaultMethod(String)" . 2157)
+              ("baz()" . 2258)))
+            ("EnumInner1"
+             ("EnumInner1()" . 2353)
+             ("foo()" . 2399)
+             ;; "EnumInner1_EInner1" omitted because no methods inside
+             ))
+           ("ColocatedTop"
+            ("foo()" . 2554)
+            ("bar(String,String)" . 2578)))))
     (javaimp-test--imenu-simplify-entries actual)
     (should (equal expected actual))))
 

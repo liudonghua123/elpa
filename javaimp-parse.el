@@ -275,11 +275,10 @@ the position of opening brace.")
                             (1+ (point))))))
       (when search-bound
         (let ((throws-args
-               (let ((pos (javaimp--parse-decl-suffix
-                           "\\_<throws\\_>" brace-pos search-bound)))
-                 (when pos
-                   (or (javaimp--parse-arglist pos brace-pos t)
-                       t)))))
+               (when-let ((pos (javaimp--parse-decl-suffix
+                                "\\_<throws\\_>" brace-pos search-bound)))
+                 (or (javaimp--parse-arglist pos brace-pos t)
+                     t))))
           (when (and (not (eq throws-args t))
                      (progn
                        (javaimp--parse-skip-back-until)
@@ -306,11 +305,10 @@ the position of opening brace.")
                  :type type
                  :name (if (eq type 'statement)
                            name
-                         (funcall javaimp-format-method-name
-                                  name
-                                  (javaimp--parse-arglist (car arglist-region)
-                                                          (cdr arglist-region))
-                                  throws-args))
+                         (let ((args (javaimp--parse-arglist
+                                      (car arglist-region)
+                                      (cdr arglist-region))))
+                           (concat name "(" (mapconcat #'car args ",") ")")))
                  :start (point)
                  :open-brace brace-pos)))))))))
 

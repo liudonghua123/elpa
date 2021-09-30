@@ -149,26 +149,16 @@ files in the current project and add their fully-qualified names
 to the completion alternatives list."
   :type 'boolean)
 
-(defcustom javaimp-imenu-group-methods nil
-  "Non-nil means group methods in their enclosing scopes.
-nil (the default) means just use flat list of simple method
-names.  See also `javaimp-format-method-name'."
-  :type '(choice :tag "Group methods"
-		 (const :tag "Grouped" t)
-		 (const :tag "Simple list" nil)))
+(defcustom javaimp-imenu-use-sub-alists nil
+  "If non-nil, make sub-alist for each containing scope (e.g. a
+class)."
+  :type 'boolean)
 
 (defcustom javaimp-cygpath-program
   (if (eq system-type 'cygwin) "cygpath")
   "Path to the `cygpath' program (Cygwin only).  Customize it if
 the program is not on `exec-path'."
   :type 'string)
-
-(defcustom javaimp-format-method-name #'javaimp-format-method-name-full
-  "Function to format method name, invoked with 3 arguments:
-NAME, ARGS and THROWS-ARGS.  The last two are lists with elements
-of the form (TYPE . NAME).  For THROWS-ARGS, only TYPE is
-present."
-  :type 'function)
 
 (defcustom javaimp-mvn-program "mvn"
   "Path to the `mvn' program.  Customize it if the program is not
@@ -625,8 +615,7 @@ is `ordinary' or `static'.  Interactively, NEW-IMPORTS is nil."
   "Function to use as `imenu-create-index-function', can be set
 in a major mode hook."
   (let ((forest (javaimp-imenu--get-forest)))
-    (if javaimp-imenu-group-methods
-        ;; group methods inside parents
+    (if javaimp-imenu-use-sub-alists
         (javaimp--map-nodes
          (lambda (scope)
            (if (eq (javaimp-scope-type scope) 'method)
@@ -638,16 +627,21 @@ in a major mode hook."
            (or (functionp (nth 2 res)) ;entry
                (cdr res)))             ;non-empty sub-alist
          forest)
-      ;; plain list of methods
-      (let ((entries (javaimp-imenu--make-entries-simple forest))
-            name-alist)
+      (let ((entries
+             (mapcar #'javaimp-imenu--make-entry
+                     (seq-sort-by #'javaimp-scope-start #'<
+                                  (javaimp--collect-nodes
+                                   (lambda (scope)
+                                     (eq (javaimp-scope-type scope) 'method))
+                                   forest))))
+            alist)
         (mapc (lambda (entry)
-                (setf (alist-get (car entry) name-alist 0 nil #'equal)
-                      (1+ (alist-get (car entry) name-alist 0 nil #'equal))))
+                (setf (alist-get (car entry) alist 0 nil #'equal)
+                      (1+ (alist-get (car entry) alist 0 nil #'equal))))
               entries)
         (mapc (lambda (entry)
                 ;; disambiguate same method names
-                (when (> (alist-get (car entry) name-alist 0 nil #'equal) 1)
+                (when (> (alist-get (car entry) alist 0 nil #'equal) 1)
                   (setcar entry
                           (format "%s [%s]"
                                   (car entry)
@@ -690,14 +684,6 @@ in a major mode hook."
                               (< (javaimp-scope-start s1)
                                  (javaimp-scope-start s2)))))
      top-classes)))
-
-(defun javaimp-imenu--make-entries-simple (forest)
-  (mapcar #'javaimp-imenu--make-entry
-          (seq-sort-by #'javaimp-scope-start #'<
-                       (javaimp--collect-nodes
-                        (lambda (scope)
-                          (eq (javaimp-scope-type scope) 'method))
-                        forest))))
 
 (defsubst javaimp-imenu--make-entry (scope)
   (list (javaimp-scope-name scope)
