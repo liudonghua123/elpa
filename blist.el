@@ -542,7 +542,8 @@ range, unless region is active."
   (cond
    ((ilist-get-index)
     (bookmark-jump
-     (nth (ilist-get-index) bookmark-alist)))
+     (bookmark-name-from-full-record
+      (nth (ilist-get-index) bookmark-alist))))
    ((user-error "No bookmark to open on this line"))))
 
 ;;;; Open in another window
