@@ -2468,10 +2468,10 @@ or bug ranges, with default to `debbugs-gnu-default-bug-number-list'."
   :type 'directory
   :version "25.2")
 
-(defcustom debbugs-gnu-branch-directory "~/src/emacs/emacs-27/"
+(defcustom debbugs-gnu-branch-directory "~/src/emacs/emacs-28/"
   "The directory where the previous source tree lives."
   :type 'directory
-  :version "28.1")
+  :version "29.1")
 
 (defvar debbugs-gnu-current-directory nil
   "The current source tree directory.")
