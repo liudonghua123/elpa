@@ -255,6 +255,7 @@
                                "doc/misc/doclicense.texi")
   :doc "modus-themes.org")
  ("multishell"		:url "https://github.com/kenmanheimer/EmacsMultishell")
+ ("multi-mode"		:url nil)
  ("muse"		:url "https://github.com/alexott/muse") ;FIXME: Not nearly in-sync
  ("myers"		:url nil)
  ("nadvice"		:url nil)
