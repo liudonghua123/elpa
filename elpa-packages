@@ -59,6 +59,10 @@
  ("beacon"		:url "https://github.com/Malabarba/beacon")
  ("bluetooth"		:url "https://gitlab.com/rstocker/emacs-bluetooth")
  ("bnf-mode"		:url "https://github.com/sergeyklay/bnf-mode")
+ ("boxy"		:url "https://gitlab.com/tygrdev/boxy"
+  :auto-sync t)
+ ("boxy-headlines"	:url "https://gitlab.com/tygrdev/boxy-headlines"
+  :auto-sync t)
  ("brief"		:url nil)
  ("buffer-expose"	:url "https://github.com/clemera/buffer-expose")
  ("bug-hunter"		:url "https://github.com/Malabarba/elisp-bug-hunter")
