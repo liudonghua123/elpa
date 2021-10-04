@@ -237,21 +237,29 @@ If EXPAND is non-nil, expand wildcards."
 
 (defconst shell-command+--command-regexp
   (rx bos
-      ;; ignore all preceding whitespace
+      ;; Ignore all preceding whitespace
       (* space)
-      ;; check for working directory string
+      ;; Check for working directory string
       (? (group (or (: ?. (not (any "/"))) ?/ ?~)
                 (* (not space)))
          (+ space))
-      ;; check for redirection indicator
+      ;; Check for redirection indicator
       (? (group (or ?< ?> ?| ?!)))
-      ;; allow whitespace after indicator
+      ;; Allow whitespace after indicator
       (* space)
-      ;; actual command (and command name)
-      (group (group (+ (not space)))
-             (*? space)
-             (*? not-newline))
-      ;; ignore all trailing whitespace
+      ;; Actual command
+      (group
+       ;; Skip environmental variables
+       (* (: (+ alnum) "=" (or (: ?\" (* (or (: ?\\ anychar) (not (any ?\\ ?\")))) ?\")
+                               (: ?\'(* (or (: ?\\ anychar) (not (any ?\\ ?\')))) ?\')
+                               (+ (not space))))
+          (+ space))
+       ;; Command name
+       (group (+ (not space)))
+       ;; Parse arguments
+       (*? space)
+       (*? not-newline))
+      ;; Ignore all trailing whitespace
       (* space)
       eos)
   "Regular expression to parse `shell-command+' input.")
