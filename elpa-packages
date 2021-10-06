@@ -286,6 +286,8 @@
   :shell-command "make autoloads info; mv doc/org.info org.info; mv doc/orgguide.info orgguide.info"
   :doc ("org.info" "orgguide.info")
   :auto-sync t)
+ ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
+  :auto-sync t)
  ("org-translate"	:url nil)
  ("orgalist"            :url nil)
  ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
