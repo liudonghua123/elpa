@@ -258,7 +258,7 @@ If EXPAND is non-nil, expand wildcards."
        (group (+ (not space)))
        ;; Parse arguments
        (*? space)
-       (*? not-newline))
+       (group (*? not-newline)))
       ;; Ignore all trailing whitespace
       (* space)
       eos)
@@ -291,7 +291,13 @@ proper upwards directory pointers.  This means that '....' becomes
                      'input 'output))
                 ((string= (match-string-no-properties 2 command) "|")
                  'pipe)
-                ((string= (match-string-no-properties 2 command) "!")
+                ((or (string= (match-string-no-properties 2 command) "!")
+                     ;; Check if the output of the command is being
+                     ;; piped into some other command. In that case,
+                     ;; interpret the command literally.
+                     (let ((args (match-string-no-properties 5 command)))
+                       (save-match-data
+                         (member "|" (shell-command+-tokenize args)))))
                  'literal))
           (match-string-no-properties 4 command)
           (condition-case nil
