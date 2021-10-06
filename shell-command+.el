@@ -59,12 +59,12 @@
 ;; See `shell-command+'s docstring for more details on how it's input
 ;; is interpreted..
 
+;;; Code:
+
 (eval-when-compile (require 'rx))
 (eval-when-compile (require 'pcase))
 (require 'diff)
 (require 'info)
-
-;;; Code:
 
 (defgroup shell-command+ nil
   "An extended `shell-command'."
