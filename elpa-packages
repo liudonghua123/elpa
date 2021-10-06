@@ -265,6 +265,8 @@
  ("nadvice"		:url nil)
  ("nameless"		:url "https://github.com/Malabarba/Nameless")
  ("names"		:url "https://github.com/Malabarba/names")
+ ("nano-modeline"	:url "https://github.com/rougier/nano-modeline"
+  :auto-sync t)
  ("nano-theme"		:url "https://github.com/rougier/nano-theme"
   :auto-sync t)
  ("nhexl-mode"		:url nil)
