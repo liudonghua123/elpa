@@ -66,6 +66,9 @@
         (("aggregator1:org.example:1.0.0" . "aggregator1/pom.xml")
          (("aggregator1-child-of-aggregator1:org.example:1.0.0" .
            "aggregator1/aggregator1-child-of-aggregator1/pom.xml")))
+        ;;
+        ;; And "dangling-parent-link" project is not present at all,
+        ;; because we have no way of knowing about it
         )))))
 
 (defun javaimp-test--maven-get-tree (project-dir)
