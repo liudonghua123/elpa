@@ -142,11 +142,10 @@ Customize it if the program is not on `exec-path'."
 Customize it if the program is not on `exec-path'."
   :type 'string)
 
-(defcustom javaimp-include-current-module-classes t
-  "If non-nil, current module's classes are included into
-completion alternatives.  `javaimp-add-import' will find all java
-files in the current project and add their fully-qualified names
-to the completion alternatives list."
+(defcustom javaimp-enable-parsing t
+  "If non-nil, javaimp will try to parse current module's source
+files to determine completion alternatives, in addition to those
+from module dependencies."
   :type 'boolean)
 
 (defcustom javaimp-imenu-use-sub-alists nil
@@ -349,22 +348,23 @@ Completion alternatives are constructed as follows:
 
 - If `javaimp-java-home' is set then add JDK classes.  lib-dir is
 \"jre/lib\" or \"lib\" subdirectory.  First, attempt to read jmod
-files in \"lib-dir/jmods\" subdirectory.  If there's jmods
-subdirectory - fallback to reading all jar files in lib-dir.
+files in \"lib-dir/jmods\" subdirectory.  If there's no jmods
+subdirectory - fallback to reading all jar files in lib-dir, this
+is for pre-jdk9 versions of java.
 
 - If current module can be determined, then add all classes from
-sits dependencies.
+its dependencies.
 
-- If `javaimp-include-current-module-classes' is set, then add
-current module's classes.  If there's no current module, then add
-all classes from the current file tree: if there's a \"package\"
+- If `javaimp-enable-parsing' is non-nil, also add current
+module's classes.  If there's no current module, then add all
+classes from the current file tree: if there's a \"package\"
 directive in the current file and it matches last components of
 the file name, then file tree starts in the parent directory of
 the package, otherwise just use current directory.
 
-- Keep only candidates whose class simple name (last component of
-a fully-qualified name) matches current `symbol-at-point'.  If a
-prefix arg is given, don't do this filtering."
+- If no prefix arg is given, keep only candidates whose class
+simple name (last component of a fully-qualified name) matches
+current `symbol-at-point'."
   (interactive
    (let* ((file (expand-file-name (or buffer-file-name
 				      (error "Buffer is not visiting a file!"))))
@@ -393,11 +393,9 @@ prefix arg is given, don't do this filtering."
 		     (mapcar #'javaimp--get-jar-classes
                              (javaimp-module-dep-jars module))))
             ;; current module or source tree
-            (when javaimp-include-current-module-classes
-              (if module
-                  (javaimp--get-module-classes module)
-                (javaimp--get-directory-classes
-                 (or (javaimp--dir-above-current-package) default-directory))))
+            (when javaimp-enable-parsing
+              (seq-mapcat #'javaimp--get-directory-classes
+                          (javaimp--get-current-source-dirs module)))
             ))
           (completion-regexp-list
            (and (not current-prefix-arg)
@@ -429,27 +427,25 @@ prefix arg is given, don't do this filtering."
                            (directory-files dir t "\\.jar\\'")))
           (user-error "JRE lib dir \"%s\" doesn't exist" dir))))))
 
-(defun javaimp--get-module-classes (module)
-  "Returns list of classes in current module"
-  (append
-   ;; source dirs
-   (seq-mapcat #'javaimp--get-directory-classes
-               (javaimp-module-source-dirs module))
-   ;; additional source dirs
-   (seq-mapcat (lambda (rel-dir)
-                 (javaimp--get-directory-classes
-                  (concat (javaimp-module-build-dir module)
-                          (file-name-as-directory rel-dir))))
-               javaimp-additional-source-dirs)))
-
-(defun javaimp--dir-above-current-package ()
-  (when-let ((package (save-excursion
-                        (save-restriction
-                          (widen)
-                          (javaimp--parse-get-package)))))
-    (string-remove-suffix
-     (mapconcat #'file-name-as-directory (split-string package "\\." t) nil)
-     default-directory)))
+(defun javaimp--get-current-source-dirs (module)
+  "Return list of source directories to check for Java files."
+  (if module
+      (append
+       (javaimp-module-source-dirs module)
+       ;; additional source dirs
+       (mapcar (lambda (dir)
+                 (concat (javaimp-module-build-dir module)
+                         (file-name-as-directory dir)))
+               javaimp-additional-source-dirs))
+    (list
+     (if-let ((package (save-excursion
+                         (save-restriction
+                           (widen)
+                           (javaimp--parse-get-package)))))
+         (string-remove-suffix
+          (mapconcat #'file-name-as-directory (split-string package "\\." t) nil)
+          default-directory)
+       default-directory))))
 
 (defun javaimp--get-directory-classes (dir)
   (when (file-accessible-directory-p dir)
