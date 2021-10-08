@@ -44,13 +44,14 @@ information."
     ;; first module is always root
     (message "Building tree for root: %s"
              (javaimp-print-id (javaimp-module-id (car modules))))
-    (javaimp--build-tree (car modules) modules
-	                 ;; more or less reliable way to find children
-	                 ;; is to look for modules with "this" as the
-	                 ;; parent
-                         (lambda (el tested)
-                           (equal (javaimp-module-parent-id tested)
-                                  (javaimp-module-id el))))))
+    (list
+     (javaimp--build-tree (car modules) modules
+	                  ;; more or less reliable way to find children
+	                  ;; is to look for modules with "this" as the
+	                  ;; parent
+                          (lambda (el tested)
+                            (equal (javaimp-module-parent-id tested)
+                                   (javaimp-module-id el)))))))
 
 (defun javaimp--gradle-handler ()
   "Parse current buffer into list of project descriptors, each of
