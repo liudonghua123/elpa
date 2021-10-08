@@ -61,7 +61,7 @@
  ("bnf-mode"		:url "https://github.com/sergeyklay/bnf-mode")
  ("boxy"		:url "https://gitlab.com/tygrdev/boxy"
   :auto-sync t)
- ("boxy-headlines"	:url "https://gitlab.com/tygrdev/boxy-headlines"
+ ("boxy-headings"	:url "https://gitlab.com/tygrdev/boxy-headings"
   :auto-sync t)
  ("brief"		:url nil)
  ("buffer-expose"	:url "https://github.com/clemera/buffer-expose")
