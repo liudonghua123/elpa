@@ -369,17 +369,18 @@ non-nil.  Resets this variable after parsing is done."
     ;; cc-mode sets some costly modification hooks, we can inhibit
     ;; them because we update only our private props here
     (let ((inhibit-modification-hooks t))
-      (remove-text-properties javaimp--parse-dirty-pos (point-max)
-                              '(javaimp-parse-scope nil))
-      (goto-char (point-max))
-      (let ((parse-sexp-ignore-comments t)
-            (parse-sexp-lookup-properties nil))
-        (with-syntax-table javaimp-syntax-table
-          (while (javaimp--parse-rsb-keyword "{" javaimp--parse-dirty-pos t)
-            (save-excursion
-              (forward-char)
-              ;; Set props at this brace and all the way up
-              (javaimp--parse-scopes nil)))))
+      (with-silent-modifications
+        (remove-text-properties javaimp--parse-dirty-pos (point-max)
+                                '(javaimp-parse-scope nil))
+        (goto-char (point-max))
+        (let ((parse-sexp-ignore-comments t)
+              (parse-sexp-lookup-properties nil))
+          (with-syntax-table javaimp-syntax-table
+            (while (javaimp--parse-rsb-keyword "{" javaimp--parse-dirty-pos t)
+              (save-excursion
+                (forward-char)
+                ;; Set props at this brace and all the way up
+                (javaimp--parse-scopes nil))))))
       (setq javaimp--parse-dirty-pos nil))))
 
 (defun javaimp--parse-ensure-buffer-setup ()
