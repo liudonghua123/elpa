@@ -203,31 +203,43 @@ directory containing pom.xml / build.gradle[.kts].
 After being processed by this command, the module tree becomes
 known to javaimp and `javaimp-add-import' may be called inside
 any module file."
-  (interactive "DVisit Maven or Gradle project in directory: ")
-  (let* ((exp-dir (expand-file-name (file-name-as-directory dir)))
-         build-file
-         (trees (cond
-                 ((file-regular-p (setq build-file (concat exp-dir "pom.xml")))
-                  (javaimp--maven-visit build-file))
-                 ((or (file-regular-p
-                       (setq build-file (concat exp-dir "build.gradle")))
-                      (file-regular-p
-                       (setq build-file (concat exp-dir "build.gradle.kts"))))
-                  (list (javaimp--gradle-visit build-file)))
-                 (t
-                  (error "Could not find build file in dir %s" dir)))))
-    ;; delete previous tree(s) loaded from this build file, if any
-    (setq javaimp-project-forest
-	  (seq-remove (lambda (node)
-			(equal (javaimp-module-file-orig (javaimp-node-contents node))
-			       build-file))
-		      javaimp-project-forest))
-    (push (car trees) javaimp-project-forest)
-    (dolist (node (cdr trees))
-      (when (y-or-n-p (format "Include additional project tree rooted at %S? "
-                              (javaimp-module-id (javaimp-node-contents node))))
-        (push node javaimp-project-forest)))
-    (message "Loaded tree for %s" dir)))
+  (interactive "DVisit Gradle or Maven project in directory: ")
+  (setq dir (file-name-as-directory (expand-file-name dir)))
+  (if-let ((build-file
+            (seq-find #'file-exists-p
+                      (mapcar (lambda (f)
+                                (concat dir f))
+                              '("build.gradle" "build.gradle.kts"
+                                "pom.xml")))))
+      (progn
+        ;; Forget previous tree(s) loaded from this build file, if
+        ;; any.  Additional project trees (see below) have the same
+        ;; file-orig, so there may be several here.
+        (when-let ((existing-list
+                    (seq-filter (lambda (node)
+                                  (equal (javaimp-module-file-orig
+                                          (javaimp-node-contents node))
+	                                 build-file))
+                                javaimp-project-forest)))
+          (if (y-or-n-p "Forget already loaded project(s)?")
+              (setq javaimp-project-forest
+                    (seq-remove (lambda (node)
+                                  (memq node existing-list))
+                                javaimp-project-forest))
+            (user-error "Aborted")))
+        (let ((trees (funcall (if (string-match
+                                   "gradle" (file-name-nondirectory build-file))
+                                  #'javaimp--gradle-visit
+                                #'javaimp--maven-visit)
+                              build-file)))
+          (push (car trees) javaimp-project-forest)
+          (dolist (node (cdr trees))
+            (when (y-or-n-p
+                   (format "Include additional project tree rooted at %S?"
+                           (javaimp-module-id (javaimp-node-contents node))))
+              (push node javaimp-project-forest)))
+          (message "Loaded tree for %s" dir)))
+    (error "Could not find build file in directory %s" dir)))
 
 
 ;; Dependency jars
