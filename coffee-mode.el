@@ -1,6 +1,6 @@
 ;;; coffee-mode.el --- Major mode for CoffeeScript files
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Version: 0.4.1.1
 ;; Keywords: CoffeeScript major mode
@@ -22,7 +22,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary
+;;; Commentary:
 
 ;; CoffeeScript mode is an Emacs major mode for [CoffeeScript][cs],
 ;; unfancy JavaScript.  It provides syntax highlighting, indentation
