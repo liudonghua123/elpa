@@ -3,7 +3,7 @@
 ;; Copyright (C) 2018-2021  Free Software Foundation, Inc.
 
 ;; Author: Michael R. Mauger <michael@mauger.com>
-;; Version: 0.9.1
+;; Version: 1.0.0
 ;; Package-Type: simple
 ;; Keywords: terminals, lisp, processes
 
@@ -67,7 +67,7 @@
 ;;   the execution of any elisp expressions submitted thru the shelisp
 ;;   escape sequence.
 
-;; * Support for bash, ksh, and fish is provided (thank you for
+;; * Support for bash, ksh, and fish is provided (thank you for your
 ;;   motivation and effort, Eduardo Ochs <eduardoochs@gmail.com>);
 ;;   support for csh, tcsh, ksh, ash, dash, mosh, and sh is welcomed.
 ;;
@@ -95,7 +95,7 @@
 (require 'pp)
 (require 'term)
 
-(declare-function internal-default-process-filter "process.c")
+(declare-function internal-default-process-filter "process.c" '(proc text))
 
 ;;;###autoload
 (define-minor-mode shelisp-mode
@@ -124,18 +124,18 @@ settings (`explicit-shell-file-name', the environment variable
 (defvar shelisp--wrapper-commands
   '((bash
      "unset -f shelisp_%1$s"
-     "function shelisp_%1$s { printf '\\e_#EMACS# %2$s \e\\' \"$@\" ; }"
+     "function shelisp_%1$s { printf '\\e_#EMACS# %2$s \\e\\\\' \"$@\" ; }"
      "alias %1$s=shelisp_%1$s")
     (dash
-     "shelisp_%1$s () {; printf '\\e_#EMACS# %2$s \e\\' \"$@\" ; }"
+     "shelisp_%1$s () {; printf '\\e_#EMACS# %2$s \\e\\\\' \"$@\" ; }"
      "alias %1$s=shelisp_%1$s")
     (zsh
      "unfunction shelisp_%1$s >/dev/null 2>&1"
-     "function shelisp_%1$s { printf '\\e_#EMACS# %2$s \e\\' \"$@\" ; }"
+     "function shelisp_%1$s { printf '\\e_#EMACS# %2$s \\e\\\\' \"$@\" ; }"
      "alias %1$s=shelisp_%1$s")
     (fish
      "function %1$s"
-     "printf '\\e_#EMACS# %2$s \e\\' $argv"
+     "printf '\\e_#EMACS# %2$s \\e\\\\' $argv"
      "end"))
 
   "Alist of shell commands necessary to make ShElisp work.
@@ -155,7 +155,12 @@ executed when the command is used.")
   "String to separate commands sent to the shell.")
 
 (defun shelisp--file-name (file)
-  "Apply remote host in `default-directory' to FILE."
+  "Apply remote host in `default-directory' to FILE.
+
+This is bound to the function `f' in the elisp expression handled
+by ShElisp.  This permits absolute filenames on remote hosts to
+be properly referenced."
+
   (if (and (file-name-absolute-p file)
 	   (not (file-remote-p file)))
       (concat (file-remote-p default-directory) file)
@@ -246,7 +251,7 @@ printf, with \"\\\"%s\\\"\", you use \\=`(f \\\"%s\\\")\\='.
 expression and cannot be used elsewhere.")
 
 (defun shelisp-add-commands ()
-  "Add Emacs Lisp to shell aliases (assumes GNU bash syntax)."
+  "Add Emacs Lisp to shell aliases."
 
   ;; Infer the shell
   (unless shelisp-shell
