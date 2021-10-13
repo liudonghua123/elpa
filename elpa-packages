@@ -199,8 +199,12 @@
          "lisp/erc/erc-truncate.el"
          "lisp/erc/erc-xdcc.el"
          "lisp/erc/erc.el"
+         "doc/emacs/doclicense.texi"
+         "doc/emacs/docstyle.texi"
+         "doc/emacs/emacsver.texi"
          "doc/misc/erc.texi"
-         "etc/ERC-NEWS")
+         "etc/ERC-NEWS"
+         "COPYING")
   :doc "erc.texi"
   :news "ERC-NEWS")
  ("ergoemacs-mode"	:url "https://github.com/ergoemacs/ergoemacs-mode.git")
