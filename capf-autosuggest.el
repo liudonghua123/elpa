@@ -385,6 +385,7 @@ suggestion and send input."
   (lambda ()
     (interactive)
     (capf-autosuggest-accept)
+    (undo-boundary)
     (setq this-command cmd)
     (call-interactively cmd)))
 
