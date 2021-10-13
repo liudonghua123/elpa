@@ -6,5 +6,5 @@
  (branch-prefix		"externals/")
  (release-branch-prefix	"externals-release/")
  ;;(specs-file		"elpa-packages")
- ;;(debug		nil)
+ ;;(debug		t)
  )
