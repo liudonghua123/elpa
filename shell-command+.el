@@ -3,7 +3,7 @@
 ;; Copyright (C) 2020-2021  Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
-;; Version: 2.2.1
+;; Version: 2.3.0
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://git.sr.ht/~pkal/shell-command-plus
@@ -22,7 +22,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; `shell-command+' is a `shell-command' substitute, that extends the
 ;; regular Emacs command with several features.  After installed,
 ;; configure the package as follows:
@@ -58,6 +58,19 @@
 ;;
 ;; See `shell-command+'s docstring for more details on how it's input
 ;; is interpreted..
+
+;;; News:
+
+;;;; Version 2.3.0 (15Oct21)
+
+;; - Add rgrep to shell-command+-substitute-alist
+;; - Fix shell-command+-substitute-alist customization type
+;; - Skip environmental variables when parsing a command
+;; - Check if command is being piped, in which case command
+;;   substitution is avoided.
+;; - Fix persistent sudo bug, where any command after a sudo
+;;   substitute would try to run as root
+;; - Improve command tokenization performance slightly.
 
 ;;; Code:
 
