@@ -3,7 +3,7 @@
 ;; Copyright (C) 2020-2021  Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
-;; Version: 2.3.0
+;; Version: 2.3.1
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://git.sr.ht/~pkal/shell-command-plus
