@@ -203,10 +203,10 @@
          "lisp/erc/erc.el"
          "doc/emacs/doclicense.texi"
          "doc/emacs/docstyle.texi"
-         "doc/emacs/emacsver.texi"
          "doc/misc/erc.texi"
          "etc/ERC-NEWS"
          "COPYING")
+  :shell-command "(echo '@set ERCDIST from GNU ELPA'; echo '@set EMACSVER') >emacsver.texi"
   :doc "erc.texi"
   :news "ERC-NEWS")
  ("ergoemacs-mode"	:url "https://github.com/ergoemacs/ergoemacs-mode.git")
