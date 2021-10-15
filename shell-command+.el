@@ -345,6 +345,9 @@ between BEG and END.  Otherwise the whole buffer is processed."
                      (if (use-region-p) (region-end) (point-max))))
   (pcase-let* ((`(,path ,mode ,command ,rest) (shell-command+-parse command))
                (default-directory (shell-command+-expand-path (or path "."))))
+    ;; Make sure the previous output buffer was killed, to prevent
+    ;; TRAMP paths from persisting between commands.
+    (kill-buffer shell-command-buffer-name)
     (cond ((eq mode 'input)
            (delete-region beg end)
            (shell-command rest t shell-command-default-error-buffer)
