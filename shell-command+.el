@@ -144,7 +144,7 @@ this option to nil."
 
 
 (defconst shell-command+-token-regexp
-  (rx bos (* space)
+  (rx (* space)
       (or (: ?\"
              (group-n 1 (* (or (: ?\\ anychar) (not (any ?\\ ?\")))))
              ?\")
@@ -159,22 +159,23 @@ this option to nil."
   "Return list of tokens of COMMAND.
 If EXPAND is non-nil, expand wildcards."
   (let ((pos 0) tokens)
-    (while (string-match shell-command+-token-regexp (substring command pos))
-      (push (let ((tok (match-string 2 (substring command pos))))
+    (while (string-match shell-command+-token-regexp command pos)
+      (push (let ((tok (match-string 2 command)))
               (if (and expand tok)
                   (or (file-expand-wildcards tok) (list tok))
                 (list (replace-regexp-in-string
                        (rx (* ?\\ ?\\) (group ?\\ (group anychar)))
                        "\\2"
-                       (or (match-string 2 (substring command pos))
-                           (match-string 1 (substring command pos)))
+                       (or (match-string 2 command)
+                           (match-string 1 command))
                        nil nil 1))))
             tokens)
-      (when (= (match-end 0) 0)
+      (when (= pos (match-end 0))
         (error "Zero-width token parsed"))
-      (setq pos (+ pos (match-end 0))))
+      (setq pos (match-end 0)))
     (unless (= pos (length command))
-      (error "Tokenization error at %s" (substring command pos)))
+      (error "Tokenization error at %S in string %S (parsed until %d, instead of %d)"
+             (substring command pos) command pos (length command)))
     (apply #'append (nreverse tokens))))
 
 (defun shell-command+-cmd-grep (command)
