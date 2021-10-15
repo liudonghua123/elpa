@@ -225,7 +225,7 @@ If EXPAND is non-nil, expand wildcards."
 
 (defun shell-command+-cmd-sudo (command)
   "Use TRAMP to execute COMMAND."
-  (let ((default-directory (format "/sudo::%s" default-directory)))
+  (let ((default-directory (concat "/sudo::" default-directory)))
     (shell-command command)))
 
 (defun shell-command+-cmd-cd (command)
