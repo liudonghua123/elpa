@@ -254,11 +254,19 @@ into an auto-suggested overlay.  COMMAND must not modify buffer.
 NAME must not be called if variable
 `capf-autosuggest-active-mode' is inactive.  NAME is suitable for
 binding in `capf-autosuggest-active-mode-map'."
-  `(defun ,name ()
-     ,(format "`%s', possibly moving point into an auto-suggested overlay."
-              command)
-     (interactive)
-     (capf-autosuggest-call-partial-accept-cmd #',command)))
+  (let ((doc (format
+              "`%s', possibly moving point into an auto-suggested overlay."
+              command)))
+    (unless (< (length doc) 80)
+      (setq doc (format "\
+Execute command, possibly moving point into an auto-suggested overlay.
+`%s'
+and make it possible for this command to enter an auo-suggested overlay."
+                        command)))
+    `(defun ,name ()
+       ,doc
+       (interactive)
+       (capf-autosuggest-call-partial-accept-cmd #',command))))
 
 (defun capf-autosuggest-call-partial-accept-cmd (command)
   "Call COMMAND interactively, stepping into auto-suggested overlay.
