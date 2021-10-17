@@ -33,10 +33,9 @@
 ;; Add the following to your Emacs init file:
 ;;
 ;;  (add-to-list 'load-path "/path/to/emacs-capf-autosuggest")
-;;  (autoload 'capf-autosuggest-setup-comint "capf-autosuggest")
-;;  (autoload 'capf-autosuggest-setup-eshell "capf-autosuggest")
-;;  (add-hook 'comint-mode-hook #'capf-autosuggest-setup-comint)
-;;  (add-hook 'eshell-mode-hook #'capf-autosuggest-setup-eshell)
+;;  (autoload 'capf-autosuggest-mode "capf-autosuggest")
+;;  (add-hook 'comint-mode-hook #'capf-autosuggest-mode)
+;;  (add-hook 'eshell-mode-hook #'capf-autosuggest-mode)
 ;;
 ;; Configuration:
 ;;
@@ -44,7 +43,7 @@
 ;; move point into an auto-suggested layer.
 ;;
 ;; Example: to make C-M-f (forward-sexp) movable into suggested text, put the
-;; following into you init file:
+;; following into your Emacs init file:
 ;;
 ;;  (with-eval-after-load 'capf-autosuggest
 ;;    (capf-autosuggest-define-partial-accept-cmd
@@ -69,14 +68,13 @@
 ;; minor mode in an ordinary buffer for previewing tab completion candidates at
 ;; end of line.
 ;;
-;; completion-at-point functions for comint and eshell history are also
-;; provided.  Because they are less useful for tab completion and more useful
-;; for auto-suggestion preview, they should be added to
+;; A completion-at-point function for comint and eshell history is also
+;; provided.  Because it is less useful for tab completion and more useful for
+;; auto-suggestion preview, it is a member of
 ;; `capf-autosuggest-capf-functions', which doesn't interfere with tab
-;; completion.  The setup functions mentioned in "Installation" paragraph add
-;; them to this hook locally.  By default, if there are no matches for history
-;; completion and point is at end of line, we fall back to previewing the
-;; default tab completion candidates, as described in the previous paragraph.
+;; completion.  By default, if there are no matches for history completion and
+;; point is at end of line, we fall back to previewing the default tab
+;; completion candidates, as described in the previous paragraph.
 ;;
 ;; You can customize this behaviour by customizing
 ;; `capf-autosuggest-capf-functions'. For example, you could add
@@ -105,6 +103,8 @@
 (defvar eshell-last-output-end)
 (declare-function eshell-bol "esh-mode")
 (declare-function comint-previous-matching-input-from-input "comint")
+(declare-function comint-after-pmark-p "comint")
+(declare-function comint-send-input "comint")
 (declare-function eshell-previous-matching-input-from-input "em-hist")
 (declare-function eshell-send-input "esh-mode")
 (declare-function eshell-interactive-process "esh-cmd")
@@ -124,7 +124,8 @@
 (defface capf-autosuggest-face '((t :inherit file-name-shadow))
   "Face used for auto suggestions.")
 
-(defvar capf-autosuggest-capf-functions '(capf-autosuggest-orig-if-at-eol-capf)
+(defvar capf-autosuggest-capf-functions
+  '(capf-autosuggest-history-capf capf-autosuggest-orig-if-at-eol-capf)
   "`completion-at-point-functions', used by capf-autosuggest.
 It is used instead of the standard
 `completion-at-point-functions', but the default value contains
@@ -146,8 +147,8 @@ hint to only return a list of one element for optimization.")
 (defun capf-autosuggest-orig-capf (&optional capf-functions)
   "A capf that chooses from hook variable CAPF-FUNCTIONS.
 CAPF-FUNCTIONS defaults to `completion-at-point-functions'.
-Don't add this function to `completion-at-point-functions', as
-this will result in an infinite loop.  Useful for adding to
+Don't add this function to `completion-at-point-functions', as it
+will result in an infinite loop.  It is usually added to
 `capf-autosuggest-capf-functions', making it search the standard
 capf functions."
   (cdr (run-hook-wrapped (or capf-functions 'completion-at-point-functions)
@@ -487,6 +488,22 @@ suggestion and send input."
 ;;;; History completion function
 
 ;;;###autoload
+(defun capf-autosuggest-history-capf ()
+  "Completion-at-point function for history.
+Supports `comint-mode', `eshell-mode' and the minibuffer.  In
+comint end eshell, it is applicable only if point is after the
+last prompt.
+
+This function is useful for inclusion in
+`capf-autosuggest-capf-functions'."
+  (cond
+   ((derived-mode-p 'comint-mode)
+    (capf-autosuggest-comint-capf))
+   ((derived-mode-p 'eshell-mode)
+    (capf-autosuggest-eshell-capf))
+   ((minibufferp)
+    (capf-autosuggest-minibuffer-capf))))
+
 (defun capf-autosuggest-comint-capf ()
   "Completion-at-point function for comint input history.
 Is only applicable if point is after the last prompt."
@@ -511,7 +528,6 @@ Is only applicable if point is after the last prompt."
       (list beg end (capf-autosuggest--completion-table ring)
             :exclusive 'no)))))
 
-;;;###autoload
 (defun capf-autosuggest-eshell-capf ()
   "Completion-at-point function for eshell input history.
 Is only applicable if point is after the last prompt."
@@ -562,38 +578,24 @@ Is only applicable if point is after the last prompt."
         (t (complete-with-action
             action (ring-elements ring) input predicate)))))))
 
-;;;###autoload
-(defun capf-autosuggest-setup-comint ()
-  "Setup capf-autosuggest for history suggestion in comint."
-  (capf-autosuggest-mode)
-  (add-hook 'capf-autosuggest-capf-functions #'capf-autosuggest-comint-capf nil t))
-
-;;;###autoload
-(defun capf-autosuggest-setup-eshell ()
-  "Setup capf-autosuggest for history suggestion in eshell."
-  (capf-autosuggest-mode)
-  (add-hook 'capf-autosuggest-capf-functions #'capf-autosuggest-eshell-capf nil t))
-
-;;;###autoload
-(defun capf-autosuggest-setup-minibuffer ()
-  "Setup capf-autosuggest for history suggestion in the minibuffer."
+(defun capf-autosuggest-minibuffer-capf ()
+  "Completion-at-point function for minibuffer history."
   (let ((hist minibuffer-history-variable)
         (should-prin1 nil))
     (when (and (not (eq t hist))
                (setq hist (symbol-value hist)))
       (when (eq minibuffer-history-sexp-flag (minibuffer-depth))
         (setq should-prin1 t))
-      (capf-autosuggest-mode)
-      (add-hook 'capf-autosuggest-capf-functions
-                (lambda ()
+      (list (minibuffer-prompt-end)
+            (point-max)
+            (if should-prin1
+                (lambda (input predicate action)
                   (when should-prin1
                     (setq hist (mapcar #'prin1-to-string hist)
                           should-prin1 nil))
-                  (list (minibuffer-prompt-end)
-                        (point-max)
-                        hist
-                        :exclusive 'no))
-                nil t))))
+                  (complete-with-action action hist input predicate))
+              hist)
+            :exclusive 'no))))
 
 (provide 'capf-autosuggest)
 ;;; capf-autosuggest.el ends here
