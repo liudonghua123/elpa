@@ -233,6 +233,8 @@ Otherwise, return nil."
   :group 'capf-autosuggest
   (if capf-autosuggest-mode
       (progn
+        (when capf-autosuggest--overlay
+          (capf-autosuggest-active-mode-deactivate))
         (setq capf-autosuggest--overlay (make-overlay (point) (point) nil t t))
         (add-hook 'post-command-hook #'capf-autosuggest--post-h nil t)
         (add-hook 'change-major-mode-hook
@@ -485,7 +487,7 @@ suggestion and send input."
   "Deactivate `capf-autosuggest-active-mode'."
   (capf-autosuggest-active-mode -1))
 
-;;;; History completion function
+;;; History completion functions
 
 ;;;###autoload
 (defun capf-autosuggest-history-capf ()
