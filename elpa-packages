@@ -92,8 +92,8 @@
  ("cobol-mode"          :url "https://gist.github.com/Edward-H/6768e7dc53ea3dd2adca")
  ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
  ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings")
- ;; ("comint-mime"		:url "https://github.com/astoff/comint-mime"
- ;;  :auto-sync t)
+ ("comint-mime"		:url "https://github.com/astoff/comint-mime"
+  :auto-sync t)
  ("company"
   :url "https://github.com/company-mode/company-mode.git"
   :auto-sync t)
