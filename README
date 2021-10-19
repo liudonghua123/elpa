@@ -55,11 +55,23 @@ checkout, you can update it like this:
 
 * Directory layout
 
-** =admin/=    -- scripts for administering the package archive.
-** =html/=     -- HTML for the elpa.gnu.org website.
-** =packages/= -- source code for the packages.
-** =archive/=  -- destination of the release tarballs built.
-** =archive-devel/=  -- destination of the snapshot tarballs built.
+This code expects to be used in a directory that has the following layout:
+
+- =admin/=              -- Directory containing a copy of the here files
+- =GNUmakefile=         -- A copy of or symlink to =admin/GNUmakefile=
+- =elpa-packages=       -- The specifications of the packages
+- =elpa-config=         -- Some configuration settings for the build scripts
+- =copyright_exceptions= -- List of exceptions for the copyright-notices checks
+
+The =copyright_exceptions= file can be absent, in which case copyright notices
+will simply not be checked.
+
+Additionally to the above, this code will then add to that directory
+the following elements:
+
+- =packages/=           -- Directory holding Git worktrees of packages
+- =archive/=            -- Directory holding the generated files for the archive
+- =archive-devel/=      -- Same for the "bleeding edge" version of the archive
 
 * Packages
 
