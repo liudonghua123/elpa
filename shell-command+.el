@@ -361,7 +361,8 @@ between BEG and END.  Otherwise the whole buffer is processed."
                (default-directory (shell-command+-expand-path (or path "."))))
     ;; Make sure the previous output buffer was killed, to prevent
     ;; TRAMP paths from persisting between commands.
-    (let ((shell-command-buffer (get-buffer shell-command-buffer-name)))
+    (let ((shell-command-buffer (get-buffer (or (bound-and-true-p shell-command-buffer-name)
+                                                "*Shell Command Output*"))))
       (when shell-command-buffer
         (kill-buffer shell-command-buffer)))
     (cond ((eq mode 'input)
