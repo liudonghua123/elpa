@@ -1,13 +1,13 @@
 ;;; capf-autosuggest.el --- History autosuggestions for comint and eshell -*- lexical-binding: t; -*-
 
 ;; Filename: capf-autosuggest.el
-;; Description: History autosuggestions for comint and eshell
 ;; Author: jakanakaevangeli <jakanakaevangeli@chiru.no>
 ;; Created: 2021-07-13
-;; Version: 1.0
-;; URL: https://github.com/jakanakaevangeli/emacs-capf-autosuggest
+;; Version: 0.0
+;; Package-Requires: ((emacs "25.1"))
+;; URL: https://repo.or.cz/emacs-capf-autosuggest.git
 
-;; This file is not part of GNU Emacs.
+;; This file part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
