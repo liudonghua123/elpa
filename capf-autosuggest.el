@@ -30,7 +30,7 @@
 ;; similar to zsh-autosuggestions or fish.  It works in eshell and in modes
 ;; derived from comint-mode, for example M-x shell and M-x run-python.
 ;;
-;; Installation:
+;;;; Installation:
 ;;
 ;; Add the following to your Emacs init file:
 ;;
@@ -39,7 +39,7 @@
 ;;  (add-hook 'comint-mode-hook #'capf-autosuggest-mode)
 ;;  (add-hook 'eshell-mode-hook #'capf-autosuggest-mode)
 ;;
-;; Configuration:
+;;;; Configuration:
 ;;
 ;; Use `capf-autosuggest-define-partial-accept-cmd' to make a command that can
 ;; move point into an auto-suggested layer.
@@ -58,7 +58,7 @@
 ;; capf-autosuggest do disable this behaviour or enable it for other commands,
 ;; such as C-c C-n or M-n.
 ;;
-;; Details:
+;;;; Details:
 ;;
 ;; capf-autosuggest provides a minor mode, capf-autosuggest-mode, that lets you
 ;; preview the first completion candidate for in-buffer completion as an
@@ -79,14 +79,14 @@
 ;; completion candidates, as described in the previous paragraph.
 ;;
 ;; You can customize this behaviour by customizing
-;; `capf-autosuggest-capf-functions'. For example, you could add
+;; `capf-autosuggest-capf-functions'.  For example, you could add
 ;; `capf-autosuggest-orig-capf' to enable auto-suggestions of tab completion
 ;; candidates in the middle of a line.
 ;;
-;; Alternatives:
+;;;; Alternatives:
 ;;
 ;; There is also esh-autosuggest[1] with similar functionality.  Differences:
-;; it is simpler and more concise, however it depends on company. It optionally
+;; it is simpler and more concise, however it depends on company.  It optionally
 ;; allows having a delay and it is implemented only for eshell.
 ;;
 ;; [1]: http://github.com/dieggsy/esh-autosuggest
@@ -115,7 +115,7 @@
 (declare-function eshell-next-matching-input-from-input "em-hist")
 
 (defgroup capf-autosuggest nil
-  "Show completion-at-point as an overlay."
+  "Show completion at point as an overlay."
   :group 'completion
   :prefix "capf-autosuggest-"
   :link
@@ -377,14 +377,14 @@ input."
 (defcustom capf-autosuggest-dwim-next-input nil
   "Whether next-input commands can send current suggestion.
 If t and previous command wasn't a history command
-(next/previous-input or previous/next-matching-input-from-input),
+\(next/previous-input or previous/next-matching-input-from-input),
 `comint-next-input' and `eshell-next-input' will accept the
 current suggestion and send input."
   :type 'boolean)
 (defcustom capf-autosuggest-dwim-next-matching-input-from-input nil
   "Whether next-input commands can send current suggestion.
 If t and previous command wasn't a history matching command
-(previous or next-matching-input-from-input),
+\(previous or next-matching-input-from-input),
 `comint-next-matching-input-from-input' and
 `eshell-next-matching-input-from-input' will accept the current
 suggestion and send input."
