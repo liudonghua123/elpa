@@ -82,6 +82,8 @@
  ;;                            "lisp/progmodes/cc-vars.el"
  ;;                            "doc/misc/cc-mode.texi"
  ;;                      :doc "cc-mode.texi"))
+ ("capf-autosuggest"	:url "https://repo.or.cz/emacs-capf-autosuggest.git"
+  :auto-sync t)
  ("caps-lock"		:url nil)
  ("captain"		:url nil)
  ("chess"		:url nil) ;; Was https://github.com/jwiegley/emacs-chess.git
