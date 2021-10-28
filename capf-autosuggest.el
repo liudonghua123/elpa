@@ -98,6 +98,14 @@
 ;; allows having a delay and it is implemented only for eshell.
 ;;
 ;; [1]: http://github.com/dieggsy/esh-autosuggest
+;;
+;;;; Bugs, suggestions and patches can be sent to
+;;
+;;    bugs-doseganje (at) groups.io
+;;
+;; and can be viewed at https://groups.io/g/bugs-doseganje/topics.  As this
+;; package is stored in GNU ELPA, non-trivial patches require copyright
+;; assignment to the FSF, see info node "(emacs) Copyright Assignment".
 
 ;;; Code:
 
