@@ -31,6 +31,7 @@ allprojects {
                         it.allJava.srcDirs.stream()
                             .map { it.path }
                     }
+                    .distinct()
                     .collect(Collectors.joining(File.pathSeparator))
                 depJars = project.sourceSets.stream()
                     .flatMap {
@@ -40,6 +41,7 @@ allprojects {
                             }
                             .map { it.path }
                     }
+                    .distinct()
                     .collect(Collectors.joining(File.pathSeparator))
             }
             println("final-name=${finalName}")
