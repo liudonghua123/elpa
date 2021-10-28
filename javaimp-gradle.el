@@ -27,9 +27,7 @@ Passes specially crafted init file as -I argument to gradle and
 invokes task contained in it.  This task outputs all needed
 information."
   (message "Visiting Gradle build file %s..." file)
-  (let* ((alists (javaimp--gradle-call file
-                                       #'javaimp--gradle-handler
-                                       "javaimpTask"))
+  (let* ((alists (javaimp--gradle-call file #'javaimp--gradle-handler))
          (modules (mapcar (lambda (alist)
                             (javaimp--gradle-module-from-alist alist file))
                           alists)))
@@ -108,19 +106,20 @@ descriptor."
                        :artifact artifact
                        :version (nth 2 parts)))))
 
-(defun javaimp--gradle-fetch-dep-jars-path (module)
-  ;; Always invoke on root file becase module's file may not exist,
-  ;; even if reported by Gradle as project.buildFile
+(defun javaimp--gradle-fetch-dep-jars-path (module ids)
   (javaimp--gradle-call
+   ;; Always invoke on orig file (which is root build script)
+   ;; because module's own file may not exist, even if reported by
+   ;; Gradle as project.buildFile
    (javaimp-module-file-orig module)
    (lambda ()
      (re-search-forward "^dep-jars=\\(.*\\)$")
      (match-string 1))
-   (concat (if (javaimp-module-parent-id module)
-               (concat ":" (javaimp-id-artifact (javaimp-module-id module))))
-           ":javaimpTask")))
+   (let ((mod-path (mapconcat #'javaimp-id-artifact (cdr ids) ":")))
+     (unless (string-empty-p mod-path)
+       (format ":%s:" mod-path)))))
 
-(defun javaimp--gradle-call (file handler task)
+(defun javaimp--gradle-call (file handler &optional mod-path)
   (let* ((local-gradlew (concat (file-name-directory file) "gradlew"))
          (gradlew (if (file-exists-p local-gradlew)
                       local-gradlew
@@ -137,6 +136,6 @@ descriptor."
      "-I" (javaimp-cygpath-convert-maybe
            (expand-file-name "javaimp-init-script.gradle"
                              javaimp--basedir))
-     task)))
+     (concat mod-path "javaimpTask"))))
 
 (provide 'javaimp-gradle)
