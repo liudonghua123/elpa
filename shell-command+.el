@@ -152,7 +152,8 @@ Each entry has the form (COMMAND . FUNC), where FUNC is passed
 the command string.  To disable all command substitutions, set
 this option to nil."
   :type '(alist :key-type (string :tag "Command Name")
-                :value-type (function :tag "Substitute")))
+                :value-type (function :tag "Substitute"))
+  :set-after '(shell-command+-use-eshell))
 
 
 
