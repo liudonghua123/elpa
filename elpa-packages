@@ -168,6 +168,10 @@
   :doc "embark.texi"
   :ignored-files ("embark-consult.el" "avy-embark-collect.el")
   :auto-sync t)
+ ("embark-consult"
+  :url "https://github.com/oantolin/embark"
+  :ignored-files ("embark.el" "embark.texi" "avy-embark-collect.el")
+  :auto-sync t)
  ("emms"		:url "https://git.savannah.gnu.org/git/emms.git"
   :doc "doc/emms.texinfo"
   :auto-sync t)
