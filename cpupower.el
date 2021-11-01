@@ -29,36 +29,63 @@
   '("5.4")
   "Versions of cpupower which cpupower.el can work with")
 
+(defvar cpupower--info
+  nil
+  "Where cached information about cpupower will be put")
+
+(defmacro cpupower--with-cache-slot (cache-slot-name deriving-sexp)
+  "Get something from cache or derive it and populate cache.
+
+This macro isn't strictly needed but I kinda wanted to practice
+writing macros.  So here we are."
+  (declare (indent 1))
+  `(let ((cached-value (plist-get cpupower--info ,cache-slot-name)))
+     (if cached-value
+         cached-value
+       (let ((derived-value ,deriving-sexp))
+         (setf (plist-get cpupower--info ,cache-slot-name) derived-value)
+         derived-value))))
+
+(defun cpupower--get-version ()
+  "Return the cpupower executable version or 'nil on failure"
+  (cpupower--with-cache-slot :version
+    (let* ((output (cpupower--run "--version"))
+           (tokens (split-string output)))
+      (when (string-equal (car tokens) "cpupower")
+        (cadr tokens)))))
+
 (defun cpupower--num-cpus ()
-  "Determine how many CPUs are on this system
+  "Return the number of CPUs on this system.
 
 Done by cat-ing /proc/cpuinfo and counting lines with
 \"processor\" in them.
 
 TODO: do this in a less bad way?"
-  (let ((cpu-count 0))
-    (with-temp-buffer
-      (insert-file-contents "/proc/cpuinfo")
-      (while (search-forward "processor" nil t)
-        (cl-incf cpu-count)))
-    cpu-count))
+  (cpupower--with-cache-slot :num-cpus
+    (let ((cpu-count 0))
+      (with-temp-buffer
+        (insert-file-contents "/proc/cpuinfo")
+        (while (search-forward "processor" nil t)
+          (cl-incf cpu-count)))
+      cpu-count)))
 
 (defun cpupower--get-available-governors ()
   "Get a list of all valid governors for this system."
-  (let ((governors-per-cpu))
-    (cl-loop for cpu-num in (number-sequence 0 (cpupower--num-cpus))
-             for cpu-governors-file = (format "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_available_governors" cpu-num)
-             while (file-exists-p cpu-governors-file)
-             do (push (split-string
-                       (with-temp-buffer
-                         (insert-file-contents cpu-governors-file)
-                         (buffer-string)))
-                      governors-per-cpu))
-    (cl-loop with valid-governors = (car governors-per-cpu)
-             for other-governor-set in (cdr governors-per-cpu)
-             do (setq other-governor-set
-                      (cl-intersection valid-governors other-governor-set))
-             finally return valid-governors)))
+  (cpupower--with-cache-slot :governors
+    (let ((governors-per-cpu))
+      (cl-loop for cpu-num in (number-sequence 0 (cpupower--num-cpus))
+               for cpu-governors-file = (format "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_available_governors" cpu-num)
+               while (file-exists-p cpu-governors-file)
+               do (push (split-string
+                         (with-temp-buffer
+                           (insert-file-contents cpu-governors-file)
+                           (buffer-string)))
+                        governors-per-cpu))
+      (cl-loop with valid-governors = (car governors-per-cpu)
+               for other-governor-set in (cdr governors-per-cpu)
+               do (setq other-governor-set
+                        (cl-intersection valid-governors other-governor-set))
+               finally return valid-governors))))
 
 (defun cpupower--run (subcommand)
   "Execute cpupower with SUBCOMMAND string."
@@ -69,22 +96,18 @@ TODO: do this in a less bad way?"
       (buffer-string))))
 
 (defun cpupower-info ()
+  "Place current cpupower information into the message buffer."
   (interactive)
   (message (cpupower--run "--cpu all frequency-info")))
 
 (defun cpupower-set-governor (governor)
+  "Set the governor on all CPUs to a given governor by name"
   (interactive "sGovernor: ")
   (let ((valid-governors (cpupower--get-available-governors)))
     (unless (member governor valid-governors)
       (error "Invalid governor: %s, must be one of %s" governor valid-governors))
     (cpupower--run (format "--cpu all frequency-set -g %s" governor))
     (cpupower-info)))
-
-(defun cpupower--get-version ()
-  (let* ((output (cpupower--run "--version"))
-         (tokens (split-string output)))
-    (when (string-equal (car tokens) "cpupower")
-      (cadr tokens))))
 
 (defun cpupower-get-frequencies ()
   (interactive)
@@ -102,6 +125,7 @@ TODO: do this in a less bad way?"
                     (setq next-token-is-frequency t))
              finally return frequencies)))
 
+;; TODO - only define if helm exists?
 (defun cpupower-helm-set-governor ()
   (interactive)
   (cpupower-set-governor
