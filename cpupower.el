@@ -218,8 +218,8 @@ message the user with current CPU governors"
     governors))
 
 (with-eval-after-load 'helm
+  ;; Not entirely sure I should be doing this function declaring?
   (declare-function helm "helm")
-  (declare-function helm "helm-build-sync-source")
   (require 'helm)
   (defun cpupower-helm-set-governor ()
     "Set cpu governor using helm."
@@ -230,3 +230,5 @@ message the user with current CPU governors"
            :buffer "*helm set cpu governor*"))))
 
 (provide 'cpupower)
+
+;;; cpupower.el ends here
