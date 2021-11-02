@@ -59,23 +59,23 @@ might need to enable this command for your user in /etc/sudoers"
   '("5.4")
   "Versions of cpupower which cpupower.el can work with.")
 
-(defvar cpupower--info
+(defvar cpupower--cache
   nil
   "Where cached information about cpupower will be put")
 
 (defmacro cpupower--with-cache-slot (cache-slot-name deriving-sexp)
-  "Get something from cache (cpupower--info) or derive it and populate cache.
+  "Get something from cache (cpupower--cache) or derive it and populate cache.
 
 CACHE-SLOT-NAME is the key under which the result is stored.
 
 DERIVING-SEXP is a single sexp which should return the value.  It
 will be called if the value is not cached."
   (declare (indent 1))
-  `(let ((cached-value (plist-get cpupower--info ,cache-slot-name)))
+  `(let ((cached-value (plist-get cpupower--cache ,cache-slot-name)))
      (if cached-value
          cached-value
        (let ((derived-value ,deriving-sexp))
-         (setf (plist-get cpupower--info ,cache-slot-name) derived-value)
+         (setf (plist-get cpupower--cache ,cache-slot-name) derived-value)
          derived-value))))
 
 (defun cpupower--get-version ()
@@ -87,39 +87,22 @@ will be called if the value is not cached."
         (cadr tokens)))))
 
 (defun cpupower--get-num-cpus ()
-  "Return the number of CPUs on this system.
-
-Done by cat-ing /proc/cpuinfo and counting lines with
-\"processor\" in them.
-
-TODO: do this in a less bad way?"
+  "Return the number of CPUs on this system."
   (cpupower--with-cache-slot :num-cpus
-    (let ((cpu-count 0))
-      (with-temp-buffer
-        (insert-file-contents "/proc/cpuinfo")
-        (while (search-forward "processor" nil t)
-          (cl-incf cpu-count)))
-      cpu-count)))
+    (length (cpupower-get-current-frequencies))))
 
 (defun cpupower--get-available-governors ()
   "Get a list of all valid governors for this system.
 
-@todo - this should be done using cpupower? not cat-ing some random file."
+@todo - this should probably find governors which work for _all_
+cpus but currently it just finds _all_ governors."
   (cpupower--with-cache-slot :governors
-    (let ((governors-per-cpu))
-      (cl-loop for cpu-num in (number-sequence 0 (cpupower--get-num-cpus))
-               for cpu-governors-file = (format "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_available_governors" cpu-num)
-               while (file-exists-p cpu-governors-file)
-               do (push (split-string
-                         (with-temp-buffer
-                           (insert-file-contents cpu-governors-file)
-                           (buffer-string)))
-                        governors-per-cpu))
-      (cl-loop with valid-governors = (car governors-per-cpu)
-               for other-governor-set in (cdr governors-per-cpu)
-               do (setq other-governor-set
-                        (cl-intersection valid-governors other-governor-set))
-               finally return valid-governors))))
+    (seq-uniq
+     (mapcan
+      'split-string
+      (cpupower--parse-find (cpupower--run "--cpu all frequency-info")
+                            "available cpufreq governors:"
+                            "\n")))))
 
 (defun cpupower--run (subcommand)
   "Execute cpupower with SUBCOMMAND arguments return the output as a string."
@@ -138,31 +121,27 @@ TODO: do this in a less bad way?"
         (t
          (format "%dKHz" KHz))))
 
-(defun cpupower--parse-output (output-string pre-token)
-  "Warning: bad idea - parse console output for tokens
+(defun cpupower--parse-find (source pre-string &optional token-delimeter)
+  "Find whatever is after PRE-STRING in SOURCE and return it.
 
-Split OUTPUT-STRING on whitespace characters then scan through
-all the strings for the PRE-TOKEN.  When PRE-TOKEN is found the
-next string is accumulated for output.
+This function assumes that tokens are space delimited.
 
 Example:
-output-string => \"this here and this one here too\"
-pre-token => \"here\"
+source => \"this here and this one here too\"
+pre-string => \"here\"
 
 function returns: (\"and\" \"too\")
-
-:("
-  (cl-loop with output-tokens = nil
-           with next-token-is-target = nil
-           for token in (split-string output-string)
-           if next-token-is-target
-           do (progn
-                (push token output-tokens)
-                (setq next-token-is-target nil))
-           else
-           do (when (string-equal token pre-token)
-                (setq next-token-is-target t))
-           finally return output-tokens))
+"
+  (let ((token-delimeter (or token-delimeter " "))
+        (pre-length (length pre-string))
+        (found-idx (cl-search pre-string source))
+        (output))
+    (while found-idx
+      (let* ((token-start (+ 1 found-idx pre-length))
+             (token-end (cl-search token-delimeter source :start2 token-start)))
+        (push (substring source token-start token-end) output)
+        (setq found-idx (cl-search pre-string source :start2 token-end))))
+    output))
 
 (defun cpupower-info ()
   "Place current cpupower information into the message buffer.
@@ -194,7 +173,7 @@ message the user with current CPU frequencies."
   (interactive "p")
   (let* ((output (cpupower--run "--cpu all frequency-info -f"))
          (frequencies (mapcar 'string-to-number
-                              (cpupower--parse-output output "frequency:"))))
+                              (cpupower--parse-find output "frequency:"))))
     (when print-message
       (message (format "CPU Frequencies: %s"
                        (mapconcat 'cpupower--format-KHz frequencies ", "))))
@@ -209,7 +188,7 @@ message the user with current CPU governors"
   (let* ((output (cpupower--run "--cpu all frequency-info -p"))
          (governors (mapcar (lambda (quoted)
                               (string-replace "\"" "" quoted))
-                            (cpupower--parse-output output "governor"))))
+                            (cpupower--parse-find output "governor"))))
     (when print-message
       (message (format "CPU Governors: %s"
                        (mapconcat 'identity
