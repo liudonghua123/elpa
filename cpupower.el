@@ -225,7 +225,7 @@ message the user with current CPU governors"
     "Set cpu governor using helm."
     (interactive) 
     (cpupower-set-governor
-     (helm :sources (helm-build-sync-source "cpu-governors"
+     (helm :sources (helm-make-source "cpu-governors" 'helm-source-sync
                       :candidates (cpupower--get-available-governors)) 
            :buffer "*helm set cpu governor*"))))
 
