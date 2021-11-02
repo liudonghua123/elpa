@@ -20,12 +20,11 @@
 
 ;; If you have cpupower installed, this provides a very simple wrapper
 ;; to that program.  You'll need to configure your system such that
-;; the user you're using emacs as can run cpupower (probably as `sudo
-;; cpupower` from a command line).  You can configure how cpupower is
-;; called by customizing cpupower-cmd.
+;; the current user can run cpupower (maybe as `sudo cpupower` from a
+;; command line).  You can configure how cpupower is called by
+;; customizing cpupower-cmd.
 ;;
 ;; This module interacts with cpupower via running it in a shell.
-;; 
 ;;
 ;; The commands you'll probably want to use:
 ;; * cpupower-info
@@ -131,7 +130,7 @@ TODO: do this in a less bad way?"
   (cond ((> KHz 1000000)
          (format "%.2fGHz" (/ KHz 1000000.0)))
         ((> KHz 1000)
-         (format "%.1fMHz" (/ KHz 1000.0)))
+         (format "%.0fMHz" (/ KHz 1000.0)))
         (t
          (format "%dKHz" KHz))))
 
@@ -214,16 +213,13 @@ message the user with current CPU governors"
                                   ", "))))
     governors))
 
-(defun cpupower-helm-set-governor ()
-  "Set cpu governor using helm.
-
-@TODO - this should only exist when helm is installed?"
-  (interactive)
-  (if (package-installed-p 'helm)
-      (cpupower-set-governor
-       (helm :sources (helm-build-sync-source "cpu-governors"
-                        :candidates (cpupower--get-available-governors))
-             :buffer "*helm set cpu governor*"))
-    (call-interactively 'cpupower-set-governor)))
+(with-eval-after-load 'helm
+  (defun cpupower-helm-set-governor ()
+    "Set cpu governor using helm."
+    (interactive) 
+    (cpupower-set-governor
+     (helm :sources (helm-build-sync-source "cpu-governors"
+                      :candidates (cpupower--get-available-governors)) 
+           :buffer "*helm set cpu governor*"))))
 
 (provide 'cpupower)
