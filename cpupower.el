@@ -218,6 +218,7 @@ message the user with current CPU governors"
     governors))
 
 (with-eval-after-load 'helm
+  (require 'helm)
   (defun cpupower-helm-set-governor ()
     "Set cpu governor using helm."
     (interactive) 
