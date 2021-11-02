@@ -103,7 +103,7 @@ TODO: do this in a less bad way?"
     (message "Governor: %s [ %s ] (version: %s)"
              (mapconcat 'identity governors ", ")
              (mapconcat 'identity frequencies ", ")
-             (cpupower--get-version))))    
+             (cpupower--get-version))))
 
 (defun cpupower-set-governor (governor)
   "Set the governor on all CPUs to a given governor by name"
