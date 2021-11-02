@@ -196,10 +196,12 @@ message the user with current CPU governors"
                                   ", "))))
     governors))
 
+;; optional helm interface
+(declare-function helm "helm")
+(declare-function helm "helm-make-source")
+
 (with-eval-after-load 'helm
   ;; Not entirely sure I should be doing this function declaring?
-  (declare-function helm "helm")
-  (declare-function helm "helm-make-source")
   (require 'helm)
   (defun cpupower-helm-set-governor ()
     "Set cpu governor using helm."
