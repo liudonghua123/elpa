@@ -55,6 +55,13 @@ might need to enable this command for your user in /etc/sudoers"
   :type '(string)
   :group 'cpupower)
 
+(defcustom cpupower-enable-logging
+  nil
+  "When non-nil, cpupower.el will log all commands it runs to the
+messages buffer"
+  :type '(boolean)
+  :group 'cpupower)
+
 (defconst cpupower--compatible-versions
   '("5.4")
   "Versions of cpupower which cpupower.el can work with.")
@@ -108,7 +115,8 @@ cpus but currently it just finds _all_ governors."
   "Execute cpupower with SUBCOMMAND arguments return the output as a string."
   (with-temp-buffer
     (let ((command (format "%s %s" cpupower-cmd subcommand)))
-      (message "running: %s" command)
+      (when cpupower-enable-logging
+        (message "cpupower.el cmd: %s" command))
       (shell-command command (current-buffer))
       (buffer-string))))
 
