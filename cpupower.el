@@ -16,10 +16,28 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary
+
+;; If you have cpupower installed, this provides a very simple wrapper
+;; to that program.
+;;
+;; The commands you'll probably want to use:
+;; * cpupower-info
+;;   - displays (briefly) the current cpupower information
+;; * cpupower-set-governor
+;;   - sets cpu governor for all cores.
+;; * cpupower-helm-set-governor
+;;   - sets cpu governor for all cores (uses helm)
+;;
+;; Less useful commands:
+;; * cpupower-get-current-frequencies
+;;   - returns a list of all cpu frequencies in KHz by core.
+;; * cpupower-get-current-governors
+;;   - returns a list of all cpu governors by core.
+
 
 ;; pretty sure I don't need this, but?
 (setq lexical-binding t)
-
 
 (defconst cpupower-cmd
   "sudo cpupower"
@@ -54,7 +72,7 @@ writing macros.  So here we are."
       (when (string-equal (car tokens) "cpupower")
         (cadr tokens)))))
 
-(defun cpupower--num-cpus ()
+(defun cpupower--get-num-cpus ()
   "Return the number of CPUs on this system.
 
 Done by cat-ing /proc/cpuinfo and counting lines with
@@ -73,7 +91,7 @@ TODO: do this in a less bad way?"
   "Get a list of all valid governors for this system."
   (cpupower--with-cache-slot :governors
     (let ((governors-per-cpu))
-      (cl-loop for cpu-num in (number-sequence 0 (cpupower--num-cpus))
+      (cl-loop for cpu-num in (number-sequence 0 (cpupower--get-num-cpus))
                for cpu-governors-file = (format "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_available_governors" cpu-num)
                while (file-exists-p cpu-governors-file)
                do (push (split-string
@@ -94,25 +112,6 @@ TODO: do this in a less bad way?"
       (message "running: %s" command)
       (shell-command command (current-buffer))
       (buffer-string))))
-
-(defun cpupower-info ()
-  "Place current cpupower information into the message buffer."
-  (interactive)
-  (let ((governors (seq-uniq (cpupower-get-governors) 'string-equal))
-        (frequencies (mapcar 'cpupower--format-KHz (cpupower-get-frequencies))))
-    (message "Governor: %s [ %s ] (version: %s)"
-             (mapconcat 'identity governors ", ")
-             (mapconcat 'identity frequencies ", ")
-             (cpupower--get-version))))
-
-(defun cpupower-set-governor (governor)
-  "Set the governor on all CPUs to a given governor by name"
-  (interactive "sGovernor: ")
-  (let ((valid-governors (cpupower--get-available-governors)))
-    (unless (member governor valid-governors)
-      (error "Invalid governor: %s, must be one of %s" governor valid-governors))
-    (cpupower--run (format "--cpu all frequency-set -g %s" governor))
-    (cpupower-info)))
 
 (defun cpupower--format-KHz (KHz)
   "Format KHz for human eyes (probably translating to MHz or GHz)."
@@ -149,7 +148,26 @@ function returns: (\"and\" \"too\")
                 (setq next-token-is-target t))
            finally return output-tokens))
 
-(defun cpupower-get-frequencies (&optional print-message)
+(defun cpupower-info ()
+  "Place current cpupower information into the message buffer."
+  (interactive)
+  (let ((governors (seq-uniq (cpupower-get-current-governors) 'string-equal))
+        (frequencies (mapcar 'cpupower--format-KHz (cpupower-get-current-frequencies))))
+    (message "Governor: %s [ %s ] (version: %s)"
+             (mapconcat 'identity governors ", ")
+             (mapconcat 'identity frequencies ", ")
+             (cpupower--get-version))))
+
+(defun cpupower-set-governor (governor)
+  "Set the governor on all CPUs to a given governor by name (string)."
+  (interactive "sGovernor: ")
+  (let ((valid-governors (cpupower--get-available-governors)))
+    (unless (member governor valid-governors)
+      (error "Invalid governor: %s, must be one of %s" governor valid-governors))
+    (cpupower--run (format "--cpu all frequency-set -g %s" governor))
+    (cpupower-info)))
+
+(defun cpupower-get-current-frequencies (&optional print-message)
   "Return a list of CPU frequencies in KHz"
   (interactive "p")
   (let* ((output (cpupower--run "--cpu all frequency-info -f"))
@@ -160,7 +178,7 @@ function returns: (\"and\" \"too\")
                        (mapconcat 'cpupower--format-KHz frequencies ", "))))
     frequencies))
 
-(defun cpupower-get-governors (&optional print-message)
+(defun cpupower-get-current-governors (&optional print-message)
   "Return a list of CPU governors"
   (interactive "p")
   (let* ((output (cpupower--run "--cpu all frequency-info -p"))
@@ -174,12 +192,16 @@ function returns: (\"and\" \"too\")
                                   ", "))))
     governors))
 
-;; TODO - only define if helm exists?
 (defun cpupower-helm-set-governor ()
+  "Set cpu governor using helm
+
+@TODO - this should only exist when helm is installed?"
   (interactive)
-  (cpupower-set-governor
-   (helm :sources (helm-build-sync-source "cpu-governors"
-                    :candidates (cpupower--get-available-governors))
-         :buffer "*helm set cpu governor*")))
+  (if (package-installed-p 'helm)
+      (cpupower-set-governor
+       (helm :sources (helm-build-sync-source "cpu-governors"
+                        :candidates (cpupower--get-available-governors))
+             :buffer "*helm set cpu governor*"))
+    (call-interactively 'cpupower-set-governor)))
 
 (provide 'cpupower)
