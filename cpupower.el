@@ -13,7 +13,7 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 ;;
-;; You should have received a copy of the GN  U General Public License
+;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
@@ -98,7 +98,11 @@ TODO: do this in a less bad way?"
 (defun cpupower-info ()
   "Place current cpupower information into the message buffer."
   (interactive)
-  (message (cpupower--run "--cpu all frequency-info")))
+  (let ((governors (seq-uniq (cpupower-get-governors) 'string-equal))
+        (frequencies (mapcar 'cpupower--format-KHz (cpupower-get-frequencies))))
+    (message "Governor: %s [ %s ]"
+             (mapconcat 'identity governors ", ")
+             (mapconcat 'identity frequencies ", "))))    
 
 (defun cpupower-set-governor (governor)
   "Set the governor on all CPUs to a given governor by name"
@@ -109,21 +113,65 @@ TODO: do this in a less bad way?"
     (cpupower--run (format "--cpu all frequency-set -g %s" governor))
     (cpupower-info)))
 
-(defun cpupower-get-frequencies ()
-  (interactive)
+(defun cpupower--format-KHz (KHz)
+  "Format KHz for human eyes (probably translating to MHz or GHz)."
+  (cond ((> KHz 1000000)
+         (format "%.2fGHz" (/ KHz 1000000.0)))
+        ((> KHz 1000)
+         (format "%.1fMHz" (/ KHz 1000.0)))
+        (t
+         (format "%dKHz" KHz))))
+
+(defun cpupower--parse-output (output-string pre-token)
+  "Warning: bad idea - parse console output for tokens
+
+Split OUTPUT-STRING on whitespace characters then scan through
+all the strings for the PRE-TOKEN.  When PRE-TOKEN is found the
+next string is accumulated for output.
+
+Example:
+output-string => \"this here and this one here too\"
+pre-token => \"here\"
+
+function returns: (\"and\" \"too\")
+
+:("
+  (cl-loop with output-tokens = nil
+           with next-token-is-target = nil
+           for token in (split-string output-string)
+           if next-token-is-target
+           do (progn
+                (push token output-tokens)
+                (setq next-token-is-target nil))
+           else
+           do (when (string-equal token pre-token)
+                (setq next-token-is-target t))
+           finally return output-tokens))
+
+(defun cpupower-get-frequencies (&optional print-message)
+  "Return a list of CPU frequencies in KHz"
+  (interactive "p")
   (let* ((output (cpupower--run "--cpu all frequency-info -f"))
-         (tokens (split-string output))
-         (frequencies))
-    (cl-loop with next-token-is-frequency = nil
-             for token in tokens
-             if next-token-is-frequency
-             do (progn
-                  (push (string-to-number token) frequencies)
-                  (setq next-token-is-frequency nil))
-             else
-             do (when (string-equal token "frequency:")
-                    (setq next-token-is-frequency t))
-             finally return frequencies)))
+         (frequencies (mapcar 'string-to-number
+                              (cpupower--parse-output output "frequency:"))))
+    (when print-message
+      (message (format "CPU Frequencies: %s"
+                       (mapconcat 'cpupower--format-KHz frequencies ", "))))
+    frequencies))
+
+(defun cpupower-get-governors (&optional print-message)
+  "Return a list of CPU governors"
+  (interactive "p")
+  (let* ((output (cpupower--run "--cpu all frequency-info -p"))
+         (governors (mapcar (lambda (quoted)
+                              (string-replace "\"" "" quoted))
+                            (cpupower--parse-output output "governor"))))
+    (when print-message
+      (message (format "CPU Governors: %s"
+                       (mapconcat 'identity
+                                  (seq-uniq governors 'string-equal)
+                                  ", "))))
+    governors))
 
 ;; TODO - only define if helm exists?
 (defun cpupower-helm-set-governor ()
