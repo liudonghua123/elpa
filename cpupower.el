@@ -20,7 +20,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary
+;;; Commentary:
 
 ;; If you have cpupower installed, this provides a very simple wrapper
 ;; to that program.  You'll need to configure your system such that
