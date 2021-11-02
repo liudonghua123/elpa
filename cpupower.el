@@ -19,7 +19,13 @@
 ;;; Commentary
 
 ;; If you have cpupower installed, this provides a very simple wrapper
-;; to that program.
+;; to that program.  You'll need to configure your system such that
+;; the user you're using emacs as can run cpupower (probably as `sudo
+;; cpupower` from a command line).  You can configure how cpupower is
+;; called by customizing cpupower-cmd.
+;;
+;; This module interacts with cpupower via running it in a shell.
+;; 
 ;;
 ;; The commands you'll probably want to use:
 ;; * cpupower-info
@@ -35,27 +41,32 @@
 ;; * cpupower-get-current-governors
 ;;   - returns a list of all cpu governors by core.
 
-
+;;; Code:
 ;; pretty sure I don't need this, but?
 (setq lexical-binding t)
 
-(defconst cpupower-cmd
+(defcustom cpupower-cmd
   "sudo cpupower"
-  "cpupower command, might need a 'sudo' infront of it")
+  "cpupower command, might need a 'sudo' infront of it and you
+might need to enable this command for your user in /etc/sudoers"
+  :type '(string)
+  :group 'cpupower)
 
 (defconst cpupower--compatible-versions
   '("5.4")
-  "Versions of cpupower which cpupower.el can work with")
+  "Versions of cpupower which cpupower.el can work with.")
 
 (defvar cpupower--info
   nil
   "Where cached information about cpupower will be put")
 
 (defmacro cpupower--with-cache-slot (cache-slot-name deriving-sexp)
-  "Get something from cache or derive it and populate cache.
+  "Get something from cache (cpupower--info) or derive it and populate cache.
 
-This macro isn't strictly needed but I kinda wanted to practice
-writing macros.  So here we are."
+CACHE-SLOT-NAME is the key under which the result is stored.
+
+DERIVING-SEXP is a single sexp which should return the value.  It
+will be called if the value is not cached."
   (declare (indent 1))
   `(let ((cached-value (plist-get cpupower--info ,cache-slot-name)))
      (if cached-value
@@ -88,7 +99,9 @@ TODO: do this in a less bad way?"
       cpu-count)))
 
 (defun cpupower--get-available-governors ()
-  "Get a list of all valid governors for this system."
+  "Get a list of all valid governors for this system.
+
+@todo - this should be done using cpupower? not cat-ing some random file."
   (cpupower--with-cache-slot :governors
     (let ((governors-per-cpu))
       (cl-loop for cpu-num in (number-sequence 0 (cpupower--get-num-cpus))
@@ -106,7 +119,7 @@ TODO: do this in a less bad way?"
                finally return valid-governors))))
 
 (defun cpupower--run (subcommand)
-  "Execute cpupower with SUBCOMMAND string."
+  "Execute cpupower with SUBCOMMAND arguments return the output as a string."
   (with-temp-buffer
     (let ((command (format "%s %s" cpupower-cmd subcommand)))
       (message "running: %s" command)
@@ -114,7 +127,7 @@ TODO: do this in a less bad way?"
       (buffer-string))))
 
 (defun cpupower--format-KHz (KHz)
-  "Format KHz for human eyes (probably translating to MHz or GHz)."
+  "Format KHZ (as KHz) for human eyes (probably translating to MHz or GHz)."
   (cond ((> KHz 1000000)
          (format "%.2fGHz" (/ KHz 1000000.0)))
         ((> KHz 1000)
@@ -149,7 +162,10 @@ function returns: (\"and\" \"too\")
            finally return output-tokens))
 
 (defun cpupower-info ()
-  "Place current cpupower information into the message buffer."
+  "Place current cpupower information into the message buffer.
+
+This is indented as the primary way for humans to see this
+information."
   (interactive)
   (let ((governors (seq-uniq (cpupower-get-current-governors) 'string-equal))
         (frequencies (mapcar 'cpupower--format-KHz (cpupower-get-current-frequencies))))
@@ -159,7 +175,7 @@ function returns: (\"and\" \"too\")
              (cpupower--get-version))))
 
 (defun cpupower-set-governor (governor)
-  "Set the governor on all CPUs to a given governor by name (string)."
+  "Set the governor on all CPUs to a given GOVERNOR by name (string)."
   (interactive "sGovernor: ")
   (let ((valid-governors (cpupower--get-available-governors)))
     (unless (member governor valid-governors)
@@ -168,7 +184,10 @@ function returns: (\"and\" \"too\")
     (cpupower-info)))
 
 (defun cpupower-get-current-frequencies (&optional print-message)
-  "Return a list of CPU frequencies in KHz"
+  "Return a list of CPU frequencies in KHz
+
+When called interactively (PRINT-MESSAGE will be true) it will
+message the user with current CPU frequencies."
   (interactive "p")
   (let* ((output (cpupower--run "--cpu all frequency-info -f"))
          (frequencies (mapcar 'string-to-number
@@ -179,7 +198,10 @@ function returns: (\"and\" \"too\")
     frequencies))
 
 (defun cpupower-get-current-governors (&optional print-message)
-  "Return a list of CPU governors"
+  "Return a list of CPU governors
+
+When called interactively (PRINT-MESSAGE will be true) it will
+message the user with current CPU governors"
   (interactive "p")
   (let* ((output (cpupower--run "--cpu all frequency-info -p"))
          (governors (mapcar (lambda (quoted)
@@ -193,7 +215,7 @@ function returns: (\"and\" \"too\")
     governors))
 
 (defun cpupower-helm-set-governor ()
-  "Set cpu governor using helm
+  "Set cpu governor using helm.
 
 @TODO - this should only exist when helm is installed?"
   (interactive)
