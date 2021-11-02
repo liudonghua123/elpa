@@ -100,9 +100,10 @@ TODO: do this in a less bad way?"
   (interactive)
   (let ((governors (seq-uniq (cpupower-get-governors) 'string-equal))
         (frequencies (mapcar 'cpupower--format-KHz (cpupower-get-frequencies))))
-    (message "Governor: %s [ %s ]"
+    (message "Governor: %s [ %s ] (version: %s)"
              (mapconcat 'identity governors ", ")
-             (mapconcat 'identity frequencies ", "))))    
+             (mapconcat 'identity frequencies ", ")
+             (cpupower--get-version))))    
 
 (defun cpupower-set-governor (governor)
   "Set the governor on all CPUs to a given governor by name"
