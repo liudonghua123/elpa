@@ -4,7 +4,7 @@
 
 ;; Author: Stephen Meister
 ;; URL: https://gitlab.com/steve-emacs-stuff/cpupower-el
-;; Version: 1.0.0
+;; Version: 1.0.1
 ;; Keywords: hardware, cpupower, cpu, frequency-scaling
 
 ;; This program is free software: you can redistribute it and/or modify

@@ -2,7 +2,7 @@
 
 An emacs lisp wrapper around `cpupower`
 
-I think you can use it like:
+Using quelpa:
 ```lisp
 (quelpa
  '(cpupower :fetcher gitlab
