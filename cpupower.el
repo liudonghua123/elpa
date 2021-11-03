@@ -1,11 +1,11 @@
-;;; cpupower.el --- cpupower command line interface  -*- lexical-binding: t -*-
+;;; cpupower.el --- cpupower command interface  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Stephen Meister
 
 ;; Author: Stephen Meister
 ;; URL: https://gitlab.com/steve-emacs-stuff/cpupower-el
 ;; Version: 1.0.0
-;; Keywords: cpupower, cpu, frequency, frequency-scaling
+;; Keywords: hardware, cpupower, cpu, frequency-scaling
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
