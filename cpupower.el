@@ -64,7 +64,13 @@ messages buffer"
 
 (defconst cpupower--compatible-versions
   '("5.4")
-  "Versions of cpupower which cpupower.el can work with.")
+  "Versions of cpupower which cpupower.el can work with.
+
+It is possible that other versions of cpupower have the same
+command line input/output structure.  If you are working with a
+version of cpupower not listed here but you suspect is
+compatible, extending this list with you version will all you to
+test.")
 
 (defvar cpupower--cache
   nil
@@ -86,12 +92,32 @@ will be called if the value is not cached."
          derived-value))))
 
 (defun cpupower--get-version ()
-  "Return the cpupower executable version or 'nil on failure"
+  "Return the cpupower executable version or 'nil on failure.
+
+Note: this function skips the safety check because the safety
+check is composed of this function."
   (cpupower--with-cache-slot :version
-    (let* ((output (cpupower--run "--version"))
+    (let* ((output (cpupower--run "--version" t))
            (tokens (split-string output)))
       (when (string-equal (car tokens) "cpupower")
         (cadr tokens)))))
+
+(defun cpupower--ensure-executable-valid ()
+  "This function will cause an error if an invalid configuration is detected.
+
+The cpupower command must be executable and must indicate an
+acceptible version."
+  (let ((is-valid (cpupower--with-cache-slot :valid
+                    (cl-member (cpupower--get-version)
+                               cpupower--compatible-versions
+                               :test 'string-equal))))
+    (unless is-valid
+      (let ((version (cpupower--get-version)))
+        (if (null version)
+            (error "Unable to communicate with cpupower (shell command: \"%s\")"
+                   cpupower-cmd)
+          (error "Invalid cpu power version %s.  Must be one of: %s"
+                 version (mapconcat 'identity cpupower--compatible-versions ", ")))))))
 
 (defun cpupower--get-num-cpus ()
   "Return the number of CPUs on this system."
@@ -111,8 +137,13 @@ cpus but currently it just finds _all_ governors."
                             "available cpufreq governors:"
                             "\n")))))
 
-(defun cpupower--run (subcommand)
-  "Execute cpupower with SUBCOMMAND arguments return the output as a string."
+(defun cpupower--run (subcommand &optional skip-safety-check)
+  "Execute cpupower with SUBCOMMAND arguments return the output as a string.
+
+When SKIP-SAFETY-CHECK is non-nil the cpupower configuration will
+be checked before executing any commands."
+  (unless skip-safety-check
+    (cpupower--ensure-executable-valid))
   (with-temp-buffer
     (let ((command (format "%s %s" cpupower-cmd subcommand)))
       (when cpupower-enable-logging
