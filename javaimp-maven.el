@@ -195,16 +195,19 @@ are somewhat arbitrary."
      (search-forward "Dependencies classpath:")
      (forward-line 1)
      (javaimp--split-native-path (thing-at-point 'line)))
-   "dependency:build-classpath"))
+   "dependency:build-classpath"
+   ;; Invoke in original file's directory because there may be local
+   ;; build tool wrapper.
+   (file-name-directory (javaimp-module-file-orig module))))
 
-(defun javaimp--maven-call (file handler task)
-  (let* ((default-directory (file-name-directory file))
+(defun javaimp--maven-call (file handler task &optional dir)
+  (let* ((default-directory (or dir (file-name-directory file)))
          ;; Prefer local mvn wrapper
          (local-mvnw (if (memq system-type '(cygwin windows-nt))
                          "mvnw.cmd"
                        "mvnw"))
          (program (if (file-exists-p local-mvnw)
-                      local-mvnw
+                      (concat default-directory local-mvnw)
                     javaimp-mvn-program)))
     (javaimp--call-build-tool
      program

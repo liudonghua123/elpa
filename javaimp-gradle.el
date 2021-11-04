@@ -108,9 +108,10 @@ descriptor."
 
 (defun javaimp--gradle-fetch-dep-jars (module ids)
   (javaimp--gradle-call
-   ;; Always invoke on orig file (which is root build script)
-   ;; because module's own file may not exist, even if reported by
-   ;; Gradle as project.buildFile
+   ;; Always invoke on orig file (which is root build script) because
+   ;; module's own file may not exist, even if reported by Gradle as
+   ;; project.buildFile.  Furthermore, we use that file's directory to
+   ;; determine for local build tool wrappers.
    (javaimp-module-file-orig module)
    (lambda ()
      (re-search-forward "^dep-jars=\\(.*\\)$")
@@ -129,7 +130,7 @@ descriptor."
                             "gradlew.bat"
                           "gradlew"))
          (program (if (file-exists-p local-gradlew)
-                      local-gradlew
+                      (concat default-directory local-gradlew)
                     javaimp-gradle-program)))
     (javaimp--call-build-tool
      program

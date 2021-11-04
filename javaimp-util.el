@@ -286,7 +286,7 @@ unchanged."
 (defun javaimp--call-build-tool (program handler &rest args)
   "Run PROGRAM with ARGS, then call HANDLER in the temporary buffer
 with point set to eob and return its result."
-  (message "Calling program: %s %s" program (string-join args " "))
+  (message "Calling: %s %s" program (string-join args " "))
   (with-temp-buffer
     (let ((status
            (let ((coding-system-for-read
