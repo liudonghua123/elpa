@@ -589,23 +589,26 @@ Is only applicable if point is after the last prompt."
      (lambda (input predicate action)
        (pcase action
          ((or 't (and 'nil (guard capf-autosuggest-all-completions-only-one)))
-          (cl-loop
-           with only-one = capf-autosuggest-all-completions-only-one
-           with regexps = completion-regexp-list
-           for i below (ring-size ring)
-           for elem = (ring-ref ring i)
-           if (string-prefix-p input elem)
-           if (cl-loop for regex in regexps
-                       always (string-match-p regex elem))
-           if (or (null predicate)
-                  (funcall predicate elem))
-           if only-one
-           if action
-           return (list elem)
-           else
-           return elem
-           end
-           else collect elem))
+          (let ((only-one capf-autosuggest-all-completions-only-one)
+                (regexps completion-regexp-list)
+                (ring-length (ring-length ring))
+                (i 0)
+                elem ret)
+            (while (< i ring-length)
+              (setq elem (ring-ref ring i))
+              (and (string-prefix-p input elem)
+                   (cl-loop for regex in regexps
+                            always (string-match-p regex elem))
+                   (or (null predicate)
+                       (funcall predicate elem))
+                   (if only-one
+                       (setq ret (if action (list elem) elem)
+                             i ring-length)
+                     (push elem ret)))
+              (cl-incf i))
+            (if (listp ret)
+                (nreverse ret)
+              ret)))
          ('nil
           (complete-with-action
            nil (let ((capf-autosuggest-all-completions-only-one nil))
