@@ -583,45 +583,11 @@ Is only applicable if point is after the last prompt."
 
 (defun capf-autosuggest--completion-table (ring)
   "Return a completion table to complete on RING."
-  (let (self)
-    (setq
-     self
-     (lambda (input predicate action)
-       (pcase action
-         ((or 't (and 'nil (guard capf-autosuggest-all-completions-only-one)))
-          (let ((only-one capf-autosuggest-all-completions-only-one)
-                (regexps completion-regexp-list)
-                (ring-length (ring-length ring))
-                (i 0)
-                elem ret)
-            (while (< i ring-length)
-              (setq elem (ring-ref ring i))
-              (and (string-prefix-p input elem)
-                   (cl-loop for regex in regexps
-                            always (string-match-p regex elem))
-                   (or (null predicate)
-                       (funcall predicate elem))
-                   (if only-one
-                       (setq ret (if action (list elem) elem)
-                             i ring-length)
-                     (push elem ret)))
-              (cl-incf i))
-            (if (listp ret)
-                (nreverse ret)
-              ret)))
-         ('nil
-          (complete-with-action
-           nil (let ((capf-autosuggest-all-completions-only-one nil))
-                 (funcall self input predicate t))
-           input predicate))
-         ('lambda
-          (and (ring-member ring input)
-               (or (null predicate)
-                   (funcall predicate input))
-               (cl-loop for regex in completion-regexp-list
-                        always (string-match-p regex input))))
-         (_ (complete-with-action
-             action (ring-elements ring) input predicate)))))))
+  (let ((ring-elems t))
+    (lambda (input predicate action)
+      (when (eq ring-elems t)
+        (setq ring-elems (ring-elements ring)))
+      (complete-with-action action ring-elems input predicate))))
 
 (defun capf-autosuggest-minibuffer-capf ()
   "Completion-at-point function for minibuffer history."
