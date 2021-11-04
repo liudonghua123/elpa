@@ -137,7 +137,8 @@ descriptor."
      "-q"
      "-I" (javaimp-cygpath-convert-maybe
            (expand-file-name "javaimp-init-script.gradle"
-                             javaimp--basedir))
+                             (concat javaimp--basedir
+                                     (file-name-as-directory "support"))))
      (concat mod-path "javaimpTask"))))
 
 (provide 'javaimp-gradle)
