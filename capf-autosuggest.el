@@ -578,34 +578,38 @@ Is only applicable if point is after the last prompt."
     (setq
      self
      (lambda (input predicate action)
-       (cond
-        ((eq action t)
-         (cl-loop
-          with only-one = capf-autosuggest-all-completions-only-one
-          with regexps = completion-regexp-list
-          for i below (ring-size ring)
-          for elem = (ring-ref ring i)
-          if (string-prefix-p input elem)
-          if (cl-loop for regex in regexps
-                      always (string-match-p regex elem))
-          if (or (null predicate)
-                 (funcall predicate elem))
-          if only-one
-          return (list elem)
-          else collect elem))
-        ((eq action nil)
-         (complete-with-action
-          nil (let ((capf-autosuggest-all-completions-only-one nil))
-                (funcall self input predicate t))
-          input predicate))
-        ((eq action 'lambda)
-         (and (ring-member ring input)
-              (or (null predicate)
-                  (funcall predicate input))
-              (cl-loop for regex in completion-regexp-list
-                       always (string-match-p regex input))))
-        (t (complete-with-action
-            action (ring-elements ring) input predicate)))))))
+       (pcase action
+         ((or 't (and 'nil (guard capf-autosuggest-all-completions-only-one)))
+          (cl-loop
+           with only-one = capf-autosuggest-all-completions-only-one
+           with regexps = completion-regexp-list
+           for i below (ring-size ring)
+           for elem = (ring-ref ring i)
+           if (string-prefix-p input elem)
+           if (cl-loop for regex in regexps
+                       always (string-match-p regex elem))
+           if (or (null predicate)
+                  (funcall predicate elem))
+           if only-one
+           if action
+           return (list elem)
+           else
+           return elem
+           end
+           else collect elem))
+         ('nil
+          (complete-with-action
+           nil (let ((capf-autosuggest-all-completions-only-one nil))
+                 (funcall self input predicate t))
+           input predicate))
+         ('lambda
+          (and (ring-member ring input)
+               (or (null predicate)
+                   (funcall predicate input))
+               (cl-loop for regex in completion-regexp-list
+                        always (string-match-p regex input))))
+         (_ (complete-with-action
+             action (ring-elements ring) input predicate)))))))
 
 (defun capf-autosuggest-minibuffer-capf ()
   "Completion-at-point function for minibuffer history."
