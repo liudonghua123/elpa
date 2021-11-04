@@ -128,11 +128,11 @@ descriptor."
          (local-gradlew (if (memq system-type '(cygwin windows-nt))
                             "gradlew.bat"
                           "gradlew"))
-         (gradlew (if (file-exists-p local-gradlew)
+         (program (if (file-exists-p local-gradlew)
                       local-gradlew
                     javaimp-gradle-program)))
     (javaimp--call-build-tool
-     gradlew
+     program
      handler
      "-q"
      "-I" (javaimp-cygpath-convert-maybe
