@@ -199,7 +199,16 @@ Otherwise, return nil."
                      (throw catch-sym
                             (list start end collection :predicate predicate))))
                   (buffer-read-only t)
-                  (inhibit-quit nil))
+                  (inhibit-quit nil)
+                  ;; With `corfu-mode' enabled, `completion--capf-wrapper' is
+                  ;; advised to use completion styles instead of simple prefix
+                  ;; completion for non-:exclusive criteria, making it more
+                  ;; accurate, but also quite slower.  In our case, we are only
+                  ;; interested in prefix matching and speed, so we enable only
+                  ;; the simple and fast `emacs21' prefix matching completion
+                  ;; style.
+                  (completion-styles '(emacs21))
+                  (completion-category-overrides nil))
              (condition-case nil
                  (catch catch-sym
                    (while-no-input
