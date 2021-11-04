@@ -417,13 +417,15 @@ current `symbol-at-point'."
 	      ;; module dependencies because jars may change
               (let (jar-errors)
                 (prog1
-                    (seq-mapcat (lambda (jar)
-                                  (condition-case err
-                                      (javaimp--get-jar-classes jar)
-                                    (t
-                                     (push (error-message-string err) jar-errors)
-                                     nil)))
-                                (javaimp-module-dep-jars module))
+                    (seq-mapcat
+                     (lambda (jar)
+                       (condition-case err
+                           (javaimp--get-jar-classes jar)
+                         (t
+                          (push (concat jar ": " (error-message-string err))
+                                jar-errors)
+                          nil)))
+                     (javaimp-module-dep-jars module))
                   (when jar-errors
                     (with-output-to-temp-buffer "*Javaimp Jar errors*"
                       (princ javaimp--jar-error-header)

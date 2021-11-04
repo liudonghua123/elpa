@@ -136,6 +136,10 @@ descriptor."
      program
      handler
      "-q"
+     ;; It's easier for us to track jars instead of classes for
+     ;; java-library projects.  See
+     ;; https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_classes_usage
+     "-Dorg.gradle.java.compile-classpath-packaging=true"
      "-I" (javaimp-cygpath-convert-maybe
            (expand-file-name "javaimp-init-script.gradle"
                              (concat javaimp--basedir
