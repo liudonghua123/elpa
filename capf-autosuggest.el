@@ -412,10 +412,11 @@ suggestion and send it to the process as input."
   ;; Avoid infinite recursion when searching for the command remapping
   (let ((capf-autosuggest-active-mode nil))
     (setq cmd (or (command-remapping cmd) cmd)))
-  (lambda ()
-    (interactive)
+  (lambda (int)
+    (interactive "p")
     (capf-autosuggest-accept)
-    (undo-boundary)
+    (when int
+      (undo-boundary))
     (setq this-command cmd)
     (call-interactively cmd)))
 
