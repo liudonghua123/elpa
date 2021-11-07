@@ -4,7 +4,7 @@
 
 ;; Author: Stephen Meister
 ;; URL: https://gitlab.com/steve-emacs-stuff/cpupower-el
-;; Version: 1.0.1
+;; Version: 1.0.2
 ;; Keywords: hardware, cpupower, cpu, frequency-scaling
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -45,8 +45,6 @@
 ;;   - returns a list of all cpu governors by core.
 
 ;;; Code:
-;; pretty sure I don't need this, but?
-(setq lexical-binding t)
 
 (defcustom cpupower-cmd
   "sudo cpupower"
