@@ -236,7 +236,7 @@ any module's source file."
                   ;; Prevent infloop on root
                   parent (file-name-directory (directory-file-name cur-dir))
                   cur-dir (unless (string= parent cur-dir) parent)))
-     (read-file-name "Visit project from file: " nil files t)))
+     (list (read-file-name "Visit project from file: " nil files t))))
   (setq file (expand-file-name file))
   (let ((handler (or (assoc-default (file-name-nondirectory file)
                                     javaimp-handler-regexp-alist
