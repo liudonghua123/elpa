@@ -174,7 +174,7 @@ gradlew program, it is used in preference."
 ;; Variables
 
 (defvar javaimp-handler-regexp-alist
-  '(("\\`build.gradle" . ,#'javaimp--gradle-visit)
+  `(("\\`build.gradle" . ,#'javaimp--gradle-visit)
     ("\\`pom.xml\\'" . ,#'javaimp--maven-visit))
   "Alist of file name patterns vs corresponding handler function.
 A handler function takes one argument, a FILE.")
