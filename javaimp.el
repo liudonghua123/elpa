@@ -510,7 +510,10 @@ If there's no such directive, then the last resort is just
             (javaimp--get-buffer-classes))))
     (with-temp-buffer
       (insert-file-contents file)
-      (javaimp--get-buffer-classes))))
+      ;; We need only class-likes, and this is temp buffer, so for
+      ;; efficiency avoid parsing anything else
+      (let ((javaimp--parse-scope-hook #'javaimp--parse-scope-class))
+        (javaimp--get-buffer-classes)))))
 
 (defun javaimp--get-buffer-classes ()
   "Return fully-qualified names of all class-like scopes."
