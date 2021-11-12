@@ -29,10 +29,13 @@ SOURCE_DIR	= ~/src/tramp
 
 .PHONY: all clean sync
 
-all: ../tramp.info
+all: ../tramp.info ../README
 
 ../tramp.info: $(TEXI_FILES)
 	$(MAKEINFO) --footnote-style=end -o $@ tramp.texi
+
+../README: $(TEXI_FILES)
+	$(MAKEINFO) --plaintext --paragraph-indent=none -o $@ trampelpa.texi
 
 clean:
 	$(RM) $(CLEAN_FILES)
@@ -40,4 +43,5 @@ clean:
 # This target is for the maintainer only.
 sync:
 	cp -p $(SOURCE_DIR)/texi/tramp.texi tramp.texi
+	cp -p $(SOURCE_DIR)/texi/trampelpa.texi trampelpa.texi
 	cp -p $(SOURCE_DIR)/texi/trampver.texi trampver.texi
