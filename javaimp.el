@@ -813,8 +813,8 @@ start (`javaimp-scope-start') instead."
 
 ;; Misc
 
-(defun javaimp-forget-all-cached ()
-  "Forget all cached data."
+(defun javaimp-flush-cache ()
+  "Flush all caches."
   (setq javaimp-jar-cache nil))
 
 
