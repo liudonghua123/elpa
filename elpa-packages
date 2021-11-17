@@ -288,6 +288,8 @@
  ("json-mode"		:url nil)
  ("jsonrpc"		:core "lisp/jsonrpc.el")
  ("jumpc"		:url nil)
+ ("kind-icon"		:url "https://github.com/jdtsmith/kind-icon"
+  :auto-sync t)
  ("kiwix"		:url "https://github.com/stardiviner/kiwix.el"
   :ignored-files ("*.png" "LICENSE"))
  ("kmb"			:url nil)
@@ -355,8 +357,14 @@
   :shell-command "make autoloads info; mv doc/org.info org.info; mv doc/orgguide.info orgguide.info"
   :doc ("org.info" "orgguide.info")
   :auto-sync t)
+ ;; FIXME: Waiting for copyright paperwork from Michael Strey <mstrey@strey.biz>
+ ;;("org-contacts"	:url "https://github.com/stardiviner/org-contacts.el"
+ ;; :auto-sync t)
  ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
   :auto-sync t)
+ ;; FIXME: Waiting for the author's copyright paperwork.
+ ;;("org-transclusion"	:url "https://github.com/nobiot/org-transclusion"
+ ;; :auto-sync t)
  ("org-translate"	:url nil)
  ("orgalist"            :url nil)
  ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
