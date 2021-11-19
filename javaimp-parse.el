@@ -471,7 +471,7 @@ at the end of directive."
   (goto-char (point-max))
   (when (javaimp--parse-rsb-keyword javaimp--parse-package-regexp nil t 1)
     (goto-char (match-end 0))
-    (match-string 1)))
+    (match-string 2)))
 
 (defun javaimp--parse-get-imports ()
   "Parse import directives in the current buffer and return (REGION
