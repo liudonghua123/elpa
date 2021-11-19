@@ -31,11 +31,6 @@
 (defconst javaimp--parse-stmt-keyword-maxlen
   (seq-max (mapcar #'length javaimp--parse-stmt-keywords)))
 
-(defconst javaimp--parse-package-regexp
-  (javaimp--directive-regexp "package"))
-(defconst javaimp--parse-import-regexp
-  (javaimp--directive-regexp "import\\(?:[[:space:]]+static\\)?"))
-
 (defun javaimp--directive-regexp (directive)
   "Return regexp suitable for matching package-like DIRECTIVE, a
 regexp.  First group is directive, second group is identifier."
@@ -43,6 +38,11 @@ regexp.  First group is directive, second group is identifier."
       (group (regexp directive)) (+ space)
       (group (+ (any alnum ?_)) (* ?. (+ (any alnum ?_ ?*))))
       (* space) ?\;))
+
+(defconst javaimp--parse-package-regexp
+  (javaimp--directive-regexp "package"))
+(defconst javaimp--parse-import-regexp
+  (javaimp--directive-regexp "import\\(?:[[:space:]]+static\\)?"))
 
 (defvar-local javaimp--parse-dirty-pos nil
   "Marker which points to a buffer position after which all parsed
