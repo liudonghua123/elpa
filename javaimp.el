@@ -750,13 +750,22 @@ start (`javaimp-scope-start') instead."
                        (javaimp-scope-start scope)
                      (javaimp-scope-open-brace scope)))))))
 
-(defun javaimp-help-show-scopes ()
-  "Show scopes in a *javaimp-scopes* buffer."
-  (interactive)
-  (let ((scopes (save-excursion
-                  (save-restriction
-                    (widen)
-                    (javaimp--parse-get-all-scopes))))
+(defun javaimp-help-show-scopes (&optional show-all)
+  "Show scopes in a *javaimp-scopes* buffer, with clickable
+entries.  By default, the scopes are only those which appear in
+Imenu (`javaimp-imenu-create-index' is responsible for that), but
+with prefix arg, show all scopes."
+  (interactive "P")
+  (let ((scopes
+         (save-excursion
+           (save-restriction
+             (widen)
+             (javaimp--parse-get-all-scopes
+              (unless show-all
+                (lambda (scope)
+                  (javaimp-test-scope-type scope
+                    '(class interface enum method)
+                    javaimp--classlike-scope-types)))))))
         (file buffer-file-name)
         (buf (get-buffer-create "*javaimp-scopes*")))
     (with-current-buffer buf
