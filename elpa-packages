@@ -363,8 +363,9 @@
  ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
   :auto-sync t)
  ;; FIXME: Waiting for the author's copyright paperwork.
- ;;("org-transclusion"	:url "https://github.com/nobiot/org-transclusion"
- ;; :auto-sync t)
+ ("org-transclusion"	:url "https://github.com/nobiot/org-transclusion"
+  :doc "README.org"
+  :auto-sync t)
  ("org-translate"	:url nil)
  ("orgalist"            :url nil)
  ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
