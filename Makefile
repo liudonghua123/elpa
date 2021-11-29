@@ -50,7 +50,6 @@ clean:
 
 # This target is for the maintainer only.
 sync:
-	cp -p $(SOURCE_DIR)/README-ELPA README
 	cp -p $(SOURCE_DIR)/lisp/tramp-adb.el tramp-adb.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-archive.el tramp-archive.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-cache.el tramp-cache.el
