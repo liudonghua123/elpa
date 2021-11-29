@@ -375,6 +375,8 @@
  ("pabbrev"             :url "https://github.com/phillord/pabbrev.git")
  ("package-fixes"	:url nil)
  ("parsec"              :url "https://github.com/cute-jumper/parsec.el.git")
+ ("parser-generator"	:url "https://github.com/cjohansson/emacs-parser-generator"
+  :auto-sync t)
  ("path-iterator"	:url nil)
  ("peg"			:url) ;Was in "https://github.com/ellerh/peg.el"
  ("persist"             :url "https://gitlab.com/phillord/persist.git")
