@@ -383,7 +383,11 @@
  ;; FIXME: Waiting for copyright paperwork.
  ;; ("phpinspect"		:url "https://git.sr.ht/~hugot/phpinspect.el"
  ;;  :auto-sync t)
- ("phps-mode"		:url "https://github.com/cjohansson/emacs-phps-mode")
+ ("phps-mode"		:url "https://github.com/cjohansson/emacs-phps-mode"
+  ;; Christian Johansson works on a private Git and pushes to both Github
+  ;; and elpa.git anyway, so there's no need to auto-sync.
+  :auto-sync nil
+  )
  ("pinentry"		:url "https://github.com/ueno/pinentry-el.git")
  ("poker"		:url nil)
  ("posframe"
@@ -518,7 +522,8 @@
  ("vertico"
   :url "https://github.com/minad/vertico"
   :doc "README.org"
-  :ignored-files ("extensions" "*.svg")
+  :ignored-files ("*.svg")
+  :renames (("extensions/" ""))
   :auto-sync t)
  ("vertico-posframe"
   :url "https://github.com/tumashu/vertico-posframe"
