@@ -519,8 +519,7 @@
  ("visual-fill"		:url nil)
  ("vlf"			:url "https://github.com/m00natic/vlfi")
  ("verilog-mode"        :core "lisp/progmodes/verilog-mode.el")
- ("vertico"
-  :url "https://github.com/minad/vertico"
+ ("vertico"		:url "https://github.com/minad/vertico"
   :doc "README.org"
   :ignored-files ("*.svg")
   :renames (("extensions/" ""))
