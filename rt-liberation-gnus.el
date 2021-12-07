@@ -57,6 +57,7 @@ line of an email. For example: \\[company.com #\\([0-9].+?\\)\\]"
 
 (require 'rt-liberation)
 (require 'nnir)
+(require 'nnselect)
 (require 'gnus-msg)
 
 
