@@ -128,10 +128,8 @@ message was received."
   ;; dates in the future, though that's stupid.
   (let* ((now (current-time))
 	 (delta (time-subtract now date))
-	 (real-sec (and delta
-			(+ (* (float (car delta)) 65536)
-			   (cadr delta))))
-	 (sec (and delta (abs real-sec))))
+	 (real-sec (float-time delta))
+	 (sec (abs real-sec)))
     (floor (/ sec 86400))))
 
 (cl-defmethod ebdb-fmt-field ((_fmt ebdb-formatter-ebdb)
