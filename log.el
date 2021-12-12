@@ -337,12 +337,7 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
         (indent-to-column 11 2)         ; whitespace
         (insert the-command)            ; command name
         (indent-to-column 40 1))	; effects column, prior to timestamp
-      (log-timer-filter (let ((time (current-time)))
-                          (format "%05d.%03d"
-                                  (mod (+ (* 65536 (car time))
-                                          (nth 1 time))
-                                       100000)
-                                  (/ (nth 2 time) 1000))))))
+      (log-timer-filter (format "%09.3f" (mod (float-time) 100000)))))
   nil)
 
 (defun log-stamp-date ()
@@ -364,12 +359,7 @@ already wrapped.  PREFIX is an optional string, usually the command prefix."
                (t (format "%s" last-input-event))))
         ;;(indent-to-column 11 2)
         )
-      (log-timer-filter (let ((time (current-time)))
-                          (format "%05d.%03d"
-                                  (mod (+ (* 65536 (car time))
-                                          (nth 1 time))
-                                       100000)
-                                  (/ (nth 2 time) 1000)))))))
+      (log-timer-filter (format "%09.3f" (mod (float-time time) 100000))))))
 
 ;; 10-1-93 - use a filter rather than an output buffer:
 (defvar log-timestamp nil)
