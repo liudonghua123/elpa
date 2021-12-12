@@ -624,10 +624,7 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
 ;; Helper functions and macros
 (defun brief-current-time ()
   "Epoch time in floating point."
-  (let ((ct (current-time)))
-    (+ (logior (lsh (car ct) 16)
-               (cadr ct))
-       (* 1e-6 (caddr ct)))))
+  (float-time))
 
 (defvar brief-calibration-value 0.0
   "Latest calibration value of UI performance.
