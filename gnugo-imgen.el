@@ -71,6 +71,18 @@ This is called with one arg, integer BOARD-SIZE, and should return
 a number (float or integer), the number of pixels for the side of
 a square position on the board.  A value less than 8 is taken as 8.")
 
+(defvar gnugo-imgen-char-height-fudge-factor 1.0
+  "How much to fudge the character height in the fitting function.
+At its heart, gnugo-imgen uses ‘window-inside-absolute-pixel-edges’,
+which (at *its* heart, in turn) is a very complex calculation.
+For some versions of Emacs, this may result in the generated
+board being larger than the actual visibile frame, which is ugly.
+
+You can use ‘gnugo-imgen-char-height-fudge-factor’ to make things
+look right (or at least, better).  If the board looks too big,
+set this to a small positive number (4.2 works for the author).
+The bigger the factor, the smaller the board.")
+
 (defvar gnugo-imgen-cache (make-hash-table :test 'equal))
 
 (defun gnugo-imgen-clear-cache ()
@@ -83,6 +95,7 @@ a square position on the board.  A value less than 8 is taken as 8.")
       (window-inside-absolute-pixel-edges)
     (ignore L R)
     (/ (float (- bot top (* (frame-char-height)
+                            gnugo-imgen-char-height-fudge-factor
                             ignored-grid-lines)))
        board-size)))
 
@@ -90,14 +103,18 @@ a square position on the board.  A value less than 8 is taken as 8.")
   "Return the dimension (in pixels) of a square for BOARD-SIZE.
 This uses the TOP and BOTTOM components as returned by
 `window-inside-absolute-pixel-edges' and subtracts twice
-the `frame-char-height' (to leave space for the grid)."
+the `frame-char-height' (to leave space for the grid).
+
+See also `gnugo-imgen-char-height-fudge-factor'."
   (gnugo-imgen--fit board-size 2))
 
 (defun gnugo-imgen-fit-window-height/no-grid-bottom (board-size)
   "Return the dimension (in pixels) of a square for BOARD-SIZE.
 This uses the TOP and BOTTOM components as returned by
 `window-inside-absolute-pixel-edges' and subtracts the
-`frame-char-height' (to leave top-line space for the grid)."
+`frame-char-height' (to leave top-line space for the grid).
+
+See also `gnugo-imgen-char-height-fudge-factor'."
   (gnugo-imgen--fit board-size 1))
 
 (defconst gnugo-imgen-palette '((32 . :background)
