@@ -105,7 +105,7 @@ This follows a MAJOR.MINOR.PATCH scheme.")
 This program must accept command line args:
  --mode gtp --quiet
 For more information on GTP and GNU Go, please visit:
-<http://www.gnu.org/software/gnugo>")
+<https://www.gnu.org/software/gnugo>")
 
 (defvar gnugo-start-game-hook nil
   "Normal hook run immediately before the first move of the game.
