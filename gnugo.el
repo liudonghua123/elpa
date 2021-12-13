@@ -7,7 +7,7 @@
 ;; Version: 3.1.1
 ;; Package-Requires: ((ascii-art-to-unicode "1.5") (xpm "1.0.1") (cl-lib "0.5"))
 ;; Keywords: games, processes
-;; URL: http://www.gnuvola.org/software/gnugo/
+;; URL: https://www.gnuvola.org/software/gnugo/
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
