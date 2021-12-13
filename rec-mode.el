@@ -2998,6 +2998,7 @@ onto the chosen record."
     ["---"                nil                :visible (derived-mode-p 'rec-edit-mode)]
     ["Finish editing"     rec-finish-editing :visible (derived-mode-p 'rec-edit-mode)]))
 
+;;;###autoload
 (define-derived-mode rec-mode nil "Rec"
   "A major mode for editing rec files.
 \\{rec-mode-map}"
