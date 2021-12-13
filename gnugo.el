@@ -82,7 +82,7 @@
 ;; Meta-Meta-Playing (aka Hacking)
 ;; -------------------------------
 ;;
-;; <http://git.sv.gnu.org/cgit/emacs/elpa.git/tree/packages/gnugo/>
+;; <https://git.savannah.gnu.org/cgit/emacs/elpa.git/tree?h=externals/gnugo>
 
 ;;; Code:
 
