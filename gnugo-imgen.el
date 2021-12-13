@@ -264,6 +264,14 @@ The returned list is cached; see also `gnugo-imgen-clear-cache'."
                     (cdr (assq gnugo-imgen-style gnugo-imgen-styles))
                     (error "No style selected")))
          (key (cons square style)))
+    ;; Do a little cache management first.
+    ;; (Decruft if any "secondary" customization has happened.)
+    (let ((so-far (list gnugo-imgen-char-height-fudge-factor
+                        gnugo-imgen-sizing-function)))
+      (unless (equal so-far (gethash t gnugo-imgen-cache))
+        (gnugo-imgen-clear-cache)
+        (puthash t so-far gnugo-imgen-cache)))
+    ;; Go for it!
     (or (gethash key gnugo-imgen-cache)
         (puthash key (gnugo-imgen-create-xpms-1 square style)
                  gnugo-imgen-cache))))
