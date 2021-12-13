@@ -26,6 +26,7 @@
 ;;  `gnugo-imgen-styles'
 ;;  `gnugo-imgen-style'
 ;;  `gnugo-imgen-sizing-function'
+;;  `gnugo-imgen-char-height-fudge-factor'
 ;;
 ;; There is also one command: `gnugo-imgen-clear-cache'.
 
@@ -76,7 +77,7 @@ a square position on the board.  A value less than 8 is taken as 8.")
 At its heart, gnugo-imgen uses ‘window-inside-absolute-pixel-edges’,
 which (at *its* heart, in turn) is a very complex calculation.
 For some versions of Emacs, this may result in the generated
-board being larger than the actual visibile frame, which is ugly.
+board being larger than the actual visible frame, which is ugly.
 
 You can use ‘gnugo-imgen-char-height-fudge-factor’ to make things
 look right (or at least, better).  If the board looks too big,
