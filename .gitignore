@@ -1,3 +1,5 @@
+/GNUmakefile
+/admin
 /gnugo-pkg.el
 /gnugo-autoloads.el
 *.elc
