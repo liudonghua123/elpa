@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -28,7 +28,7 @@
 ;; -------
 ;;
 ;; This file provides the command `gnugo' which allows you to play the game of
-;; go against the external program "gnugo" (http://www.gnu.org/software/gnugo)
+;; go against the external program "gnugo" (https://www.gnu.org/software/gnugo)
 ;; in a dedicated Emacs buffer, or to resume a game in progress.  NOTE: In
 ;; this file, to avoid confusion w/ elisp vars and funcs, we use the term "GNU
 ;; Go" to refer to the process object created by running the external program.
