@@ -136,13 +136,9 @@ found."
       (unless backend
         (error "No backend found"))
       (catch 'ok
-        (dolist (fn (mapcar
-                     #'intern-soft
-                     (list (format "autocrypt-%S--%S" backend command)
-                           (format "%S-autocrypt-%S" backend command)
-                           (format "%S--autocrypt-%S" backend command))))
-          (when (and fn (fboundp fn))
-            (throw 'ok fn)))
+        (dolist (fmt '("autocrypt-%S--%S" "%S-autocrypt-%S" "%S--autocrypt-%S"))
+          (let ((fn (intern-soft (format fmt backend command))))
+            (when (fboundp fn) (throw 'ok fn))))
         (unless silent
           (error "Missing %S implementation for %S" command backend))))))
 
