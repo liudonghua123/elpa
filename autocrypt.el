@@ -155,10 +155,16 @@ be found."
     fn))
 
 (defalias 'autocrypt-install (autocrypt-make-function 'install '())
-  "Install necessary autocrypt functions into the MUA.")
+  "Install necessary autocrypt functions into the MUA.
+A mail reader (Gnus, Rmail, ...) should only needs to implement
+`get-header' and optionally `get-part'.  A
+composer (message-mode) should ideally have an implementation the
+generic functions `get-header', `add-header', `remove-header',
+`sign-encrypt', `secure-attach' and `encrypted-p'.")
 
 (defalias 'autocrypt-uninstall (autocrypt-make-function 'uninstall '())
-  "Remove all modifications by autocrypt.")
+  "Remove all modifications by autocrypt.
+This should reverse the effect of `autocrypt-install'.")
 
 (defalias 'autocrypt-get-header (autocrypt-make-function 'get-header '(header))
   "Return the value of HEADER.")
