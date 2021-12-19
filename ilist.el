@@ -879,10 +879,10 @@ skipped."
          (original-point (point))
          (arg (abs arg)))
     (ilist-skip-properties t forwardp
-                           '(ilist-header
-                             ilist-title-sep))
+                           '(ilist-header ilist-title-sep)
+                           no-skip-invisible)
     (ilist-skip-properties skip-groups forwardp
-                           '(ilist-group-header))
+                           '(ilist-group-header) no-skip-invisible)
     (cond ((and
             (/= original-point (point))
             (not (memq
