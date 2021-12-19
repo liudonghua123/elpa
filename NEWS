@@ -5,6 +5,10 @@ NB: "RCS: X..Y " means that the particular release includes
     changes in the RCS repo, revision 1.X through 1.Y (inclusive).
 
 
+- 3.1.2 | 2021-12-19
+  - improved scoring seed randomization (patch by Paul Eggert)
+  - new var: ‘gnugo-imgen-char-height-fudge-factor’
+
 - 3.1.1 | 2020-10-24
   - bugfix: use ‘cursor-intangible-mode’ properly
   - new func: gnugo-imgen-fit-window-height/no-grid-bottom
