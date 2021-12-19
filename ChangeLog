@@ -1,0 +1,220 @@
+2021-12-19  JSDurand  <mmemmew@gmail.com>
+
+	implement hiding groups by buffer-invisibility-spec
+	* blist.el (blist-add-default-filter-automatically, blist-filter-groups)
+	(blist-list-bookmarks): Whether to add a default group.
+
+	  (blist-operate-range): Update doc.
+
+	  (blist-toggle-group): Use buffer-invisibility-spec to control the
+	  invisibility of the texts.
+
+	  (blist-jump-to-line): Do not skip invisible lines here so that we
+	  can find all bookmarks correctly.
+
+2021-09-30  JSDurand  <mmemmew@gmail.com>
+
+	* blist.el (blist-open): Use the name of bookmark instead.
+	This string will be stored in the history variable.  If we use a full
+	record there, it may cause problems when we later try to select
+	previous bookmark selections.
+
+2021-09-20  JSDurand  <mmemmew@gmail.com>
+
+	blist.el: QoL refinements
+	* blist.el (blist): Better discoverability.
+
+	(blist-buffer-name): Use a unique variable for the buffer name so that
+	the users can customize this if she uses multiple packages for
+	bookmarks.
+
+	(blist-set-annotation-column, blist-annotation-column-name)
+	(blist-annotation-column, blist-list-bookmarks): Now the user can
+	directly set the name of the column without doing anything special.
+
+	(blist-show-annotation): Correct error messages.
+
+2021-09-18  JSDurand  <mmemmew@gmail.com>
+
+	blist: refine functions to display annotations
+	* blist.el (blist-show-annotation): Now only ask to choose a bookmark
+	if the user invokes the command with a universal argument.
+
+	(blist-show-all-annotations): If the given list is empty, throw an
+	error.
+
+2021-09-17  JSDurand  <mmemmew@gmail.com>
+
+	* blist.el (blist-relocate): Fix a bug caused by a typo.
+
+2021-09-17  JSDurand  <mmemmew@gmail.com>
+
+	Add Info and PDF manuals
+	* README.org (Columns, Calling convention(s)): Fix some typos.
+
+	* blist.texinfo: Source of manuals.
+
+	* blist.info: An Info manual that is suitable for reading inside
+	  Emacs.
+
+	* blist.pdf: For those without Emacs, a PDF manual is provided as an
+	  unfortunate fallback.
+
+	* scaled-screenshot1.png: Scale down the screen shot to fit in the
+	  display in the Info manual.
+
+2021-09-17  JSDurand  <mmemmew@gmail.com>
+
+	blist: deal with empty annotations
+	* blist.el (blist-show-annotation, blist-show-all-annotations): Only
+	  show non-empty annotations.
+
+	(blist-send-edit-annotation): If the buffer is empty, set the
+	annotation to nil instead of an empty string.
+
+	(blist-is-annotated-p): Determine whether the point is at a bookmark
+	with non-empty annotations.
+
+2021-09-17  JSDurand  <mmemmew@gmail.com>
+
+	update README
+	* README.org: Add an example configuration and change the descriptions
+	  of calling conventions.
+
+2021-09-16  JSDurand  <mmemmew@gmail.com>
+
+	try to fix image
+
+	Fix some README issues
+
+	Add README
+
+2021-09-16  JSDurand  <mmemmew@gmail.com>
+
+	new: edit annotations
+	* blist.el (blist-edit-annotation-buffer-name): Let the user have a
+	change to customize the buffer name.
+
+	(blist-show-all-annotations): Split on newline only.
+
+	(blist-edit-annotation-mode): Major mode for editing annotations.
+
+	(blist-send-edit-annotation): Send the edit and re-generate the list
+	of bookmarks.
+
+	(blist-abort-edit-annotation): Kill the buffer and quit the window.
+
+	(blist-edit-annotation): Edit the bookmark's annotation.
+
+	(blist-mode-map): Bind bookmark-save to more keys.
+
+2021-09-16  JSDurand  <mmemmew@gmail.com>
+
+	add loading functionality
+	* blist.el (blist-import-new-list): A modified loading function.  It
+	uses a hash table to test if new names are found in the old
+	bookmark-alist, so that the overall worst case time complexity is
+	linear, rather than quadratic.  Also the behaviour of `bookmark-load'
+	differs from that described by its documentation string: it puts the
+	new list at the end of the list in fact.  That is fixed in this
+	function as well.
+
+	(blist-load): Adapted version of `bookmark-bmenu-load'.
+
+	(blist-delete-marked, blist-do-delete): Increase
+	bookmark-alist-modification-count so that we can correctly
+	automatically save bookmarks if the users demands so.
+
+2021-09-15  JSDurand  <mmemmew@gmail.com>
+
+	fix a wrong function call
+	* blist.el (blist-show-annotation): Call blist-show-all-annotations
+	  instead.
+
+	Make `blist-list-bookmarks' interactive
+	I cannot believe I forgot to make this function interactive!  It is
+	sort of the only entry point to this little package!
+
+	fix defcustom problem
+	I didn't know that `defcustom' requires its setter to be defined
+	beforehand.  Now this is fixed.
+
+	fix `blist-select'
+	* blist.el (blist-prepare-select-windows, blist-select): Now the user
+	  can interactively choose how to select multiple bookmarks.  And the
+	  spiral behaviour is also fixed now; previously it was not exactly a
+	  spiral.
+
+2021-09-15  JSDurand  <mmemmew@gmail.com>
+
+	preserve the original point in building the list
+	* blist.el (blist-delete-marked, blist-do-delete)
+	(blist-deleted-indices): Record the list of indices that are
+	deleted, so that we don't record those deleted entries for the
+	purpose of re-positioning the point after the update.
+
+	(blist-list-bookmarks): Now this will try to preserve point if we are
+	already in the list of bookmarks.
+
+	(blist-mode-map): Bind blist-load to l.
+
+2021-09-14  JSDurand  <mmemmew@gmail.com>
+
+	More features
+	(blist-filter-groups): Fix defcustom type keyword.
+
+	(blist-select-manner): Add the option of "main-side", and modify
+	defcustom type keyword.
+
+	(blist-select): Support main-side way of displaying multiple windows.
+
+	(blist-locate): Echo the location of the bookmark.
+
+	(blist-relocate-history, blist-relocate): Set the location of an
+	existing bookmark to a new location, to adapt to this fast-changing
+	world.
+
+	(blist-show-annotation, blist-show-all-annotations): Show annotations
+	of some or all bookmarks.
+
+2021-09-14  JSDurand  <mmemmew@gmail.com>
+
+	More features
+	* blist.el (blist-annotation-column-name, blist-annotation-column):
+	Add a column to show if the bookmark has annotations.
+
+	(blist-set-annotation-column): This command updates the annotation
+	column if the name of the column changes.
+
+	(blist-select-manner): How to select multiple bookmarks.  The user can
+	choose to open horizontally, vertically, or even in a spiral manner,
+	with detailed controls.
+
+	(blist-rename-history, blist-rename): Rename a bookmark.
+
+	(blist-get-annotation): Return if BOOKMARK has annotation.  If
+	BOOKMARK has no annotation, return a space string.
+
+	(blist-mode-map): Bind more key-bindings.
+
+	(blist-list-bookmarks): Delete trailing whitespaces after the list is
+	displayed, so as to avoid surprises.
+
+	(blist-operate-range): Skip groups now.
+
+	(blist-prepare-select-windows): Prepare the windows for selection.
+
+	(blist-select): Select multiple windows.
+
+	(blist-all-bookmarks, blist-jump-to-line): Changed syntax.
+
+2021-09-13  JSDurand  <mmemmew@gmail.com>
+
+	Fix documentations.
+	* blist.el (blist-open-other-window, blist-toggle-marks)
+	(blist-change-marks, blist-unmark-all-mark)
+	(blist-mark-for-deletion-backward): fix documentations.
+
+	initial working version
+	Still in deearth of a lot of functionalities, but it kind of usable
+	now.
