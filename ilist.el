@@ -538,26 +538,39 @@ trailing spaces."
           (append
            ;; special properties
            (list (propertize header 'ilist-header t)
-                 (propertize title-sep 'ilist-title-sep t))
+                 (string #xa)
+                 (propertize title-sep 'ilist-title-sep t)
+                 (string #xa))
            ;; transform back to the format we want
-           (mapcar
-            (lambda (element)
-              (concat
-               ;; title
-               (car element)
-               ;; for empty groups don't add a newline
-               (cond ((cdr element) (string #xa)))
-               ;; rows
-               (mapconcat
-                (lambda (row)
+           (let ((len (length group-strs))
+                 (index 0))
+             (mapcar
+              (lambda (element)
+                (setq index (1+ index))
+                (concat
+                 ;; title
+                 (car element)
+                 ;; for empty groups don't add a newline
+                 (cond ((cdr element) (string #xa)))
+                 ;; rows
+                 (mapconcat
+                  (lambda (row)
+                    (propertize
+                     (mapconcat
+                      #'identity (cdr row) (string #x20))
+                     'ilist-index (car row)
+                     'invisible (intern (car element))))
+                  (cdr element)
                   (propertize
-                   (mapconcat
-                    #'identity (cdr row) (string #x20))
-                   'ilist-index (car row)))
-                (cdr element)
-                (string #xa))))
-            group-strs)))
-    (mapconcat #'identity group-strs (string #xa))))
+                   (string #xa)
+                   'invisible (intern (car element))))
+                 (cond
+                  ((< index len)
+                   (propertize
+                    (string #xa)
+                    'invisible (intern (car element)))))))
+              group-strs))))
+    (mapconcat #'identity group-strs (string))))
 
 ;;; map over lines
 
@@ -603,7 +616,8 @@ over which the function is executed."
                 (cons
                  (funcall fun)
                  res))))
-        (ilist-forward-line 1))
+        ;; don't skip invisible lines here
+        (ilist-forward-line 1 nil nil t))
       (nreverse res))))
 
 ;;; Get index at point
@@ -831,13 +845,16 @@ FORWARDP determines the direction to test for the boundary."
 
 ;;;; moving between lines
 
-(defun ilist-forward-line (&optional arg rounded skip-groups)
+(defun ilist-forward-line (&optional arg rounded skip-groups no-skip-invisible)
   "Go to ARG th next line.
 If ROUNDED is non-nil, assume the top of the buffer is connected
 to the bottom of the buffer.
 
 If SKIP-GROUPS is non-nil, try not to stop point on a group
-header."
+header.
+
+If NO-SKIP-INVISIBLE is non-nil, invisible lines will not be
+skipped."
   ;; make sure ARG is a number
   (setq arg (prefix-numeric-value arg))
   (let* ((forwardp (> arg 0))
@@ -846,6 +863,7 @@ header."
                              (goto-char (point-max))
                              (line-beginning-position)))))
          (original-point (point))
+         (line-move-ignore-invisible t)
          (arg (abs arg)))
     (ilist-skip-properties t forwardp
                            '(ilist-header
@@ -856,6 +874,11 @@ header."
            (setq arg (1- arg))))
     (while (> arg 0)
       (forward-line (cond (forwardp 1) (-1)))
+      ;; skip invisible lines if needed
+      (while (and (not no-skip-invisible)
+                  (memq (get-text-property (point) 'invisible)
+                        buffer-invisibility-spec))
+        (forward-line (cond (forwardp 1) (-1))))
       ;; skip the group and the boundary twice to ensure that we avoid
       ;; the edges as much as possible.
       (ilist-skip-boundary rounded forwardp other-end)
@@ -954,7 +977,10 @@ with ELEMENTS removed."
 
 (define-derived-mode ilist-mode special-mode "IList"
   "Display a list in a similar fashion to ibuffer."
-  (setq truncate-lines t))
+  (setq truncate-lines t)
+  ;; This is to make sure that by default the bookmarks are not
+  ;; hidden.
+  (setq buffer-invisibility-spec (list t)))
 
 ;; It is intentional that no key-bindings are defined.
 
