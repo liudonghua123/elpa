@@ -64,16 +64,33 @@
 
 ;;;; Filter groups
 
-;; Maybe it will be better to add an automatic default group?
+(defcustom blist-add-default-filter-automatically t
+  "If non-nil, and if `blist-default-p' is not used in
+`blist-filter-groups', then a default filter will be added."
+  :group 'blist
+  :type 'boolean)
 
 (defcustom blist-filter-groups (list
                                 (cons "Eshell" #'blist-eshell-p)
                                 (cons "Default" #'blist-default-p))
   "The filter groups for display.
-Remember to put the default group at the end, otherwise some
-bookmarks might not be displayed."
+If `blist-default-p' is not used as a criterion, and if
+`blist-add-default-filter-automatically' is non-nil, then append
+a default filter group at the end."
   :group 'blist
   :type '(repeat (cons string function)))
+
+(defun blist-filter-groups ()
+  "Return the filter groups to use.
+See the doc strings of the variable `blist-filter-groups' and
+`blist-add-default-filter-automatically' for details."
+  (declare (side-effect-free 'error-free))
+  (cond
+   ((and blist-add-default-filter-automatically
+         (null (rassq #'blist-default-p blist-filter-groups)))
+    (append blist-filter-groups
+            (list (cons "Default" #'blist-default-p))))
+   (blist-filter-groups)))
 
 ;;;; Empty groups
 
@@ -133,7 +150,7 @@ See `blist-sorter'."
 
 ;;;; Annotation Column
 
-;;;;; Annotation column setter
+;;;;; Annotation column getter
 
 (defun blist-get-annotation (bookmark)
   "Return if BOOKMARK has annotation.
@@ -386,7 +403,7 @@ used as a `revert-buffer-function'."
                  (blist-name-column))
            (cond
             (blist-display-location-p (list blist-location-column))))
-          blist-filter-groups
+          (blist-filter-groups)
           blist-discard-empty-p
           blist-sorter
           t))
@@ -507,7 +524,9 @@ instead of using ARG lines in the last case.
 Return a cons cell (start . end) of start and end of the range.
 
 Note that this function moves point to the other end of the
-range, unless region is active."
+range, unless region is active.
+
+Note that invisible lines will not be considered here."
   (let (start end no-sort-p)
     (cond
      ((use-region-p)
@@ -1178,35 +1197,48 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
 
 ;;;; blist-toggle-group
 
+;; REVIEW: This is implemented by the variable
+;; `buffer-invisibility-spec'.  It can be a list of atoms which means
+;; that the texts whose `invisible' property is a member of the list
+;; should be invisible.  Setting this is much faster than manually
+;; deleting and/or inserting texts in the buffer, and is much more
+;; user-friendly: the texts are not altered, and the user can be sure
+;; that no data are lost.
+
 ;;;###autoload
 (defun blist-toggle-group ()
   "Toggle the visibility of the group at point."
   (interactive)
-  (let ((group-header (ilist-get-group))
-        (hidden-text (get-text-property (point) 'blist-hidden-text))
-        (inhibit-read-only t))
+  (let* ((group-header (ilist-get-group))
+         (group-symbol (intern (format "[ %s ]" group-header)))
+         (hidden-p (get-text-property (point) 'blist-hidden))
+         (inhibit-read-only t))
     (cond
      ((null group-header)
       ;; not at group
       (user-error "Not at a group to toggle"))
-     (hidden-text
+     (hidden-p
       ;; hidden group
       (delete-region (line-beginning-position)
                      (min (1+ (line-end-position)) (point-max)))
-      (save-excursion (insert hidden-text)))
+      (save-excursion
+        (insert
+         (propertize
+          (format "%s\n" group-symbol)
+          'ilist-group-header group-header)))
+      (remove-from-invisibility-spec group-symbol))
      ;; not hidden
      ((let* ((start (line-beginning-position))
-             (end (progn
-                    (ilist-forward-group-header 1)
-                    (point)))
+             (end (min (1+ (line-end-position)) (point-max)))
              (text (buffer-substring start end)))
         (delete-region start end)
         (insert
          (propertize
           (format "[ %s ... ]\n" group-header)
           'ilist-group-header group-header
-          'blist-hidden-text text))
-        (goto-char start))))))
+          'blist-hidden t))
+        (goto-char start))
+      (add-to-invisibility-spec group-symbol)))))
 
 ;;;; Generic return
 
@@ -1284,7 +1316,6 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
       (while (and (not (ilist-boundary-buffer-p t))
                   (not res))
         (cond
-         ;; a normal line
          ((ilist-get-index)
           (setq
            res
@@ -1292,46 +1323,16 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
             (bookmark-name-from-full-record
              (nth (ilist-get-index) bookmark-alist))
             name))
-          (cond (res (setq pos (point))))))
-        (ilist-forward-line 1)))
-    ;; per chance the line is hidden
-
-    ;; NOTE: if pos is already found, res will be non-nil, then the
-    ;; following block will be automatically skipped.
-    (save-excursion
-      (goto-char (point-min))
-      (while (and (not (ilist-boundary-buffer-p t))
-                  (not res))
-        (cond
-         ;; a hidden line
-         ((and (ilist-get-group)
-               (get-text-property (point) 'blist-hidden-text))
-          (let ((start (point))
-                (end (save-excursion
-                       (ilist-forward-group-header 1)
-                       (point))))
-            (blist-toggle-group)
-            (ilist-forward-line 1)
-            (while (and (not (ilist-get-group))
-                        (not (ilist-boundary-buffer-p t))
-                        (not res))
-              (setq
-               res
-               (string=
-                (bookmark-name-from-full-record
-                 (nth (ilist-get-index) bookmark-alist))
-                name))
-              (cond (res (setq pos (point))))
-              (ilist-forward-line 1))
-            ;; if not found, we toggle back
-            (cond
-             ((not res)
-              (goto-char start)
-              (blist-toggle-group))))))
-        ;; we skip a group ahead.
-        (cond
-         ((not res)
-          (ilist-forward-group-header 1)))))
+          (cond
+           (res
+            (setq pos (point))
+            ;; per chance the line is hidden
+            (let ((invi (get-text-property pos 'invisible)))
+              (cond ((memq invi buffer-invisibility-spec)
+                     (blist-prev-group 1)
+                     (blist-toggle-group))))))))
+        ;; don't skip invisible lines here
+        (ilist-forward-line 1 nil nil t)))
     (cond
      (pos (goto-char pos))
      ((user-error "No bookmark named %s" name)))))
