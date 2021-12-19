@@ -1,4 +1,4 @@
-;;; flower.el --- can `xpm-raster' DTRT?     -*- lexical-binding: t -*-
+;;; flower.el --- can ‘xpm-raster’ DTRT?     -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
 
@@ -20,10 +20,10 @@
 
 ;;; Commentary:
 
-;; This file helps visualize `xpm-raster' failure modes.  Maybe one
-;; day it will be rendered useless by improvements to `xpm-raster'.
+;; This file helps visualize ‘xpm-raster’ failure modes.  Maybe one
+;; day it will be rendered useless by improvements to ‘xpm-raster’.
 ;;
-;; NB: There is no `provide' form.
+;; NB: There is no ‘provide’ form.
 ;; NB: Loading munges the global keymap -- YHBW!
 
 ;;; Code:
@@ -37,7 +37,7 @@
 For best results, this should be at least 99 and odd.")
 
 (defun flower (&optional again)
-  "Stress `xpm-raster' in various ways."
+  "Stress ‘xpm-raster’ in various ways."
   (interactive "P")
   (let ((buf (get-buffer "flower")))
     (when buf (kill-buffer buf)))

@@ -45,7 +45,7 @@
 
 (defun xpm-buffer-from (image &optional name)
   "Return a new XPM buffer initialized from IMAGE.
-IMAGE should have type `xpm'.  NAME is the new buffer name,
+IMAGE should have type ‘xpm’.  NAME is the new buffer name,
 which defaults to the name specified in IMAGE."
   (let* ((plist (cdr image))
          source populate)

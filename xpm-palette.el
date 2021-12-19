@@ -59,7 +59,7 @@
   ;; Change count of colors by adding N to the current value.
   ;; But first, move point to POS, which should be
   ;; the colors list bol (and leave it there when done).
-  ;; See `xpm-drop-px' and `xpm-add-px'.
+  ;; See ‘xpm-drop-px’ and ‘xpm-add-px’.
   (goto-char (car palette))
   (save-excursion
     (search-backward "\n\"")

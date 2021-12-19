@@ -69,9 +69,9 @@
 (autoload 'image-toggle-display "image-mode" t) ; hmm is this TRT?
 
 (defvar xpm-raster-inhibit-continuity-optimization nil
-  "Non-nil disables a heuristic in `xpm-raster' filling.
+  "Non-nil disables a heuristic in ‘xpm-raster’ filling.
 Normally, if you pass a well-formed (closed, no edge crossings)
-shape to `xpm-raster', then you can ignore this variable.")
+shape to ‘xpm-raster’, then you can ignore this variable.")
 
 (cl-defstruct (xpm--gg                  ; gathered gleanings
                (:type vector)           ; no ‘:named’ so no predicate
@@ -92,7 +92,7 @@ shape to `xpm-raster', then you can ignore this variable.")
   "Analyze buffer and prepare internal data structures.
 When called as a command, display in the echo area a
 summary of image dimensions, cpp and palette.
-Set buffer-local variable `xpm--gg' and return its value.
+Set buffer-local variable ‘xpm--gg’ and return its value.
 Normally, preparation includes making certain parts of the
 buffer intangible.  Optional arg SIMPLE non-nil inhibits that."
   (interactive)
@@ -177,7 +177,7 @@ buffer intangible.  Optional arg SIMPLE non-nil inhibits that."
 ;;;###autoload
 (defun xpm-generate-buffer (name width height cpp palette)
   "Return a new buffer in XPM image format.
-In this buffer, undo is disabled (see `buffer-enable-undo').
+In this buffer, undo is disabled (see ‘buffer-enable-undo’).
 
 NAME is the buffer and XPM name.  For best interoperation
 with other programs, NAME should be a valid C identifier.
@@ -303,7 +303,7 @@ Optional arg FILL specifies a fill pixel, or t to fill with EDGE.
 
 If FORM is not closed or has inopportune vertical-facing
 concavities, filling might give bad results.  For those cases,
-see variable `xpm-raster-inhibit-continuity-optimization'."
+see variable ‘xpm-raster-inhibit-continuity-optimization’."
   (when (eq t fill)
     (setq fill edge))
   (xpm--w/gg (h) (xpm--gate)
@@ -421,7 +421,7 @@ see variable `xpm-raster-inhibit-continuity-optimization'."
                            (fillarray nin nil)))))))))
 
 (defun xpm-as-xpm (&rest props)
-  "Return the XPM image (via `create-image') of the buffer.
+  "Return the XPM image (via ‘create-image’) of the buffer.
 PROPS are additional image properties to place on
 the new XPM.  See info node `(elisp) XPM Images'."
   (apply 'create-image (buffer-substring-no-properties
@@ -429,7 +429,7 @@ the new XPM.  See info node `(elisp) XPM Images'."
          'xpm t props))
 
 (defun xpm-finish (&rest props)
-  "Like `xpm-as-xpm', but also kill the buffer afterwards."
+  "Like ‘xpm-as-xpm’, but also kill the buffer afterwards."
   (prog1 (apply 'xpm-as-xpm props)
     (kill-buffer nil)))
 
