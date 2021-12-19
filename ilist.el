@@ -132,11 +132,15 @@ but got %S" align)))
 
 ;;; Calculate the length of a string correctly
 
+;; NOTE: This is obsolete now and should not be used, in case this is
+;; not clear enough.
+
 (defun ilist-length (str)
   "Return the length of STR.
 Characters that take up more than one column will be counted with
 1.7 columns."
-  (declare (side-effect-free t) (pure t))
+  (declare (side-effect-free t) (pure t)
+           (obsolete string-width "2021-12-19 23:53:42.283857"))
   (let ((len 0))
     (mapc (lambda (char)
             (let ((name (get-char-code-property char 'name))
@@ -192,7 +196,7 @@ trailing spaces."
            (let* ((str (funcall
                         (ilist-column-fun column)
                         element))
-                  (str-len (ilist-length str))
+                  (str-len (string-width str))
                   (max-len (ilist-column-max column))
                   (elide (ilist-column-elide column))
                   (str
@@ -201,18 +205,12 @@ trailing spaces."
                           (> str-len max-len))
                      (cond
                       ((stringp elide)
-                       (concat
-                        (substring
-                         str
-                         0
-                         (max (- (min max-len
-                                      (length str))
-                                 (ilist-length elide))
-                              0))
-                        elide))
-                      ((substring str 0 max-len))))
-                    (str))))
-             (cons (ilist-length str) str)))
+                       (truncate-string-to-width
+                        str max-len 0 nil elide))
+                      ((truncate-string-to-width str max-len))))
+                    (str))
+                   ))
+             (cons (string-width str) str)))
          columns))
       ls))
     ;; The list column-widths has a special convention: if a width is
@@ -458,7 +456,7 @@ trailing spaces."
           (let* ((width (nth index column-widths))
                  (alignment (ilist-column-align col))
                  (name (ilist-column-name col))
-                 (complement (- width (ilist-length name)))
+                 (complement (- width (string-width name)))
                  (floor-len (floor complement 2)))
             ;; we increase the index before the end of the form
             (setq index (1+ index))
@@ -494,7 +492,7 @@ trailing spaces."
           (let* ((width (nth index column-widths))
                  (alignment (ilist-column-align col))
                  (name (ilist-column-name col))
-                 (name-len (ilist-length name))
+                 (name-len (string-width name))
                  (name-sep (make-string name-len ?-))
                  (complement (- width name-len))
                  (floor-len (floor complement 2)))
@@ -565,10 +563,7 @@ trailing spaces."
                    (string #xa)
                    'invisible (intern (car element))))
                  (cond
-                  ((< index len)
-                   (propertize
-                    (string #xa)
-                    'invisible (intern (car element)))))))
+                  ((< index len) (string #xa)))))
               group-strs))))
     (mapconcat #'identity group-strs (string))))
 
@@ -801,7 +796,8 @@ the buffer."
 ;;;; skip the boundary
 
 ;; REVIEW: Maybe we should call it "round-boundary" instead?
-(defun ilist-skip-boundary (rounded forwardp other-end)
+(defun ilist-skip-boundary (rounded forwardp other-end
+                                    &optional no-skip-invisible)
   "Skip the boundary of the buffer if needed.
 If ROUNDED is non-nil, then try not to stay at the boundary of
 the buffer.
@@ -809,13 +805,21 @@ the buffer.
 FORWARDP determines in which direction to move.
 
 OTHER-END specifies where to go when the boundary is
-encountered."
+encountered.
+
+If NO-SKIP-INVISIBLE is non-nil, then invisible lines will not be
+skipped."
   (cond
    ((and rounded (ilist-boundary-buffer-p forwardp))
     (goto-char other-end)
     (let ((continuep t))
-      (while (and continuep
-                  (ilist-boundary-buffer-p (not forwardp)))
+      (while (and
+              continuep
+              (or
+               (and (not no-skip-invisible)
+                    (memq (get-text-property (point) 'invisible)
+                          buffer-invisibility-spec))
+               (ilist-boundary-buffer-p (not forwardp))))
         (forward-line (cond (forwardp 1) (-1)))
         (cond
          ((ilist-boundary-buffer-p forwardp)
@@ -824,28 +828,38 @@ encountered."
 
 ;;;; skip properties
 
-(defun ilist-skip-properties (skip-groups forwardp properties)
+(defun ilist-skip-properties (skip-groups
+                              forwardp properties
+                              &optional no-skip-invisible)
   "Try to skip text PROPERTIES if SKIP-GROUPS is non-nil.
 PROPERTIES is a list of text properties to skip.
 
-FORWARDP determines the direction to test for the boundary."
+FORWARDP determines the direction to test for the boundary.
+
+If NO-SKIP-INVISIBLE is non-nil, then invisible lines will not be
+skipped."
   (while (and skip-groups
-              (let ((fake-properties properties)
-                    res)
-                (while (and (not res)
-                            (consp fake-properties))
-                  (setq res
-                        (get-text-property
-                         (point) (car fake-properties)))
-                  (setq fake-properties (cdr fake-properties)))
-                res)
+              (or
+               (and (not no-skip-invisible)
+                    (memq (get-text-property (point) 'invisible)
+                          buffer-invisibility-spec))
+               (let ((fake-properties properties)
+                     res)
+                 (while (and (not res)
+                             (consp fake-properties))
+                   (setq res
+                         (get-text-property
+                          (point) (car fake-properties)))
+                   (setq fake-properties (cdr fake-properties)))
+                 res))
               ;; check boundaries to prevent infinite loops
               (not (ilist-boundary-buffer-p forwardp)))
     (forward-line (cond (forwardp 1) (-1)))))
 
 ;;;; moving between lines
 
-(defun ilist-forward-line (&optional arg rounded skip-groups no-skip-invisible)
+(defun ilist-forward-line
+    (&optional arg rounded skip-groups no-skip-invisible)
   "Go to ARG th next line.
 If ROUNDED is non-nil, assume the top of the buffer is connected
 to the bottom of the buffer.
@@ -863,14 +877,20 @@ skipped."
                              (goto-char (point-max))
                              (line-beginning-position)))))
          (original-point (point))
-         (line-move-ignore-invisible t)
          (arg (abs arg)))
     (ilist-skip-properties t forwardp
                            '(ilist-header
                              ilist-title-sep))
     (ilist-skip-properties skip-groups forwardp
                            '(ilist-group-header))
-    (cond ((/= original-point (point))
+    (cond ((and
+            (/= original-point (point))
+            (not (memq
+                  (get-text-property (point) 'invisible)
+                  buffer-invisibility-spec))
+            (or (null skip-groups)
+                (not (get-text-property
+                      (point) 'ilist-group-header))))
            (setq arg (1- arg))))
     (while (> arg 0)
       (forward-line (cond (forwardp 1) (-1)))
@@ -881,11 +901,16 @@ skipped."
         (forward-line (cond (forwardp 1) (-1))))
       ;; skip the group and the boundary twice to ensure that we avoid
       ;; the edges as much as possible.
-      (ilist-skip-boundary rounded forwardp other-end)
-      (ilist-skip-properties skip-groups forwardp '(ilist-group-header))
-      (ilist-skip-boundary rounded forwardp other-end)
-      (ilist-skip-properties skip-groups forwardp '(ilist-group-header))
-      (setq arg (1- arg)))))
+      (ilist-skip-boundary rounded forwardp other-end no-skip-invisible)
+      (ilist-skip-properties skip-groups forwardp '(ilist-group-header)
+                             no-skip-invisible)
+      (ilist-skip-boundary rounded forwardp other-end no-skip-invisible)
+      (ilist-skip-properties skip-groups forwardp '(ilist-group-header)
+                             no-skip-invisible)
+      (setq arg (1- arg)))
+    (ilist-skip-boundary rounded forwardp other-end no-skip-invisible)
+    (ilist-skip-properties skip-groups forwardp '(ilist-group-header)
+                           no-skip-invisible)))
 
 (defun ilist-backward-line (&optional arg rounded skip-groups)
   "Go to ARG th previous line.
