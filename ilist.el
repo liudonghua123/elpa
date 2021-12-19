@@ -569,7 +569,8 @@ trailing spaces."
 
 ;;; map over lines
 
-(defun ilist-map-lines (fun &optional predicate start end)
+(defun ilist-map-lines (fun &optional predicate start end
+                            no-skip-invisible)
   "Execute FUN over lines.
 If PREDICATE is non-nil, it should be a function to determine
 whether to execute FUN on the line.
@@ -579,7 +580,10 @@ execution lines.  It can be an integer or a marker.  If it is a
 marker, the buffer of the marker should be the current buffer.
 
 The return value is the list of execution results on the lines
-over which the function is executed."
+over which the function is executed.
+
+If NO-SKIP-INVISIBLE is non-nil, then we don't skip invisible
+lines."
   ;; normalizations
   (cond
    ((not (functionp predicate))
@@ -611,8 +615,7 @@ over which the function is executed."
                 (cons
                  (funcall fun)
                  res))))
-        ;; don't skip invisible lines here
-        (ilist-forward-line 1 nil nil t))
+        (ilist-forward-line 1 nil nil no-skip-invisible))
       (nreverse res))))
 
 ;;; Get index at point
@@ -630,6 +633,14 @@ If point is not at an element, return nil."
 If point is not at a group header return nil."
   (declare (side-effect-free t))
   (get-text-property (point) 'ilist-group-header))
+
+;;; Whether the line is hidden
+
+(defun ilist-hidden-line-p ()
+  "Return t if the line at point is hidden."
+  (declare (side-effect-free t))
+  (memq (get-text-property (point) 'invisible)
+        buffer-invisibility-spec))
 
 ;;; marks related
 
