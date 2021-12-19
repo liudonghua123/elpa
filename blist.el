@@ -332,6 +332,9 @@ of the required type."
 
 (defalias #'blist #'blist-list-bookmarks)
 
+;; REVIEW: Is it a good idea to preserve the hidden status of groups?
+;; REVIEW: Use the header?
+
 ;;;###autoload
 (defun blist-list-bookmarks (&rest _args)
   "List bookmarks in an ibuffer fashion.
@@ -1271,28 +1274,7 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
 
 (defun blist-all-bookmarks ()
   "Return the list of all bookmark indices, even the hidden ones."
-  (append
-   ;; normal lines
-   (ilist-map-lines #'ilist-get-index #'ilist-get-index)
-   ;; hidden lines
-   (apply
-    #'append
-    (ilist-map-lines
-     (lambda ()
-       (blist-toggle-group)
-       (let ((start (point))
-             (end (save-excursion
-                    (ilist-forward-group-header 1)
-                    (point)))
-             temp)
-         (setq
-          temp
-          (ilist-map-lines #'ilist-get-index #'ilist-get-index
-                           start end))
-         (blist-toggle-group)
-         temp))
-     (lambda ()
-       (get-text-property (point) 'blist-hidden-text))))))
+  (ilist-map-lines #'ilist-get-index #'ilist-get-index nil nil t))
 
 ;;;; Jumping around
 
