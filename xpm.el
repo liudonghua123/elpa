@@ -5,6 +5,7 @@
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Version: 1.0.4
+;; Package-Requires: ((cl-lib "0.5") (queue "0.2"))
 ;; Keywords: multimedia, xpm
 ;; URL: http://www.gnuvola.org/software/xpm/
 
