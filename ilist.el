@@ -130,7 +130,7 @@ but got %S" align)))
   "Return the ELIDE in COLUMN."
   (nth 5 column))
 
-;;; Calculate the length of a string correctly
+;;; Calculate the length of a string correctly (obsolete)
 
 ;; NOTE: This is obsolete now and should not be used, in case this is
 ;; not clear enough.
@@ -535,13 +535,16 @@ trailing spaces."
     (setq group-strs
           (append
            ;; special properties
-           (list (propertize header 'ilist-header t)
-                 (string #xa)
-                 (propertize title-sep 'ilist-title-sep t)
-                 (string #xa))
+           (list (propertize
+                  (concat header (string #xa))
+                  'ilist-header t)
+                 (propertize
+                  (concat title-sep (string #xa))
+                  'ilist-title-sep t))
            ;; transform back to the format we want
            (let ((len (length group-strs))
-                 (index 0))
+                 (index 0)
+                 last-row)
              (mapcar
               (lambda (element)
                 (setq index (1+ index))
@@ -549,21 +552,25 @@ trailing spaces."
                  ;; title
                  (car element)
                  ;; for empty groups don't add a newline
-                 (cond ((cdr element) (string #xa)))
+                 (cond ((cdr element)
+                        (propertize
+                         (string #xa)
+                         'ilist-group-header
+                         (get-text-property
+                          0 'ilist-group-header (car element)))))
                  ;; rows
                  (mapconcat
                   (lambda (row)
+                    (setq last-row row)
                     (propertize
-                     (mapconcat
-                      #'identity (cdr row) (string #x20))
+                     (concat
+                      (mapconcat
+                       #'identity (cdr row) (string #x20))
+                      (string #xa))
                      'ilist-index (car row)
                      'invisible (intern (car element))))
                   (cdr element)
-                  (propertize
-                   (string #xa)
-                   'invisible (intern (car element))))
-                 (cond
-                  ((< index len) (string #xa)))))
+                  (string))))
               group-strs))))
     (mapconcat #'identity group-strs (string))))
 
@@ -618,29 +625,129 @@ lines."
         (ilist-forward-line 1 nil nil no-skip-invisible))
       (nreverse res))))
 
+;;; Whether a text property is deemed invisible
+
+(defun ilist-belong-to-spec (symbol spec)
+  "An auxiliary function for `ilist-invisible-property-p'.
+Return t if SYMBOL is a symbol and SPEC is a list, and if either
+SYMBOL is an element of SPEC, or SYMBOL is the `car' of an
+element of SPEC.
+
+Return nil otherwise."
+  (declare (pure t) (side-effect-free error-free))
+  (cond
+   ((and (symbolp symbol)
+         (listp spec)
+         spec
+         (or (memq symbol spec)
+             (assq symbol spec)))
+    t)))
+
+(defun ilist-invisible-property-p (property spec)
+  "Whether PROPERTY is determined as invisible by SPEC.
+According to the documentation of `buffer-invisibility-spec',
+this returns t if and only if one of the following conditions
+holds:
+
+- If PROPERTY is non-nil and SPEC is t.
+- If SPEC is a list, and if one of the following holds:
+  - PROPERTY is a symbol, which is an element of SPEC
+  - PROPERTY is a symbol, which is the `car' of an element of SPEC.
+  - PROPERTY is a list, which contains a symbol that is an
+    element of SPEC.
+  - PROPERTY is a list, which contains a symbol that is the `car'
+    of an element of SPEC."
+  (declare (pure t) (side-effect-free error-free))
+  (cond
+   ((eq spec t) property)
+   ;; nil is considered a list, so we separate this case out
+   ((null spec) nil)
+   ((listp spec)
+    (cond
+     ((symbolp property) (ilist-belong-to-spec property spec))
+     ((listp property)
+      ;; `or' is a special form, not a function, so we cannot `apply'
+      ;; it.  So we use this trick.
+      (eval
+       (cons
+        (intern "or")
+        (mapcar
+         (lambda (symbol) (ilist-belong-to-spec symbol spec))
+         property))))))))
+
+;;; Point at the end of line
+
+(defun ilist-point-at-eol (&optional pos no-skip-invisible)
+  "The point at the end of line containing POS or the current point.
+If NO-SKIP-INVISIBLE is non-nil, consider invisible lines as
+well."
+  (save-excursion
+    (cond (pos (goto-char pos)))
+    (cond
+     (no-skip-invisible
+      (line-end-position))
+     (t
+      (while (progn
+               (skip-chars-forward "^\n")
+               (ilist-invisible-property-p
+                (get-text-property (point) 'invisible)
+                buffer-invisibility-spec))
+        (goto-char
+         (next-single-char-property-change
+          (point) 'invisible)))
+      (point)))))
+
+;;; Get property at point
+
+(defun ilist-get-property (pos property &optional no-skip-invisible)
+  "Get PROPERTY at POS.
+If NO-SKIP-INVISIBLE is non-nil, consider invisible lines as
+well."
+  (declare (side-effect-free t))
+  (get-text-property
+   (ilist-point-at-eol pos no-skip-invisible) property))
+
 ;;; Get index at point
 
-(defun ilist-get-index ()
+(defun ilist-get-index (&optional no-skip-invisible)
   "Return the index of the element at point.
-If point is not at an element, return nil."
+If point is not at an element, return nil.
+
+If NO-SKIP-INVISIBLE is non-nil, consider invisible lines as
+well."
   (declare (side-effect-free t))
-  (get-text-property (point) 'ilist-index))
+  (ilist-get-property (point) 'ilist-index no-skip-invisible))
+
+(defun ilist-get-real-index ()
+  "Return the index of the element at point.
+If point is not at an element, return nil.
+
+Never skip invisible text."
+  (declare (side-effect-free t))
+  (ilist-get-property (point) 'ilist-index t))
 
 ;;; Get group header
 
-(defun ilist-get-group ()
+(defun ilist-get-group (&optional no-skip-invisible)
   "Return the group header at point.
-If point is not at a group header return nil."
+If point is not at a group header return nil.
+
+If NO-SKIP-INVISIBLE is non-nil, consider invisible lines as
+well."
   (declare (side-effect-free t))
-  (get-text-property (point) 'ilist-group-header))
+  (ilist-get-property (point) 'ilist-group-header no-skip-invisible))
 
 ;;; Whether the line is hidden
 
-(defun ilist-hidden-line-p ()
-  "Return t if the line at point is hidden."
+(defun ilist-hidden-group-p ()
+  "Return t if the group at point is hidden."
   (declare (side-effect-free t))
-  (memq (get-text-property (point) 'invisible)
-        buffer-invisibility-spec))
+  (ilist-invisible-property-p
+   (intern
+    (format
+     "[ %s ]"
+     (ilist-get-property (point) 'ilist-group-header)))
+   buffer-invisibility-spec))
 
 ;;; marks related
 
@@ -852,8 +959,9 @@ skipped."
   (while (and skip-groups
               (or
                (and (not no-skip-invisible)
-                    (memq (get-text-property (point) 'invisible)
-                          buffer-invisibility-spec))
+                    (ilist-invisible-property-p
+                     (ilist-get-property (point) 'invisible t)
+                     buffer-invisibility-spec))
                (let ((fake-properties properties)
                      res)
                  (while (and (not res)
@@ -890,25 +998,37 @@ skipped."
          (original-point (point))
          (arg (abs arg)))
     (ilist-skip-properties t forwardp
-                           '(ilist-header ilist-title-sep)
-                           no-skip-invisible)
+                           '(ilist-header ilist-title-sep) t)
     (ilist-skip-properties skip-groups forwardp
-                           '(ilist-group-header) no-skip-invisible)
+                           '(ilist-group-header) t)
     (cond ((and
             (/= original-point (point))
-            (not (memq
-                  (get-text-property (point) 'invisible)
-                  buffer-invisibility-spec))
+            (not
+             (ilist-invisible-property-p
+              (ilist-get-property (point) 'invisible t)
+              buffer-invisibility-spec))
             (or (null skip-groups)
-                (not (get-text-property
-                      (point) 'ilist-group-header))))
+                (not (ilist-get-group t))))
            (setq arg (1- arg))))
+    (setq original-point (point))
+    ;; if point is invisible right now, first skip out of it.
+    (while (and (not no-skip-invisible)
+                (ilist-invisible-property-p
+                 (ilist-get-property (point) 'invisible t)
+                 buffer-invisibility-spec))
+      (forward-line (cond (forwardp 1) (-1))))
+    ;; if we are moving backwards, subtract an arg if necessary
+    (cond
+     ((and (not forwardp)
+           (/= original-point (point)))
+      (setq arg (1- arg))))
     (while (> arg 0)
       (forward-line (cond (forwardp 1) (-1)))
       ;; skip invisible lines if needed
       (while (and (not no-skip-invisible)
-                  (memq (get-text-property (point) 'invisible)
-                        buffer-invisibility-spec))
+                  (ilist-invisible-property-p
+                   (ilist-get-property (point) 'invisible t)
+                   buffer-invisibility-spec))
         (forward-line (cond (forwardp 1) (-1))))
       ;; skip the group and the boundary twice to ensure that we avoid
       ;; the edges as much as possible.
@@ -919,6 +1039,7 @@ skipped."
       (ilist-skip-properties skip-groups forwardp '(ilist-group-header)
                              no-skip-invisible)
       (setq arg (1- arg)))
+    ;; paranoia
     (ilist-skip-boundary rounded forwardp other-end no-skip-invisible)
     (ilist-skip-properties skip-groups forwardp '(ilist-group-header)
                            no-skip-invisible)))
@@ -935,10 +1056,14 @@ header."
 
 ;;;; moving between group headers
 
-(defun ilist-forward-group-header (&optional arg rounded)
+(defun ilist-forward-group-header
+    (&optional arg rounded no-skip-invisible)
   "Go to ARG th next group header.
 If ROUNDED is non-nil, assume the top of the buffer is connected
-to the bottom of the buffer."
+to the bottom of the buffer.
+
+If NO-SKIP-INVISIBLE is non-nil, consider invisible lines as
+well."
   ;; make sure ARG is a number
   (setq arg (prefix-numeric-value arg))
   (let* ((forwardp (> arg 0))
@@ -949,20 +1074,52 @@ to the bottom of the buffer."
          (original-point (point))
          (arg (abs arg)))
     (ilist-skip-properties
-     t forwardp '(ilist-header ilist-title-sep))
-    ;; when it moves, it should step on a header
-    (cond ((/= original-point (point))
+     t forwardp '(ilist-header ilist-title-sep) t)
+    (cond ((and
+            (/= original-point (point))
+            (not
+             (ilist-invisible-property-p
+              (ilist-get-property (point) 'invisible t)
+              buffer-invisibility-spec))
+            (ilist-get-group t))
            (setq arg (1- arg))))
+    (setq original-point (point))
+    ;; if point is invisible right now, first skip out of it.
+    (while (and (not no-skip-invisible)
+                (ilist-invisible-property-p
+                 (ilist-get-property (point) 'invisible t)
+                 buffer-invisibility-spec))
+      (forward-line (cond (forwardp 1) (-1))))
+    ;; if we are moving backwards, subtract an arg if necessary
+    (cond
+     ((and (not forwardp)
+           (/= original-point (point)))
+      (setq arg (1- arg))))
     (while (> arg 0)
       (forward-line (cond (forwardp 1) (-1)))
+      ;; skip invisible lines if needed
+      (while (and (not no-skip-invisible)
+                  (ilist-invisible-property-p
+                   (ilist-get-property (point) 'invisible t)
+                   buffer-invisibility-spec))
+        (forward-line (cond (forwardp 1) (-1))))
       ;; skip the group and the boundary twice to ensure that we avoid
       ;; the edges as much as possible.
-      (ilist-skip-boundary rounded forwardp other-end)
+      (ilist-skip-boundary rounded forwardp
+                           other-end no-skip-invisible)
       ;; skip index so that we skip "normal" lines
-      (ilist-skip-properties t forwardp '(ilist-index))
-      (ilist-skip-boundary rounded forwardp other-end)
-      (ilist-skip-properties t forwardp '(ilist-index))
-      (setq arg (1- arg)))))
+      (ilist-skip-properties t forwardp '(ilist-index)
+                             no-skip-invisible)
+      (ilist-skip-boundary rounded forwardp
+                           other-end no-skip-invisible)
+      (ilist-skip-properties t forwardp '(ilist-index)
+                             no-skip-invisible)
+      (setq arg (1- arg)))
+    ;; paranoia
+    (ilist-skip-boundary rounded forwardp
+                         other-end no-skip-invisible)
+    (ilist-skip-properties t forwardp '(ilist-index)
+                           no-skip-invisible)))
 
 (defun ilist-backward-group-header (&optional arg rounded)
   "Go to ARG th previous group header.
