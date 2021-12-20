@@ -410,8 +410,6 @@ used as a `revert-buffer-function'."
           blist-discard-empty-p
           blist-sorter
           t))
-        (insert (string #xa))
-        ;; (delete-trailing-whitespace)
         (goto-char (point-min))
         (cond
          ((and
@@ -1214,7 +1212,7 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
   (interactive)
   (let* ((group-header (ilist-get-group))
          (group-symbol (intern (format "[ %s ]" group-header)))
-         (hidden-p (get-text-property (point) 'blist-hidden))
+         (hidden-p (ilist-get-property (point) 'blist-hidden))
          (inhibit-read-only t))
     (cond
      ((null group-header)
@@ -1222,8 +1220,11 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
       (user-error "Not at a group to toggle"))
      (hidden-p
       ;; hidden group
+      (goto-char (ilist-point-at-eol))
       (delete-region (line-beginning-position)
                      (min (1+ (line-end-position)) (point-max)))
+      ;; this character was inserted by hiding the group previously
+      (delete-char 1)
       (save-excursion
         (insert
          (propertize
@@ -1231,7 +1232,8 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
           'ilist-group-header group-header)))
       (remove-from-invisibility-spec group-symbol))
      ;; not hidden
-     ((let* ((start (line-beginning-position))
+     ((goto-char (ilist-point-at-eol))
+      (let* ((start (line-beginning-position))
              (end (min (1+ (line-end-position)) (point-max)))
              (text (buffer-substring start end)))
         (delete-region start end)
@@ -1240,6 +1242,11 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
           (format "[ %s ... ]\n" group-header)
           'ilist-group-header group-header
           'blist-hidden t))
+        ;; Emacs has a bug that if an invisible character right next
+        ;; to the visible part has a display property, then it will
+        ;; turn out to be visible.  So we insert an invisible
+        ;; character to avoid this phenomenon.
+        (insert (propertize (string #x20) 'invisible t))
         (goto-char start))
       (add-to-invisibility-spec group-symbol)))))
 
@@ -1274,7 +1281,8 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
 
 (defun blist-all-bookmarks ()
   "Return the list of all bookmark indices, even the hidden ones."
-  (ilist-map-lines #'ilist-get-index #'ilist-get-index nil nil t))
+  (ilist-map-lines #'ilist-get-real-index #'ilist-get-real-index
+                   nil nil t))
 
 ;;;; Jumping around
 
@@ -1298,19 +1306,20 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
       (while (and (not (ilist-boundary-buffer-p t))
                   (not res))
         (cond
-         ((ilist-get-index)
+         ((ilist-get-real-index)
           (setq
            res
            (string=
             (bookmark-name-from-full-record
-             (nth (ilist-get-index) bookmark-alist))
+             (nth (ilist-get-real-index) bookmark-alist))
             name))
           (cond
            (res
             (setq pos (point))
             ;; per chance the line is hidden
             (let ((invi (get-text-property pos 'invisible)))
-              (cond ((memq invi buffer-invisibility-spec)
+              (cond ((ilist-invisible-property-p
+                      invi buffer-invisibility-spec)
                      (blist-prev-group 1)
                      (blist-toggle-group))))))))
         ;; don't skip invisible lines here
