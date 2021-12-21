@@ -65,8 +65,10 @@
 ;;;; Filter groups
 
 (defcustom blist-add-default-filter-automatically t
-  "If non-nil, and if `blist-default-p' is not used in
-`blist-filter-groups', then a default filter will be added."
+  "The default filter for blist.
+If non-nil, and if `blist-default-p' is not an element of the
+variable `blist-filter-groups', then a default filter will be
+added."
   :group 'blist
   :type 'boolean)
 
@@ -241,8 +243,7 @@ See `ilist-string' for how the sorter should behave.")
 ;;;; Rename history
 
 (defvar blist-rename-history nil
-  "The variable that stores the strings that the user has inputted \
-to rename bookmarks.")
+  "The variable that stores the input history of `blist-rename'.")
 
 ;;;; Deleted entries
 
@@ -330,7 +331,7 @@ of the required type."
 
 ;; an alias for discoverability
 
-(defalias #'blist #'blist-list-bookmarks)
+(fset 'blist #'blist-list-bookmarks)
 
 ;; REVIEW: Is it a good idea to preserve the hidden status of groups?
 ;; REVIEW: Use the header?
@@ -442,8 +443,7 @@ used as a `revert-buffer-function'."
 ;;; Major mode
 
 (define-derived-mode blist-mode ilist-mode "BList"
-  "Major mode for interacting with the bookmarks displayed by \
-`blist-list-bookmarks'."
+  "Major mode used in the display of `blist-list-bookmarks'."
   :group 'blist
   (setq-local revert-buffer-function #'blist-list-bookmarks))
 
@@ -666,10 +666,10 @@ bookmark line, then open the bookmark on that line.
 
 Otherwise signal an error.
 
-If called with \\[universal-argument], read a list for how to
-select multiple bookmarks.  Otherwise, the variable
-`blist-select-manner' controls how multiple bookmarks are
-selected."
+If ARG is non-nil, i.e. if called with \\[universal-argument] in
+interactive uses, read a list for how to select multiple
+bookmarks.  Otherwise, the variable `blist-select-manner'
+controls how multiple bookmarks are selected."
   (interactive "P")
   (blist-assert-mode)
   (let* ((marked-items (ilist-map-lines #'ilist-get-index
@@ -862,7 +862,8 @@ So empty annotations are ignored.
 
 If there are marked bookmarks, show the annotations of the marked
 bookmarks; otherwise show the annotations of the bookmark at
-point.  If called with \\[universal-argument] and if there is no
+point.  If ARG is non-nil, i.e. if called with
+\\[universal-argument] in interactive calls, and if there is no
 bookmark at point, use `completing-read' to choose one."
   (interactive "P")
   (blist-assert-mode)
@@ -1112,9 +1113,9 @@ progress."
               (progress-reporter-update
                reporter (floor count new-len))))
        ;; rename the new bookmark if needed
-       (let ((temp-name (bookmark-name-from-full-record new-record))
-             (new-name temp-name)
-             (suffix-count 2))
+       (let* ((temp-name (bookmark-name-from-full-record new-record))
+              (new-name temp-name)
+              (suffix-count 2))
          (while (gethash new-name table)
            (setq new-name (format "%s<%d>" temp-name suffix-count))
            (setq suffix-count (1+ suffix-count)))
@@ -1176,7 +1177,7 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
         (insert-file-contents file)
         (goto-char (point-min))
         (setq bookmark-list (bookmark-alist-from-buffer))
-        (cond ((not (listp blist))
+        (cond ((not (listp bookmark-list))
                (user-error "Invalid bookmark list in %s" file)))
         (cond
          (overwrite
@@ -1233,21 +1234,21 @@ get unique numeric suffixes \"<2>\", \"<3>\", etc."
       (remove-from-invisibility-spec group-symbol))
      ;; not hidden
      ((goto-char (ilist-point-at-eol))
-      (let* ((start (line-beginning-position))
-             (end (min (1+ (line-end-position)) (point-max)))
-             (text (buffer-substring start end)))
-        (delete-region start end)
-        (insert
-         (propertize
-          (format "[ %s ... ]\n" group-header)
-          'ilist-group-header group-header
-          'blist-hidden t))
-        ;; Emacs has a bug that if an invisible character right next
-        ;; to the visible part has a display property, then it will
-        ;; turn out to be visible.  So we insert an invisible
-        ;; character to avoid this phenomenon.
-        (insert (propertize (string #x20) 'invisible t))
-        (goto-char start))
+      (with-silent-modifications
+        (let* ((start (line-beginning-position))
+               (end (min (1+ (line-end-position)) (point-max))))
+          (delete-region start end)
+          (insert
+           (propertize
+            (format "[ %s ... ]\n" group-header)
+            'ilist-group-header group-header
+            'blist-hidden t))
+          ;; Emacs has a bug that if an invisible character right next
+          ;; to the visible part has a display property, then it will
+          ;; turn out to be visible.  So we insert an invisible
+          ;; character to avoid this phenomenon.
+          (insert (propertize (string #x20) 'invisible t))
+          (goto-char start)))
       (add-to-invisibility-spec group-symbol)))))
 
 ;;;; Generic return
