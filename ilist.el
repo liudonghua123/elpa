@@ -193,9 +193,11 @@ trailing spaces."
       (lambda (element)
         (mapcar
          (lambda (column)
-           (let* ((str (funcall
-                        (ilist-column-fun column)
-                        element))
+           (let* ((str (or
+                        (funcall
+                         (ilist-column-fun column)
+                         element)
+                        (string)))
                   (str-len (string-width str))
                   (max-len (ilist-column-max column))
                   (elide (ilist-column-elide column))
