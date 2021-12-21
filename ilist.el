@@ -542,9 +542,7 @@ trailing spaces."
                   (concat title-sep (string #xa))
                   'ilist-title-sep t))
            ;; transform back to the format we want
-           (let ((len (length group-strs))
-                 (index 0)
-                 last-row)
+           (let ((index 0))
              (mapcar
               (lambda (element)
                 (setq index (1+ index))
@@ -561,7 +559,6 @@ trailing spaces."
                  ;; rows
                  (mapconcat
                   (lambda (row)
-                    (setq last-row row)
                     (propertize
                      (concat
                       (mapconcat
@@ -807,7 +804,7 @@ If END is non-nil, it specifies the end of the search."
 ;;;; find marks
 
 (defun ilist-get-marks ()
-  "Return the list of marks on the line.
+  "Return the list of mark characters on the line.
 The marks are in descending order, i.e. the mark that occurs
 later on the line come earlier in the result list.
 
@@ -869,7 +866,7 @@ This just sets the text property of `ilist-mark-column' to t."
 ;;;; list of items and their marks
 
 (defun ilist-current-status ()
-  "Return the list of items and their marks."
+  "Return the list of items and their mark characters."
   (ilist-map-lines
    (lambda ()
      (cons (get-text-property
