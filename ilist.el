@@ -996,6 +996,16 @@ skipped."
                              (line-beginning-position)))))
          (original-point (point))
          (arg (abs arg)))
+    ;; if we are moving forwards, and if we are at an invisible
+    ;; boundary, add one to arg.
+    (cond
+     ((and forwardp
+           (not skip-groups)
+           (ilist-boundary-buffer-p nil)
+           (ilist-invisible-property-p
+            (ilist-get-property (point) 'invisible t)
+            buffer-invisibility-spec))
+      (setq arg (1+ arg))))
     (ilist-skip-properties t forwardp
                            '(ilist-header ilist-title-sep) t)
     (ilist-skip-properties skip-groups forwardp
@@ -1012,6 +1022,7 @@ skipped."
     (setq original-point (point))
     ;; if point is invisible right now, first skip out of it.
     (while (and (not no-skip-invisible)
+                (not (ilist-boundary-buffer-p forwardp))
                 (ilist-invisible-property-p
                  (ilist-get-property (point) 'invisible t)
                  buffer-invisibility-spec))
@@ -1021,10 +1032,11 @@ skipped."
      ((and (not forwardp)
            (/= original-point (point)))
       (setq arg (1- arg))))
-    (while (> arg 0)
+    (while (and (> arg 0) (not (ilist-boundary-buffer-p forwardp)))
       (forward-line (cond (forwardp 1) (-1)))
       ;; skip invisible lines if needed
       (while (and (not no-skip-invisible)
+                  (not (ilist-boundary-buffer-p forwardp))
                   (ilist-invisible-property-p
                    (ilist-get-property (point) 'invisible t)
                    buffer-invisibility-spec))
@@ -1075,6 +1087,15 @@ well."
                              (line-beginning-position)))))
          (original-point (point))
          (arg (abs arg)))
+    ;; if we are moving forwards, and if we are at an invisible
+    ;; boundary, add one to arg.
+    (cond
+     ((and forwardp
+           (ilist-boundary-buffer-p nil)
+           (ilist-invisible-property-p
+            (ilist-get-property (point) 'invisible t)
+            buffer-invisibility-spec))
+      (setq arg (1+ arg))))
     (ilist-skip-properties
      t forwardp '(ilist-header ilist-title-sep) t)
     (cond ((and
@@ -1088,6 +1109,7 @@ well."
     (setq original-point (point))
     ;; if point is invisible right now, first skip out of it.
     (while (and (not no-skip-invisible)
+                (not (ilist-boundary-buffer-p forwardp))
                 (ilist-invisible-property-p
                  (ilist-get-property (point) 'invisible t)
                  buffer-invisibility-spec))
@@ -1097,10 +1119,11 @@ well."
      ((and (not forwardp)
            (/= original-point (point)))
       (setq arg (1- arg))))
-    (while (> arg 0)
+    (while (and (> arg 0) (not (ilist-boundary-buffer-p forwardp)))
       (forward-line (cond (forwardp 1) (-1)))
       ;; skip invisible lines if needed
       (while (and (not no-skip-invisible)
+                  (not (ilist-boundary-buffer-p forwardp))
                   (ilist-invisible-property-p
                    (ilist-get-property (point) 'invisible t)
                    buffer-invisibility-spec))
