@@ -1,3 +1,8 @@
+2021-12-22  李俊緯  <mmemmew@gmail.com>
+
+	New user option: blist-use-header-p.  Now the user can choose to
+	use the header line to display the column names.
+
 2021-12-21  李俊緯  <mmemmew@gmail.com>
 
 	Fix errors discovered by flymake.

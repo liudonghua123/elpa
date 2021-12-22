@@ -232,6 +232,13 @@ list; they are simply ignored."
   :group 'blist
   :type 'string)
 
+;;;; Whether to use header or not
+
+(defcustom blist-use-header-p nil
+  "If non-nil, show a header of column names as well."
+  :group 'blist
+  :type 'boolean)
+
 ;;; Variables
 
 ;;;; Sorter
@@ -347,7 +354,8 @@ used as a `revert-buffer-function'."
   ;; load the bookmark if needed
   (bookmark-maybe-load-default-file)
   (let ((buffer (get-buffer-create blist-buffer-name))
-        (first-time-generated t))
+        (first-time-generated t)
+        blist-header-line-format)
     (with-current-buffer buffer
       (let ((inhibit-read-only t)
             front rear group pos)
@@ -412,6 +420,12 @@ used as a `revert-buffer-function'."
           blist-sorter
           t))
         (goto-char (point-min))
+        ;; set the header if necessary
+        (cond
+         (blist-use-header-p
+          (setq blist-header-line-format
+                (buffer-substring-no-properties
+                 (point) (line-end-position)))))
         (cond
          ((and
            (stringp rear)
@@ -438,7 +452,15 @@ used as a `revert-buffer-function'."
     (select-window (get-buffer-window blist-buffer-name))
     ;; if generated for the first time, advance a line
     (cond
-     (first-time-generated (ilist-forward-line 1 nil t)))))
+     (first-time-generated (ilist-forward-line 1 nil t)))
+    (cond (blist-header-line-format
+           (setq header-line-format blist-header-line-format)
+           (with-silent-modifications
+             (add-text-properties
+              (point-min)
+              (save-excursion
+                (goto-char (point-min)) (forward-line 2) (point))
+              (list (intern "invisible") t)))))))
 
 ;;; Major mode
 
