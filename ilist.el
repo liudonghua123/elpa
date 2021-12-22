@@ -1038,7 +1038,10 @@ skipped."
       (ilist-skip-properties skip-groups forwardp '(ilist-group-header)
                              no-skip-invisible)
       (setq arg (1- arg)))
-    ;; paranoia
+    ;; paranoia: but it proves to be needed sometimes
+    (ilist-skip-boundary rounded forwardp other-end no-skip-invisible)
+    (ilist-skip-properties skip-groups forwardp '(ilist-group-header)
+                           no-skip-invisible)
     (ilist-skip-boundary rounded forwardp other-end no-skip-invisible)
     (ilist-skip-properties skip-groups forwardp '(ilist-group-header)
                            no-skip-invisible)))
