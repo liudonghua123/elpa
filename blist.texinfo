@@ -79,13 +79,14 @@ package.
 @comment  node-name,  next,  previous,  up
 @chapter Usage
 
-After installing, one can call the function @code{blist-list-bookmarks}
-to display the list of bookmarks.  Of course, one can bind a key to that
-function for easier invocations.
+After installing, one can call the function @code{blist-list-bookmarks},
+or simply @code{blist}, to display the list of bookmarks.  Of course,
+one can bind a key to that function for easier invocations.
 
 @menu
 * Screenshot::
 * Example configuration::
+* Header::
 * Columns::
 * Groups::
 * Calling convention(s)::
@@ -105,7 +106,7 @@ how the list of bookmarks looks like on my end:
 
 @image{scaled-screenshot1}
 
-@node Example configuration, Columns, Screenshot, Usage
+@node Example configuration, Header, Screenshot, Usage
 @comment  node-name,  next,  previous,  up
 @section Example configuration
 
@@ -120,6 +121,9 @@ configuring the package.
        (cons "PDF" #'blist-pdf-p)
        (cons "Info" #'blist-info-p)
        (cons "Default" #'blist-default-p)))
+
+;; Whether one wants to use the header line or not
+(setq blist-use-header-p nil)
 
 ;; Eshell and Default are defined in the package by default
 
@@ -139,7 +143,18 @@ configuring the package.
 
 See the following subsections for more details.
 
-@node Columns, Groups, Example configuration, Usage
+@node Header, Columns, Example configuration, Usage
+@comment  node-name,  next,  previous,  up
+@section Header
+
+Some users prefer to display the names of columns in the @emph{header
+line}.  It has the advantage that it will always be visible, even though
+the user scrolls the buffer.  This package has an option
+@code{blist-use-header-p} for this purpose.  If that customizable
+variable is non-nil, then blist will display the names of columns in the
+header line.
+
+@node Columns, Groups, Header, Usage
 @comment  node-name,  next,  previous,  up
 @section Columns
 
@@ -187,11 +202,12 @@ occur earlier on the list have higher priority.  So if an item belongs
 to multiple groups, it will be classified under the group that is the
 earliest on the list.
 
-In addition, the default filter group simply returns @code{t} for every
-bookmark.  It is important to have the default group since items that
-belong to no groups will not be shown in the buffer.  This design is
-intentional, so that other packages that use @file{ilist} can display
-the lists more flexibly.
+Note that the default filter group, which always returns @code{t} for
+every bookmark, is not needed.  If @code{blist-filter-groups} does not
+include a filter group whose filter function is @code{blist-default-p},
+then a default group will be added automatically.  This is to avoid
+surprises to the users.  This is a feature of ``blist'', and not of
+``ilist'': you can display a list without default groups.
 
 @node Calling convention(s), Navigations, Groups, Usage
 @comment  node-name,  next,  previous,  up

@@ -42,6 +42,9 @@ configuring the package.
          (cons "Info" #'blist-info-p)
          (cons "Default" #'blist-default-p)))
 
+  ;; Whether one wants to use the header line or not
+  (setq blist-use-header-p nil)
+
   ;; Eshell and Default are defined in the package by default
 
   (blist-define-criterion "elisp" "ELisp"
@@ -59,6 +62,15 @@ configuring the package.
 #+end_src
 
 See the following subsections for more details.
+
+** Header
+
+Some users prefer to display the names of columns in the /header
+line/.  It has the advantage that it will always be visible, even
+though the user scrolls the buffer.  This package has an option
+=blist-use-header-p= for this purpose.  If that customizable variable
+is non-nil, then blist will display the names of columns in the header
+line.
 
 ** Columns
 
@@ -102,11 +114,12 @@ occur earlier on the list have higher priority.  So if an item belongs
 to multiple groups, it will be classified under the group that is the
 earliest on the list.
 
-In addition, the default filter group simply returns =t= for every
-bookmark.  It is important to have the default group since items that
-belong to no groups will not be shown in the buffer.  This design is
-intentional, so that other packages that use =ilist= can have display
-the lists more flexibly.
+Note that the default filter group, which always returns =t= for every
+bookmark, is not needed.  If =blist-filter-groups= does not include a
+filter group whose filter function is =blist-default-p=, then a
+default group will be added automatically.  This is to avoid surprises
+to the users.  This is a feature of "blist", and not of "ilist": you
+can display a list without default groups.
 
 ** Calling convention(s)
 
