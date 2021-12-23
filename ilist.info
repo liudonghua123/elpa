@@ -192,7 +192,7 @@ For the convenience of package-users, this package also provides some
 auxiliary functions to operate on the displayed list.  One is
 'ilist-map-lines'.  It is called as follows.
 
-     (ilist-map-lines FUN PREDICATE START END)
+     (ilist-map-lines FUN &optional PREDICATE START END NO-SKIP-INVISIBLE)
 
 'FUN'
      The function to execute on each matching line.
@@ -203,6 +203,8 @@ auxiliary functions to operate on the displayed list.  One is
 'START'
 'END'
      They limit the range of the mapping.
+'NO-SKIP-INVISIBLE'
+     If non-nil, then we don’t skip invisible lines.
 
 
 File: ilist.info,  Node: Moving,  Next: Copying This Manual,  Prev: Mapping over lines,  Up: Top
@@ -213,7 +215,8 @@ File: ilist.info,  Node: Moving,  Next: Copying This Manual,  Prev: Mapping over
 It might be desired to move between the displayed list items in a
 _cyclic_ manner, that is, assuming the top of the buffer is identified
 with the bottom of the buffer.  So the package provides four functions
-for moving.
+for moving.  If the argument 'NO-SKIP-INVISIBLE' is non-nil, then we
+don’t skip invisible lines.
 
 'ilist-backward-line'
 'ilist-forward-line'
@@ -722,9 +725,9 @@ Node: Groups3694
 Node: Fixed groups3995
 Node: Automatic groups (planned)4856
 Node: Mapping over lines5660
-Node: Moving6306
-Node: Copying This Manual6913
-Node: Index32021
+Node: Moving6409
+Node: Copying This Manual7103
+Node: Index32211
 
 End Tag Table
 

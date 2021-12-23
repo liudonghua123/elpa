@@ -196,7 +196,7 @@ auxiliary functions to operate on the displayed list.  One is
 @code{ilist-map-lines}.  It is called as follows.
 
 @lisp
-(ilist-map-lines FUN PREDICATE START END)
+(ilist-map-lines FUN &optional PREDICATE START END NO-SKIP-INVISIBLE)
 @end lisp
 
 @table @code
@@ -209,6 +209,8 @@ matched.
 @item START
 @itemx END
 They limit the range of the mapping.
+@item NO-SKIP-INVISIBLE
+If non-nil, then we don’t skip invisible lines.
 @end table
 
 @node Moving, Copying This Manual, Mapping over lines, Top
@@ -218,7 +220,8 @@ They limit the range of the mapping.
 It might be desired to move between the displayed list items in a
 @emph{cyclic} manner, that is, assuming the top of the buffer is
 identified with the bottom of the buffer.  So the package provides
-four functions for moving.
+four functions for moving.  If the argument @code{NO-SKIP-INVISIBLE}
+is non-nil, then we don’t skip invisible lines.
 
 @table @code
 @item ilist-backward-line

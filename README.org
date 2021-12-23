@@ -95,7 +95,7 @@ auxiliary functions to operate on the displayed list.  One is
 =ilist-map-lines=.  It is called as follows.
 
 #+begin_src emacs-lisp :eval no :exports code
-  (ilist-map-lines FUN PREDICATE START END)
+  (ilist-map-lines FUN PREDICATE START END NO-SKIP-INVISIBLE)
 #+end_src
 
 - FUN: The function to execute on each matching line.
@@ -103,13 +103,15 @@ auxiliary functions to operate on the displayed list.  One is
   executed on each line.  If it returns non-nil, that line is
   considered to be matched.
 - START and END limit the range of the mapping.
+- If NO-SKIP-INVISIBLE is non-nil, then we don’t skip invisible lines.
 
 * Moving
 
 It might be desired to move between the displayed list items in a
 /cyclic/ manner, that is, assuming the top of the buffer is identified
 with the bottom of the buffer.  So the package provides four functions
-for moving.
+for moving.  If the argument =NO-SKIP-INVISIBLE= is non-nil, then we
+don’t skip invisible lines.
 
 - =ilist-backward-line=
 - =ilist-forward-line=: Move between lines.  One can control whether
