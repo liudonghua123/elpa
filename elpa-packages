@@ -362,9 +362,10 @@
  ;; :auto-sync t)
  ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
   :auto-sync t)
- ;; FIXME: Waiting for the author's copyright paperwork.
  ("org-transclusion"	:url "https://github.com/nobiot/org-transclusion"
-  :doc "README.org"
+  :make "org-transclusion.org"
+  :doc "org-transclusion.org"
+  :readme "README.org"
   :auto-sync t)
  ("org-translate"	:url nil)
  ("orgalist"            :url nil)
@@ -497,7 +498,7 @@
   :news "docs/CHANGELOG"
   :doc "docs/transient.texi")
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
- ("undo-tree"		:url "http://www.dr-qubit.org/git/undo-tree.git")
+ ("undo-tree"		:url "https://gitlab.com/tsc25/undo-tree")
  ("uni-confusables" 	:url nil)
  ("uniquify-files"	:url nil)
  ("url-http-ntlm" 	:url nil)
