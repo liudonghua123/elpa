@@ -469,7 +469,7 @@
  ("svg-lib"		:url "https://github.com/rougier/svg-lib"
   :auto-sync t)
  ("svg-tag-mode"	:url "https://github.com/rougier/svg-tag-mode"
-  :auto0sync t)
+  :auto-sync t)
  ("swiper"		:url "https://github.com/abo-abo/swiper")
  ("system-packages"	:url "https://gitlab.com/jabranham/system-packages")
  ("systemd"		:url nil)
