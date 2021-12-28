@@ -57,6 +57,10 @@
   :lisp-dir "lisp"
   :doc "doc/bbdb.texi")
  ("beacon"		:url "https://github.com/Malabarba/beacon")
+ ("blist"		:url "https://gitlab.com/mmemmew/blist"
+  :doc "blist.texinfo"
+  :readme "README.org"
+  :auto-sync t)
  ("bluetooth"		:url "https://gitlab.com/rstocker/emacs-bluetooth")
  ("bnf-mode"		:url "https://github.com/sergeyklay/bnf-mode")
  ("boxy"		:url "https://gitlab.com/tygrdev/boxy"
@@ -263,6 +267,10 @@
  ("hydra"		:url "https://github.com/abo-abo/hydra")
  ("hyperbole"           :url "https://git.savannah.gnu.org/r/hyperbole.git"
   :make ("kotl/kotl-autoloads.el")
+  :auto-sync t)
+ ("ilist"		:url "https://gitlab.com/mmemmew/ilist"
+  :doc "ilist.texinfo"
+  :readme "README.org"
   :auto-sync t)
  ;; ("infix-notation-calculator"
  ;;  :url "https://github.com/cjohansson/emacs-infix-notation-calculator")
