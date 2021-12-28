@@ -49,6 +49,20 @@ Display a list in an Ibuffer way.
 * Copying This Manual::
 * Index::
 
+ -- The Detailed Node Listing --
+
+Entry point
+
+* Columns::
+* Groups::
+
+Groups
+
+* Fixed groups::
+* Automatic groups::
+* Define automatic filter groups::
+
+
 
 File: ilist.info,  Node: About,  Next: Entry point,  Prev: Top,  Up: Top
 
@@ -823,17 +837,17 @@ Appendix B Index
 
 Tag Table:
 Node: Top764
-Node: About1643
-Node: Entry point2012
-Node: Columns2976
-Node: Groups3861
-Node: Fixed groups4118
-Node: Automatic groups4969
-Node: Define automatic filter groups6389
-Node: Mapping over lines8132
-Node: Moving9059
-Node: Copying This Manual9790
-Node: Index34898
+Node: About1797
+Node: Entry point2166
+Node: Columns3130
+Node: Groups4015
+Node: Fixed groups4272
+Node: Automatic groups5123
+Node: Define automatic filter groups6543
+Node: Mapping over lines8286
+Node: Moving9213
+Node: Copying This Manual9944
+Node: Index35052
 
 End Tag Table
 
