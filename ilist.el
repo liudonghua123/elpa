@@ -304,24 +304,124 @@ trailing spaces."
 
 ;;; produce the string
 
+;;;; The helper function
+
+(defun ilist-classify (sequence &rest args)
+  "Return a copy of SEQUENCE with duplicate elements removed.
+ARGS should be a property list specifying tests and keys.
+
+If the keyword argument TEST is non-nil, it should be a function
+with two arguments which tests for equality of elements in the
+sequence.  The default is the function `equal'.
+
+If the keyword argument KEY is non-nil, it should be a function
+with one argument which returns the key of the element in the
+sequence to be compared by the test function.  The default is the
+function `identity'.
+
+If the keyword argument DEFAULT is non-nil, when the KEY function
+returns nil for an element, it will be replaced by DEFAULT.
+
+Note that this function is not supposed to change global state,
+including match data, so the functions in TEST and KEY are
+supposed to leave the global state alone as well.
+
+\(fn SEQUENCE &key TEST KEY DEFAULT)"
+  (declare (pure t) (side-effect-free t))
+  (let* ((len (length sequence))
+         (temp-obarray (obarray-make len))
+         (valid-key-num (+ (cond ((plist-member args :key) 2) (0))
+                           (cond ((plist-member args :default) 2) (0))
+                           (cond ((plist-member args :test) 2) (0))))
+         (key (cond ((cadr (plist-member args :key))) (#'identity)))
+         (default (cadr (plist-member args :default)))
+         (test-fn (cond ((cadr (plist-member args :test))) (#'equal)))
+         obj-table result)
+    (cond ((or (= (mod (length args) 2) 1)
+               (> (length args) valid-key-num))
+           (user-error
+            (concat
+             "Invalid keyword arguments.  "
+             "Only :key and :test are allowed, but got %S")
+            args)))
+    ;; Note: This just puts a property to the symbol.
+    (define-hash-table-test 'ilist-classify-test
+      test-fn
+      (function
+       (lambda (obj)
+         (intern (format "%S" obj) temp-obarray))))
+    (setq
+     obj-table
+     (make-hash-table :test 'ilist-classify-test :size len))
+    (mapc
+     (function
+      (lambda (element)
+        (let ((get-hash (gethash
+                         (or (funcall key element) default)
+                         obj-table)))
+          (cond (get-hash
+                 (puthash
+                  (or (funcall key element) default)
+                  (cons element get-hash) obj-table))
+                ((puthash
+                  (or (funcall key element) default)
+                  (list element) obj-table))))))
+     sequence)
+    (maphash
+     ;; key is abused
+     (lambda (key value)
+       (setq result (cons (cons key (nreverse value)) result)))
+     obj-table)
+    (nreverse result)))
+
+;;;; The real function
+
 (defun ilist-string
     (ls columns groups
         &optional discard-empty-p sorter no-trailing-space)
   "Display list LS as the returned string.
 COLUMNS will be passed to `ilist-define-column'.
 
-GROUPS is a list of the following form.
+GROUPS is a filter group specification.  A filter group
+specification has two types: a fixed filter group, or an
+automatic filter group.
+
+A fixed filter group specification is a list of the following
+form:
 
 \((NAME1 . FUN1) (NAME2 . FUN2) ...)
 
-Here NAMEs are the strings to display as the header of the
-groups.
+Here NAMEs are the strings to display as the label of the groups.
 
 FUNs are the functions to determine if an element belongs to the
 group.  It should accept one argument, the element under
 consideration, and should return non-nil if that element belongs
 to the group.  The group that occurs first in the list GROUPS has
 higher priority over those that occur later.
+
+An automatic filter group specification is simply a function.
+This function serves multiple purposes.  Its argument list should
+be compatible with the following:
+
+\(ARG &optional TYPE)
+
+When TYPE is omitted or nil, this function will receive an
+element of the list as ARG, and should return a string.  This
+return value will be used as the group label, and elements with
+the same group label will be grouped together automatically.
+
+When TYPE is 'default, it should ignore the ARG and return a
+default label, which will be used as the label for those elements
+that this function returns nil as the label.
+
+When TYPE is 'sorter, it should ignore the ARG again and return a
+function to sort the labels.  This sorter should accept two
+arguments, X and Y, and should return non-nil if and only if
+label X should come before label Y.  If the function returns
+anything else, then the labels will not be sorted.
+
+The macro `ilist-define-automatic-group' might come in handy for
+defining group functions.  See its documentation for details.
 
 The display of each group is done by `ilist-display'.
 
@@ -332,7 +432,12 @@ If SORTER is non-nil, it should be a function with two arguments,
 X and Y, and should return non-nil if X should come before Y.
 
 If NO-TRAILING-SPACE is non-nil, the last column will not have
-trailing spaces."
+trailing spaces.
+
+As a note, this function is not supposed to change global state,
+so the functions used, such as the automatic group or the sorter,
+should not change the global states either.  This includes the
+matched data, the cursor position, etc."
   (declare (pure t) (side-effect-free t))
   ;; normalize SORTER
   (cond
@@ -340,10 +445,19 @@ trailing spaces."
    ((not (functionp sorter))
     (user-error "SORTER should be a function, but got %S"
                 sorter)))
-  ;; we sort the list at the beginning
   (let* ((ls (copy-tree ls))
-         (ls (cond ((null sorter) ls) ((sort ls sorter))))
-         (temp-groups (copy-tree groups))
+         (temp-groups
+          ;; normalize GROUPS
+          (cond
+           ;; A function closure is a list as well, for some reason.
+           ;; So we test if GROUPS is a function first.
+           ((functionp groups) groups)
+           ((consp groups) (copy-tree groups))
+           ((user-error
+             (concat
+              "GROUPS should be either a list or a function, "
+              "but got %S")
+             (type-of groups)))))
          column-widths temp-group group-results group-strs
          all-cols all-cols-indices header title-sep)
     ;; If we want to operate on the displayed list, then we should
@@ -359,37 +473,74 @@ trailing spaces."
      (let ((index -1))
        (mapcar
         (lambda (element)
-          (setq index (1+ index))
-          (cons index element))
+          ;; I cannot resist using hacks.
+          (cons (setq index (1+ index)) element))
         ls)))
-    (while (consp temp-groups)
-      (setq temp-group (car temp-groups))
-      ;; NOTE: The order of group-results is reverse to the order we
-      ;; want, and we will reverse the order again when we convert
-      ;; that to a list of strings later.
+    ;; We sort the list after the indices are stored.
+    (cond ((null sorter))
+          ((setq
+            ls
+            (sort
+             ls (lambda (x y) (funcall sorter (cdr x) (cdr y)))))))
+    (cond
+     ((not (functionp groups))
+      (while (consp temp-groups)
+        (setq temp-group (car temp-groups))
+        ;; NOTE: The order of group-results is reverse to the order we
+        ;; want, and we will reverse the order again when we convert
+        ;; that to a list of strings later.
+        (setq
+         group-results
+         (cons
+          (let ((fun (cdr temp-group))
+                res remain)
+            (mapc
+             (lambda (element)
+               (cond
+                ;; the car is the original index, and the cdr is the
+                ;; original element
+                ((funcall fun (cdr element))
+                 (setq res (cons element res)))
+                ((setq remain (cons element remain)))))
+             ls)
+            (setq ls (reverse remain))
+            ;; endow it with a text property so that we can
+            ;; distinguish a group header from a normal line
+            (list (propertize
+                   (format "[ %s ]" (car temp-group))
+                   'ilist-group-header (car temp-group))
+                  (reverse res)))
+          group-results))
+        (setq temp-groups (cdr temp-groups))))
+     (t ;; function groups case
+      (setq group-results (ilist-classify
+                           ls
+                           :key (lambda (x)
+                                  (funcall groups (cdr x)))
+                           :default
+                           (format "%s" (funcall groups t 'default))
+                           :test #'string=))
+      ;; sort the groups if needed
+      (let ((sorter (funcall groups t 'sorter)))
+        (cond
+         ((functionp sorter)
+          (setq group-results
+                (sort group-results
+                      (lambda (x y)
+                        (funcall sorter (car x) (car y))))))))
+      ;; transform the group titles
       (setq
        group-results
-       (cons
-        (let ((fun (cdr temp-group))
-              res remain)
-          (mapc
-           (lambda (element)
-             (cond
-              ;; the car is the original index, and the cdr is the
-              ;; original element
-              ((funcall fun (cdr element))
-               (setq res (cons element res)))
-              ((setq remain (cons element remain)))))
-           ls)
-          (setq ls (reverse remain))
-          ;; endow it with a text property so that we can distinguish
-          ;; a group header from a normal line
-          (list (propertize
-                 (format "[ %s ]" (car temp-group))
-                 'ilist-group-header (car temp-group))
-                (reverse res)))
-        group-results))
-      (setq temp-groups (cdr temp-groups)))
+       ;; to conform with the other case, we manually reverse the list
+       (nreverse
+        (mapcar
+         (lambda (result)
+           (cons
+            (propertize
+             (format "[ %s ]" (car result))
+             'ilist-group-header (car result))
+            (list (cdr result))))
+         group-results)))))
     ;; group-strs will not be in the final format yet, after this
     ;; `while'.
     (while (consp group-results)
@@ -572,6 +723,87 @@ trailing spaces."
                   (string))))
               group-strs))))
     (mapconcat #'identity group-strs (string))))
+
+;;;; Macro for defining automatic filter groups
+
+(defmacro ilist-define-automatic-group
+    (name default sorter &rest body)
+  "Define an automatic group for `ilist-string' to use.
+NAME will be used to name the resulting function as
+\"ilist-automatic-group-NAME\".
+
+DEFAULT will be the default label when the function returns nil
+as the label.
+
+SORTER can be a symbol, or an S-expression.  If it is a symbol,
+it will be used as the sorting function of the group labels.  If
+it is an S-expression., it will be used to define a function
+\"ilist-automatic-group-NAME-sorter\", which then becomes the
+sorting function.
+
+Note that one does not have to quote SORTER.
+
+BODY will be evaluated with \"ELEMENT\" bound to the element
+under consideration, and should return a string as the label of
+that element, or nil, to use the default label.
+
+Note that if DEFAULT is not a string, it will be evaluated and
+the result will be used.  If there are errors in the evaluation,
+it will simply be converted to a string silently."
+  (declare (indent 3))
+  (let ((default (cond ((stringp default) default)
+                       ((ignore-errors (eval default)))
+                       ((format "%S" default))))
+        (fn (intern (format "ilist-automatic-group-%s" name)))
+        (sorter-symbol
+         (cond
+          ((symbolp sorter) sorter)
+          ((and (or (eq (car sorter) 'function)
+                    (eq (car sorter) 'quote))
+                (cadr sorter)))
+          ((intern
+            (format
+             "ilist-automatic-group-%s-sorter" name))))))
+    (cond
+     ((or (symbolp sorter)
+          (eq (car sorter) 'function)
+          (eq (car sorter) 'quote))
+      (list
+       'defun fn (list 'element (quote &optional) 'type)
+       "A filter group defined by `ilist-define-automatic-group'.
+This should be used by `ilist-string' as an automatic filter group."
+       (list
+        'cond
+        (list (list 'eq 'type ''default)
+              default)
+        (list (list 'eq 'type ''sorter)
+              (list 'function sorter-symbol))
+        (cons t body))))
+     ((list
+       'progn
+       (list
+        'defun sorter-symbol (list 'x 'y)
+        (format
+         "A filter group sorter defined by \
+`ilist-define-automatic-group'.
+
+This should be used by `%s' as its sorter."
+         fn)
+        sorter)
+       (list
+        'defun fn (list 'element (quote &optional) 'type)
+        "A filter group defined by `ilist-define-automatic-group'.
+This should be used by `ilist-string' as an automatic filter group."
+        (list
+         'cond
+         (list (list 'eq 'type ''default)
+               default)
+         (list (list 'eq 'type ''sorter)
+               (list 'function sorter-symbol))
+         (cons t body))))))))
+
+;; for saving some key-strokes
+(defalias 'ilist-dag #'ilist-define-automatic-group)
 
 ;;; map over lines
 
