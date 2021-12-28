@@ -266,7 +266,8 @@
   :auto-sync t)
  ;; ("infix-notation-calculator"
  ;;  :url "https://github.com/cjohansson/emacs-infix-notation-calculator")
- ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git")
+ ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git"
+  :auto-sync t)
  ("isearch-mb"		:url "https://github.com/astoff/isearch-mb"
   :auto-sync t)
  ("iterators"		:url nil)
