@@ -58,6 +58,31 @@ The document was typeset with
 * Copying This Manual::
 * Index::
 * Key index::
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Usage
+
+* Screenshot::
+* Example configuration::
+* Header::
+* Columns::
+* Groups::
+* Calling convention(s)::
+* Navigations::
+* Marking::
+* Jump to bookmarks::
+* Annotations::
+* Others::
+
+Groups
+
+* Fixed filter groups::
+* Automatic filter groups::
+* Combine fixed and automatic filter groups::
+
+@end detailmenu
 @end menu
 
 @c Update all node entries with `C-c C-u C-n'.
