@@ -69,22 +69,24 @@ File: ilist.info,  Node: Entry point,  Next: Mapping over lines,  Prev: About,  
 The one main function this package provides is 'ilist-string'.  It is
 called as follows.
 
-     (ilist-string LIST COLUMNS GROUPS DISCARD-EMPTY-P)
+     (ilist-string LIST COLUMNS GROUPS
+         &optional DISCARD-EMPTY-P SORTER NO-TRAILING-SPACE)
 
 'LIST'
      This denotes the list that the user wants to display.
 'COLUMNS'
 'GROUPS'
-     They are described in the following sections.
+     See *note Columns:: and *note Groups::.
 'DISCARD-EMPTY-P'
      This determines whether to display empty groups or not.
 'SORTER'
      This is either nil, or a function with two arguments which returns
      non-nil if and only if the first argument should be sorted before
-     the second argument.
+     the second argument.  This is used to sort the elements in the
+     list, before grouping happens.  To sort groups, see *note Groups::.
 'NO-TRAILING-SPACE'
-     This is non-nil if the function should not produce trailing
-     whitespaces.
+     If this is non-nil then there will be no trailing whitespaces in
+     the resulting string.
 
 * Menu:
 
@@ -124,17 +126,17 @@ File: ilist.info,  Node: Groups,  Prev: Columns,  Up: Entry point
 2.2 Groups
 ==========
 
-The first subsection of this section describes the specifications of
-groups.  And the second describes a planned feature that is not yet
-implemented.
+There are two types of filter groups: the fixed and the automatic filter
+groups.
 
 * Menu:
 
 * Fixed groups::
-* Automatic groups (planned)::
+* Automatic groups::
+* Define automatic filter groups::
 
 
-File: ilist.info,  Node: Fixed groups,  Next: Automatic groups (planned),  Prev: Groups,  Up: Groups
+File: ilist.info,  Node: Fixed groups,  Next: Automatic groups,  Prev: Groups,  Up: Groups
 
 2.2.1 Fixed groups
 ------------------
@@ -158,29 +160,81 @@ is put at the end of the list 'GROUPS'.
 of 'DISCARD-EMPTY-P'.
 
 
-File: ilist.info,  Node: Automatic groups (planned),  Prev: Fixed groups,  Up: Groups
+File: ilist.info,  Node: Automatic groups,  Next: Define automatic filter groups,  Prev: Fixed groups,  Up: Groups
 
-2.2.2 Automatic groups (planned)
---------------------------------
+2.2.2 Automatic groups
+----------------------
 
-I plan to add support for automatic groups.  This means that, instead of
-providing a list of groups, one provides a function with one argument.
-That argument will be fed the list of elements.  Then the function is
-supposed to return a list of the following form:
+An automatic filter group is a function that can give labels to elements
+in a list.  These labels will be used to group elements automatically:
+the elements with the same label will be grouped together,
+automagically.  Besides, an automatic filter group is also responsible
+for sorting group labels, and for giving a default label, if no labels
+are specified for some element.
 
-     (list
-      (NAME
-       (INDEX1 . ELEMENT1)
-       (INDEX2 . ELEMENT2)
-       ...)
-      ...)
+   To be precise, an automatic filter group is a function with the
+signature: '(ELEMENT &optional TYPE)'.  The optional argument 'TYPE'
+says what the caller wants from the function:
 
-   That is, it should return cons cells of indices and elements, where
-the indices mean the indices of the corresponding element, in the
-original list.
+'nil'
+     If it is omitted or nil, the function should just return the label
+     for 'ELEMENT'.
+'default'
+     If it is the symbol 'default', the function should return a default
+     label.
+'sorter'
+     If it is the symbol 'sorter', the function should return a function
+     with two arguments, 'X' and 'Y'.  This returned function should
+     return a non-nil value if and only if group 'X' should be placed
+     earlier than group 'Y'.
 
-   Then the user can provide functions to automatically group elements
-based on the criteria that fit the domain of application.
+   So, for example, the call '(FUN t 'default)' should produce the
+default label, '(FUN t 'sorter)' should return the function used to sort
+groups, and '(FUN ELEMENT)' should return the label for 'ELEMENT', where
+'FUN' is an automatic filter group.
+
+
+File: ilist.info,  Node: Define automatic filter groups,  Prev: Automatic groups,  Up: Groups
+
+2.2.3 Define automatic filter groups
+------------------------------------
+
+If one wants to define ones own automatic filter group, then the macro
+'ilist-define-automatic-group', or the shorter alias 'ilist-dag', might
+come in handy.
+
+   In case you wonder, this _dag_ has nothing to do with an _directed
+acyclic graph_; it is just an abbreviation to save some typing.  The
+coincidence of the names is a misfortune.
+
+   This macro is called as follows.
+
+     (ilist-dag NAME DEFAULT SORTER &rest BODY)
+
+'NAME'
+     This is a string.  The resulting function defined by this macro
+     will be named as 'ilist-automatic-group-NAME'.
+'DEFAULT'
+     This is also a string.  It is used to label elements for which this
+     automatic group returns nil as its label.
+
+     Why not just let the automatic group function give the default
+     label instead of nil, then?  Well, people make mistakes all the
+     time, at least I do.  So I think this mechanism can help people to
+     remember give a default label for elements.
+'SORTER'
+     This can be a symbol, or an s-expression.
+
+     If it is a symbol, it will be used as the sorting function of the
+     group labels.  Note that one does not have to quote this symbol,
+     though you can still quote it.
+
+     If it is an s-expression., it will be used to define a function
+     'ilist-automatic-group-NAME-sorter', which then becomes the sorting
+     function.  The variables 'X' and 'Y' are bound to the labels to
+     sort in this expression.  The sorter function should return a
+     non-nil value if and only if the group labelled 'X' should be
+     displayed before the group labelled 'Y'.
 
 
 File: ilist.info,  Node: Mapping over lines,  Next: Moving,  Prev: Entry point,  Up: Top
@@ -190,7 +244,11 @@ File: ilist.info,  Node: Mapping over lines,  Next: Moving,  Prev: Entry point, 
 
 For the convenience of package-users, this package also provides some
 auxiliary functions to operate on the displayed list.  One is
-'ilist-map-lines'.  It is called as follows.
+'ilist-map-lines'.  Its return value is the list of execution results on
+the lines over which the function is executed.  By default it skips
+invisible lines, but this behaviour can be alterred.
+
+   It is called as follows.
 
      (ilist-map-lines FUN &optional PREDICATE START END NO-SKIP-INVISIBLE)
 
@@ -215,8 +273,8 @@ File: ilist.info,  Node: Moving,  Next: Copying This Manual,  Prev: Mapping over
 It might be desired to move between the displayed list items in a
 _cyclic_ manner, that is, assuming the top of the buffer is identified
 with the bottom of the buffer.  So the package provides four functions
-for moving.  If the argument 'NO-SKIP-INVISIBLE' is non-nil, then we
-don’t skip invisible lines.
+for moving.  These functions all have an argument 'NO-SKIP-INVISIBLE';
+if that argument is non-nil, then invisible lines won't skipped.
 
 'ilist-backward-line'
 'ilist-forward-line'
@@ -711,8 +769,55 @@ their use in free software.
 
 File: ilist.info,  Node: Index,  Prev: Copying This Manual,  Up: Top
 
-Index
-*****
+Appendix B Index
+****************
+
+ [index ]
+* Menu:
+
+* automatic filter groups, example call: Automatic groups.     (line 29)
+* automatic filter groups, mechanism:    Automatic groups.     (line  6)
+* automatic filter groups, types:        Automatic groups.     (line 17)
+* column, specification:                 Columns.              (line  6)
+* columns of the display:                Columns.              (line  6)
+* custom automatic filter groups:        Define automatic filter groups.
+                                                               (line  6)
+* define automatic filter groups:        Define automatic filter groups.
+                                                               (line  6)
+* description:                           About.                (line  6)
+* eliding string:                        Columns.              (line 22)
+* entry point:                           Entry point.          (line  6)
+* filter groups:                         Groups.               (line  6)
+* fixed filter groups:                   Fixed groups.         (line  6)
+* fixed filter groups, default group:    Fixed groups.         (line 18)
+* fixed filter groups, specification:    Fixed groups.         (line 11)
+* functionality:                         About.                (line  6)
+* how to call:                           Entry point.          (line  9)
+* ilist-backward-group-header:           Moving.               (line 12)
+* ilist-backward-line:                   Moving.               (line 12)
+* ilist-dag:                             Define automatic filter groups.
+                                                               (line  6)
+* ilist-dag sorter convention:           Define automatic filter groups.
+                                                               (line 36)
+* ilist-define-automatic-group:          Define automatic filter groups.
+                                                               (line  6)
+* ilist-forward-group-header:            Moving.               (line 12)
+* ilist-forward-line:                    Moving.               (line 12)
+* ilist-map-lines:                       Mapping over lines.   (line  6)
+* ilist-string:                          Entry point.          (line  6)
+* loop through display:                  Mapping over lines.   (line  6)
+* mapping:                               Mapping over lines.   (line  6)
+* moving around:                         Moving.               (line  6)
+* navigations:                           Moving.               (line  6)
+* reason for using default in automatic groups: Define automatic filter groups.
+                                                               (line 25)
+* round buffer:                          Moving.               (line  6)
+* signature of ilist-define-automatic-group: Define automatic filter groups.
+                                                               (line 14)
+* signature of ilist-map-lines:          Mapping over lines.   (line 14)
+* signature of ilist-string:             Entry point.          (line  9)
+* sorting elements:                      Entry point.          (line 20)
+* use:                                   About.                (line  6)
 
 
 
@@ -720,14 +825,15 @@ Tag Table:
 Node: Top764
 Node: About1643
 Node: Entry point2012
-Node: Columns2809
-Node: Groups3694
-Node: Fixed groups3995
-Node: Automatic groups (planned)4856
-Node: Mapping over lines5660
-Node: Moving6409
-Node: Copying This Manual7103
-Node: Index32211
+Node: Columns2976
+Node: Groups3861
+Node: Fixed groups4118
+Node: Automatic groups4969
+Node: Define automatic filter groups6389
+Node: Mapping over lines8132
+Node: Moving9059
+Node: Copying This Manual9790
+Node: Index34898
 
 End Tag Table
 

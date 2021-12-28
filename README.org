@@ -15,8 +15,8 @@ The one main function this package provides is =ilist-string=.  It is
 called as follows.
 
 #+begin_src emacs-lisp :eval no :exports code
-  (ilist-string LIST COLUMNS GROUPS DISCARD-EMPTY-P
-                SORTER NO-TRAILING-SPACE)
+  (ilist-string LIST COLUMNS GROUPS
+      &optional DISCARD-EMPTY-P SORTER NO-TRAILING-SPACE)
 #+end_src
 
 - LIST is the list that the user wants to display
@@ -24,13 +24,15 @@ called as follows.
 - DISCARD-EMPTY-P determines whether to display empty groups or not
 - SORTER is either nil, or a function with two arguments which returns
   non-nil if and only if the first argument should be sorted before
-  the second argument
-- NO-TRAILING-SPACE is non-nil if the function should not produce
-  trailing whitespaces
+  the second argument.  This is used to sort the elements in the list,
+  before grouping happens.  To sort groups, see the section on
+  groups.
+- NO-TRAILING-SPACE is non-nil if there should be no trailing
+  whitespaces in the resulting string.
 
 ** Columns
 
-Like in ibuffer, the user can specify columns to display.  Each column
+Like in Ibuffer, the user can specify columns to display.  Each column
 comprises the following specifications:
 
 - NAME: The name to display in the header.
@@ -49,8 +51,8 @@ comprises the following specifications:
 
 *** Fixed groups
 
-Like in ibuffer, we can group elements together in the display.  One
-difference with ibuffer is that elements that are not in any group are
+Like in Ibuffer, we can group elements together in the display.  One
+difference with Ibuffer is that elements that are not in any group are
 ignored.  If one wants a "default" group, specify that explicitly.
 The specifications of GROUPS are as follows.
 
@@ -65,28 +67,70 @@ put at the end of the list GROUPS.
 Empty groups might or might not be displayed, depending on the value
 of DISCARD-EMPTY-P.
 
-*** Automatic groups (planned)
+*** Automatic groups
 
-I plan to add support for automatic groups.  This means that, instead
-of providing a list of groups, one provides a function with one
-argument.  That argument will be fed the list of elements.  Then the
-function is supposed to return a list of the following form:
+An automatic filter group is a function that can give labels to
+elements in a list.  These labels will be used to group elements
+automatically: the elements with the same label will be grouped
+together, automagically.  Besides, an automatic filter group is also
+responsible for sorting group labels, and for giving a default label,
+if no labels are specified for some element.
 
-#+begin_src emacs-lisp :eval no :exports code
-  (list
-   (NAME
-    (INDEX1 . ELEMENT1)
-    (INDEX2 . ELEMENT2)
-    ...)
-   ...)
+To be precise, an automatic filter group is a function with the
+signature: =(ELEMENT &optional TYPE)=.  The optional argument =TYPE=
+says what the caller wants from the function:
+
+- nil: If it is omitted or nil, the function should just return the
+  label for =ELEMENT=.
+- default: If it is the symbol =default=, the function should return a
+  default label.
+- sorter: If it is the symbol =sorter=, the function should return a
+  function with two arguments, =X= and =Y=.  This returned function
+  should return a non-nil value if and only if group =X= should be
+  placed earlier than group =Y=.
+
+So, for example, the call =(FUN t 'default)= should produce the
+default label, =(FUN t 'sorter)= should return the function used to
+sort groups, and =(FUN ELEMENT)= should return the label for
+=ELEMENT=, where =FUN= is an automatic filter group.
+
+*** Define automatic filter groups
+
+If one wants to define ones own automatic filter group, then the macro
+=ilist-define-automatic-group=, or the shorter alias
+=ilist-dag=, might come in handy.
+
+In case you wonder, this /dag/ has nothing to do with an /directed
+acyclic graph/; it is just an abbreviation to save some typing.  The
+coincidence of the names is a misfortune.
+
+This macro is called as follows.
+
+#+begin_src emacs-lisp
+  (ilist-dag NAME DEFAULT SORTER &rest BODY)
 #+end_src
 
-That is, it should return cons cells of indices and elements, where
-the indices mean the indices of the corresponding element, in the
-original list.
+- NAME: This is a string.  The resulting function defined by this
+  macro will be named as =ilist-automatic-group-NAME=.
+- DEFAULT: This is also a string.  It is used to label elements for
+  which this automatic group returns nil as its label.
 
-Then the user can provide functions to automatically group elements
-based on the criteria that fit the domain of application.
+  Why not just let the automatic group function give the default label
+  instead of nil, then?  Well, people make mistakes all the time, at
+  least I do.  So I think this mechanism can help people to remember
+  give a default label for elements. 
+- SORTER: This can be a symbol, or an s-expression.
+
+  If it is a symbol, it will be used as the sorting function of the
+  group labels.  Note that one does not have to quote this symbol,
+  though you can still quote it.
+
+  If it is an s-expression., it will be used to define a function
+  =ilist-automatic-group-NAME-sorter=, which then becomes the sorting
+  function.  The variables =X= and =Y= are bound to the labels to sort
+  in this expression.  The sorter function should return a non-nil
+  value if and only if the group labelled =X= should be displayed
+  before the group labelled =Y=.
 
 * Mapping over lines
 
@@ -110,8 +154,8 @@ auxiliary functions to operate on the displayed list.  One is
 It might be desired to move between the displayed list items in a
 /cyclic/ manner, that is, assuming the top of the buffer is identified
 with the bottom of the buffer.  So the package provides four functions
-for moving.  If the argument =NO-SKIP-INVISIBLE= is non-nil, then we
-don’t skip invisible lines.
+for moving.  These functions all have an argument =NO-SKIP-INVISIBLE=;
+if that argument is non-nil, then invisible lines won't skipped.
 
 - =ilist-backward-line=
 - =ilist-forward-line=: Move between lines.  One can control whether
