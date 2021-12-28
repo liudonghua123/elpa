@@ -57,6 +57,7 @@ The document was typeset with
 * Usage::
 * Copying This Manual::
 * Index::
+* Key index::
 @end menu
 
 @c Update all node entries with `C-c C-u C-n'.
@@ -405,28 +406,43 @@ of bookmarks.  Except for the two @emph{jump} commands, they all follow
 the @strong{P-convention}.
 
 @table @kbd
+@kindex n
+@kindex p
 @item n
 @itemx p
 @vindex blist-movement-cycle
 go to next/previous line.  Whether it treats the top of the buffer as
 identified with the bottom of the buffer is controlled by the variable
 @code{blist-movement-cycle}.
+@kindex N
+@kindex P
 @item N
 @itemx P
 go to next/previous line that is not a group heading.
+@kindex M-n
+@kindex M-p
 @item M-n
 @itemx M-p
 go to next/previous group heading.
+@kindex j
+@kindex M-g
 @item j
 @itemx M-g
 jump to a bookmark, using the @strong{C-convention}.
+@kindex J
+@kindex M-j
+@kindex M-G
 @item J
 @itemx M-j
 @itemx M-G
 jump to a group heading, using the @strong{C-convention}.
+@kindex M-@{
+@kindex (
 @item M-@{
 @itemx (
 go to the previous marked bookmark.
+@kindex )
+@kindex M-@}
 @item )
 @itemx M-@}
 go to the next marked bookmark.
@@ -444,33 +460,47 @@ operate on the bookmarks.
 Unless stated otherwise, they all follow the @strong{P-convention}.
 
 @table @kbd
+@kindex m
 @item m
 @vindex blist-default-mark
 Mark the bookmark with the default mark (@code{blist-default-mark}) and
 advance.
+@kindex d
+@kindex k
 @item d
 @itemx k
 Mark for deletion and advance.
+@kindex C-d
 @item C-d
 Mark for deletion and go backwards.
+@kindex x
 @item x
 Delete all bookmarks that are marked for deletion.
+@kindex D
 @item D
 Delete the bookmark immediately (the @strong{MRG0-convention}).
+@kindex u
 @item u
 Unmark the bookmark and advance.
+@kindex DEL
 @item @key{DEL}
 Unmark the bookmark and go backwards.
+@kindex U
 @item U
 Unmark all bookmarks.
+@kindex M-DEL
 @item M-@key{DEL}
+@kindex * *
 @itemx * *
 prompt for a mark and unmark all boomarks that are marked with the
 entered mark (using @code{read-char}).
+@kindex % n
 @item % n
 Mark bookmarks whose name matches a regular expression.
+@kindex % l
 @item % l
 Mark bookmarks whose location matches a regular expression.
+@kindex * c
 @item * c
 Change the marks from OLD to NEW (using @code{read-char})
 @end table
@@ -481,15 +511,19 @@ Change the marks from OLD to NEW (using @code{read-char})
 
 @cindex jumping
 
+@kindex v
 The following lists the default key-bindings for jumping to, or opening
 bookmarks.  Except for @kbd{v}, they operate on the bookmark (or group)
 at point.
 
 @table @kbd
+@kindex RET
 @item @key{RET}
 Either open the bookmark in this window or toggle the group at point.
+@kindex o
 @item o
 Open the bookmark in another window.
+@kindex v
 @item v
 @vindex blist-select-manner
 Select the bookmarks (the @strong{MG0-convention}).  How multiple
@@ -508,10 +542,13 @@ The following lists the default key-bindings for operating on the
 annotations of bookmarks.
 
 @table @kbd
+@kindex a
 @item a
 View the annotations of bookmarks (the @strong{MGC-convention}).
+@kindex A
 @item A
 View the annotations of all bookmarks.
+@kindex e
 @item e
 Edit the annotation of the bookmark at point.  If called with
 @code{universal-argument}, prompt for the bookmark to edit with
@@ -537,9 +574,17 @@ in the list of bookmarks to see all available key-bindings.
 @c Get fdl.texi from https://www.gnu.org/licenses/fdl.html
 @include fdl-1.3.texi
 
-@node Index,  , Copying This Manual, Top
+@node Index, Key index, Copying This Manual, Top
 @appendix Index
 
 @printindex cp
+
+@node Key index,  , Index, Top
+@comment  node-name,  next,  previous,  up
+@appendix Key Index
+
+The list of keys.
+
+@printindex ky
 
 @bye
