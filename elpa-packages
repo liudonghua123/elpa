@@ -365,7 +365,7 @@
   :auto-sync t)
  ("org-transclusion"	:url "https://github.com/nobiot/org-transclusion"
   :make "org-transclusion.org"
-  :doc "org-transclusion.org"
+  :doc "docs/org-transclusion.org"
   :readme "README.org"
   :auto-sync t)
  ("org-translate"	:url nil)
