@@ -64,35 +64,203 @@
 
 ;;;; Filter groups
 
-(defcustom blist-add-default-filter-automatically t
-  "The default filter for blist.
-If non-nil, and if `blist-default-p' is not an element of the
-variable `blist-filter-groups', then a default filter will be
-added."
+;;;;; Default label
+
+(defcustom blist-filter-default-label "Default"
+  "The label used for the default group automatically added."
   :group 'blist
-  :type 'boolean)
+  :type 'string)
+
+;;;;; fixed filter groups
 
 (defcustom blist-filter-groups (list
                                 (cons "Eshell" #'blist-eshell-p)
                                 (cons "Default" #'blist-default-p))
   "The filter groups for display.
-If `blist-default-p' is not used as a criterion, and if
-`blist-add-default-filter-automatically' is non-nil, then append
-a default filter group at the end."
+This specifies a fixed filter group.  For the automatic filter
+groups, see the user option `blist-automatic-filter-groups'.
+
+See the documentation string of `ilist-string' to know the
+differences between the two.
+
+And see the user option `blist-filter-features' for how to
+combine fixed groups and automatic ones.
+
+If `blist-default-p' is not used as a criterion, then a default
+filter group will be appended at the end."
   :group 'blist
   :type '(repeat (cons string function)))
 
-(defun blist-filter-groups ()
-  "Return the filter groups to use.
-See the doc strings of the variable `blist-filter-groups' and
-`blist-add-default-filter-automatically' for details."
-  (declare (side-effect-free 'error-free))
-  (cond
-   ((and blist-add-default-filter-automatically
-         (null (rassq #'blist-default-p blist-filter-groups)))
-    (append blist-filter-groups
-            (list (cons "Default" #'blist-default-p))))
-   (blist-filter-groups)))
+;;;;; automatic filter groups
+
+(defcustom blist-automatic-filter-groups
+  #'blist-automatic-filter-groups-default
+  "The automatic filter group for display.
+See the documentation string of `ilist-string' for how an
+automatic filter group should behave.
+
+And see the user option `blist-filter-features' for how to
+combine fixed groups and automatic ones."
+  :group 'blist
+  :type 'function)
+
+;;;;; Default automatic grouping
+
+;; See the documentation string of `ilist-dag' for more details.
+
+(ilist-dag "blist-default" blist-filter-default-label
+           (cond
+            ((string= x "Default") nil)
+            ((string= y "Default"))
+            ((string-lessp x y)))
+  (save-match-data
+    (let* ((handler (bookmark-get-handler element))
+           (handler-name (and handler (format "%S" handler)))
+           (location (bookmark-location element)))
+      ;; replace repeating parts
+      (cond
+       ((and handler-name
+             (string-match "\\([^z-a]+\\)-jump" handler-name))
+        (setq
+         handler-name
+         (replace-regexp-in-string
+          "-bookmark$" "" (match-string 1 handler-name)))))
+      ;; take case of file extensions
+      (cond
+       ((and (null handler-name) location
+             (string-match "\\.\\([^.]+\\)\\'" location))
+        (setq handler-name (match-string 1 location))))
+      (cond
+       (handler-name
+        (cond
+         ;; Some special cases
+         ((string-match-p "pdf" handler-name) "PDF") ; to handle pdf-view.
+         ((string-match-p "^el$" handler-name) "ELisp")
+         ((<= (length handler-name) 3) (upcase handler-name))
+         ((capitalize handler-name))))))))
+
+;; the function defined above
+(defalias 'blist-automatic-filter-groups-default
+  #'ilist-automatic-group-blist-default)
+
+;;;;; Method to combine fixed and automatic groups
+
+(defcustom blist-filter-features '(manual)
+  "How to combine the fixed filter groups and the automatic one.
+This is a list of symbols.
+
+If the symbol 'manual' is an element of this list, then the fixed
+filter group specified by the variable `blist-filter-groups' will
+be used.
+
+If the symbol 'auto' is an element of this list, then the
+automatic filter group specified by the variable
+`blist-automatic-filter-groups' will be used.
+
+If both symbols 'auto' and 'manual' are elements of the list,
+then the elements will be grouped by the fixed groups first.
+Those elements that are not classified as belonging to any of the
+fixed groups will then be grouped by the automatic filter
+groups.
+
+If neither of the symbols 'auto' and 'manual' is an element of
+the list, then every bookmark will be displayed under the
+group labelled with `blist-filter-default-label'."
+  :group 'blist
+  :type '(repeat
+          (choice
+           (const :tag "use fixed filter groups" manual)
+           (const :tag "use automatic filter groups" auto))))
+
+;;;;; Combine both fixed grouping and automatic grouping
+
+(defun blist-filter-groups (element &optional type)
+  "The actual filter group that is passed to `ilist-string'.
+See the documentation strings of the variables
+`blist-filter-groups', `blist-automatic-filter-groups', and
+`blist-filter-features' for details.
+
+See the documentation string of `ilist-string' for the meaning of
+ELEMENT and TYPE."
+  (let ((level 0)
+        (fixed-group-labels (mapcar #'car blist-filter-groups)))
+    ;; convert the list of features to a number for easier
+    ;; identification of the situation
+    (cond ((memq 'manual blist-filter-features)
+           (setq level (1+ level))))
+    (cond ((memq 'auto blist-filter-features)
+           (setq level (+ level 2))))
+    (cond
+     ((= level 0)
+      ;; no user filtering in effect: we just return the default label
+      ;; for the default, and return nil for the rest.  This works
+      ;; because if type is nil, then this function will return nil,
+      ;; and then `ilist-string' will use the default label.  When it
+      ;; asks for the sorter, this returns nil as well, which tells
+      ;; `ilist-string' that groups should not be sorted.
+      ;;
+      ;; Perfect design, right?
+      (cond ((eq type 'default) blist-filter-default-label)))
+     ((= level 1)
+      ;; Only manual filtering is in effect.
+      (cond
+       ;; Return the default label no matter what
+       ((eq type 'default) blist-filter-default-label)
+       ((eq type 'sorter)
+        (lambda (x y)
+          ;; If member returns a longer string, that means the element
+          ;; comes first.  This includes the case if the label is not
+          ;; on the list.
+          (<= (length (member y fixed-group-labels))
+              (length (member x fixed-group-labels)))))
+       ;; Emulate fixed grouping by automatic grouping
+       ((let ((temp-ls blist-filter-groups)
+              result)
+          (while (and (null result) (consp temp-ls))
+            (cond
+             ((funcall (cdar temp-ls) element)
+              (setq result (caar temp-ls))))
+            (setq temp-ls (cdr temp-ls)))
+          result))))
+     ((= level 2)
+      ;; Only automatic grouping in effect.
+      (funcall blist-automatic-filter-groups element type))
+     ((= level 3)
+      ;; Both the manual and the automatic grouping are in effect.
+      (cond
+       ((eq type 'default)
+        ;; Why not use or, you ask?  Because I like cond.  :D
+        (cond
+         ;; If the fixed group has a default group, then why use
+         ;; automatic grouping as well?  But who am I to judge?
+         ((car (rassq #'blist-default-p blist-filter-groups)))
+         ((funcall blist-automatic-filter-groups t 'default))
+         (blist-filter-default-label)))
+       ((eq type 'sorter)
+        ;; Manual groups should come before automatic groups.
+        (lambda (x y)
+          (cond
+           ((and (member x fixed-group-labels)
+                 (member y fixed-group-labels))
+            (<= (length (member y fixed-group-labels))
+                (length (member x fixed-group-labels))))
+           ((member x fixed-group-labels))
+           ((member y fixed-group-labels) nil)
+           ((functionp
+             (funcall blist-automatic-filter-groups t 'sorter))
+            (funcall
+             (funcall blist-automatic-filter-groups t 'sorter)
+             x y)))))
+       ((let ((temp-ls blist-filter-groups)
+              result)
+          (while (and (null result) (consp temp-ls))
+            (cond
+             ((funcall (cdar temp-ls) element)
+              (setq result (caar temp-ls))))
+            (setq temp-ls (cdr temp-ls)))
+          (cond
+           (result)
+           ((funcall blist-automatic-filter-groups element))))))))))
 
 ;;;; Empty groups
 
@@ -338,10 +506,9 @@ of the required type."
 
 ;; an alias for discoverability
 
-(fset 'blist #'blist-list-bookmarks)
+(defalias 'blist #'blist-list-bookmarks)
 
 ;; REVIEW: Is it a good idea to preserve the hidden status of groups?
-;; REVIEW: Use the header?
 
 ;;;###autoload
 (defun blist-list-bookmarks (&rest _args)
@@ -415,7 +582,7 @@ used as a `revert-buffer-function'."
                  (blist-name-column))
            (cond
             (blist-display-location-p (list blist-location-column))))
-          (blist-filter-groups)
+          #'blist-filter-groups
           blist-discard-empty-p
           blist-sorter
           t))
@@ -465,7 +632,9 @@ used as a `revert-buffer-function'."
 ;;; Major mode
 
 (define-derived-mode blist-mode ilist-mode "BList"
-  "Major mode used in the display of `blist-list-bookmarks'."
+  "Major mode used in the display of `blist-list-bookmarks'.
+
+\\{blist-mode-map}"
   :group 'blist
   (setq-local revert-buffer-function #'blist-list-bookmarks))
 
@@ -1004,6 +1173,7 @@ annotations."
 (define-derived-mode blist-edit-annotation-mode
   bookmark-edit-annotation-mode "BListea"
   "The major mode for editing bookmark annotations.
+\\<blist-edit-annotation-mode-map>\
 When editing is done, type \\[blist-send-edit-annotation].
 
 Simply delete the buffer if you want to cancel this edit.  Or you
@@ -1013,7 +1183,9 @@ quit the window at the same time.
 This differs from `bookmark-edit-annotation-mode' only in that it
 will always regenerate the list of bookmarks and go to the list
 of bookmarks after the edit is done, since this mode is not used
-for editing annotation in other situations."
+for editing annotation in other situations.
+
+\\{blist-edit-annotation-mode-map}"
   :group 'blist)
 
 (let ((map blist-edit-annotation-mode-map))
