@@ -49,8 +49,6 @@
 ;;   an open connection.  Examples: "scripts" keeps shell script
 ;;   definitions already sent to the remote shell, "last-cmd-time" is
 ;;   the time stamp a command has been sent to the remote process.
-;;   "lock-pid" is the timestamp a (network) process is created, it is
-;;   used instead of the pid in file locks.
 ;;
 ;; - The key is nil.  These are temporary properties related to the
 ;;   local machine.  Examples: "parse-passwd" and "parse-group" keep
@@ -419,9 +417,7 @@ used to cache connection properties of the local machine."
 		       (prin1-to-string key))
 		     (if (hash-table-p value)
 			 (tramp-cache-print value)
-		       (if (or (bufferp value)
-			       ;; Mutexes have entered Emacs 26.1.
-			       (tramp-compat-funcall 'mutexp value))
+		       (if (bufferp value)
 			   (prin1-to-string (prin1-to-string value))
 			 (prin1-to-string value))))))
 	   (setq result (if result (concat result " " tmp) tmp))))
