@@ -93,6 +93,11 @@
   `(completions-common-part      ((,c (:inherit lazy-highlight))))
   `(completions-first-difference ((,c (:inherit isearch))))
 
+  `(diff-added           ((,c (:background "#c4face" :foreground "#143c1d"))))
+  `(diff-refine-added    ((,c (:background "#88cd98" :foreground "#0c2912 "))))
+  `(diff-removed         ((,c (:background "#ffcccc" :foreground "#4b1313"))))
+  `(diff-refine-removed  ((,c (:background "#ef9d9d" :foreground "#3a0a0a "))))
+
   `(dired-directory      ((,c (:inherit font-lock-builtin-face))))
   `(dired-header         ((,c (:inherit font-lock-builtin-face))))
   `(dired-symlink        ((,c (:inherit font-lock-constant-face))))
