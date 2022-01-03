@@ -81,7 +81,7 @@
 
   `(font-lock-builtin-face       ((,c (:foreground "#243867" :inherit bold))))
   `(font-lock-comment-face       ((,c (:foreground "#533a09" :inherit italic))))
-  `(font-lock-constant-face      ((,c (:foreground "#307493"))))
+  `(font-lock-constant-face      ((,c (:foreground "#18566e"))))
   `(font-lock-function-name-face ((,c (:foreground "#412f7e"))))
   `(font-lock-keyword-face       ((,c (:foreground "#2e4d98" :inherit bold))))
   `(font-lock-string-face        ((,c (:foreground "#327038"))))
