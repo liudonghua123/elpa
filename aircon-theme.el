@@ -119,8 +119,8 @@
 
 (custom-theme-set-variables
  'aircon
- '(ansi-color-names-vector ["#ffffff" "#8d2934" "#39671f" "#307493"
-			    "#2e4d98" "#412f7e" "#533a09" "#243867"]))
+ '(ansi-color-names-vector ["#ffffff" "#9a2d71" "#327038" "#18566e"
+			    "#2e4d98" "#5f4f93" "#533a09" "#243867"]))
 
 (provide-theme 'aircon)
 
