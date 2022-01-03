@@ -445,7 +445,8 @@
  ("rt-liberation"	:url "https://git.savannah.nongnu.org/git/rtliber"
   :auto-sync t)
  ("rudel"		:url nil) ;; Was bzr::bzr://rudel.bzr.sourceforge.net/bzrroot/rudel/trunk
- ("scanner"		:url "https://gitlab.com/rstocker/scanner.git")
+ ("scanner"		:url "https://gitlab.com/rstocker/scanner.git"
+  :auto-sync t)
  ("scroll-restore"	:url nil)
  ("sed-mode"		:url nil)
  ("seq"			:url nil)
