@@ -61,7 +61,8 @@
   :doc "blist.texinfo"
   :readme "README.org"
   :auto-sync t)
- ("bluetooth"		:url "https://gitlab.com/rstocker/emacs-bluetooth")
+ ("bluetooth"		:url "https://gitlab.com/rstocker/emacs-bluetooth"
+  :auto-sync t)
  ("bnf-mode"		:url "https://github.com/sergeyklay/bnf-mode")
  ("boxy"		:url "https://gitlab.com/tygrdev/boxy"
   :auto-sync t)
