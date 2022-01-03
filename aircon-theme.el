@@ -58,11 +58,8 @@
                               :box "#a3a4ae"))))
   `(mode-line-highlight ((,c (:inherit mode-line))))
 
-  `(compilation-mode-line-exit (()))
-  `(compilation-mode-line-fail ((,c :foreground "#cc5555" :inherit bold)))
-  `(compilation-error          ((,c :foreground "#cc5555" :inherit bold)))
-  `(compilation-info           ((,c :foreground "#669922" :inherit bold)))
-  `(compilation-warning        ((,c :foreground "#c9a830" :inherit bold)))
+  `(compilation-mode-line-fail ((,c :foreground ,error :inherit bold)))
+  `(compilation-error          ((,c :foreground ,error :inherit bold)))
 
   `(shadow       ((,c (:foreground "#595959"))))
   `(error        ((,c (:foreground ,error   :inherit bold))))
