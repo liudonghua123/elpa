@@ -80,7 +80,7 @@
   `(show-paren-match-expression ((,c (:inherit lazy-highlight))))
 
   `(font-lock-builtin-face       ((,c (:foreground "#243867" :inherit bold))))
-  `(font-lock-comment-face       ((,c (:foreground "#533a09" :inherit italic))))
+  `(font-lock-comment-face       ((,c (:foreground "#615855" :inherit italic))))
   `(font-lock-constant-face      ((,c (:foreground "#18566e"))))
   `(font-lock-function-name-face ((,c (:foreground "#412f7e"))))
   `(font-lock-keyword-face       ((,c (:foreground "#2e4d98" :inherit bold))))
