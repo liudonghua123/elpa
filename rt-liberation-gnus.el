@@ -27,6 +27,16 @@
 ;; wonderful rt-liberation manual located in the "doc/" directory of
 ;; the rt-liberation distribution.
 
+
+;;; Code
+(require 'rt-liberation)
+(require 'nnselect)
+(require 'gnus-msg)
+
+
+;;; ------------------------------------------------------------------
+;;; definitions
+;;; ------------------------------------------------------------------
 (defgroup rt-liber-gnus nil
   "*Gnus integration for rt-liberation."
   :prefix "rt-liber-gnus-"
@@ -55,16 +65,14 @@ line of an email. For example: \\[company.com #\\([0-9].+?\\)\\]"
   :type 'string
   :group 'rt-liber-gnus)
 
-(require 'rt-liberation)
-(require 'nnir)
-(require 'nnselect)
-(require 'gnus-msg)
-
 
 (defvar rt-liber-gnus-p nil
   "Non-nil when rt-liberation-gnus is composing a Gnus buffer.")
 
 
+;;; ------------------------------------------------------------------
+;;; functions
+;;; ------------------------------------------------------------------
 (defun rt-liber-gnus-compose (addr ticket-alist options)
   "Create a Gnus *mail* buffer for the RT email interface.
 ADDR email address.
@@ -140,6 +148,10 @@ OPTIONS association list of options.
 	 (setq text (buffer-substring (point-min) (point-max))))
        text))))
 
+
+;;; ------------------------------------------------------------------
+;;; interface
+;;; ------------------------------------------------------------------
 (defun rt-liber-gnus-compose-reply-to-requestor ()
   (interactive)
   (rt-liber-gnus-with-ticket-buffer
