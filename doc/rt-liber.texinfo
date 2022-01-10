@@ -625,6 +625,22 @@ buffers will be created displaying the query results and named
    "*new tickets*"))
 @end lisp
 
+It is also possible to display an arbitrary group of tickets and unify
+them under a single buffer with a descriptive name, which can be done
+with @code{rt-liber-display-ticket-list}:
+
+@defun rt-liber-display-ticket-list queue ticket-id-list &optional buffer-name
+Display from QUEUE the tickets TICKET-ID-LIST.
+@end defun
+
+For example:
+@lisp
+(rt-liber-display-ticket-list
+ "proposals"
+ '(1002 1003 255 5007 12999 27)
+ "job proposals under review from last year")
+@end lisp
+
 
 @c --------------------------------------------------
 @node Ticket Viewer

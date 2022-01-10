@@ -1270,6 +1270,30 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (id ticket-id))
      (concat "#" ticket-id))))
 
+(defun rt-liber-reduce-op (op seq)
+  "Simple reduction function for ticket IDs."
+  (concat "Id = "
+	  (format "'%s'" (car seq))
+	  (rt-liber-reduce-op-int "OR" (cdr seq) "")))
+
+(defun rt-liber-reduce-op-int (op seq acc)
+  "Simple reduction function for ticket IDs (internal)."
+  (cond ((not seq) acc)
+	(t (rt-liber-reduce-op-int
+	    op
+	    (cdr seq)
+	    (concat acc " " op " Id = " (format "'%s'" (car seq)))))))
+
+(defun rt-liber-display-ticket-list (que ticket-id-list &optional buffer-name)
+  "Display from QUEUE the tickets TICKET-ID-LIST.
+
+BUFFER-NAME: optionally name the resultant browser buffer."
+  (rt-liber-browse-query
+   (rt-liber-compile-query
+    (and (queue que)
+	 ((or (rt-liber-reduce-op "OR" ticket-id-list)))))
+   buffer-name))
+
 
 (provide 'rt-liberation)
 
