@@ -1,3 +1,9 @@
+New in version 3
+
+    * rt-liber-display-ticket-list: display an arbitrary list of
+      tickets.
+
+
 New in version 2.4
 
     * Versions are now in X.Y format in order to be more elpa

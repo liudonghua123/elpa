@@ -5,7 +5,7 @@
 ;; Author: Yoni Rabkin <yrk@gnu.org>
 ;; Authors: Aaron S. Hawley <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>
 ;; Maintainer: Yoni Rabkin <yrk@gnu.org>
-;; Version: 2.4
+;; Version: 3
 ;; Keywords: rt, tickets
 ;; Package-Type: multi
 ;; url: http://www.nongnu.org/rtliber/
@@ -1270,19 +1270,21 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (id ticket-id))
      (concat "#" ticket-id))))
 
-(defun rt-liber-reduce-op (op seq)
-  "Simple reduction function for ticket IDs."
-  (concat "Id = "
-	  (format "'%s'" (car seq))
-	  (rt-liber-reduce-op-int "OR" (cdr seq) "")))
+;; for use in macro `rt-liber-compile-query'
+(eval-and-compile
+  (defun rt-liber-reduce-op (op seq)
+    "Simple reduction function for ticket IDs."
+    (concat "Id = "
+	    (format "'%s'" (car seq))
+	    (rt-liber-reduce-op-int op (cdr seq) "")))
 
-(defun rt-liber-reduce-op-int (op seq acc)
-  "Simple reduction function for ticket IDs (internal)."
-  (cond ((not seq) acc)
-	(t (rt-liber-reduce-op-int
-	    op
-	    (cdr seq)
-	    (concat acc " " op " Id = " (format "'%s'" (car seq)))))))
+  (defun rt-liber-reduce-op-int (op seq acc)
+    "Simple reduction function for ticket IDs (internal)."
+    (cond ((not seq) acc)
+	  (t (rt-liber-reduce-op-int
+	      op
+	      (cdr seq)
+	      (concat acc " " op " Id = " (format "'%s'" (car seq))))))))
 
 (defun rt-liber-display-ticket-list (que ticket-id-list &optional buffer-name)
   "Display from QUEUE the tickets TICKET-ID-LIST.
