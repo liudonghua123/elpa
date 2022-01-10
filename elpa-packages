@@ -89,6 +89,8 @@
  ;;                            "lisp/progmodes/cc-vars.el"
  ;;                            "doc/misc/cc-mode.texi"
  ;;                      :doc "cc-mode.texi"))
+ ("cape"		:url "https://github.com/minad/cape"
+  :auto-sync t)
  ("capf-autosuggest"	:url "https://repo.or.cz/emacs-capf-autosuggest.git"
   :auto-sync t)
  ("caps-lock"		:url nil)
@@ -432,7 +434,8 @@
  ("rbit"		:url nil)
  ("rcirc-color"		:url nil)
  ("rcirc-menu"		:url nil)
- ("realgud"             :url "https://github.com/realgud/realgud")
+ ("realgud"             :url "https://github.com/realgud/realgud"
+  :auto-sync t)
  ("realgud-ipdb"        :url "https://github.com/realgud/realgud-ipdb")
  ("realgud-jdb"         :url "https://github.com/realgud/realgud-jdb")
  ("realgud-lldb"        :url "https://github.com/realgud/realgud-lldb")
@@ -498,6 +501,8 @@
   :doc "taxy-magit-section.info"
   :auto-sync t)
  ("temp-buffer-browse"  :url "https://github.com/leoliu/temp-buffer-browse")
+ ("tempel"		:url "https://github.com/minad/tempel"
+  :auto-sync t)
  ("test-simple"         :url "https://github.com/rocky/emacs-test-simple")
  ("timerfunctions"	:url nil)
  ("tiny"		:url "https://github.com/abo-abo/tiny")
