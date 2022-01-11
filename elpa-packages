@@ -365,6 +365,10 @@
  ("objed"        	:url "https://github.com/clemera/objed")
  ("omn-mode"            :url nil)
  ("on-screen"           :url "https://github.com/michael-heerdegen/on-screen.el.git")
+ ("orderless"		:url "https://github.com/oantolin/orderless"
+  :doc "orderless.texi"
+  :readme "README.org"
+  :auto-sync t)
  ("org"
   :url "git://git.sv.gnu.org/emacs/org-mode.git"
   :lisp-dir "lisp"
