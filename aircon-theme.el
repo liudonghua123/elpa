@@ -54,7 +54,7 @@
                               :box "#010e2c"))))
   `(mode-line-inactive  ((,c (:inherit mode-line
                               :background "#e2e3ea"
-                              :foreground "#3a4254"
+                              :foreground "#303645"
                               :box "#a3a4ae"))))
   `(mode-line-highlight ((,c (:inherit mode-line))))
 
