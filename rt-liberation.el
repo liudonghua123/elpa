@@ -185,26 +185,16 @@ This variable is made buffer local for the ticket history")
   "Browser associated with a ticket history.
 This variable is made buffer local for the ticket history")
 
-(defcustom rt-liber-gnus-comment-address "no comment address set"
-  "*Email address for adding a comment."
-  :type 'string
-  :group 'rt-liber-gnus)
-
-(defcustom rt-liber-gnus-address "no reply address set"
-  "*Email address for replying to requestor."
-  :type 'string
-  :group 'rt-liber-gnus)
-
-(defvar rt-liber-display-ticket-at-point-f 'rt-liber-viewer2-display-ticket-at-point
+(defvar rt-liber-display-ticket-at-point-f 'rt-liber-viewer-display-ticket-at-point
   "Function for displaying ticket at point in the browser.")
 
-(defvar rt-liber-viewer2-section-regexp "^Ticket [0-9]+ by "
+(defvar rt-liber-viewer-section-regexp "^Ticket [0-9]+ by "
   "Regular expression to match a section in the viewer.")
 
-(defvar rt-liber-viewer2-communicate-regexp (regexp-opt '("[Create]" "[Correspond]" "[Comment]"))
+(defvar rt-liber-viewer-communicate-regexp (regexp-opt '("[Create]" "[Correspond]" "[Comment]"))
   "Regular expression to match ticket communication.")
 
-(defvar rt-liber-viewer2-recenter 4
+(defvar rt-liber-viewer-recenter 4
   "Argument passed to `recenter' in the viewer.")
 
 
@@ -878,18 +868,17 @@ returned as no associated text properties."
     (t (:background "Blue")))
   "Face for important text.")
 
-(defconst rt-liber-viewer2-font-lock-keywords
+(defconst rt-liber-viewer-font-lock-keywords
   `(("^$" 0 'rt-liber-ticket-subdued-face))
   "Expressions to font-lock for RT ticket viewer.")
 
-
-(defun rt-liber-viewer2-vernacular-plural (time)
+(defun rt-liber-viewer-vernacular-plural (time)
   "Add an ess as needed."
   (if (= time 1)
       ""
     "s"))
 
-(defun rt-liber-viewer2-vernacular-date (date)
+(defun rt-liber-viewer-vernacular-date (date)
   "Return a vernacular time delta."
   (let* ((now (format-time-string "%Y-%m-%dT%T%z" (current-time)))
 	 (days-ago (days-between now date)))
@@ -897,23 +886,23 @@ returned as no associated text properties."
 	   "today")
 	  ((< 0 days-ago 7)
 	   (format "%s day%s ago" days-ago
-		   (rt-liber-viewer2-vernacular-plural days-ago)))
+		   (rt-liber-viewer-vernacular-plural days-ago)))
 	  ((<= 7 days-ago 30)
 	   (let ((weeks (floor (/ days-ago 7.0))))
 	     (format "%s week%s ago"
 		     weeks
-		     (rt-liber-viewer2-vernacular-plural weeks))))
+		     (rt-liber-viewer-vernacular-plural weeks))))
 	  ((<= 30 days-ago 365)
 	   (let ((months (floor (/ days-ago 30.0))))
 	     (format "%s month%s ago"
 		     months
-		     (rt-liber-viewer2-vernacular-plural months))))
+		     (rt-liber-viewer-vernacular-plural months))))
 	  (t (let ((years (floor (/ days-ago 365.0))))
 	       (format "%s year%s ago"
 		       years
-		       (rt-liber-viewer2-vernacular-plural years)))))))
+		       (rt-liber-viewer-vernacular-plural years)))))))
 
-(defun rt-liber-viewer2-mode-quit ()
+(defun rt-liber-viewer-mode-quit ()
   "Bury the ticket viewer."
   (interactive)
   (bury-buffer))
@@ -1010,16 +999,16 @@ returned as no associated text properties."
 	     section-point-list))
       section-list)))
 
-(defun rt-liber-viewer2-get-section-data ()
+(defun rt-liber-viewer-get-section-data ()
   "Return the current section data."
   (let ((section (get-text-property (point) 'rt-liberation-section-data)))
     (when (not section)
       (save-excursion
-	(rt-liber-viewer2-previous-section-in)
+	(rt-liber-viewer-previous-section-in)
 	(setq section (get-text-property (point) 'rt-liberation-section-data))))
     section))
 
-(defun rt-liber-viewer2-format-content (content)
+(defun rt-liber-viewer-format-content (content)
   "Wrangle RT's content format."
   (with-temp-buffer
     (insert content)
@@ -1051,10 +1040,10 @@ returned as no associated text properties."
       (buffer-substring (point-min)
 			(point-max)))))
 
-(defun rt-liber-viewer2-clean-content (section)
+(defun rt-liber-viewer-clean-content (section)
   "Format section content for email."
   (with-temp-buffer
-    (insert (rt-liber-viewer2-format-content
+    (insert (rt-liber-viewer-format-content
 	     (alist-get 'Content section)))
     (goto-char (point-min))
     (while (re-search-forward "^    " (point-max) t)
@@ -1067,7 +1056,7 @@ returned as no associated text properties."
     (buffer-substring (point-min)
 		      (point-max))))
 
-(defun rt-liber-viewer2-display-section (section)
+(defun rt-liber-viewer-display-section (section)
   (let ((start     (point))
 	(ticket-id (alist-get 'Ticket section))
 	(creator   (alist-get 'Creator section))
@@ -1076,7 +1065,7 @@ returned as no associated text properties."
 	(desc      (alist-get 'Description section))
 	(oldvalue  (alist-get 'OldValue section))
 	(newvalue  (alist-get 'NewValue section))
-	(s-content (rt-liber-viewer2-format-content
+	(s-content (rt-liber-viewer-format-content
 		    (alist-get 'Content section))))
     (when (not (or (string= type "CommentEmailRecord")
 		   (string= type "EmailRecord")))
@@ -1084,7 +1073,7 @@ returned as no associated text properties."
        (format "Ticket %s by %s, %s (%s) [%s]\n"
 	       ticket-id
 	       creator
-	       (rt-liber-viewer2-vernacular-date date)
+	       (rt-liber-viewer-vernacular-date date)
 	       date
 	       (format "%s%s%s"
 		       type
@@ -1114,20 +1103,20 @@ returned as no associated text properties."
 	     (insert
 	      (format "\n%s\n" s-content)))))))
 
-(defun rt-liber-viewer2-display-history (contents)
+(defun rt-liber-viewer-display-history (contents)
   (let ((section-list (rt-liber-viewer-parse-history contents)))
     (mapc
      (lambda (section)
-       (rt-liber-viewer2-display-section section))
+       (rt-liber-viewer-display-section section))
      section-list)))
 
-(defun rt-liber-viewer2-display-ticket-at-point ()
+(defun rt-liber-viewer-display-ticket-at-point ()
   "Display the contents of the ticket at point."
   (interactive)
   (let ((ticket-alist (get-text-property (point) 'rt-ticket)))
-    (rt-liber-viewer2-display-ticket-history ticket-alist (current-buffer))))
+    (rt-liber-viewer-display-ticket-history ticket-alist (current-buffer))))
 
-(defun rt-liber-viewer2-display-ticket-history (ticket-alist &optional assoc-browser)
+(defun rt-liber-viewer-display-ticket-history (ticket-alist &optional assoc-browser)
   "Display history for ticket.
 TICKET-ALIST alist of ticket data.
 ASSOC-BROWSER if non-nil should be a ticket browser."
@@ -1138,9 +1127,9 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
     (with-current-buffer new-ticket-buffer
       (let ((inhibit-read-only t))
 	(erase-buffer)
-	(rt-liber-viewer2-display-history contents)
+	(rt-liber-viewer-display-history contents)
 	(goto-char (point-min))
-	(rt-liber-viewer2-mode)
+	(rt-liber-viewer-mode)
 	(set
 	 (make-local-variable 'rt-liber-ticket-local)
 	 ticket-alist)
@@ -1152,65 +1141,67 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	(setq buffer-read-only t)))
     (switch-to-buffer new-ticket-buffer)))
 
-(defun rt-liber-viewer2-refresh-ticket-history (&optional _ignore-auto _noconfirm)
+(defun rt-liber-viewer-refresh-ticket-history (&optional _ignore-auto _noconfirm)
   (interactive)
   (if rt-liber-ticket-local
-      (rt-liber-viewer2-display-ticket-history rt-liber-ticket-local
+      (rt-liber-viewer-display-ticket-history rt-liber-ticket-local
 					       rt-liber-assoc-browser)
     (error "not viewing a ticket")))
 
-(defun rt-liber-viewer2-move-point-to-section (history-id)
+(defun rt-liber-viewer-move-point-to-section (history-id)
   "Move point to the beginning of section with HISTORY-ID."
-  (let ((current-history-id (alist-get 'id (rt-liber-viewer2-get-section-data)))
+  (let ((current-history-id (alist-get 'id (rt-liber-viewer-get-section-data)))
 	(previous-history-id nil))
     (while (not (or (string-equal history-id current-history-id)
 		    (eq current-history-id previous-history-id)))
       (setq previous-history-id current-history-id)
-      (rt-liber-viewer2-next-section-in)
-      (setq current-history-id (alist-get 'id (rt-liber-viewer2-get-section-data))))
+      (rt-liber-viewer-next-section-in)
+      (setq current-history-id (alist-get 'id (rt-liber-viewer-get-section-data))))
     (when (not (string-equal history-id current-history-id))
       (error "Cannot find section."))))
 
-(defun rt-liber-viewer2-next-section-in ()
+(defun rt-liber-viewer-next-section-in ()
   (interactive)
-  (when (looking-at rt-liber-viewer2-section-regexp)
+  (when (looking-at rt-liber-viewer-section-regexp)
     (goto-char (1+ (point))))
-  (let ((next (re-search-forward rt-liber-viewer2-section-regexp
+  (let ((next (re-search-forward rt-liber-viewer-section-regexp
 				 (point-max)
 				 t)))
     (cond ((not next)
 	   (message "no next section"))
 	  (t
-	   (recenter rt-liber-viewer2-recenter)))
+	   (recenter rt-liber-viewer-recenter)))
     (goto-char (point-at-bol))))
 
-(defun rt-liber-viewer2-last-communicate-in ()
+(defun rt-liber-viewer-last-communicate-in ()
   (interactive)
   (goto-char (point-max))
-  (let ((last (re-search-backward rt-liber-viewer2-communicate-regexp
-				  (point-min)
-				  t)))
+  (let ((last (re-search-backward
+	       rt-liber-viewer-communicate-regexp
+	       (point-min)
+	       t)))
     (if (not last)
 	(error "no communcations found")
-      (recenter rt-liber-viewer2-recenter)
+      (recenter rt-liber-viewer-recenter)
       (goto-char (point-at-bol)))))
 
-(defun rt-liber-viewer2-previous-section-in ()
+(defun rt-liber-viewer-previous-section-in ()
   (interactive)
-  (when (looking-at rt-liber-viewer2-section-regexp)
+  (when (looking-at rt-liber-viewer-section-regexp)
     (goto-char (1- (point))))
-  (let ((prev (re-search-backward rt-liber-viewer2-section-regexp
-				  (point-min)
-				  t)))
+  (let ((prev (re-search-backward
+	       rt-liber-viewer-section-regexp
+	       (point-min)
+	       t)))
     (cond ((not prev)
 	   (message "no previous section"))
 	  (t
-	   (recenter rt-liber-viewer2-recenter)))
+	   (recenter rt-liber-viewer-recenter)))
     (goto-char (point-at-bol))))
 
-(defun rt-liber-viewer2-answer ()
+(defun rt-liber-viewer-answer ()
   (interactive)
-  (let ((section (rt-liber-viewer2-get-section-data)))
+  (let ((section (rt-liber-viewer-get-section-data)))
     (when (not section)
       (error "no section found"))
     (if (not (featurep 'rt-liberation-gnus))
@@ -1218,11 +1209,11 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (rt-liber-gnus-compose
        rt-liber-gnus-address
        rt-liber-ticket-local
-       `((contents . ,(rt-liber-viewer2-clean-content section)))))))
+       `((contents . ,(rt-liber-viewer-clean-content section)))))))
 
-(defun rt-liber-viewer2-comment ()
+(defun rt-liber-viewer-comment ()
   (interactive)
-  (let ((section (rt-liber-viewer2-get-section-data)))
+  (let ((section (rt-liber-viewer-get-section-data)))
     (when (not section)
       (error "no section found"))
     (if (not (featurep 'rt-liberation-gnus))
@@ -1230,33 +1221,33 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (rt-liber-gnus-compose
        rt-liber-gnus-comment-address
        rt-liber-ticket-local
-       `((contents . ,(rt-liber-viewer2-clean-content section)))))))
+       `((contents . ,(rt-liber-viewer-clean-content section)))))))
 
-(defconst rt-liber-viewer2-mode-map
+(defconst rt-liber-viewer-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "q") 'rt-liber-viewer2-mode-quit)
-    (define-key map (kbd "N") 'rt-liber-viewer2-last-communicate-in)
-    (define-key map (kbd "n") 'rt-liber-viewer2-next-section-in)
-    (define-key map (kbd "p") 'rt-liber-viewer2-previous-section-in)
+    (define-key map (kbd "q") 'rt-liber-viewer-mode-quit)
+    (define-key map (kbd "N") 'rt-liber-viewer-last-communicate-in)
+    (define-key map (kbd "n") 'rt-liber-viewer-next-section-in)
+    (define-key map (kbd "p") 'rt-liber-viewer-previous-section-in)
     (define-key map (kbd "V") 'rt-liber-viewer-visit-in-browser)
-    (define-key map (kbd "M") 'rt-liber-viewer2-answer)
-    (define-key map (kbd "C") 'rt-liber-viewer2-comment)
+    (define-key map (kbd "M") 'rt-liber-viewer-answer)
+    (define-key map (kbd "C") 'rt-liber-viewer-comment)
     (define-key map (kbd "g") 'revert-buffer)
     (define-key map (kbd "SPC") 'scroll-up)
     (define-key map (kbd "DEL") 'scroll-down)
     (define-key map (kbd "h") 'rt-liber-viewer-show-ticket-browser)
     map)
-  "Key map for ticket viewer2.")
+  "Key map for ticket viewer.")
 
-(define-derived-mode rt-liber-viewer2-mode nil
+(define-derived-mode rt-liber-viewer-mode nil
   "RT Liberation Viewer"
   "Major Mode for viewing RT tickets.
 \\{rt-liber-viewer-mode-map}"
   (set
    (make-local-variable 'font-lock-defaults)
-   '((rt-liber-viewer2-font-lock-keywords)))
+   '((rt-liber-viewer-font-lock-keywords)))
   (set (make-local-variable 'revert-buffer-function)
-       #'rt-liber-viewer2-refresh-ticket-history)
+       #'rt-liber-viewer-refresh-ticket-history)
   (set (make-local-variable 'buffer-stale-function)
        (lambda (&optional _noconfirm) 'slow))
   (run-hooks 'rt-liber-viewer-hook))

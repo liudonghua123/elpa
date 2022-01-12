@@ -38,7 +38,7 @@
       (rt-liber-browser-move-point-to-ticket id)
       (rt-liber-ticket-at-point)
       (when history-id 
-	  (rt-liber-viewer2-move-point-to-section history-id))))
+	  (rt-liber-viewer-move-point-to-section history-id))))
    ((string-match "^query:\\(.+\\)" link)
     (rt-liber-browse-query (match-string 1 link)))
    (t (error "Unrecognized link type '%s'" link))))
@@ -50,7 +50,7 @@
     (when ticket
       (let* ((ticket-id-link (concat "rt:id:" (rt-liber-ticket-id-only ticket)))
 	     (subject (cdr (assoc "Subject" ticket)))
-	     (history-id (alist-get 'id (rt-liber-viewer2-get-section-data)))
+	     (history-id (alist-get 'id (rt-liber-viewer-get-section-data)))
 	     (link (concat ticket-id-link (if history-id (concat "/" history-id) ""))))
 	(org-link-add-props
 	 :link link
