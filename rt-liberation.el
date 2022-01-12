@@ -45,9 +45,19 @@
 (require 'rt-liberation-rest)
 (require 'rt-liberation-compiler)
 
+
+;; wrapper functions around specific functions provided by a backend
 (declare-function rt-liber-get-ancillary-text "rt-liberation-storage.el")
 (declare-function rt-liber-ticket-marked-p "rt-liberation-multi.el")
 (declare-function rt-liber-set-ancillary-text "rt-liberation-storage.el")
+(declare-function rt-liber-gnus-compose "rt-liberation-gnus.el")
+(declare-function rt-liber-gnus-compose-reply-to-requestor "rt-liberation-gnus.el")
+(declare-function rt-liber-gnus-compose-reply-to-requestor-to-this "rt-liberation-gnus.el")
+(declare-function rt-liber-gnus-compose-reply-to-requestor-verbatim-this "rt-liberation-gnus.el")
+(declare-function rt-liber-gnus-compose-provisional "rt-liberation-gnus.el")
+(declare-function rt-liber-gnus-compose-provisional-to-this "rt-liberation-gnus.el")
+(declare-function rt-liber-gnus-compose-comment "rt-liberation-gnus.el")
+(declare-function rt-liber-gnus-compose-comment-this "rt-liberation-gnus.el")
 
 
 (defgroup rt-liber nil
@@ -60,23 +70,43 @@
   :type 'string
   :group 'rt-liber)
 
+(defcustom rt-liber-gnus-comment-address "no comment address set"
+  "*Email address for adding a comment."
+  :type 'string
+  :group 'rt-liber-gnus)
+
+(defcustom rt-liber-gnus-address "no reply address set"
+  "*Email address for replying to requestor."
+  :type 'string
+  :group 'rt-liber-gnus)
+
+
+(defface rt-liber-ticket-face
+  '((((class color) (background dark))
+     (:foreground "DarkSeaGreen"))
+    (((class color) (background light))
+     (:foreground "Blue"))
+    (((type tty) (class mono))
+     (:inverse-video t))
+    (t (:background "Blue")))
+  "Face for tickets in browser buffer.")
+
+(defface rt-liber-priority-ticket-face
+  '((((class color) (background dark))
+     (:foreground "Orange"))
+    (((class color) (background light))
+     (:foreground "Orange"))
+    (((type tty) (class mono))
+     (:inverse-video t))
+    (t (:background "Black")))
+  "Face for high priority tickets in browser buffer.")
+
+
 (defvar rt-liber-viewer-section-header-regexp
   "^# [0-9]+/[0-9]+ (id/[0-9]+/total)")
 
 (defvar rt-liber-viewer-section-field-regexp
   "^\\(.+\\): \\(.+\\)$")
-
-(defconst rt-liber-viewer-font-lock-keywords
-  (let ((header-regexp (regexp-opt '("id: " "Ticket: " "TimeTaken: "
-				     "Type: " "Field: " "OldValue: "
-				     "NewValue: " "Data: "
-				     "Description: " "Created: "
-				     "Creator: " "Attachments: ")
-				   t)))
-    (list
-     (list (concat "^" header-regexp ".*$") 0
-	   'font-lock-comment-face)))
-  "Expressions to font-lock for RT ticket viewer.")
 
 (defvar rt-liber-resolved-string "Resolved"
   "String representation of \"resolved\" query tag.")
@@ -133,26 +163,6 @@ function returns a truth value.")
 
 (defvar rt-liber-browser-priority-cutoff 0
   "Tickets with a priority higher than this are high priority.")
-
-(defface rt-liber-ticket-face
-  '((((class color) (background dark))
-     (:foreground "DarkSeaGreen"))
-    (((class color) (background light))
-     (:foreground "Blue"))
-    (((type tty) (class mono))
-     (:inverse-video t))
-    (t (:background "Blue")))
-  "Face for tickets in browser buffer.")
-
-(defface rt-liber-priority-ticket-face
-  '((((class color) (background dark))
-     (:foreground "Orange"))
-    (((class color) (background light))
-     (:foreground "Orange"))
-    (((type tty) (class mono))
-     (:inverse-video t))
-    (t (:background "Black")))
-  "Face for high priority tickets in browser buffer.")
 
 (defvar rt-liber-browser-do-refresh t
   "When t, run `rt-liber-browser-refresh' otherwise disable it.")
@@ -715,21 +725,6 @@ returned as no associated text properties."
 ;;; ------------------------------------------------------------------
 ;;; viewer mode functions
 ;;; ------------------------------------------------------------------
-(defun rt-liber-jump-to-latest-correspondence ()
-  "Move point to the newest correspondence section."
-  (interactive)
-  (let (latest-point)
-    (save-excursion
-      (goto-char (point-max))
-      (when (re-search-backward
-	     rt-liber-correspondence-regexp (point-min) t)
-	(setq latest-point (point))))
-    (if latest-point
-	(progn
-	  (goto-char latest-point)
-	  (rt-liber-next-section-in-viewer))
-      (message "no correspondence found"))))
-
 (defun rt-liber-viewer-visit-in-browser ()
   "Visit this ticket in the RT Web interface."
   (interactive)
@@ -738,11 +733,6 @@ returned as no associated text properties."
 	(browse-url
 	 (concat rt-liber-base-url "Ticket/Display.html?id=" id))
       (error "no ticket currently in view"))))
-
-(defun rt-liber-viewer-mode-quit ()
-  "Bury the ticket viewer."
-  (interactive)
-  (bury-buffer))
 
 (defun rt-liber-viewer-show-ticket-browser ()
   "Return to the ticket browser buffer."
@@ -759,105 +749,10 @@ returned as no associated text properties."
 	  (rt-liber-browser-move-point-to-ticket id))
       (error "no ticket currently in view"))))
 
-(defun rt-liber-next-section-in-viewer ()
-  "Move point to next section."
-  (interactive)
-  (forward-line 1)
-  (when (not (re-search-forward rt-liber-content-regexp (point-max) t))
-    (message "no next section"))
-  (goto-char (point-at-bol)))
-
-(defun rt-liber-previous-section-in-viewer ()
-  "Move point to previous section."
-  (interactive)
-  (forward-line -1)
-  (when (not (re-search-backward rt-liber-content-regexp (point-min) t))
-    (message "no previous section"))
-  (goto-char (point-at-bol)))
-
-;; wrapper functions around specific functions provided by a backend
-(declare-function
- rt-liber-gnus-compose
- "rt-liberation-gnus.el")
-(declare-function
- rt-liber-gnus-compose-reply-to-requestor
- "rt-liberation-gnus.el")
-(declare-function
- rt-liber-gnus-compose-reply-to-requestor-to-this
- "rt-liberation-gnus.el")
-(declare-function
- rt-liber-gnus-compose-reply-to-requestor-verbatim-this
- "rt-liberation-gnus.el")
-(declare-function
- rt-liber-gnus-compose-provisional
- "rt-liberation-gnus.el")
-(declare-function
- rt-liber-gnus-compose-provisional-to-this
- "rt-liberation-gnus.el")
-(declare-function
- rt-liber-gnus-compose-comment
- "rt-liberation-gnus.el")
-(declare-function
- rt-liber-gnus-compose-comment-this
- "rt-liberation-gnus.el")
-
-(defun rt-liber-viewer-answer ()
-  "Answer the ticket."
-  (interactive)
-  (cond ((featurep 'rt-liberation-gnus)
-	 (rt-liber-gnus-compose-reply-to-requestor))
-	(t (error "no function defined"))))
-
-(defun rt-liber-viewer-answer-this ()
-  "Answer the ticket using the current context."
-  (interactive)
-  (cond ((featurep 'rt-liberation-gnus)
-	 (rt-liber-gnus-compose-reply-to-requestor-to-this))
-	(t (error "no function defined"))))
-
-(defun rt-liber-viewer-answer-verbatim-this ()
-  "Answer the ticket using the current context verbatim."
-  (interactive)
-  (cond ((featurep 'rt-liberation-gnus)
-	 (rt-liber-gnus-compose-reply-to-requestor-verbatim-this))
-	(t (error "no function defined"))))
-
-(defun rt-liber-viewer-answer-provisionally ()
-  "Provisionally answer the ticket."
-  (interactive)
-  (cond ((featurep 'rt-liberation-gnus)
-	 (rt-liber-gnus-compose-provisional))
-	(t (error "no function defined"))))
-
-(defun rt-liber-viewer-answer-provisionally-this ()
-  "Provisionally answer the ticket using the current context."
-  (interactive)
-  (cond ((featurep 'rt-liberation-gnus)
-	 (rt-liber-gnus-compose-provisional-to-this))
-	(t (error "no function defined"))))
-
-(defun rt-liber-viewer-comment ()
-  "Comment on the ticket."
-  (interactive)
-  (cond ((featurep 'rt-liberation-gnus)
-	 (rt-liber-gnus-compose-comment))
-	(t (error "no function defined"))))
-
-(defun rt-liber-viewer-comment-this ()
-  "Comment on the ticket using the current context."
-  (interactive)
-  (cond ((featurep 'rt-liberation-gnus)
-	 (rt-liber-gnus-compose-comment-this))
-	(t (error "no function defined"))))
-
 
 ;;; ------------------------------------------------------------------
-;;; viewer2
+;;; viewer
 ;;; ------------------------------------------------------------------
-
-;; Comment: The goal is to eventually break this code away to its own
-;; file.
-
 (defface rt-liber-ticket-emph-face
   '((((class color) (background dark))
      (:foreground "gray53"))
