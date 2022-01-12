@@ -50,14 +50,14 @@
 (declare-function rt-liber-get-ancillary-text "rt-liberation-storage.el")
 (declare-function rt-liber-ticket-marked-p "rt-liberation-multi.el")
 (declare-function rt-liber-set-ancillary-text "rt-liberation-storage.el")
-(declare-function rt-liber-gnus-compose "rt-liberation-gnus.el")
-(declare-function rt-liber-gnus-compose-reply-to-requestor "rt-liberation-gnus.el")
-(declare-function rt-liber-gnus-compose-reply-to-requestor-to-this "rt-liberation-gnus.el")
-(declare-function rt-liber-gnus-compose-reply-to-requestor-verbatim-this "rt-liberation-gnus.el")
-(declare-function rt-liber-gnus-compose-provisional "rt-liberation-gnus.el")
-(declare-function rt-liber-gnus-compose-provisional-to-this "rt-liberation-gnus.el")
-(declare-function rt-liber-gnus-compose-comment "rt-liberation-gnus.el")
-(declare-function rt-liber-gnus-compose-comment-this "rt-liberation-gnus.el")
+;; (declare-function rt-liber-gnus-compose "rt-liberation-gnus.el")
+;; (declare-function rt-liber-gnus-compose-reply-to-requestor "rt-liberation-gnus.el")
+;; (declare-function rt-liber-gnus-compose-reply-to-requestor-to-this "rt-liberation-gnus.el")
+;; (declare-function rt-liber-gnus-compose-reply-to-requestor-verbatim-this "rt-liberation-gnus.el")
+;; (declare-function rt-liber-gnus-compose-provisional "rt-liberation-gnus.el")
+;; (declare-function rt-liber-gnus-compose-provisional-to-this "rt-liberation-gnus.el")
+;; (declare-function rt-liber-gnus-compose-comment "rt-liberation-gnus.el")
+;; (declare-function rt-liber-gnus-compose-comment-this "rt-liberation-gnus.el")
 
 
 (defgroup rt-liber nil
@@ -69,16 +69,6 @@
   "*Directory to store persistent information."
   :type 'string
   :group 'rt-liber)
-
-(defcustom rt-liber-gnus-comment-address "no comment address set"
-  "*Email address for adding a comment."
-  :type 'string
-  :group 'rt-liber-gnus)
-
-(defcustom rt-liber-gnus-address "no reply address set"
-  "*Email address for replying to requestor."
-  :type 'string
-  :group 'rt-liber-gnus)
 
 
 (defface rt-liber-ticket-face
@@ -1101,8 +1091,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (error "no section found"))
     (if (not (featurep 'rt-liberation-gnus))
 	(error "rt-liberation-gnus feature not found")
-      (rt-liber-gnus-compose
-       rt-liber-gnus-address
+      (rt-liber-gnus-compose-answer
        rt-liber-ticket-local
        `((contents . ,(rt-liber-viewer-clean-content section)))))))
 
@@ -1113,8 +1102,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
       (error "no section found"))
     (if (not (featurep 'rt-liberation-gnus))
 	(error "rt-liberation-gnus feature not found")
-      (rt-liber-gnus-compose
-       rt-liber-gnus-comment-address
+      (rt-liber-gnus-compose-comment
        rt-liber-ticket-local
        `((contents . ,(rt-liber-viewer-clean-content section)))))))
 

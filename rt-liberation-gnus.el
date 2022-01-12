@@ -65,6 +65,16 @@ line of an email. For example: \\[company.com #\\([0-9].+?\\)\\]"
   :type 'string
   :group 'rt-liber-gnus)
 
+(defcustom rt-liber-gnus-comment-address "no comment address set"
+  "*Email address for adding a comment."
+  :type 'string
+  :group 'rt-liber-gnus)
+
+(defcustom rt-liber-gnus-address "no reply address set"
+  "*Email address for replying to requestor."
+  :type 'string
+  :group 'rt-liber-gnus)
+
 
 (defvar rt-liber-gnus-p nil
   "Non-nil when rt-liberation-gnus is composing a Gnus buffer.")
@@ -113,6 +123,12 @@ OPTIONS association list of options.
        'switch-to-buffer))
     (save-excursion
       (insert message-text))))
+
+(defun rt-liber-gnus-compose-answer (ticket-alist options)
+  (rt-liber-gnus-compose rt-liber-gnus-address ticket-alist options))
+  
+;; (defun rt-liber-gnus-compose-comment (ticket-alist options)
+;;   (rt-liber-gnus-compose rt-liber-gnus-comment-address ticket-alist options))
 
 (defmacro rt-liber-gnus-with-ticket-buffer (&rest body)
   `(progn
