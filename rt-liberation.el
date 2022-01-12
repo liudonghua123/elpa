@@ -1,6 +1,6 @@
 ;;; rt-liberation.el --- Emacs interface to RT  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
 ;; Author: Yoni Rabkin <yrk@gnu.org>
 ;; Authors: Aaron S. Hawley <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>
