@@ -127,8 +127,8 @@ OPTIONS association list of options.
 (defun rt-liber-gnus-compose-answer (ticket-alist options)
   (rt-liber-gnus-compose rt-liber-gnus-address ticket-alist options))
   
-;; (defun rt-liber-gnus-compose-comment (ticket-alist options)
-;;   (rt-liber-gnus-compose rt-liber-gnus-comment-address ticket-alist options))
+(defun rt-liber-gnus-compose-comment (ticket-alist options)
+  (rt-liber-gnus-compose rt-liber-gnus-comment-address ticket-alist options))
 
 (defmacro rt-liber-gnus-with-ticket-buffer (&rest body)
   `(progn
@@ -216,16 +216,6 @@ OPTIONS association list of options.
 			 rt-liber-gnus-delayed-response-text
 		       nil))))))
 
-(defun rt-liber-gnus-compose-comment ()
-  (interactive)
-  (rt-liber-gnus-with-ticket-buffer
-   (rt-liber-gnus-compose
-    rt-liber-gnus-comment-address
-    rt-liber-ticket-local
-    `((suppress-subject . t)
-      (no-comment       . t)
-      ))))
-
 (defun rt-liber-gnus-compose-comment-this ()
   (interactive)
   (rt-liber-gnus-with-ticket-buffer
@@ -248,6 +238,29 @@ OPTIONS association list of options.
     (rt-liber-browse-query
      (rt-liber-compile-query
       (id match)))))
+
+(defun rt-liber-gnus-viewer-answer ()
+  (interactive)
+  (let ((section (rt-liber-viewer-get-section-data)))
+    (when (not section)
+      (error "no section found"))
+    (if (not (featurep 'rt-liberation-gnus))
+	(error "rt-liberation-gnus feature not found")
+      (rt-liber-gnus-compose-answer
+       rt-liber-ticket-local
+       `((contents . ,(rt-liber-viewer-clean-content section)))))))
+
+(defun rt-liber-gnus-viewer-comment ()
+  (interactive)
+  (let ((section (rt-liber-viewer-get-section-data)))
+    (when (not section)
+      (error "no section found"))
+    (if (not (featurep 'rt-liberation-gnus))
+	(error "rt-liberation-gnus feature not found")
+      (rt-liber-gnus-compose-comment
+       rt-liber-ticket-local
+       `((contents . ,(rt-liber-viewer-clean-content section)))))))
+
 
 (provide 'rt-liberation-gnus)
 

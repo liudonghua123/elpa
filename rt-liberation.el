@@ -50,14 +50,6 @@
 (declare-function rt-liber-get-ancillary-text "rt-liberation-storage.el")
 (declare-function rt-liber-ticket-marked-p "rt-liberation-multi.el")
 (declare-function rt-liber-set-ancillary-text "rt-liberation-storage.el")
-;; (declare-function rt-liber-gnus-compose "rt-liberation-gnus.el")
-;; (declare-function rt-liber-gnus-compose-reply-to-requestor "rt-liberation-gnus.el")
-;; (declare-function rt-liber-gnus-compose-reply-to-requestor-to-this "rt-liberation-gnus.el")
-;; (declare-function rt-liber-gnus-compose-reply-to-requestor-verbatim-this "rt-liberation-gnus.el")
-;; (declare-function rt-liber-gnus-compose-provisional "rt-liberation-gnus.el")
-;; (declare-function rt-liber-gnus-compose-provisional-to-this "rt-liberation-gnus.el")
-;; (declare-function rt-liber-gnus-compose-comment "rt-liberation-gnus.el")
-;; (declare-function rt-liber-gnus-compose-comment-this "rt-liberation-gnus.el")
 
 
 (defgroup rt-liber nil
@@ -1084,27 +1076,6 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 	   (recenter rt-liber-viewer-recenter)))
     (goto-char (point-at-bol))))
 
-(defun rt-liber-viewer-answer ()
-  (interactive)
-  (let ((section (rt-liber-viewer-get-section-data)))
-    (when (not section)
-      (error "no section found"))
-    (if (not (featurep 'rt-liberation-gnus))
-	(error "rt-liberation-gnus feature not found")
-      (rt-liber-gnus-compose-answer
-       rt-liber-ticket-local
-       `((contents . ,(rt-liber-viewer-clean-content section)))))))
-
-(defun rt-liber-viewer-comment ()
-  (interactive)
-  (let ((section (rt-liber-viewer-get-section-data)))
-    (when (not section)
-      (error "no section found"))
-    (if (not (featurep 'rt-liberation-gnus))
-	(error "rt-liberation-gnus feature not found")
-      (rt-liber-gnus-compose-comment
-       rt-liber-ticket-local
-       `((contents . ,(rt-liber-viewer-clean-content section)))))))
 
 (defconst rt-liber-viewer-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1113,8 +1084,8 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
     (define-key map (kbd "n") 'rt-liber-viewer-next-section-in)
     (define-key map (kbd "p") 'rt-liber-viewer-previous-section-in)
     (define-key map (kbd "V") 'rt-liber-viewer-visit-in-browser)
-    (define-key map (kbd "M") 'rt-liber-viewer-answer)
-    (define-key map (kbd "C") 'rt-liber-viewer-comment)
+    (define-key map (kbd "M") 'rt-liber-gnus-viewer-answer)
+    (define-key map (kbd "C") 'rt-liber-gnus-viewer-comment)
     (define-key map (kbd "g") 'revert-buffer)
     (define-key map (kbd "SPC") 'scroll-up)
     (define-key map (kbd "DEL") 'scroll-down)
