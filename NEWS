@@ -1,3 +1,10 @@
+New in version 4
+
+    * "N" in viewer now reverts buffer before jumping to latest.
+
+    * Minor bug fix, code cleanup and reorganization.
+
+
 New in version 3
 
     * rt-liber-display-ticket-list: display an arbitrary list of
