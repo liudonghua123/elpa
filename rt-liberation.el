@@ -1052,6 +1052,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 
 (defun rt-liber-viewer-last-communicate-in ()
   (interactive)
+  (revert-buffer)
   (goto-char (point-max))
   (let ((last (re-search-backward
 	       rt-liber-viewer-communicate-regexp
