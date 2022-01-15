@@ -173,7 +173,7 @@
   :branch "UTF-8" :auto-sync t)
  ("eglot"               :url "https://github.com/joaotavora/eglot.git"
   :news "NEWS.md"
-  :ignored-files (".github" ".travis.yml" "LICENSE" "gif-examples")
+  :ignored-files (".github" "LICENSE" "gif-examples")
   :auto-sync t)
  ("el-search"		:url nil)
  ("eldoc"		:core "lisp/emacs-lisp/eldoc.el")
