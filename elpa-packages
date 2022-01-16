@@ -450,6 +450,7 @@
   :auto-sync t)
  ("register-list"	:url nil)
  ("relint"		:url "https://github.com/mattiase/relint"
+  :ignored-files ("Makefile" ".github" "*-test.el*" "test")
   :auto-sync t)
  ("repology"		:url nil)
  ("rich-minority"	:url "https://github.com/Malabarba/rich-minority")
@@ -571,6 +572,7 @@
  ("xelb"		:url "https://github.com/ch11ng/xelb.git")
  ("xpm"			:url nil)
  ("xr"			:url "https://github.com/mattiase/xr"
+  :ignored-files ("Makefile" ".github" "*-test.el*")
   :auto-sync t)
  ("xref"		:core "lisp/progmodes/xref.el")
  ("yasnippet"		:url "https://github.com/capitaomorte/yasnippet.git")
