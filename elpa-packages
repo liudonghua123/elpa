@@ -580,7 +580,3 @@
  ("zones"		:url nil)  ;https://www.emacswiki.org/emacs/zones.el
  ("ztree"		:url "https://github.com/fourier/ztree")
  )
-
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:

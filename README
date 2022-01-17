@@ -587,7 +587,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 #+BEGIN_COMMENT
 Local variables:
 mode: org
-fill-column: 70
 paragraph-separate: "[ 	]*$"
 time-stamp-pattern: "4/#\\+DATE: %Y-%02m-%02d$"
 end:
