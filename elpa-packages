@@ -156,6 +156,10 @@
  ("dismal"		:url nil)
  ("djvu"		:url nil)
  ("docbook"		:url nil)
+ ("dtache"		:url "https://gitlab.com/niklaseklund/dtache"
+  :news "CHANELOG.org"
+  :readme "README.org"
+  :auto-sync t)
  ("dts-mode"		:url "https://github.com/bgamari/dts-mode.git")
  ("easy-escape"		:url "https://github.com/cpitclaudel/easy-escape"
   :auto-sync t)
