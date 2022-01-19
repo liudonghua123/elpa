@@ -240,7 +240,8 @@
   :shell-command "(echo '@set ERCDIST from GNU ELPA'; echo '@set EMACSVER') >emacsver.texi"
   :doc "erc.texi"
   :news "ERC-NEWS")
- ("ergoemacs-mode"	:url "https://github.com/ergoemacs/ergoemacs-mode.git")
+ ("ergoemacs-mode"	:url "https://github.com/ergoemacs/ergoemacs-mode.git"
+  :auto-sync t)
  ("excorporate"		:url nil)
  ("expand-region"	:url "https://github.com/magnars/expand-region.el")
  ("exwm"		:url "https://github.com/ch11ng/exwm.git")
@@ -315,7 +316,8 @@
   :ignored-files ("*.png" "LICENSE"))
  ("kmb"			:url nil)
  ("landmark"		:url nil)
- ("leaf"		:url "https://github.com/conao3/leaf.el")
+ ("leaf"		:url "https://github.com/conao3/leaf.el"
+  :auto-sync t)
  ("let-alist"		:core "lisp/emacs-lisp/let-alist.el")
  ("lex"			:url nil)
  ("lmc"			:url nil)
