@@ -533,7 +533,8 @@
   :doc "docs/transient.texi")
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("undo-tree"		:url "https://gitlab.com/tsc25/undo-tree")
- ("uni-confusables" 	:url nil)
+ ("uni-confusables" 	:url nil
+  :readme "README.md")
  ("uniquify-files"	:url nil)
  ("url-http-ntlm" 	:url nil)
  ("validate"		:url "https://github.com/Malabarba/validate.el")
