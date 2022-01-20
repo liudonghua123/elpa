@@ -1,4 +1,4 @@
-;;; uni-confusables.el --- Unicode confusables table
+;;; uni-confusables.el --- Unicode confusables table  -*- lexical-binding: t -*-
 ;; Copyright (C) 1991-2009, 2010 Unicode, Inc.
 ;; This file was generated from a local copy of the Unicode confusables
 ;; list (covered by the Unicode copyright terms in copyright.html)
@@ -8,7 +8,7 @@
 ;; gen-confusables.el.  The copyright and permissions are the same
 ;; as for gen-confusables.el.
 
-;; Version: 0.2
+;; Version: 0.3
 ;; Maintainer: Teodor Zlatanov <tzz@lifelogs.com>
 
 ;;; Code:

@@ -1,6 +1,6 @@
-;;; gen-confusables.el --- generate uni-confusables.el from confusables.txt
+;;; gen-confusables.el --- generate uni-confusables.el from confusables.txt  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011, 2012, 2014  Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012, 2014, 2022  Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 
@@ -61,7 +61,7 @@
   (interactive "FDumped filename: \n")
   (let ((coding-system-for-write 'utf-8-emacs))
     (with-temp-file file
-      (insert ";;; uni-confusables.el --- Unicode confusables table
+      (insert ";;; uni-confusables.el --- Unicode confusables table  -*- lexical-binding: t -*-
 ;; Copyright (C) 1991-2009, 2010 Unicode, Inc.
 ;; This file was generated from a local copy of the Unicode confusables
 ;; list (covered by the Unicode copyright terms in copyright.html)
@@ -71,7 +71,7 @@
 ;; gen-confusables.el.  The copyright and permissions are the same
 ;; as for gen-confusables.el.
 
-;; Version: 0.2
+;; Version: 0.3
 ;; Maintainer: Teodor Zlatanov <tzz@lifelogs.com>
 
 ;;; Code:\n\n")
