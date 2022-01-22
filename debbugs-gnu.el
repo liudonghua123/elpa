@@ -1,6 +1,6 @@
 ;;; debbugs-gnu.el --- interface for the GNU bug tracker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -1083,7 +1083,9 @@ Used instead of `tabulated-list-print-entry'."
       ;; Add properties.
       (add-text-properties
        beg (point)
-       `(tabulated-list-id ,list-id mouse-face highlight))
+       `(tabulated-list-id ,list-id
+	 tabulated-list-entry ,cols
+	 mouse-face highlight))
       (insert ?\n))))
 
 (defun debbugs-gnu-menu-map-emacs-enabled ()
