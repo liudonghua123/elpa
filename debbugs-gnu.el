@@ -900,16 +900,21 @@ are taken from the cache instead."
 
     ;; Print bug reports.
     (dolist (status
-	     (let ((debbugs-cache-expiry (if offline nil debbugs-cache-expiry))
-		   ids)
-	       (apply #'debbugs-get-status
-		      (if offline
-			  (progn
-			    (maphash (lambda (key _elem)
-				       (push key ids))
-				     debbugs-cache-data)
-			    (sort ids #'<))
-			(debbugs-gnu-get-bugs debbugs-gnu-local-query)))))
+	     (sort
+	      (let ((debbugs-cache-expiry (if offline nil debbugs-cache-expiry))
+		    ids)
+		(apply #'debbugs-get-status
+		       (if offline
+			   (progn
+			     (maphash (lambda (key _elem)
+					(push key ids))
+				      debbugs-cache-data)
+			     ids)
+			 (debbugs-gnu-get-bugs debbugs-gnu-local-query))))
+	      ;; Sort so that if a new report gets merged with an old
+	      ;; report, it shows up under the new report.
+	      (lambda (s1 s2)
+		(> (alist-get 'id s1) (alist-get 'id s2)))))
       (let* ((id (alist-get 'id status))
 	     (words (cons (alist-get 'severity status)
 			  (alist-get 'keywords status)))
@@ -938,6 +943,7 @@ are taken from the cache instead."
 	  (setq words (append words packages)))
 	(when (setq merged (alist-get 'mergedwith status))
 	  (setq words (append (mapcar #'number-to-string merged) words)))
+	(setq merged (sort merged #'>))
 	;; `words' could contain the same word twice, for example
 	;; "fixed" from `keywords' and `pending'.
 	(setq words
