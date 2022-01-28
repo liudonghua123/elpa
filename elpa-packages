@@ -394,6 +394,10 @@
  ;; :auto-sync t)
  ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
   :auto-sync t)
+ ("org-remark"	:url "https://github.com/nobiot/org-remark"
+  :readme "README.org"
+  :doc "docs/org-remark.org"
+  :auto-sync t)
  ("org-transclusion"	:url "https://github.com/nobiot/org-transclusion"
   :make "org-transclusion.org"
   :doc "docs/org-transclusion.org"
