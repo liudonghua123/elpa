@@ -151,6 +151,9 @@
  ("diff-hl"
   :url "https://github.com/dgutov/diff-hl.git"
   :auto-sync t)
+ ("diminish"            :url "https://github.com/myrjola/diminish.el.git"
+  :ignored-files ("LICENSE")
+  :auto-sync t)
  ("dired-du"		:url nil)
  ("dired-git-info"	:url "https://github.com/clemera/dired-git-info")
  ("disk-usage"		:url "https://gitlab.com/ambrevar/emacs-disk-usage")
