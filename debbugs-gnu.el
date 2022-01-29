@@ -289,6 +289,7 @@ If nil, the value of `send-mail-function' is used instead."
 	      (const "anubis")
 	      (const "auctex")
 	      (const "automake")
+	      (const "automake-patches")
 	      (const "cc-mode")
 	      (const "coreutils")
 	      (const "cppi")
@@ -323,7 +324,7 @@ If nil, the value of `send-mail-function' is used instead."
 		      'help-echo "This is a pseudo package for test."))
 	      (const "vc-dwim")
 	      (const "woodchuck"))
-  :version "27.2")
+  :version "28.1")
 
 (defconst debbugs-gnu-all-packages
   (mapcar #'cadr (cdr (get 'debbugs-gnu-default-packages 'custom-type)))
