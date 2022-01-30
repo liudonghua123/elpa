@@ -1,6 +1,6 @@
 ;;; tramp-tests.el --- Tests of remote file access  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -4506,7 +4506,19 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (should
 	       (string-equal (format "%s\n%s\n" fnnd fnnd) (buffer-string)))
 	      ;; A non-nil DISPLAY must not raise the buffer.
-	      (should-not (get-buffer-window (current-buffer) t))))
+	      (should-not (get-buffer-window (current-buffer) t))
+	      (delete-file tmp-name))
+
+	    ;; Check remote and local INFILE.
+	    (dolist (local '(nil t))
+	      (with-temp-buffer
+		(setq tmp-name (tramp--test-make-temp-name local quoted))
+		(write-region "foo" nil tmp-name)
+		(should (file-exists-p tmp-name))
+		(should (zerop (process-file "cat" tmp-name t)))
+		(should (string-equal "foo" (buffer-string)))
+		(should-not (get-buffer-window (current-buffer) t)))
+	      (delete-file tmp-name)))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name))))))
@@ -6538,7 +6550,7 @@ This requires restrictions of file name syntax."
 	  (unless (or (tramp--test-ftp-p)
 		      (tramp--test-gvfs-p)
 		      (tramp--test-windows-nt-or-smb-p))
-	    "*foo*bar*baz*")
+	    "*foo+bar*baz+")
 	  (if (or (tramp--test-gvfs-p) (tramp--test-windows-nt-or-smb-p))
 	      "'foo'bar'baz'"
 	    "'foo\"bar'baz\"")

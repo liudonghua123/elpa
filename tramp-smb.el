@@ -1,6 +1,6 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -1284,7 +1284,7 @@ component is used as the target of the symlink."
 
       ;; Determine input.
       (when infile
-	(setq infile (expand-file-name infile))
+	(setq infile (tramp-compat-file-name-unquote (expand-file-name infile)))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
 	    (setq input (tramp-file-local-name infile))
@@ -1376,8 +1376,7 @@ component is used as the target of the symlink."
       (when tmpinput (delete-file tmpinput))
       (unless outbuf
 	(kill-buffer (tramp-get-connection-property v "process-buffer" nil)))
-
-      (unless process-file-side-effects
+      (when process-file-side-effects
 	(tramp-flush-directory-properties v ""))
 
       ;; Return exit status.
