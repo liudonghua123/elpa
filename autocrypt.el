@@ -160,32 +160,61 @@ A mail reader (Gnus, Rmail, ...) should only needs to implement
 `get-header' and optionally `get-part'.  A
 composer (message-mode) should ideally have an implementation the
 generic functions `get-header', `add-header', `remove-header',
-`sign-encrypt', `secure-attach' and `encrypted-p'.")
+`sign-encrypt', `secure-attach' and `encrypted-p'.
+
+This is a generic function and the behaviour varies depending on
+the buffer it is being invoked in.  See `autocrypt-backends' and
+`autocrypt-make-function' for more details.")
 
 (defalias 'autocrypt-uninstall (autocrypt-make-function 'uninstall '())
   "Remove all modifications by autocrypt.
-This should reverse the effect of `autocrypt-install'.")
+This should reverse the effect of `autocrypt-install'.
+
+This is a generic function and the behaviour varies depending on
+the buffer it is being invoked in.  See `autocrypt-backends' and
+`autocrypt-make-function' for more details.")
 
 (defalias 'autocrypt-get-header (autocrypt-make-function 'get-header '(header))
-  "Return the value of HEADER.")
+  "Return the value of HEADER.
+This is a generic function and the behaviour varies depending on
+the buffer it is being invoked in.  See `autocrypt-backends' and
+`autocrypt-make-function' for more details.")
 
 (defalias 'autocrypt-add-header (autocrypt-make-function 'add-header '(header value))
-  "Insert HEADER with VALUE into message.")
+  "Insert HEADER with VALUE into message.
+This is a generic function and the behaviour varies depending on
+the buffer it is being invoked in.  See `autocrypt-backends' and
+`autocrypt-make-function' for more details.")
 
 (defalias 'autocrypt-remove-header (autocrypt-make-function 'remove-header '(header))
-  "Remove HEADER from message.")
+  "Remove HEADER from message.
+This is a generic function and the behaviour varies depending on
+the buffer it is being invoked in.  See `autocrypt-backends' and
+`autocrypt-make-function' for more details.")
 
 (defalias 'autocrypt-sign-encrypt (autocrypt-make-function 'sign-encrypt '())
-  "Make the message to be signed and encrypted.")
+  "Make the message to be signed and encrypted.
+This is a generic function and the behaviour varies depending on
+the buffer it is being invoked in.  See `autocrypt-backends' and
+`autocrypt-make-function' for more details.")
 
 (defalias 'autocrypt-secure-attach (autocrypt-make-function 'secure-attach '(payload))
-  "Add PAYLOAD as an encrypted attachment.")
+  "Add PAYLOAD as an encrypted attachment.
+This is a generic function and the behaviour varies depending on
+the buffer it is being invoked in.  See `autocrypt-backends' and
+`autocrypt-make-function' for more details.")
 
 (defalias 'autocrypt-encrypted-p (autocrypt-make-function 'encrypted-p '())
-  "Check the the current message is encrypted.")
+  "Check the the current message is encrypted.
+This is a generic function and the behaviour varies depending on
+the buffer it is being invoked in.  See `autocrypt-backends' and
+`autocrypt-make-function' for more details.")
 
 (defalias 'autocrypt-get-part (autocrypt-make-function 'get-part '(index) 'n/a)
-  "Return the INDEX'th part of the current message.")
+  "Return the INDEX'th part of the current message.
+This is a generic function and the behaviour varies depending on
+the buffer it is being invoked in.  See `autocrypt-backends' and
+`autocrypt-make-function' for more details.")
 
 
 ;;; INTERNAL FUNCTIONS
