@@ -317,7 +317,7 @@
  ("kind-icon"		:url "https://github.com/jdtsmith/kind-icon"
   :auto-sync t)
  ;; Kiwix.el is not on Github any more, but hasn't found a new home yet.
- ("kiwix"		:url "https://github.com/stardiviner/kiwix.el"
+ ("kiwix"		:url nil ;Was "https://github.com/stardiviner/kiwix.el"
   :ignored-files ("*.png" "LICENSE"))
  ("kmb"			:url nil)
  ("landmark"		:url nil)
