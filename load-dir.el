@@ -1,6 +1,6 @@
-;;; load-dir.el --- Load all Emacs Lisp files in a given directory
+;;; load-dir.el --- Load all Emacs Lisp files in a given directory  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011, 2017 Free Software Foundation, Inc
+;; Copyright (C) 2011-2022  Free Software Foundation, Inc
 
 ;; Authors: Teodor Zlatanov <tzz@lifelogs.com>,
 ;;          Ben Key <bkey76@gmail.com>
@@ -145,7 +145,8 @@ Recurses into subdirectories if `load-dir-recursive' is t."
     (apply 'message args)))
 
 ;;;###autoload
-(add-hook 'after-init-hook 'load-dirs)
+(add-hook 'after-init-hook
+          (lambda () (if (bound-and-true-p load-dirs) (load-dirs))))
 
 (provide 'load-dir)
 ;;; load-dir.el ends here
