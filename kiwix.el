@@ -4,7 +4,7 @@
 ;; Author: stardiviner <numbchild@gmail.com>
 ;; Maintainer: stardiviner <numbchild@gmail.com>
 ;; Keywords: kiwix wikipedia
-;; Homepage: https://github.com/stardiviner/kiwix.el
+;; Homepage: https://repo.or.cz/kiwix.el.git
 ;; Created: 23th July 2016
 ;; Version: 1.1.5
 ;; Package-Requires: ((emacs "25.1") (request "0.3.0"))
@@ -32,7 +32,7 @@
 
 ;;;; Kiwix installation
 ;;
-;; https://github.com/stardiviner/kiwix.el/#install
+;; https://repo.or.cz/kiwix.el.git/README.org#install
 
 ;;;; Config:
 ;;
