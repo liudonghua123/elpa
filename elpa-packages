@@ -541,7 +541,7 @@
  ("transient"		:url "https://github.com/magit/transient"
   :lisp-dir "lisp"
   :renames (("docs/" ""))
-  :news "docs/CHANGELOG"
+  :news "CHANGELOG"
   :doc "docs/transient.texi")
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("undo-tree"		:url "https://gitlab.com/tsc25/undo-tree")
