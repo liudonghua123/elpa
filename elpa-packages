@@ -433,6 +433,9 @@
  ("posframe"
   :url "https://github.com/tumashu/posframe"
   :auto-sync t)
+ ("pq"			:url "https://github.com/anse1/emacs-libpq"
+  :readme "README.org"
+  :auto-sync t)
  ("prefixed-core"	:url nil)
  ("project"		:core "lisp/progmodes/project.el")
  ("psgml"               :url "https://github.com/lenst/psgml.git")
