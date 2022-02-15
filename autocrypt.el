@@ -1,6 +1,7 @@
 ;;; autocrypt.el --- Autocrypt implementation -*- lexical-binding:t -*-
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
+;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
 ;; Version: 0.4.0
 ;; Keywords: comm
 ;; Package-Requires: ((emacs "24.3"))
@@ -377,35 +378,37 @@ Argument DATE contains the time value of the \"From\" tag."
 (defun autocrypt-process-header ()
   "Update internal autocrypt state."
   (let* ((from (autocrypt-canonicalise (autocrypt-get-header "From")))
-         (date (ietf-drums-parse-date (autocrypt-get-header "Date")))
+         (date (autocrypt-get-header "Date"))
          (header (autocrypt-get-header "Autocrypt"))
          parse addr preference keydata peer)
-    (when header
-      (when (setq parse (autocrypt-parse-header header))
-        (setq addr (autocrypt-canonicalise (car parse))
-              preference (cadr parse)
-              keydata (caddr parse)
-              peer (or (cdr (assoc addr autocrypt-peers))
-                       (make-autocrypt-peer
-                        :last-seen date
-                        :timestamp date
-                        :pubkey keydata
-                        :preference preference)))))
-    (when (memq autocrypt-do-gossip '(t only-receive))
-      (autocrypt-process-gossip date))
-    (when (string= from addr)
-      (unless (time-less-p date (autocrypt-peer-timestamp peer))
-        (when (time-less-p (autocrypt-peer-last-seen peer) date)
-          (setf (autocrypt-peer-last-seen peer) date))
-        (if keydata                         ; has "Autocrypt" header
-            (setf (autocrypt-peer-preference peer) (or preference 'none)
-                  (autocrypt-peer-deactivated peer) nil
-                  (autocrypt-peer-timestamp peer) date
-                  (autocrypt-peer-pubkey peer) keydata)
-          (setf (autocrypt-peer-deactivated peer) t))
-        (unless (assoc addr autocrypt-peers)
-          (push (cons addr peer) autocrypt-peers))
-        (autocrypt-save-data)))))
+    (when (and from date)
+      (setq date (ietf-drums-parse-date date))
+      (when header
+        (when (setq parse (autocrypt-parse-header header))
+          (setq addr (autocrypt-canonicalise (car parse))
+                preference (cadr parse)
+                keydata (caddr parse)
+                peer (or (cdr (assoc addr autocrypt-peers))
+                         (make-autocrypt-peer
+                          :last-seen date
+                          :timestamp date
+                          :pubkey keydata
+                          :preference preference)))))
+      (when (memq autocrypt-do-gossip '(t only-receive))
+        (autocrypt-process-gossip date))
+      (when (string= from addr)
+        (unless (time-less-p date (autocrypt-peer-timestamp peer))
+          (when (time-less-p (autocrypt-peer-last-seen peer) date)
+            (setf (autocrypt-peer-last-seen peer) date))
+          (if keydata                         ; has "Autocrypt" header
+              (setf (autocrypt-peer-preference peer) (or preference 'none)
+                    (autocrypt-peer-deactivated peer) nil
+                    (autocrypt-peer-timestamp peer) date
+                    (autocrypt-peer-pubkey peer) keydata)
+            (setf (autocrypt-peer-deactivated peer) t))
+          (unless (assoc addr autocrypt-peers)
+            (push (cons addr peer) autocrypt-peers))
+          (autocrypt-save-data))))))
 
 (defun autocrypt-insert-keydata (data)
   "Insert raw keydata DATA as base64 at point."
