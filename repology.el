@@ -65,6 +65,30 @@
 ;;                 (repology-search-projects
 ;;                  :search "emacs" :inrepo "gnuguix" :outdated "on")))
 
+;; By default, the package trusts Repology's status values to report
+;; outdated packages.  However, this can introduce false positives.
+;; You can then set `repology-outdated-project-definition' accordingly
+;; to ignore those.
+
+;; For example, with the following set-up, I can look for every
+;; outdated Emacs packages and Asymptote package in GNU Guix, ignoring
+;; bogus versions for "emacs:circe", and "emacs:erlang" package
+;; altogether.  I also sort projects alphabetically.
+
+;; (setq repology-outdated-project-definition
+;;       '(("emacs:circe" "<=2.11" nil)
+;;         ("emacs:erlang" nil nil))
+;;       repology-display-projects-sort-key '("Project" . nil))
+;;
+;;    (let ((repo "gnuguix"))
+;;      (repology-display-projects
+;;       (repology-filter-outdated-projects
+;;           (append (repology-search-projects :search "emacs:" :outdated "on"
+;;                                             :inrepo repo)
+;;                   '("asymptote"))
+;;           repo)
+;;       repo))
+
 ;; Eventually, this library provides an interactive function with
 ;; a spartan interface wrapping this up: `repology'.  Since it builds
 ;; and displays incrementally search filters, you may use it as
@@ -137,6 +161,55 @@ See `repology-check-freedom' for more information."
           (const :tag "Only free projects" t)
           (const :tag "Free and unknown projects" include-unknown)
           (const :tag "Every project" nil)))
+
+(defcustom repology-outdated-project-definition nil
+  "Determine how projects are considered as \"outdated\".
+
+This function affects `repology-filter-outdated-projects' function.
+
+When nil, a project is considered as \"outdated\" relatively to
+a repository whenever the corresponding package from that
+repository has the \"outdated\" status.
+
+Otherwise, it can be set to a list of masks.  A mask is a triplet
+
+  (NAME VERSION REPOSITORY)
+
+where NAME is a regexp or nil, VERSION is a string prefixed with
+either \"<\", \"<=\", \"=\", \">\" or \">=\", and REPOSITORY is
+a regexp or nil.
+
+Project's packages are matched against every non-nil criteria in
+the mask.  For example, the mask
+
+  (\"^Foo$\" \"=2\" nil)
+
+matches against project Foo at version 2 (or 2.0.0) only, in any
+repository.
+
+The mask
+
+  (nil nil \"BSD\")
+
+matches against any project from *BSD repositories.
+
+In this case, a project is \"outdated\" when the version of the
+package from the reference repository is older than the version
+of any non-masked package."
+  :type
+  '(choice
+    (const :tag "Use Repology packages status" nil)
+    (repeat :tag "Compare version with unmasked packages"
+     (list :tag "Mask"
+           (choice
+            (regexp :tag "Regexp matching project name")
+            (const :tag "Any project" nil))
+           (choice
+            (string :tag "Version comparison string")
+            (const :tag "Any version" nil))
+           (choice
+            (regexp :tag "Regexp matching repository name")
+            (const :tag "Any repository" nil))))))
 
 (defcustom repology-display-problems-columns
   `(("Project" effname 20 t)
