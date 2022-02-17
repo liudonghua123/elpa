@@ -37,6 +37,7 @@
 ;;; Code:
 
 (require 'vc-git)
+(require 'project)
 
 (defgroup fannypack nil
   "You cannot leave your house without your fannypack."
