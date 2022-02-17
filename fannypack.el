@@ -51,8 +51,8 @@
   (make-directory (file-truename fannypack-directory) t))
 
 (defun fannypack--name ()
-  (cl-flet* ((normalize (file-name)
-               (string-replace "/" "---" file-name)))
+  (cl-flet ((normalize (file-name)
+              (string-replace "/" "---" file-name)))
     (file-truename
      (concat fannypack-directory
              (concat
@@ -61,13 +61,13 @@
               (normalize (car (vc-git-branches))))))))
 
 (defun fannypack--read-fannypack ()
-  (let* ((filename (fannypack--name)))
+  (let ((filename (fannypack--name)))
     (when (file-exists-p filename)
       (with-temp-buffer
         (insert-file-contents filename)
         (read (current-buffer))))))
 
-(defun fannypack--write-fannypack (fannypack)
+(defun fannypack--persist (fannypack)
   (let ((filename (fannypack--name)))
     (with-temp-buffer
       (insert ";;; -*- lisp-data -*-\n")
@@ -91,62 +91,63 @@
   (let ((fannypack (fannypack--read-fannypack)))
     (unless (member (list buffer-file-name) fannypack)
       (push (list buffer-file-name) fannypack)
-      (fannypack--write-fannypack fannypack)
+      (fannypack--persist fannypack)
       (message "Placed in fannypack!"))))
 
 ;;;###autoload
 (defun fannypack-pick ()
   (interactive)
-  (when-let ((choice
-              (fannypack--completing-read
-               "Fannypack pick [%s]: "
-               (remove (list buffer-file-name)
-                       (fannypack--read-fannypack)))))
-    (find-file choice)))
+  (find-file
+   (fannypack--completing-read
+    "Fannypack pick [%s]: "
+    (remove (list buffer-file-name)
+            (fannypack--read-fannypack)))))
 
 ;;;###autoload
-(defun fannypack-drop ()
-  (interactive)
-  (when-let* ((fannypack (fannypack--read-fannypack))
-              (element
+(defun fannypack-feeling-lucky (fannypack)
+  (interactive (list (caar (fannypack--read-fannypack))))
+  (find-file fannypack))
+
+;;;###autoload
+(defun fannypack-drop (fannypack)
+  (interactive (list (fannypack--read-fannypack)))
+  (when-let* ((entry
                (list
                 (fannypack--completing-read
                  "Fannypack drop [%s]: "
                  fannypack))))
-    (setq fannypack (remove element fannypack))
-    (fannypack--write-fannypack fannypack)
+    (setq fannypack (remove entry fannypack))
+    (fannypack--persist fannypack)
     (message "Dropped %s from fannypack"
-             (file-name-nondirectory (car element)))))
+             (file-name-nondirectory (car entry)))))
 
 ;;;###autoload
-(defun fannypack-promote ()
-  (interactive)
-  (let* ((fannypack (fannypack--read-fannypack))
-         (element-to-move
+(defun fannypack-promote (fannypack)
+  (interactive (list (fannypack--read-fannypack)))
+  (let* ((entry
           (list
            (fannypack--completing-read
             "Fannypack promote [%s]: "
             fannypack))))
-    (setq fannypack (remove element-to-move fannypack))
-    (push element-to-move fannypack)
-    (fannypack--write-fannypack fannypack)
+    (setq fannypack (remove entry fannypack))
+    (push entry fannypack)
+    (fannypack--persist fannypack)
     (message "Promoted %s to top in fannypack"
-             (file-name-nondirectory (car element-to-move)))))
+             (file-name-nondirectory (car entry)))))
 
 ;;;###autoload
-(defun fannypack-demote ()
-  (interactive)
-  (let* ((fannypack (fannypack--read-fannypack))
-         (element-to-move
+(defun fannypack-demote (fannypack)
+  (interactive (list (fannypack--read-fannypack)))
+  (let* ((entry
           (list
            (fannypack--completing-read
             "Fannypack demote [%s]: "
             fannypack))))
-    (setq fannypack (remove element-to-move fannypack))
-    (setq fannypack (append fannypack (list element-to-move)))
-    (fannypack--write-fannypack fannypack)
+    (setq fannypack (remove entry fannypack))
+    (setq fannypack (append fannypack (list entry)))
+    (fannypack--persist fannypack)
     (message "Demoted %s to bottom in fannypack"
-             (file-name-nondirectory (car element-to-move)))))
+             (file-name-nondirectory (car entry)))))
 
 (provide 'fannypack)
 ;;; fannypack.el ends here
