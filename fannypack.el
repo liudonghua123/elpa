@@ -48,13 +48,17 @@
   "Where the fannypacks will be saved."
   :type 'string)
 
+(defvar fannypack--default-directory nil
+  "Default directory override.")
+
 (defun fannypack--ensure-directory ()
   (make-directory (file-truename fannypack-directory) t))
 
 (defun fannypack--name ()
   (cl-flet ((normalize (file-name)
               (string-replace "/" "---" file-name)))
-    (let ((default-directory (project-root (project-current t))))
+    (let ((default-directory (or fannypack--default-directory
+                                 (project-root (project-current t)))))
       (file-truename
        (concat fannypack-directory
                (concat
@@ -114,8 +118,11 @@
 
 ;;;###autoload
 (defun fannypack-feeling-lucky (fannypack)
-  (interactive (list (caar (fannypack--read))))
-  (find-file fannypack))
+  (interactive
+   (list (caar (remove (list buffer-file-name) (fannypack--read)))))
+  (if fannypack
+      (find-file fannypack)
+    (user-error "Fannypack is empty!")))
 
 ;;;###autoload
 (defun fannypack-burn ()
@@ -163,6 +170,16 @@
     (fannypack--persist fannypack)
     (message "Demoted %s to bottom in fannypack"
              (file-name-nondirectory (car entry)))))
+
+;;;###autoload
+(defun fannypack-default-directory (arg)
+  (interactive "P")
+  (setq fannypack--default-directory
+        (cond
+         ((equal arg '(4))
+          (project-root (project-current t)))
+         ((equal arg '(16))
+          (read-file-name "Default fannypack: " nil default-directory 'mustmatch)))))
 
 (provide 'fannypack)
 ;;; fannypack.el ends here
