@@ -60,7 +60,7 @@
               "#"
               (normalize (car (vc-git-branches))))))))
 
-(defun fannypack--read-fannypack ()
+(defun fannypack--read ()
   (let ((filename (fannypack--name)))
     (when (file-exists-p filename)
       (with-temp-buffer
@@ -76,21 +76,28 @@
         (pp fannypack (current-buffer)))
       (write-region nil nil filename nil 'silent))))
 
+(defun fannypack--keep-sort-order (completions)
+  (lambda (string pred action)
+    (if (eq action 'metadata)
+        `(metadata (display-sort-function . ,#'identity))
+      (complete-with-action action completions string pred))))
+
 (defun fannypack--completing-read (prompt fannypack)
   (let ((default (caar fannypack)))
     (if fannypack
         (completing-read
          (format prompt (file-name-nondirectory default))
-         fannypack nil t nil nil default)
-      (user-error "Fannypack empty!"))))
+         (fannypack--keep-sort-order fannypack) nil t nil nil default)
+      (user-error "Fannypack is empty!"))))
 
 ;;;###autoload
 (defun fannypack-place ()
   (interactive)
   (fannypack--ensure-directory)
-  (let ((fannypack (fannypack--read-fannypack)))
-    (unless (member (list buffer-file-name) fannypack)
-      (push (list buffer-file-name) fannypack)
+  (let ((fannypack (fannypack--read))
+        (entry (list buffer-file-name)))
+    (unless (member entry fannypack)
+      (setq fannypack (append fannypack (list entry)))
       (fannypack--persist fannypack)
       (message "Placed in fannypack!"))))
 
@@ -101,21 +108,27 @@
    (fannypack--completing-read
     "Fannypack pick [%s]: "
     (remove (list buffer-file-name)
-            (fannypack--read-fannypack)))))
+            (fannypack--read)))))
 
 ;;;###autoload
 (defun fannypack-feeling-lucky (fannypack)
-  (interactive (list (caar (fannypack--read-fannypack))))
+  (interactive (list (caar (fannypack--read))))
   (find-file fannypack))
 
 ;;;###autoload
+(defun fannypack-burn ()
+  (interactive)
+  (when (y-or-n-p "Burn this fannypack?")
+    (fannypack--persist nil)))
+
+;;;###autoload
 (defun fannypack-drop (fannypack)
-  (interactive (list (fannypack--read-fannypack)))
-  (when-let* ((entry
-               (list
-                (fannypack--completing-read
-                 "Fannypack drop [%s]: "
-                 fannypack))))
+  (interactive (list (fannypack--read)))
+  (when-let ((entry
+              (list
+               (fannypack--completing-read
+                "Fannypack drop [%s]: "
+                fannypack))))
     (setq fannypack (remove entry fannypack))
     (fannypack--persist fannypack)
     (message "Dropped %s from fannypack"
@@ -123,12 +136,12 @@
 
 ;;;###autoload
 (defun fannypack-promote (fannypack)
-  (interactive (list (fannypack--read-fannypack)))
-  (let* ((entry
-          (list
-           (fannypack--completing-read
-            "Fannypack promote [%s]: "
-            fannypack))))
+  (interactive (list (fannypack--read)))
+  (let ((entry
+         (list
+          (fannypack--completing-read
+           "Fannypack promote [%s]: "
+           fannypack))))
     (setq fannypack (remove entry fannypack))
     (push entry fannypack)
     (fannypack--persist fannypack)
@@ -137,12 +150,12 @@
 
 ;;;###autoload
 (defun fannypack-demote (fannypack)
-  (interactive (list (fannypack--read-fannypack)))
-  (let* ((entry
-          (list
-           (fannypack--completing-read
-            "Fannypack demote [%s]: "
-            fannypack))))
+  (interactive (list (fannypack--read)))
+  (let ((entry
+         (list
+          (fannypack--completing-read
+           "Fannypack demote [%s]: "
+           fannypack))))
     (setq fannypack (remove entry fannypack))
     (setq fannypack (append fannypack (list entry)))
     (fannypack--persist fannypack)
