@@ -53,12 +53,13 @@
 (defun fannypack--name ()
   (cl-flet ((normalize (file-name)
               (string-replace "/" "---" file-name)))
-    (file-truename
-     (concat fannypack-directory
-             (concat
-              (normalize (project-root (project-current)))
-              "#"
-              (normalize (car (vc-git-branches))))))))
+    (let ((default-directory (project-root (project-current t))))
+      (file-truename
+       (concat fannypack-directory
+               (concat
+                (normalize default-directory)
+                "#"
+                (normalize (car (vc-git-branches)))))))))
 
 (defun fannypack--read ()
   (let ((filename (fannypack--name)))
