@@ -539,6 +539,9 @@
   :make ("autoloads" "info")
   :doc "tramp.info"
   :auto-sync t)
+ ("tramp-nspawn"	:url "https://github.com/bjc/tramp-nspawn"
+  :ignored-files ("COPYING")
+  :auto-sync t)
  ("tramp-theme"		:url nil)
  ("transcribe"		:url nil)
  ("transient"		:url "https://github.com/magit/transient"
