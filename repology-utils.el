@@ -438,44 +438,56 @@ the request."
   "Return version associated to string S.
 Version is a list of components (RANK . VALUE) suitable for comparison, with
 the function `repology-version-<'."
-  (let ((split nil))
-    ;; Explode string into numeric and alphabetic components.
-    ;; Intermediate SPLIT result is in reverse order.
-    (let ((regexp (rx (or (group (one-or-more digit)) (one-or-more alpha))))
-          (start 0))
-      (while (string-match regexp s start)
-        (let ((component (match-string 0 s)))
-          (push (if (match-beginning 1) ;numeric component?
-                    (string-to-number component)
-                  ;; Version comparison ignores case.
-                  (downcase component))
-                split))
-        (setq start (match-end 0))))
-    ;; Attach ranks to components.  NUMERIC-FLAG is used to catch
-    ;; trailing alphabetic components, which get a special rank.
-    ;; However, if there is no numeric component, no alphabetic
-    ;; component ever gets this rank, hence the initial value.
-    (let ((numeric-flag (seq-every-p #'stringp split))
-          (result nil))
-      (dolist (component split)
-        (let ((rank
-               (cond
-                ;; 0 gets "zero" (1) rank.
-                ((equal 0 component) 1)
-                ;; Other numeric components get "nonzero" (3) rank.
-                ((wholenump component) 3)
-                ;; Pre-release keywords get "pre_release" (0) rank.
-                ((member component repology-version-pre-keywords) 0)
-                ;; Post-release keywords get "post_release" (2) rank.
-                ((member component repology-version-post-keywords) 2)
-                ;; Alphabetic components after the last numeric
-                ;; component get the "letter_suffix" (4) rank.
-                ((not numeric-flag) 4)
-                ;; Any other alphabetic component is "pre_release".
-                (t 0))))
-          (when (wholenump component) (setq numeric-flag t))
-          (push (cons rank component) result)))
-      result)))
+  (let ((result nil)
+        (regexp (rx (one-or-more (any digit alpha))))
+        (start 0))
+    ;; Extract alphanumeric tokens. Then split all numeric and all
+    ;; alphabetic components apart.
+    (while (string-match regexp s start)
+      (setq start (match-end 0))
+      (let ((token (match-string 0 s))
+            (special-flag nil)
+            (i 0))
+        (while (string-match (rx (or (group (one-or-more digit))
+                                     (one-or-more alpha)))
+                             token
+                             i)
+          ;; Attach ranks to components.  NUMERIC-FLAG is used to catch
+          ;; trailing alphabetic components, which get a special rank.
+          ;; However, if there is no numeric component, no alphabetic
+          ;; component ever gets this rank, hence the initial value.
+          (push (cond
+                 ;; Numeric component: distinguish between 0 (rank 1)
+                 ;; and other value (rank 3).
+                 ((match-beginning 1)
+                  (let ((component (string-to-number (match-string 1 token))))
+                    (when (= i 0) (setq special-flag t))
+                    (if (= 0 component)
+                        repology-version-zero-component
+                      (cons 3 component))))
+                 ;; Special case: alphabetic component which follows
+                 ;; numeric component, and is not followed by another
+                 ;; numeric component.  If it is not a pre- or post-
+                 ;; keyword, give it rank 4.
+                 ((and special-flag
+                       (= (match-end 0) (length token)))
+                  (let ((component (downcase (match-string 0 token))))
+                    (cons (cond
+                           ((member component repology-version-pre-keywords) 0)
+                           ((member component repology-version-post-keywords) 2)
+                           (t 4))
+                          component)))
+                 ;; Now the special case is out of the way, rank is
+                 ;; either 2 (the component is a post-keyword), or 0.
+                 (t
+                  (let ((component (downcase (match-string 0 token))))
+                    (cons (if (member component repology-version-post-keywords)
+                              2
+                            0)
+                          component))))
+                result)
+          (setq i (match-end 0)))))
+    (nreverse result)))
 
 (defun repology-version-< (v1 v2)
   "Return t if version V1 is lower (older) than version V2.
