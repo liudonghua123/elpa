@@ -1,6 +1,6 @@
 ;;; satchel.el --- A bag for your files, separated by git branches -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Theodor Thornhill
+;; Copyright (C) 2022  Free Software Foundation, Inc.
 
 ;; Author: Theodor Thornhill <theo@thornhill.no>
 ;; Keywords: tools languages
@@ -48,6 +48,7 @@
   :group 'tools)
 
 (defcustom satchel-directory
+  ;; FIXME: Use `locate-user-emacs-file'?
   (concat user-emacs-directory ".local/satchel/")
   "Where the satchels will be saved."
   :type 'string)
@@ -77,7 +78,7 @@
 This is a file named after the path of the directory it refers
 to.  There can be several of those files, appended with the
 current branch name.  If the file can be found, we read that file
-into lisp data."
+into Lisp data."
   (let ((filename (satchel--name)))
     (when (file-exists-p filename)
       (with-temp-buffer
