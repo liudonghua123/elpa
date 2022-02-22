@@ -1,6 +1,6 @@
 ;;; fannypack.el --- They say it's back in style -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022  Theodor Thornhill
+;; Copyright (C) 2022 Theodor Thornhill
 
 ;; Author: Theodor Thornhill <theo@thornhill.no>
 ;; Keywords: tools languages
@@ -33,6 +33,10 @@
 ;; * Realize you need to work on a different branch - switch to it.
 ;;   Now the fannypack is automatically scoped to the new branch.
 ;;   If there are files there, jump to them.
+;;
+;;  So to clarify, fannypack persists a set of files residing under a project as
+;;  defined by `project'.  In addition, we use git branches to delimit between
+;;  different sets of files.
 
 ;;; Code:
 
@@ -52,7 +56,9 @@
   "Default directory override.")
 
 (defun fannypack--ensure-directory ()
-  (make-directory (file-truename fannypack-directory) t))
+  "Create `fannypack-directory' if it doesn't exist, else noop."
+  (unless (file-exists-p (expand-file-name fannypack-directory))
+    (make-directory (file-truename fannypack-directory) t)))
 
 (defun fannypack--name ()
   (cl-flet ((normalize (file-name)
@@ -67,6 +73,11 @@
                 (normalize (car (vc-git-branches)))))))))
 
 (defun fannypack--read ()
+  "Read files from the current `fannypack-default-directory'.
+This is a file named after the path of the directory it refers
+to.  There can be several of those files, appended with the
+current branch name.  If the file can be found, we read that file
+into lisp data."
   (let ((filename (fannypack--name)))
     (when (file-exists-p filename)
       (with-temp-buffer
@@ -74,6 +85,9 @@
         (read (current-buffer))))))
 
 (defun fannypack--persist (fannypack)
+  "Persist the current fannypack into storage.
+When updating the fannypack, we try to persist it to disk, so
+that it can easily be retrieved at a later time."
   (let ((filename (fannypack--name)))
     (with-temp-buffer
       (insert ";;; -*- lisp-data -*-\n")
@@ -83,12 +97,18 @@
       (write-region nil nil filename nil 'silent))))
 
 (defun fannypack--keep-sort-order (completions)
+  ;; Small hack to avoid the default sorting order to apply, which is
+  ;; alphabetically.
   (lambda (string pred action)
     (if (eq action 'metadata)
         `(metadata (display-sort-function . ,#'identity))
       (complete-with-action action completions string pred))))
 
 (defun fannypack--completing-read (prompt fannypack)
+  "Read the current fannypack, and show a completion selection.
+We do make sure we keep the order the files are stored in, so
+that `fannypack-promote' and `fannypack-demote' can do its
+thing."
   (let ((default (caar fannypack)))
     (if fannypack
         (completing-read
@@ -98,6 +118,8 @@
 
 ;;;###autoload
 (defun fannypack-place ()
+  "Place the current file into the fannypack.
+It is placed into a fannypack controlled by the git branch."
   (interactive)
   (fannypack--ensure-directory)
   (let ((fannypack (fannypack--read))
@@ -109,6 +131,8 @@
 
 ;;;###autoload
 (defun fannypack-pick ()
+  "Choose a file from the current fannypack.
+After selection, we jump to the chosen file."
   (interactive)
   (find-file
    (fannypack--completing-read
@@ -118,6 +142,7 @@
 
 ;;;###autoload
 (defun fannypack-feeling-lucky (fannypack)
+  "Jump to the file currently at the top of the fannypack."
   (interactive
    (list (caar (remove (list buffer-file-name) (fannypack--read)))))
   (if fannypack
@@ -126,12 +151,15 @@
 
 ;;;###autoload
 (defun fannypack-burn ()
+  "Delete one fannypack.
+This is limited to the one on the current branch."
   (interactive)
   (when (y-or-n-p "Burn this fannypack?")
     (fannypack--persist nil)))
 
 ;;;###autoload
 (defun fannypack-drop (fannypack)
+  "Remove one file from the fannypack."
   (interactive (list (fannypack--read)))
   (when-let ((entry
               (list
@@ -145,6 +173,7 @@
 
 ;;;###autoload
 (defun fannypack-promote (fannypack)
+  "Lift a file to the top of the current fannypack."
   (interactive (list (fannypack--read)))
   (let ((entry
          (list
@@ -159,6 +188,7 @@
 
 ;;;###autoload
 (defun fannypack-demote (fannypack)
+  "Push a file to the bottom of the current fannypack."
   (interactive (list (fannypack--read)))
   (let ((entry
          (list
@@ -172,13 +202,14 @@
              (file-name-nondirectory (car entry)))))
 
 ;;;###autoload
-(defun fannypack-default-directory (arg)
+(defun fannypack-default-directory (dir)
+  "Set the directory DIR as the default `fannypack-default-directory'."
   (interactive "P")
   (setq fannypack--default-directory
         (cond
-         ((equal arg '(4))
+         ((equal dir '(4))
           (project-root (project-current t)))
-         ((equal arg '(16))
+         ((equal dir '(16))
           (read-file-name "Default fannypack: " nil default-directory 'mustmatch)))))
 
 (provide 'fannypack)
