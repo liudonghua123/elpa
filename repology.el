@@ -78,7 +78,7 @@
 ;; (setq repology-outdated-project-definition
 ;;       '(("emacs:circe" "<=2.11" nil)
 ;;         ("emacs:erlang" nil nil))
-;;       repology-display-projects-sort-key '("Project" . nil))
+;;       repology-display-projects-sort-key "Project")
 ;;
 ;;    (let ((repo "gnuguix"))
 ;;      (repology-display-projects
@@ -245,6 +245,9 @@ a string matching one of the column names in
 `repology-display-problems-columns'.  FLIP, if non-nil, means to
 invert the resulting sort.
 
+Alternatively, it can be a string matching a valid column name.
+In that case, FLIP is considered as nil.
+
 If the key name doesn't match any column name, no sorting is
 initially done."
   :type
@@ -304,6 +307,9 @@ a string matching one of the column names in
 `repology-display-packages-columns'.  FLIP, if non-nil, means to
 invert the resulting sort.
 
+Alternatively, it can be a string matching a valid column name.
+In that case, FLIP is considered as nil.
+
 If the key name doesn't match any column name, no sorting is
 initially done."
   :type
@@ -354,6 +360,9 @@ Otherwise, this should be a cons cell (NAME . FLIP).  NAME is
 a string matching one of the column names in
 `repology-display-projects-columns'.  FLIP, if non-nil, means to
 invert the resulting sort.
+
+Alternatively, it can be a string matching a valid column name.
+In that case, FLIP is considered as nil.
 
 If the key name doesn't match any column name, no sorting is
 initially done."
@@ -732,10 +741,11 @@ exist.
 
 This function assumes `tabulated-list-format' is set already."
   (pcase key-pair
-    (`(,name . ,_)
-     (let ((columns (mapcar #'car tabulated-list-format)))
+    ((or (and (pred stringp) name) `(,name . ,flip))
+     (let ((columns (mapcar #'car tabulated-list-format))
+           (flip (bound-and-true-p flip))) ;not defined when string
        (and (member name columns)
-            key-pair)))
+            (cons name flip))))
     (_ nil)))
 
 (define-derived-mode repology--display-package-mode tabulated-list-mode
