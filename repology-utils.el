@@ -216,14 +216,10 @@ Return a list of Repology projects."
 
 (defun repology-project-name (project)
   "Return PROJECT's name, as a string."
-  (unless (repology-project-p project)
-    (user-error "No valid project provided"))
   (symbol-name (car project)))
 
 (defun repology-project-packages (project)
   "Return list of packages associated to PROJECT."
-  (unless (repology-project-p project)
-    (user-error "No valid project provided"))
   (cdr project))
 
 (defun repology-project-create (name packages)
