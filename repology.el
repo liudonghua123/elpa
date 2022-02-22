@@ -660,7 +660,7 @@ according to the value of `repology-free-projects-only'."
 
 NAMES is a list of project names, as strings.
 
-Project names can also be a list of strings. In that case, the
+Project names can also be a list of strings.  In that case, the
 project is named after the first element of the list and packages
 associated to subsequent names are merged into it, as if all were
 a single project.  This is useful when Repology has multiple names
