@@ -67,18 +67,18 @@
 
 ;; By default, the package trusts Repology's status values to report
 ;; outdated packages.  However, this can introduce false positives.
-;; You can then set `repology-outdated-project-definition' accordingly
-;; to ignore those.
+;; You can then set `repology-outdated-project-definition' and call
+;; `repology-filter-outdated-projects' to ignore those.
 
 ;; For example, with the following set-up, I can look for every
 ;; outdated Emacs packages and Asymptote package in GNU Guix, ignoring
 ;; bogus versions for "emacs:circe", and "emacs:erlang" package
 ;; altogether.  I also sort projects alphabetically.
 
-;; (setq repology-outdated-project-definition
-;;       '(("emacs:circe" "<=2.11" nil)
-;;         ("emacs:erlang" nil nil))
-;;       repology-display-projects-sort-key "Project")
+;;    (setq repology-outdated-project-definition
+;;          '(("emacs:circe" "<=2.11" nil)
+;;            ("emacs:erlang" nil nil))
+;;          repology-display-projects-sort-key "Project")
 ;;
 ;;    (let ((repo "gnuguix"))
 ;;      (repology-display-projects
