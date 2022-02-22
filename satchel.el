@@ -48,8 +48,7 @@
   :group 'tools)
 
 (defcustom satchel-directory
-  ;; FIXME: Use `locate-user-emacs-file'?
-  (concat user-emacs-directory ".local/satchel/")
+  (locate-user-emacs-file ".local/satchel/")
   "Where the satchels will be saved."
   :type 'string)
 
