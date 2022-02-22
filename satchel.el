@@ -4,7 +4,7 @@
 
 ;; Author: Theodor Thornhill <theo@thornhill.no>
 ;; Keywords: tools languages
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((emacs "27.2") (project "0.8.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
