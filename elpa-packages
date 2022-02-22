@@ -284,7 +284,10 @@
   :auto-sync t)
  ("hook-helpers"	:url "https://git.savannah.nongnu.org/git/hook-helpers-el.git")
  ("html5-schema"	:url nil)
- ("hydra"		:url "https://github.com/abo-abo/hydra")
+ ;; FIXME: Upstream has accidentally diverged, see
+ ;; https://github.com/abo-abo/hydra/pull/408 as well as bug#52902
+ ("hydra"		:url "https://github.com/abo-abo/hydra"
+  :auto-sync t)
  ("hyperbole"           :url "https://git.savannah.gnu.org/r/hyperbole.git"
   :make ("kotl/kotl-autoloads.el")
   :auto-sync t)
@@ -479,6 +482,9 @@
  ("rt-liberation"	:url "https://git.savannah.nongnu.org/git/rtliber"
   :auto-sync t)
  ("rudel"		:url nil) ;; Was bzr::bzr://rudel.bzr.sourceforge.net/bzrroot/rudel/trunk
+ ("satchel"		:url "https://git.sr.ht/~theo/satchel"
+  :ignored-files ("LICENSE")
+  :auto-sync t)
  ("scanner"		:url "https://gitlab.com/rstocker/scanner.git"
   :auto-sync t)
  ("scroll-restore"	:url nil)
@@ -550,7 +556,10 @@
   :news "CHANGELOG"
   :doc "docs/transient.texi")
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
- ("undo-tree"		:url "https://gitlab.com/tsc25/undo-tree")
+ ;; FIXME: The upstream of `undo-tree' has diverged.  I tried to
+ ;; contact Toby in Dec 2021 but haven't heard from him.
+ ("undo-tree"		:url "https://gitlab.com/tsc25/undo-tree"
+  :auto-sync t)
  ("uni-confusables" 	:url nil
   :readme "README.md")
  ("uniquify-files"	:url nil)
