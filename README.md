@@ -1,3 +1,5 @@
+![ELPA](https://elpa.gnu.org/packages/satchel.svg)
+
 # Satchel
 
 satchel.el is a small utility to help manage buffers and files on a working
