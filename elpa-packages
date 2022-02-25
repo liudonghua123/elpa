@@ -437,6 +437,8 @@
   :url "https://github.com/tumashu/posframe"
   :auto-sync t)
  ("pq"			:url "https://github.com/anse1/emacs-libpq"
+  ;; FIXME: `test.el` needs a copyright notice and a better name.
+  :ignored-files ("test.el")
   :readme "README.org"
   :auto-sync t)
  ("prefixed-core"	:url nil)
