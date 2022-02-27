@@ -2680,6 +2680,8 @@ Falls back to normal file name handler if no Tramp file name handler exists."
       (load "tramp" 'noerror 'nomessage)))
   (apply operation args)))
 
+(put #'tramp-autoload-file-name-handler 'tramp-autoload t)
+
 ;; `tramp-autoload-file-name-handler' must be registered before
 ;; evaluation of site-start and init files, because there might exist
 ;; remote files already, f.e. files kept via recentf-mode.
@@ -2691,6 +2693,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		     #'tramp-autoload-file-name-handler))
   (put #'tramp-autoload-file-name-handler 'safe-magic t)))
 
+(put #'tramp-register-autoload-file-name-handlers 'tramp-autoload t)
 ;;;###autoload (tramp-register-autoload-file-name-handlers)
 
 (defun tramp-use-absolute-autoload-file-names ()
@@ -2803,6 +2806,7 @@ Add operations defined in `HANDLER-alist' to `tramp-file-name-handler'."
 	       (string-prefix-p "tramp-" (symbol-name (cdr fnh))))
       (setq file-name-handler-alist (delq fnh file-name-handler-alist))))))
 
+(put #'tramp-unload-file-name-handlers 'tramp-autoload t)
 (add-hook 'tramp-unload-hook #'tramp-unload-file-name-handlers)
 
 ;;; File name handler functions for completion mode:
@@ -3382,6 +3386,10 @@ User is always nil."
       (if (file-directory-p dir) dir (file-name-directory dir)) nil
     (tramp-flush-directory-properties v localname)))
 
+(defvar tramp-tolerate-tilde nil
+  "Indicator, that not expandable tilde shall be tolerated.
+Let-bind it when necessary.")
+
 (defun tramp-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
   ;; If DIR is not given, use DEFAULT-DIRECTORY or "/".
@@ -3398,6 +3406,10 @@ User is always nil."
     (with-parsed-tramp-file-name name nil
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
+      ;; Tilde expansion is not possible.
+      (when (and (not tramp-tolerate-tilde)
+		 (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname))
+	(tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
       ;; Do not keep "/..".
       (when (string-match-p "^/\\.\\.?$" localname)
 	(setq localname "/"))
@@ -3407,7 +3419,9 @@ User is always nil."
       (let ((default-directory tramp-compat-temporary-file-directory))
 	(tramp-make-tramp-file-name
 	 v (tramp-drop-volume-letter
-	    (tramp-run-real-handler #'expand-file-name (list localname))))))))
+	    (if (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
+		localname
+	      (tramp-run-real-handler #'expand-file-name (list localname)))))))))
 
 (defun tramp-handle-file-accessible-directory-p (filename)
   "Like `file-accessible-directory-p' for Tramp files."
@@ -3930,6 +3944,14 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
   ;; was visited.
   (catch 'dont-lock
     (unless (eq (file-locked-p file) t) ;; Locked by me.
+      (when (and buffer-file-truename
+		 (not (verify-visited-file-modtime))
+		 (file-exists-p file))
+	;; In filelock.c, `userlock--ask-user-about-supersession-threat'
+	;; is called, which also checks file contents.  This is unwise
+	;; for remote files.
+	(ask-user-about-supersession-threat file))
+
       (when-let ((info (tramp-get-lock-file file))
 		 (match (string-match tramp-lock-file-info-regexp info)))
 	(unless (ask-user-about-lock
@@ -4207,7 +4229,9 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	       (command (mapconcat #'tramp-shell-quote-argument command " "))
 	       ;; Set cwd and environment variables.
 	       (command
-	        (append `("cd" ,localname "&&" "(" "env") env `(,command ")"))))
+	        (append
+		 `("cd" ,(tramp-shell-quote-argument localname) "&&" "(" "env")
+		 env `(,command ")"))))
 
 	  ;; Check for `tramp-sh-file-name-handler', because something
 	  ;; is different between tramp-sh.el, and tramp-adb.el or
@@ -4473,10 +4497,7 @@ BUFFER might be a list, in this case STDERR is separated."
 			   ;; We must disable cygwin-mount file name
 			   ;; handlers and alike.
 			   (tramp-run-real-handler
-			    #'substitute-in-file-name (list localname))))))))
-      ;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
-      (if (and (stringp localname) (string-equal "~" localname))
-	  (concat filename "/")
+			    #'substitute-in-file-name (list localname)))))))
 	filename))))
 
 (defconst tramp-time-dont-know '(0 0 0 1000)
@@ -5319,7 +5340,8 @@ be granted."
         (offset (cond
                  ((eq ?r access) 1)
                  ((eq ?w access) 2)
-                 ((eq ?x access) 3))))
+                 ((eq ?x access) 3)
+                 ((eq ?s access) 3))))
     (dolist (suffix '("string" "integer") result)
       (setq
        result
@@ -5352,7 +5374,8 @@ be granted."
             (and
              (eq access
 		 (aref (tramp-compat-file-attribute-modes file-attr) offset))
-	     (or (equal remote-uid
+	     (or (equal remote-uid unknown-id)
+		 (equal remote-uid
 			(tramp-compat-file-attribute-user-id file-attr))
 		 (equal unknown-id
 			(tramp-compat-file-attribute-user-id file-attr))))
@@ -5361,7 +5384,8 @@ be granted."
              (eq access
 		 (aref (tramp-compat-file-attribute-modes file-attr)
 		       (+ offset 3)))
-             (or (equal remote-gid
+             (or (equal remote-gid unknown-id)
+		 (equal remote-gid
 			(tramp-compat-file-attribute-group-id file-attr))
 		 (equal unknown-id
 			(tramp-compat-file-attribute-group-id
@@ -5669,7 +5693,9 @@ Invokes `password-read' if available, `read-passwd' else."
 	  (or prompt
 	      (with-current-buffer (process-buffer proc)
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
-		(format "%s for %s " (capitalize (match-string 1)) key))))
+		(if (string-match-p "passphrase" (match-string 1))
+		    (match-string 0)
+		  (format "%s for %s " (capitalize (match-string 1)) key)))))
 	 (auth-source-creation-prompts `((secret . ,pw-prompt)))
 	 ;; Use connection-local value.
 	 (auth-sources (with-current-buffer (process-buffer proc) auth-sources))
@@ -5880,6 +5906,8 @@ BODY is the backend specific code."
   (interactive)
   ;; Maybe it's not loaded yet.
   (ignore-errors (unload-feature 'tramp 'force))))
+
+(put #'tramp-unload-tramp 'tramp-autoload t)
 
 (provide 'tramp)
 

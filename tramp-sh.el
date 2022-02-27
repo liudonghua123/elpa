@@ -1574,6 +1574,7 @@ ID-FORMAT valid values are `string' and `integer'."
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
       (or (tramp-check-cached-permissions v ?x)
+	  (tramp-check-cached-permissions v ?s)
 	  (tramp-run-test "-x" filename)))))
 
 (defun tramp-sh-handle-file-readable-p (filename)
@@ -3083,7 +3084,7 @@ implementation will be used."
 	(setq infile (tramp-compat-file-name-unquote (expand-file-name infile)))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
-	    (setq input (tramp-file-local-name infile))
+	    (setq input (tramp-unquote-file-local-name infile))
 	  ;; INFILE must be copied to remote host.
 	  (setq input (tramp-make-tramp-temp-file v)
 		tmpinput (tramp-make-tramp-file-name v input 'nohop))
@@ -3114,7 +3115,7 @@ implementation will be used."
 	  (setcar (cdr destination) (expand-file-name (cadr destination)))
 	  (if (tramp-equal-remote default-directory (cadr destination))
 	      ;; stderr is on the same remote host.
-	      (setq stderr (tramp-file-local-name (cadr destination)))
+	      (setq stderr (tramp-unquote-file-local-name (cadr destination)))
 	    ;; stderr must be copied to remote host.  The temporary
 	    ;; file must be deleted after execution.
 	    (setq stderr (tramp-make-tramp-temp-file v)
@@ -4753,36 +4754,33 @@ Goes through the list `tramp-inline-compress-commands'."
    (t (setq tramp-ssh-controlmaster-options "")
       (let ((case-fold-search t))
 	(ignore-errors
-	  (when (executable-find "ssh")
-	    (with-tramp-progress-reporter
-		vec 4 "Computing ControlMaster options"
-	      (with-temp-buffer
-		(tramp-call-process vec "ssh" nil t nil "-o" "ControlMaster")
-		(goto-char (point-min))
-		(when (search-forward-regexp "missing.+argument" nil t)
-		  (setq tramp-ssh-controlmaster-options
-			"-o ControlMaster=auto")))
-	      (unless (zerop (length tramp-ssh-controlmaster-options))
-		(with-temp-buffer
-		  ;; We use a non-existing IP address, in order to
-		  ;; avoid useless connections, and DNS timeouts.
-		  ;; Setting ConnectTimeout is needed since OpenSSH 7.
-		  (tramp-call-process
-		   vec "ssh" nil t nil
-		   "-o" "ConnectTimeout=1" "-o" "ControlPath=%C" "0.0.0.1")
-		  (goto-char (point-min))
+	  (with-tramp-progress-reporter
+	      vec 4 "Computing ControlMaster options"
+	    ;; We use a non-existing IP address, in order to avoid
+	    ;; useless connections, and DNS timeouts.
+	    (when (zerop
+		   (tramp-call-process
+		    vec "ssh" nil nil nil
+		    "-G" "-o" "ControlMaster=auto" "0.0.0.1"))
+	      (setq tramp-ssh-controlmaster-options
+		    "-o ControlMaster=auto")
+	      (if (zerop
+		   (tramp-call-process
+		    vec "ssh" nil nil nil
+		    "-G" "-o" "ControlPath='tramp.%C'" "0.0.0.1"))
 		  (setq tramp-ssh-controlmaster-options
 			(concat tramp-ssh-controlmaster-options
-				(if (search-forward-regexp "unknown.+key" nil t)
-				    " -o ControlPath='tramp.%%r@%%h:%%p'"
-				  " -o ControlPath='tramp.%%C'"))))
-		(with-temp-buffer
-		  (tramp-call-process vec "ssh" nil t nil "-o" "ControlPersist")
-		  (goto-char (point-min))
-		  (when (search-forward-regexp "missing.+argument" nil t)
-		    (setq tramp-ssh-controlmaster-options
-			  (concat tramp-ssh-controlmaster-options
-				  " -o ControlPersist=no")))))))))
+				" -o ControlPath='tramp.%%C'"))
+		(setq tramp-ssh-controlmaster-options
+		      (concat tramp-ssh-controlmaster-options
+			      " -o ControlPath='tramp.%%r@%%h:%%p'")))
+	      (when (zerop
+		     (tramp-call-process
+		      vec "ssh" nil nil nil
+		      "-G" "-o" "ControlPersist=no" "0.0.0.1"))
+		(setq tramp-ssh-controlmaster-options
+		      (concat tramp-ssh-controlmaster-options
+			      " -o ControlPersist=no")))))))
       tramp-ssh-controlmaster-options)))
 
 (defun tramp-scp-strict-file-name-checking (vec)
