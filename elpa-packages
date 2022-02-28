@@ -72,6 +72,8 @@
  ("boxy-headings"	:url "https://gitlab.com/tygrdev/boxy-headings"
   :auto-sync t)
  ("brief"		:url nil)
+ ("buffer-env"		:url "https://github.com/astoff/buffer-env"
+  :auto-sync t)
  ("buffer-expose"	:url "https://github.com/clemera/buffer-expose")
  ("bug-hunter"		:url "https://github.com/Malabarba/elisp-bug-hunter")
  ;;FIXME:("cedet"	:url "??")
@@ -102,6 +104,9 @@
  ("cl-print"		:core "lisp/emacs-lisp/cl-print.el")
  ("clipboard-collector" :url "https://github.com/clemera/clipboard-collector")
  ("cobol-mode"          :url "https://gist.github.com/Edward-H/6768e7dc53ea3dd2adca")
+ ("code-cells"		:url "https://github.com/astoff/code-cells.el"
+  :ignored-files ("LICENSE")
+  :auto-sync t)
  ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
  ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings")
  ("comint-mime"		:url "https://github.com/astoff/comint-mime"
