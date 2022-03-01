@@ -113,6 +113,11 @@
   `(diff-removed         ((,c (:background "#ffcccc" :foreground "#4b1313"))))
   `(diff-refine-removed  ((,c (:background "#ef9d9d" :foreground "#3a0a0a "))))
 
+  `(magit-diff-added             ((,c (:inherit diff-added))))
+  `(magit-diff-added-highlight   ((,c (:inherit diff-refine-added))))
+  `(magit-diff-removed           ((,c (:inherit diff-removed))))
+  `(magit-diff-removed-highlight ((,c (:inherit diff-refine-removed))))
+
   `(dired-directory      ((,c (:inherit font-lock-builtin-face))))
   `(dired-header         ((,c (:inherit font-lock-builtin-face))))
   `(dired-symlink        ((,c (:inherit font-lock-constant-face))))
