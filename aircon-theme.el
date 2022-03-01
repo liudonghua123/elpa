@@ -103,6 +103,8 @@
   `(completions-common-part      ((,c (:inherit lazy-highlight))))
   `(completions-first-difference ((,c (:inherit isearch))))
 
+  `(diff-header          ((,c (:background "#e2e3ea" :foreground "#303645"))))
+  `(diff-file-header     ((,c (:inherit diff-file-header :weight bold))))
   `(diff-added           ((,c (:background "#c4face" :foreground "#143c1d"))))
   `(diff-refine-added    ((,c (:background "#88cd98" :foreground "#0c2912 "))))
   `(diff-removed         ((,c (:background "#ffcccc" :foreground "#4b1313"))))
