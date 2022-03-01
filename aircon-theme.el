@@ -36,66 +36,54 @@
 (deftheme aircon "Cool and legible light theme.")
 
 (defconst aircon-brick     "#8d2934")
-(defconst aircon-marigold  "#b88325")
-(defconst aircon-hibiscus  "#9a2d71")
-(defconst aircon-sapphire  "#2e4d98")
 (defconst aircon-cello     "#243867")
 (defconst aircon-eden      "#18566e")
-(defconst aircon-lilac     "#5f4f93")
-(defconst aircon-goblin    "#327038")
-(defconst aircon-sandstone "#615855")
-(defconst aircon-midnight  "#010e2c")
-(defconst aircon-shark     "#303645")
 (defconst aircon-ghost     "#a3a4ae")
+(defconst aircon-goblin    "#327038")
+(defconst aircon-hibiscus  "#9a2d71")
+(defconst aircon-lilac     "#5f4f93")
+(defconst aircon-marigold  "#b88325")
+(defconst aircon-midnight  "#010e2c")
+(defconst aircon-sandstone "#615855")
+(defconst aircon-sapphire  "#2e4d98")
+(defconst aircon-shark     "#303645")
 
-(defface aircon-scorpion
-  '((((class color) (min-colors 89)) (:foreground "#595959")))
-  "Aircon scorpion.")
+(defface aircon-athens
+  '((((class color) (min-colors 89)) (:background "#e2e3ea")))
+  "Aircon athens.")
+(defface aircon-blush
+  '((((class color) (min-colors 89)) (:background "#eea5a7")))
+  "Aircon blush.")
 (defface aircon-brick
   `((((class color) (min-colors 89)) (:foreground ,aircon-brick)))
   "Aircon brick.")
-(defface aircon-marigold
-  `((((class color) (min-colors 89)) (:foreground ,aircon-marigold)))
-  "Aircon marigold.")
-(defface aircon-hibiscus
-  `((((class color) (min-colors 89)) (:foreground ,aircon-hibiscus)))
-  "Aircon hibiscus.")
-(defface aircon-sapphire
-  `((((class color) (min-colors 89)) (:foreground ,aircon-sapphire)))
-  "Aircon sapphire.")
 (defface aircon-cello
   `((((class color) (min-colors 89)) (:foreground ,aircon-cello)))
   "Aircon cello.")
 (defface aircon-eden
   `((((class color) (min-colors 89)) (:foreground ,aircon-eden)))
   "Aircon eden.")
-(defface aircon-grape
-  '((((class color) (min-colors 89)) (:foreground "#412f7e")))
-  "Aircon grape.")
-(defface aircon-lilac
-  `((((class color) (min-colors 89)) (:foreground ,aircon-lilac)))
-  "Aircon lilac.")
-(defface aircon-goblin
-  `((((class color) (min-colors 89)) (:foreground ,aircon-goblin)))
-  "Aircon goblin.")
-(defface aircon-sandstone
-  `((((class color) (min-colors 89)) (:foreground ,aircon-sandstone)))
-  "Aircon sandstone.")
-(defface aircon-haze
-  '((((class color) (min-colors 89)) (:background "#c4cbdc")))
-  "Aircon haze.")
-(defface aircon-blush
-  '((((class color) (min-colors 89)) (:background "#eea5a7")))
-  "Aircon blush.")
-(defface aircon-prelude
-  '((((class color) (min-colors 89)) (:background "#d5cded")))
-  "Aircon prelude.")
 (defface aircon-fjord
   '((((class color) (min-colors 89)) (:background "#49587b")))
   "Aircon fjord.")
-(defface aircon-athens
-  '((((class color) (min-colors 89)) (:background "#e2e3ea")))
-  "Aircon athens.")
+(defface aircon-goblin
+  `((((class color) (min-colors 89)) (:foreground ,aircon-goblin)))
+  "Aircon goblin.")
+(defface aircon-grape
+  '((((class color) (min-colors 89)) (:foreground "#412f7e")))
+  "Aircon grape.")
+(defface aircon-haze
+  '((((class color) (min-colors 89)) (:background "#c4cbdc")))
+  "Aircon haze.")
+(defface aircon-header
+  `((nil (:inherit (aircon-athens) :foreground ,aircon-shark)))
+  "Aircon header.")
+(defface aircon-hibiscus
+  `((((class color) (min-colors 89)) (:foreground ,aircon-hibiscus)))
+  "Aircon hibiscus.")
+(defface aircon-lilac
+  `((((class color) (min-colors 89)) (:foreground ,aircon-lilac)))
+  "Aircon lilac.")
 (defface aircon-linen
   '((((class color) (min-colors 89)) (:background "#f7e8ca")))
   "Aircon linen.")
@@ -103,9 +91,21 @@
   '((((class color) (min-colors 89))
      (:background "#ffcb63" :foreground "#422c00")))
   "Aircon mango.")
-(defface aircon-header
-  `((nil (:inherit (aircon-athens) :foreground ,aircon-shark)))
-  "Aircon header.")
+(defface aircon-marigold
+  `((((class color) (min-colors 89)) (:foreground ,aircon-marigold)))
+  "Aircon marigold.")
+(defface aircon-prelude
+  '((((class color) (min-colors 89)) (:background "#d5cded")))
+  "Aircon prelude.")
+(defface aircon-sandstone
+  `((((class color) (min-colors 89)) (:foreground ,aircon-sandstone)))
+  "Aircon sandstone.")
+(defface aircon-sapphire
+  `((((class color) (min-colors 89)) (:foreground ,aircon-sapphire)))
+  "Aircon sapphire.")
+(defface aircon-scorpion
+  '((((class color) (min-colors 89)) (:foreground "#595959")))
+  "Aircon scorpion.")
 
 (custom-theme-set-faces
  'aircon
