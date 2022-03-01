@@ -103,6 +103,9 @@
   `(completions-common-part      ((,c (:inherit lazy-highlight))))
   `(completions-first-difference ((,c (:inherit isearch))))
 
+  `(help-key-binding     ((,c (:inherit (fixed-pitch mode-line-inactive)
+			       :box (:line-width (1 . -1) :color "#a3a4ae")))))
+
   `(diff-header          ((,c (:background "#e2e3ea" :foreground "#303645"))))
   `(diff-file-header     ((,c (:inherit diff-file-header :weight bold))))
   `(diff-added           ((,c (:background "#c4face" :foreground "#143c1d"))))
