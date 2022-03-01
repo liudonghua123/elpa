@@ -130,6 +130,20 @@
   `(eshell-ls-symlink    ((,c (:inherit font-lock-constant-face))))
   `(eshell-prompt        ((,c (:inherit font-lock-builtin-face))))
 
+  `(erc-pal-face            ((,c (:inherit font-lock-type-face :weight bold))))
+  `(erc-button              ((,c (:inherit button))))
+  `(erc-keyword-face        ((,c (:inherit font-lock-keyword-face))))
+  `(erc-current-nick-face   ((,c (:inherit font-lock-keyword-face))))
+  `(erc-dangerous-host-face ((,c (:inherit warning))))
+  `(erc-direct-msg-face     ((,c (:inherit font-lock-builtin-face :weight normal))))
+  `(erc-error-face          ((,c (:inherit error))))
+  `(erc-input-face          ((,c (:inherit font-lock-variable-name-face))))
+  `(erc-nick-default-face   ((,c (:inherit font-lock-keyword-face :weight bold))))
+  `(erc-nick-msg-face       ((,c (:inherit font-lock-keyword-face :weight bold))))
+  `(erc-notice-face         ((,c (:inherit font-lock-comment-face))))
+  `(erc-prompt-face         ((,c (:inherit minibuffer-prompt))))
+  `(erc-timestamp-face      ((,c (:inherit font-lock-constant-face))))
+
   ))
 
 (custom-theme-set-variables
