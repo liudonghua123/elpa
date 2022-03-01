@@ -75,6 +75,7 @@
   `(isearch             ((,c (:background "#ffcb63" :foreground "#422c00"))))
   `(isearch-fail        ((,c (:background "#eea5a7"))))
   `(lazy-highlight      ((,c (:background "#f7e8ca"))))
+  `(tooltip             ((,c (:inherit lazy-highlight))))
   `(show-paren-match    ((,c (:inherit isearch))))
   `(show-paren-mismatch ((,c (:inherit isearch-fail))))
   `(show-paren-match-expression ((,c (:inherit lazy-highlight))))
