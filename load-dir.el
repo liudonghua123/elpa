@@ -130,7 +130,7 @@ Recurses into subdirectories if `load-dir-recursive' is t."
             (load-dir-debug "Ignoring %s as per `load-dir-ignored'." full))
            (t
             (if load-dir-ignore-errors
-                (with-demoted-errors (load f))
+                (with-demoted-errors "%S" (load f))
               (load f))
             (add-to-list 'load-dir-loaded f))))))
 
