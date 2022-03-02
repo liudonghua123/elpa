@@ -52,23 +52,19 @@
 
 (defcustom load-dir-debug t
   "Debugging messages toggle, default to t."
-  :group 'load-dir
   :type 'boolean)
 
 (defcustom load-dir-recursive nil
   "Whether subdirectories should be loaded too."
-  :group 'load-dir
   :type 'boolean)
 
 (defcustom load-dir-ignore-errors nil
   "Whether errors in the loaded files should be ignored."
-  :group 'load-dir
   :type 'boolean)
 
 (defcustom load-dir-ignored '("\\.dir-locals")
   "This list of regular expressions tells load-dir to ignore some filenames.
 The match is a substring check against the whole filename."
-  :group 'load-dir
   :tag "Ignore these regexps while loading a directory"
   :type '(repeat :tag "Filename regexp" string))
 
@@ -80,7 +76,6 @@ If t, only files in ~/.emacs.d/load.d will be loaded.
 If a single directory name, only files in that directory will be loaded.
 If a list of directory names, all files found in all the
 directories will be loaded."
-  :group 'load-dir
   :tag "What directories to load"
   :type '(choice (const :tag "Load all from ~/.emacs.d/load.d" t)
                  (const :tag "Don't load anything" nil)
@@ -142,7 +137,7 @@ Recurses into subdirectories if `load-dir-recursive' is t."
 (defun load-dir-debug (&rest args)
   "Print a debug message like `message' if `load-dir-debug' is set."
   (when load-dir-debug
-    (apply 'message args)))
+    (apply #'message args)))
 
 ;;;###autoload
 (add-hook 'after-init-hook
