@@ -223,6 +223,19 @@
  '(erc-prompt-face         ((t (:inherit minibuffer-prompt))))
  '(erc-timestamp-face      ((t (:inherit aircon-eden))))
 
+ '(elfeed-search-date-face           ((t (:inherit (calendar-month-header)))))
+ '(elfeed-search-feed-face           ((t (:inherit (aircon-eden)))))
+ '(elfeed-search-last-update-face    ((t (:inherit (elfeed-search-date-face)))))
+ '(elfeed-search-tag-face            ((t (:inherit (aircon-goblin)))))
+ '(elfeed-search-title-face          ((t (:inherit (aircon-scorpion)))))
+ '(elfeed-search-unread-count-face   ((t (:inherit (default)))))
+ '(elfeed-search-unread-title-face   ((t (:inherit (bold default)))))
+ '(elfeed-log-date-face              ((t (:inherit (elfeed-search-date-face)))))
+ '(elfeed-log-debug-level-face       ((t (:inherit (aircon-brick)))))
+ '(elfeed-log-error-level-face       ((t (:inherit (error)))))
+ '(elfeed-log-info-level-face        ((t (:inherit (aircon-sapphire)))))
+ '(elfeed-log-warn-level-face        ((t (:inherit (warning)))))
+
  )
 
 ;;;###autoload
