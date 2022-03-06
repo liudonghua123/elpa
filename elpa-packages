@@ -114,8 +114,8 @@
   :auto-sync t)
  ;; FIXME: The upstream has incompatible copyrights, so we moved it to NonGNU.
  ;; ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
- ;; FIXME: https://github.com/cpitclaudel/compact-docstrings/issues/3
- ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings")
+ ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings"
+  :auto-sync t)
  ("comint-mime"		:url "https://github.com/astoff/comint-mime"
   :auto-sync t)
  ("company"
@@ -156,9 +156,9 @@
   :url "https://github.com/magnars/dash.el.git"
   :doc "dash.texi"
   :auto-sync t)
- ;; FIXME: https://github.com/ueno/dbus-codegen-el/issues/2
  ("dbus-codegen"	:url "https://github.com/ueno/dbus-codegen-el.git"
-  :ignored-files ("COPYING"))
+  :ignored-files ("COPYING")
+  :auto-sync t)
  ("debbugs"		:url nil :doc ("debbugs.texi" "debbugs-ug.texi"))
  ("delight"		:url "https://git.savannah.gnu.org/r/delight.git"
   :auto-sync t)
