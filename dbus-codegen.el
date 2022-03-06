@@ -1,6 +1,6 @@
 ;;; dbus-codegen.el --- Lisp code generation for D-Bus. -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@gnu.org>
 ;; Keywords: comm, dbus, convenience
@@ -168,10 +168,10 @@
 ;; Base type of a D-Bus proxy and a skeleton.
 (cl-defstruct (dbus-codegen-object
 	       (:constructor nil))
-  (bus :read-only t)
-  (service :read-only t)
-  (path :read-only t)
-  (interface :read-only t)
+  (bus nil :read-only t)
+  (service nil :read-only t)
+  (path nil :read-only t)
+  (interface nil :read-only t)
   registration-list)
 
 ;; Base type of a D-Bus proxy.
@@ -626,7 +626,7 @@ XML is either a string which defines the interface of the D-Bus
 proxy, or a Lisp form which returns a string.  The format of the
 string must comply with the standard D-Bus introspection data
 format as described in:
-`http://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format>'.
+`http://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format'.
 
 INTERFACE is a name of interface which is represented by this
 proxy.
@@ -828,7 +828,7 @@ XML is either a string which defines the interface of the D-Bus
 skeleton, or a Lisp form which returns a string.  The format of the
 string must comply with the standard D-Bus introspection data
 format as described in:
-`http://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format>'.
+`http://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format'.
 
 INTERFACE is a name of interface which is represented by this
 skeleton.
