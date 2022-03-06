@@ -50,12 +50,16 @@
  ("ascii-art-to-unicode" :url nil)
  ("async"		:url "https://github.com/jwiegley/emacs-async"
   :auto-sync t)
+ ;; AUCTeX is currently sync'd manually and elpa.git isn't quite a mirror :-(
  ("auctex"		:url "git://git.sv.gnu.org/auctex.git")
  ("aumix-mode"		:url nil)
  ("auto-overlays"	:url "http://www.dr-qubit.org/git/predictive.git"
   :doc "docs/auto-overlay-manual.texinfo")
  ("auto-correct"	:url nil)
+ ;; FIXME: Avy diverged https://github.com/abo-abo/avy/issues/344
  ("avy"			:url "https://github.com/abo-abo/avy")
+ ;; The BBDB branch in elpa.git is managed directly by hand, with
+ ;; a "parallel" history to that of the upstream.
  ("bbdb"		:url "git://git.savannah.nongnu.org/bbdb.git"
   :lisp-dir "lisp"
   :doc "doc/bbdb.texi")
@@ -75,6 +79,7 @@
  ("buffer-env"		:url "https://github.com/astoff/buffer-env"
   :auto-sync t)
  ("buffer-expose"	:url "https://github.com/clemera/buffer-expose")
+ ;; FIXME: https://github.com/Malabarba/elisp-bug-hunter/issues/31
  ("bug-hunter"		:url "https://github.com/Malabarba/elisp-bug-hunter")
  ;;FIXME:("cedet"	:url "??")
  ;; ("cc-mode"		:core ("lisp/progmodes/cc-align.el"
@@ -107,7 +112,9 @@
  ("code-cells"		:url "https://github.com/astoff/code-cells.el"
   :ignored-files ("LICENSE")
   :auto-sync t)
- ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
+ ;; FIXME: The upstream has incompatible copyrights, so we moved it to NonGNU.
+ ;; ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
+ ;; FIXME: https://github.com/cpitclaudel/compact-docstrings/issues/3
  ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings")
  ("comint-mime"		:url "https://github.com/astoff/comint-mime"
   :auto-sync t)
@@ -127,6 +134,7 @@
   :doc "README.org"
   :ignored-files ("images")
   :auto-sync t)
+ ;; FIXME: https://github.com/jacksonrayhamilton/context-coloring/issues/9
  ("context-coloring"	:url "https://github.com/jacksonrayhamilton/context-coloring.git")
  ("corfu"		:url "https://github.com/minad/corfu"
   :doc "README.org" :auto-sync t)
@@ -148,7 +156,9 @@
   :url "https://github.com/magnars/dash.el.git"
   :doc "dash.texi"
   :auto-sync t)
- ("dbus-codegen"	:url "https://github.com/ueno/dbus-codegen-el.git")
+ ;; FIXME: https://github.com/ueno/dbus-codegen-el/issues/2
+ ("dbus-codegen"	:url "https://github.com/ueno/dbus-codegen-el.git"
+  :ignored-files ("COPYING"))
  ("debbugs"		:url nil :doc ("debbugs.texi" "debbugs-ug.texi"))
  ("delight"		:url "https://git.savannah.gnu.org/r/delight.git"
   :auto-sync t)
@@ -172,7 +182,7 @@
   :news "CHANGELOG.org"
   :readme "README.org"
   :auto-sync t)
- ("dts-mode"		:url "https://github.com/bgamari/dts-mode.git")
+ ("dts-mode"		:url nil) ;; Was "https://github.com/bgamari/dts-mode.git")
  ("easy-escape"		:url "https://github.com/cpitclaudel/easy-escape"
   :auto-sync t)
  ("easy-kill"		:url "https://github.com/leoliu/easy-kill")
