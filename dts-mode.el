@@ -1,9 +1,10 @@
-;;; dts-mode.el --- Major mode for Device Tree source files
+;;; dts-mode.el --- Major mode for Device Tree source files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022  Free Software Foundation, Inc.
 
-;; Version: 0.1.1
+;; Version: 1.0
 ;; Author: Ben Gamari <ben@smart-cactus.org>
+;; Package-Requires: ((emacs "24"))
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -28,6 +29,13 @@
 ;; - SMIE-based automatic indentation
 
 ;;; News:
+
+;; In Version 1.0:
+;; - Always use SMIE
+;; - Require Emacs≥24
+
+;; In Version 0.1.1:
+;; - Add SMIE-based indentation
 
 ;;; Code:
 
@@ -76,7 +84,7 @@
 ;;;; Original manual indentation code.
 
 (defun dts--calculate-indentation ()
-  (interactive)
+  (declare (obsolete indent-according-to-mode "1.0"))
   (save-excursion
     (let ((end (point-at-eol))
           (cnt 0)
@@ -95,11 +103,13 @@
       cnt)))
 
 (defun dts-indent-line ()
+  "Old indentation algorithm."
+  (declare (obsolete indent-according-to-mode "1.0"))
   (interactive)
-  (let ((indent (dts--calculate-indentation)))
+  (let ((indent (with-no-warnings (dts--calculate-indentation))))
     (save-excursion
       (indent-line-to (* indent tab-width)))
-    (when (or (bolp) (looking-back "^[[:space:]]+"))
+    (when (or (bolp) (looking-back "^[[:space:]]+" (line-beginning-position)))
       (beginning-of-line-text))))
 
 ;;;; New SMIE-based indentation code.
@@ -114,7 +124,6 @@
 
 (require 'smie nil t)
 
-(defvar dts-use-smie (and (fboundp 'smie-prec2->grammar) (fboundp 'pcase)))
 
 (defconst dts-grammar
   ;; FIXME: The syntax-table gives symbol-constituent syntax to the comma,
@@ -175,9 +184,7 @@
           ("#include[ \t]+\\(<\\).*\\(>\\)" (1 "|") (2 "|"))
           ;; Treat things like /delete-property/ as a single identifier.
           ("\\(/\\)[a-z]+\\(/\\)" (1 "_") (2 "_")))))
-  (if dts-use-smie
-      (smie-setup dts-grammar #'dts-indent-rules)
-    (set (make-local-variable 'indent-line-function) #'dts-indent-line)))
+  (smie-setup dts-grammar #'dts-indent-rules))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.dtsi?\\'" . dts-mode))
