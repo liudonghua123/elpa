@@ -428,6 +428,9 @@
  ("orgalist"            :url nil)
  ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
  ("osc"			:url nil)
+ ("osm"			:url "https://github.com/minad/osm"
+  :auto-sync t
+  :ignored-files ("LICENSE"))
  ("other-frame-window"	:url nil)
  ("paced"		:url "bzr::bzr://bzr.savannah.nongnu.org/paced-el/trunk")
  ("pabbrev"             :url "https://github.com/phillord/pabbrev.git")
