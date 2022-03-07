@@ -416,7 +416,8 @@
  ("org-modern"		:url "https://github.com/minad/org-modern"
   :auto-sync t)
  ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
-  :auto-sync t)
+  :auto-sync t
+  :ignored-files ("LICENSE"))
  ("org-remark"	:url "https://github.com/nobiot/org-remark"
   :readme "README.org"
   :doc "docs/org-remark.org"
