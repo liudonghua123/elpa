@@ -5,7 +5,7 @@
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hypermedia
 ;; Package: debbugs
-;; Version: 0.30
+;; Version: 0.31
 ;; Package-Requires: ((emacs "25.1") (soap-client "3.1.5"))
 
 ;; This file is not part of GNU Emacs.
