@@ -1210,7 +1210,7 @@ If NOCACHE is non-nil, bug information is retrieved from the debbugs server.
 Interactively, it is non-nil with the prefix argument."
   (interactive
    (list current-prefix-arg))
-  (let ((id (debbugs-gnu-current-id))
+  (let ((id (debbugs-gnu-current-id t))
 	(debbugs-gnu-current-query debbugs-gnu-local-query)
 	(debbugs-gnu-current-filter debbugs-gnu-local-filter)
 	(debbugs-gnu-current-suppress debbugs-gnu-local-suppress)
