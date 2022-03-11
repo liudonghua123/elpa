@@ -351,6 +351,10 @@
  ("load-relative"	:url "https://github.com/rocky/emacs-load-relative")
  ("loc-changes"		:url "https://github.com/rocky/emacs-loc-changes")
  ("loccur"		:url "https://github.com/fourier/loccur")
+ ("logos"		:url "https://gitlab.com/protesilaos/logos"
+  :auto-sync t
+  :news "CHANGELOG.org"
+  :ignored-files ("COPYING" "doclicense.texi"))
  ("map"                 :core "lisp/emacs-lisp/map.el")
  ("marginalia"		:url "https://github.com/minad/marginalia"
   :doc "README.org" :auto-sync t)
