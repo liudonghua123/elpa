@@ -584,7 +584,8 @@
   :doc "docs/transient.texi")
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
  ;; FIXME: The upstream of `undo-tree' has diverged.  I tried to
- ;; contact Toby in Dec 2021 but haven't heard from him.
+ ;; contact Toby but he's quite busy.  He mentioned thinking of using the
+ ;; `elpa.git` branch as the official upstream.
  ("undo-tree"		:url "https://gitlab.com/tsc25/undo-tree"
   :auto-sync t)
  ("uni-confusables" 	:url nil
