@@ -366,7 +366,8 @@ By default, just remove it."
 		ogt-source-segment-overlay (make-overlay (point) (point)))
 	(error (org-translate-mode -1)
 	       (signal (car err) (cdr err))))
-      (cl-pushnew #'ogt-export-remove-segmenters org-export-filter-body-functions)
+      ;; (cl-pushnew #'ogt-export-remove-segmenters
+      ;; 		  org-export-filter-body-functions)
       (overlay-put ogt-source-segment-overlay
 		   'face 'highlight)
       ;; Doesn't actually delete it, just makes it "inactive" until we
@@ -410,6 +411,11 @@ By default, just remove it."
       (ogt-update-source-location)
       (ogt-report-progress))))
 
+;; Two problems with this: it's currently added to the global value of
+;; `org-export-filter-body-functions', meaning it will get run on any
+;; Org export process the user runs.  Second,
+;; `ogt-segmentation-character' is buffer-local, and will be nil in
+;; the copy of the buffer that Org uses for export.
 (defun ogt-export-remove-segmenters (body-string _backend _plist)
   "Remove `ogt-segmentation-character' on export."
   ;; Is `org-export-filter-body-functions' the right filter to use?
