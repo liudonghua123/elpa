@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2020-2021  Free Software Foundation, Inc.
 
-;; Version: 0.1.3
-;; Package-Requires: ((emacs "25.1") (org "9.1"))
+;; Version: 0.1.4
+;; Package-Requires: ((emacs "27.1") (org "9.1"))
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 ;; Maintainer: Eric Abrahamsen <eric@ericabrahamsen.net>
@@ -786,9 +786,10 @@ Saves a bookmark under PROJECT-NAME."
 	     (let ((f-name (file-name-nondirectory
 			    (file-name-sans-extension
 			     (buffer-file-name)))))
-	      (read-string
-	       (format-prompt "Save project as" f-name)
-	       nil nil f-name)))))
+	       (read-string
+                (format
+                 "Save project as (default: %s): " f-name)
+	        nil nil f-name)))))
   (let ((rec (bookmark-make-record)))
     (bookmark-prop-set rec 'translation t)
     (bookmark-store project-name (cdr rec) nil)
