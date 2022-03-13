@@ -158,7 +158,7 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
   "Check out all available Kiwix libraries."
   (cond
    ((and (eq kiwix-server-type 'docker-remote) (string-equal kiwix-server-api-version "v2"))
-    (let ((url (format "%s:%s/catalog/search" kiwix-server-url kiwix-server-port)))
+    (let ((url (format "%s:%s/catalog/search?start=0&count=" kiwix-server-url kiwix-server-port)))
       (request url
         :type "GET"
         :sync t
