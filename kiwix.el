@@ -157,6 +157,7 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
 (defun kiwix-get-libraries ()
   "Check out all available Kiwix libraries."
   (cond
+   ;; http://192.168.31.251:8580/catalog/search?start=0&count=
    ((and (eq kiwix-server-type 'docker-remote) (string-equal kiwix-server-api-version "v2"))
     (let ((url (format "%s:%s/catalog/search?start=0&count=" kiwix-server-url kiwix-server-port)))
       (request url
@@ -195,6 +196,7 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
 
    ;; ZIM library files on remote Docker server, parse index HTML page.
    ((and (eq kiwix-server-type 'docker-remote) (string-equal kiwix-server-api-version "v1"))
+    ;; http://192.168.31.251:8580
     (let ((url (format "%s:%s" kiwix-server-url kiwix-server-port)))
       (request url
         :type "GET"
@@ -306,18 +308,21 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
 (defun kiwix-query (query &optional selected-library)
   "Search `QUERY' in `LIBRARY' with Kiwix."
   (cond
+   ;; http://192.168.31.251:8580/wikipedia_en_all_maxi_2021-03/A/Linux_kernel
    ((and (eq kiwix-server-type 'docker-remote) (string-equal kiwix-server-api-version "v2"))
     (let* ((library (or selected-library (kiwix--get-library-name selected-library)))
            (url (concat (format "%s:%s" kiwix-server-url kiwix-server-port)
                         "/" library "/A/" (replace-regexp-in-string " " "_" query)))
            (browse-url-browser-function kiwix-default-browser-function))
       (browse-url url)))
+   ;; http://192.168.31.251:8580/search?content=wikipedia_en_all_maxi_2021-03&pattern=Linux%20kernel
    ((and (eq kiwix-server-type 'docker-remote) (string-equal kiwix-server-api-version "v1"))
     (let* ((library (or selected-library (kiwix--get-library-name selected-library)))
            (url (concat (format "%s:%s" kiwix-server-url kiwix-server-port)
                         "/search?content=" library "&pattern=" (url-hexify-string query)))
            (browse-url-browser-function kiwix-default-browser-function))
       (browse-url url)))
+   ;; http://192.168.31.251:8580/search?content=wikipedia_en_all_maxi_2021-03&pattern=Linux%20kernel
    (t
     (let* ((library (or selected-library (kiwix--get-library-name selected-library)))
            (url (concat (format "%s:%s" kiwix-server-url kiwix-server-port)
@@ -343,6 +348,7 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
        (or (kiwix-docker-check)
            (async-shell-command "docker pull kiwix/kiwix-serve")))
   (let ((inhibit-message t))
+    ;; http://192.168.31.251:8580
     (request (format "%s:%s" kiwix-server-url kiwix-server-port)
       :type "GET"
       :sync t
@@ -365,6 +371,7 @@ list and return a list result."
   (when (and input kiwix-server-available?)
     (let* ((library (or selected-library
                         (kiwix--get-library-name selected-library)))
+           ;; http://192.168.31.251:8580/suggest?content=wikipedia_en_all_maxi_2021-03&term=linux
            (ajax-api (format "%s:%s/suggest?content=%s&term="
                              kiwix-server-url kiwix-server-port
                              library))
@@ -467,6 +474,7 @@ list and return a list result."
   "Full context search QUERY in all kiwix ZIM libraries. It's very slow."
   (interactive
    (list (read-string "kiwix full context search in all libraries: ")))
+  ;; http://192.168.31.251:8580/search?content=wikipedia_en_all_maxi_2021-03&pattern=Linux%20kernel
   (browse-url (format "%s:%s/search?pattern=%s" kiwix-server-url kiwix-server-port query)))
 
 ;;;###autoload
