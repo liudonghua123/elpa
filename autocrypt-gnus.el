@@ -24,7 +24,7 @@
 ;;;###autoload
 (defun autocrypt-gnus--install ()
   "Prepare autocrypt for Gnus."
-  (add-hook 'gnus-article-prepare-hook #'autocrypt-process-header nil t))
+  (add-hook 'gnus-select-article-hook #'autocrypt-process-header nil t))
 
 (defun autocrypt-gnus--uninstall ()
   "Undo `autocrypt-gnus--install'."
