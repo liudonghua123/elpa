@@ -192,35 +192,7 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
                     _data))
         :status-code '((404 . (lambda (&rest _) (message (format "Endpoint %s does not exist." url))))
                        (500 . (lambda (&rest _) (message (format "Error from %s." url))))))))
-   
-   ((and (eq kiwix-server-type 'docker-remote) (string-equal kiwix-server-api-version "v2"))
-    (let ((url (format "%s:%s/catalog/v2/categories" kiwix-server-url kiwix-server-port)))
-      (request url
-        :type "GET"
-        :sync t
-        :parser (lambda ()
-                  (if (libxml-available-p)
-                      (let ((xml-data (libxml-parse-xml-region (point-min) (point-max))))
-                        (setq kiwix-libraries
-                              (remove-if 'null
-                                         (mapcar
-                                          (lambda (cons)
-                                            (when (and (listp cons) (eq (car cons) 'entry))
-                                              (let* ((entry cons)
-                                                     (title (caddr (assq 'title entry))) ; "title"
-                                                     (link (assq 'href (cadr (assq 'link cons)))) ; "/catalog/v2/entries?category=stack_exchange"
-                                                     )
-                                                title)))
-                                          xml-data))))))
-        :error (cl-function
-                (lambda (&rest args &key error-thrown &allow-other-keys)
-                  (message "Function kiwix-get-libraries error.")))
-        :success (cl-function
-                  (lambda (&key _data &allow-other-keys)
-                    _data))
-        :status-code '((404 . (lambda (&rest _) (message (format "Endpoint %s does not exist." url))))
-                       (500 . (lambda (&rest _) (message (format "Error from %s." url))))))))
-   
+
    ;; ZIM library files on remote Docker server, parse index HTML page.
    ((and (eq kiwix-server-type 'docker-remote) (string-equal kiwix-server-api-version "v1"))
     (let ((url (format "%s:%s" kiwix-server-url kiwix-server-port)))
