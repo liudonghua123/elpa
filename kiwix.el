@@ -337,7 +337,7 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
    ((and (eq kiwix-server-type 'docker-remote) (string-equal kiwix-server-api-version "v2"))
     (let* ((library (or selected-library (kiwix--get-library-name selected-library)))
            (url (concat (format "%s:%s" kiwix-server-url kiwix-server-port)
-                        "/" library "/A/" (url-hexify-string query)))
+                        "/" library "/A/" (replace-regexp-in-string " " "_" query)))
            (browse-url-browser-function kiwix-default-browser-function))
       (browse-url url)))
    ((and (eq kiwix-server-type 'docker-remote) (string-equal kiwix-server-api-version "v1"))
