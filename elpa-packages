@@ -475,6 +475,10 @@
  ;;                         git reset \$GIT_COMMIT -- pspp-mode.el" \
  ;;         -- -- pspp-mode.el
  ("pspp-mode"		:url nil) ;; Was "https://git.sv.gnu.org/r/pspp.git"
+ ("pulsar"		:url "https://gitlab.com/protesilaos/pulsar"
+  :auto-sync t
+  :news "CHANGELOG.org"
+  :ignored-files ("COPYING" "doclicense.texi"))
  ("pyim"
   :url "https://github.com/tumashu/pyim.git"
   :auto-sync t)
