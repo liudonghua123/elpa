@@ -173,7 +173,9 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
                                             (when (and (listp cons) (eq (car cons) 'entry))
                                               (let* ((entry-xml cons)
                                                      (title (caddr (assq 'title entry-xml))) ; "title"
-                                                     (link_thumbnail (assq 'href (cadr (assq 'link entry-xml))))
+                                                     (thumbnail_url (format "%s:%s/%s"
+                                                                            kiwix-server-url kiwix-server-port
+                                                                            (cdr (assq 'href (cadr (assq 'link entry-xml))))))
                                                      (link_url_path (cdr
                                                                      (assq 'href
                                                                            (cadr
