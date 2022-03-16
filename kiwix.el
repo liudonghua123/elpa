@@ -57,6 +57,7 @@
 
 
 (require 'cl-lib)
+(require 'url)
 (require 'request)
 (require 'subr-x)
 (require 'thingatpt)
@@ -187,7 +188,22 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
                                                                                  entry-xml)))))
                                                      (library-filename (string-trim-left library-link-path "/")))
                                                 (propertize library-filename
-                                                            'display (format "%s (%s)" title library-filename)))))
+                                                            'display (concat
+                                                                      (when-let ((return-buffer (url-retrieve-synchronously thumbnail-url :silent)))
+                                                                        (unwind-protect
+                                                                            (let ((image-data (with-current-buffer return-buffer
+                                                                                                (goto-char (point-min))
+                                                                                                (search-forward "\n\n") ; skip HTTP response headers.
+                                                                                                (buffer-substring-no-properties (point) (point-max)))))
+                                                                              (kill-buffer return-buffer)
+                                                                              (propertize " "
+                                                                                          'display (create-image image-data nil t
+                                                                                                                 :ascent 'center
+                                                                                                                 :max-height (default-font-height))
+                                                                                          'read-only t))))
+                                                                      " "
+                                                                      (format "%s (%s)" title library-filename))
+                                                            'read-only t))))
                                           xml-data))))))
         :error (cl-function
                 (lambda (&rest args &key error-thrown &allow-other-keys)
