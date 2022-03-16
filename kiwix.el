@@ -184,8 +184,10 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
                                                                                (if (and (listp element) (eq (car element) 'link))
                                                                                    (if (string-equal (cdr (assq 'type (cadr element))) "text/html")
                                                                                        element)))
-                                                                             entry-xml))))))
-                                                (string-trim-left link_url_path "/"))))
+                                                                             entry-xml)))))
+                                                     (library-filename (string-trim-left link_url_path "/")))
+                                                (propertize library-filename
+                                                            'display (format "%s (%s)" title library-filename)))))
                                           xml-data))))))
         :error (cl-function
                 (lambda (&rest args &key error-thrown &allow-other-keys)
