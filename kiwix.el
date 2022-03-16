@@ -173,19 +173,19 @@ Set it to ‘t’ will use Emacs built-in ‘completing-read’."
                                             (when (and (listp cons) (eq (car cons) 'entry))
                                               (let* ((entry-xml cons)
                                                      (title (caddr (assq 'title entry-xml))) ; "title"
-                                                     (thumbnail_url (format "%s:%s/%s"
+                                                     (thumbnail-url (format "%s:%s/%s"
                                                                             kiwix-server-url kiwix-server-port
                                                                             (cdr (assq 'href (cadr (assq 'link entry-xml))))))
-                                                     (link_url_path (cdr
-                                                                     (assq 'href
-                                                                           (cadr
-                                                                            (seq-find
-                                                                             (lambda (element)
-                                                                               (if (and (listp element) (eq (car element) 'link))
-                                                                                   (if (string-equal (cdr (assq 'type (cadr element))) "text/html")
-                                                                                       element)))
-                                                                             entry-xml)))))
-                                                     (library-filename (string-trim-left link_url_path "/")))
+                                                     (library-link-path (cdr
+                                                                         (assq 'href
+                                                                               (cadr
+                                                                                (seq-find
+                                                                                 (lambda (element)
+                                                                                   (if (and (listp element) (eq (car element) 'link))
+                                                                                       (if (string-equal (cdr (assq 'type (cadr element))) "text/html")
+                                                                                           element)))
+                                                                                 entry-xml)))))
+                                                     (library-filename (string-trim-left library-link-path "/")))
                                                 (propertize library-filename
                                                             'display (format "%s (%s)" title library-filename)))))
                                           xml-data))))))
