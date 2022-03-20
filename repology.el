@@ -702,8 +702,10 @@ Return a list of Repology projects."
                       (repology-project-packages project))))
        (cond
         ((not reference-package)
-         (user-error "No package for project %S in repository %S"
-                     project repository))
+         ;; Ignore projects when no reference package exists in
+         ;; REPOSITORY.
+         (warn "No package for project %S in repository %S" project repository)
+         t)
         ;; Default definition for outdated projects: trust Repology's
         ;; status from reference package.
         ((not repology-outdated-project-definition)
