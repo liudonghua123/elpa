@@ -288,6 +288,7 @@ If nil, the value of `send-mail-function' is used instead."
 	      (const "adns")
 	      (const "anubis")
 	      (const "auctex")
+	      ;(const "autoconf")
 	      (const "automake")
 	      (const "automake-patches")
 	      (const "cc-mode")
@@ -314,6 +315,7 @@ If nil, the value of `send-mail-function' is used instead."
 	      (const "org-mode")
 	      (const "parted")
 	      (const "sed")
+	      (const "skribilo")
 	      (const ,(propertize
 		      "spam"
 		      'face 'debbugs-gnu-done
