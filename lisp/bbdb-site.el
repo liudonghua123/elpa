@@ -1,6 +1,6 @@
 ;;; bbdb-site.el --- site-specific variables for BBDB -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2017  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2022  Free Software Foundation, Inc.
 
 ;; This file is part of the Insidious Big Brother Database (aka BBDB),
 
@@ -22,7 +22,7 @@
 (defconst bbdb-version "@PACKAGE_VERSION@" "Version of BBDB.")
 
 (if (< emacs-major-version 24)
-  (error "BBDB %s requires GNU Emacs 24 or later" bbdb-version))
+  (user-error "BBDB %s requires GNU Emacs 24 or later" bbdb-version))
 
 (defcustom bbdb-tex-path
   (let* ((default "@pkgdatadir@")
