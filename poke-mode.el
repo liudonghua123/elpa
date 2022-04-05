@@ -1,9 +1,10 @@
 ;;; poke-mode.el --- Major mode for editing Poke programs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020, 2021 Aurelien Aptel <aaptel@suse.com>
+;; Copyright (C) 2020-2022  Free Software Foundation, Inc.
+
 ;; SMIE grammar and help from Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 0
-
+;; Author: Aurelien Aptel <aaptel@suse.com>
 ;; Maintainer: Aurelien Aptel <aaptel@suse.com>
 
 ;; This file is NOT part of GNU Emacs.
@@ -37,8 +38,8 @@
 
 (require 'smie)
 
-(defgroup poke nil
-  "Poke PK (pickle) editiong mode."
+(defgroup poke-mode nil
+  "Poke PK (pickle) editing mode."
   :group 'languages)
 
 (defface poke-unit
@@ -306,12 +307,10 @@
     (`(:elem . basic) poke-indent-basic)
     ;; (`(:list-intro . "=") t)
     (`(:after . "=") poke-indent-basic)
-    ((and `(:before . "{") (guard (smie-rule-parent-p "fun")))
+    ((and `(:before . "{") (guard (smie-rule-parent-p "fun" "struct")))
      (smie-rule-parent 0))
     (`(:before . ,(or `"(" `"{"))
      (if (smie-rule-hanging-p) (smie-rule-parent)))
-    ((and `(:before . "{") (guard (smie-rule-parent-p "struct")))
-     (smie-rule-parent 0))
     (`(:before . "if")
      (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
           (smie-rule-parent)))))

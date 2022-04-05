@@ -1,0 +1,3 @@
+*.elc
+/poke-mode-autoloads.el
+/poke-mode-pkg.el
