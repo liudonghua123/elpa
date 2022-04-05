@@ -459,6 +459,12 @@
   :auto-sync nil
   )
  ("pinentry"		:url "https://github.com/ueno/pinentry-el.git")
+ ("poke"		:url "git://git.sv.gnu.org/poke/poke-el.git"
+  :doc "poke-el.texi"
+  :ignored-files ("COPYING")
+  :auto-sync t)
+ ("poke-mode"		:url "git://git.sv.gnu.org/poke/poke-mode.git"
+  :auto-sync t)
  ("poker"		:url nil)
  ("posframe"
   :url "https://github.com/tumashu/posframe"
@@ -470,7 +476,7 @@
   :auto-sync t)
  ("prefixed-core"	:url nil)
  ("project"		:core "lisp/progmodes/project.el")
- ("psgml"               :url "https://github.com/lenst/psgml.git")
+ ("psgml"               :url nil) ;; Was https://github.com/lenst/psgml.git
  ;; FIXME: We actually used a filtered version of pspp.git using:
  ;;     git filter-branch                                           \
  ;;         --index-filter "git read-tree --empty;                  \
