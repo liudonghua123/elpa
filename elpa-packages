@@ -637,6 +637,11 @@
  ("vertico-posframe"
   :url "https://github.com/tumashu/vertico-posframe"
   :auto-sync t)
+ ("vundo"
+  :url "https://github.com/casouri/vundo"
+  :ignored-files ("test")
+  :news "NEWS.txt"
+  :auto-sync t)
  ("wcheck-mode"		:url "https://github.com/tlikonen/wcheck-mode")
  ("wconf"		:url "https://github.com/ilohmar/wconf")
  ("web-server"		:url "https://github.com/eschulte/emacs-web-server.git")
