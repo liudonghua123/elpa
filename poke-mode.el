@@ -133,6 +133,7 @@
 
 (defvar poke-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "\C-c/") 'smie-close-block)
     map)
   "Keymap used in `poke-mode'.")
 
