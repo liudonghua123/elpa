@@ -348,6 +348,10 @@
   :auto-sync t)
  ("let-alist"		:core "lisp/emacs-lisp/let-alist.el")
  ("lex"			:url nil)
+ ("lin"		:url "https://git.sr.ht/~protesilaos/lin"
+  :auto-sync t
+  :news "CHANGELOG.org"
+  :ignored-files ("COPYING" "doclicense.texi"))
  ("lmc"			:url nil)
  ("load-dir"		:url nil)
  ("load-relative"	:url "https://github.com/rocky/emacs-load-relative")
