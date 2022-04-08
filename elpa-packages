@@ -273,7 +273,7 @@
  ("filladapt"		:url nil)
  ("flylisp"		:url nil)
  ("flymake"		:core "lisp/progmodes/flymake.el")
- ("flymake-proselint"	:url "https://github.com/manuel-uberti/flymake-proselint"
+ ("flymake-proselint"	:url "https://git.sr.ht/~manuel-uberti/flycheck-proselint"
   :auto-sync t)
  ("frame-tabs"		:url nil)
  ("frog-menu"		:url "https://github.com/clemera/frog-menu")
