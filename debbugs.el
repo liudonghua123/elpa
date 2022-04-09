@@ -5,8 +5,8 @@
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hypermedia
 ;; Package: debbugs
-;; Version: 0.31
-;; Package-Requires: ((emacs "25.1") (soap-client "3.1.5"))
+;; Version: 0.32
+;; Package-Requires: ((emacs "26.1") (soap-client "3.1.5"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -38,6 +38,7 @@
 
 ;;; Code:
 
+(require 'subr-x)
 ;(setq soap-debug t url-debug t message-log-max t)
 (require 'soap-client)
 (eval-when-compile (require 'cl-lib))
