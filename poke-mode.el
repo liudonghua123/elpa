@@ -308,7 +308,7 @@
     (`(:elem . basic) poke-indent-basic)
     ;; (`(:list-intro . "=") t)
     (`(:after . "=") poke-indent-basic)
-    ((and `(:before . "{") (guard (smie-rule-parent-p "fun" "struct" "union")))
+    ((and `(:before . "{") (guard (smie-rule-parent-p "fun" "struct" "union" "method")))
      (smie-rule-parent 0))
     (`(:before . ,(or `"(" `"{"))
      (if (smie-rule-hanging-p) (smie-rule-parent)))
