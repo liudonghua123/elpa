@@ -598,6 +598,7 @@
   :renames (("docs/" ""))
   :news "CHANGELOG"
   :doc "docs/transient.texi")
+ ("transient-cycles"    :url nil)
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
  ;; FIXME: The upstream of `undo-tree' has diverged.  I tried to
  ;; contact Toby but he's quite busy.  He mentioned thinking of using the
