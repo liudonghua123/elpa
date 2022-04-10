@@ -289,8 +289,6 @@
     '((assoc ";") (assoc ",")
       (assoc "+") (assoc "-")))))
 
-(defvar poke--smie-in-if-op nil)
-
 (defun poke--smie-forward-token ()
   (let ((case-fold-search nil)
         (token (smie-default-forward-token)))
@@ -301,19 +299,16 @@
         (forward-char 1)
         "if-("))
      ;; Handle if-)
-     ((and (or (equal token "") (not token))
-           (not poke--smie-in-if-op) (looking-at ")"))
+     ((and (or (equal token "") (not token)) (looking-at ")"))
       (condition-case nil
           (when (save-excursion
                   (forward-char 1)
-                  (setq poke--smie-in-if-op t)
-                  (backward-sexp)
-                  (setq poke--smie-in-if-op nil)
+                  (let ((forward-sexp-function nil))
+                    (backward-sexp))
                   (looking-back "if[ \t\n]*"))
             (forward-char 1)
             "if-)")
         (scan-error
-         (setq poke--smie-in-if-op nil)
          nil)))
      (t
       token))))
@@ -331,22 +326,18 @@
       (cond
        ;; Handle if-(
        ((and (or (equal token "") (not token)) (looking-back "if[ \t\n]*("))
-        (setq poke--smie-if-op (point))
         (forward-char -1)
         "if-(")
        ;; Handle if-)
-       ((and (or (equal token "") (not token))
-             (not poke--smie-in-if-op) (looking-back ")"))
+       ((and (or (equal token "") (not token)) (looking-back ")"))
         (condition-case nil
             (when (save-excursion
-                    (setq poke--smie-in-if-op t)
-                    (backward-sexp)
-                    (setq poke--smie-in-if-op nil)
+                    (let ((forward-sexp-function nil))
+                      (backward-sexp))
                     (looking-back "if[ \t\n]*"))
               (forward-char -1)
               "if-)")
           (scan-error
-           (setq poke--smie-in-if-op nil)
            nil)))
        (t
         token))))))
