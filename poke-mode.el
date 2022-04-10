@@ -283,13 +283,41 @@
       (stmt (comp-stmt)
             (id "=" exp)
             ("return" exp)
-            ("if" stmt "else" stmt)
+            ("if" "if-(" exp "if-)" stmt "else" stmt)
             (exp))
       (stmts (stmts ";" stmts) (stmt)))
     '((assoc ";") (assoc ",")
       (assoc "+") (assoc "-")))))
 
+(defvar poke--smie-in-if-op nil)
+
 (defun poke--smie-forward-token ()
+  (let ((case-fold-search nil)
+        (token (smie-default-forward-token)))
+    (cond
+     ;; Handle if-(
+     ((and (or (equal token "") (not token)) (looking-at "("))
+      (when (looking-back "if[ \t\n]*")
+        (forward-char 1)
+        "if-("))
+     ;; Handle if-)
+     ((and (or (equal token "") (not token))
+           (not poke--smie-in-if-op) (looking-at ")"))
+      (condition-case nil
+          (when (save-excursion
+                  (forward-char 1)
+                  (setq poke--smie-in-if-op t)
+                  (backward-sexp)
+                  (setq poke--smie-in-if-op nil)
+                  (looking-back "if[ \t\n]*"))
+            (forward-char 1)
+            "if-)")
+        (scan-error
+         (setq poke--smie-in-if-op nil)
+         nil)))
+     (t
+      token))))
+
   ;; FIXME:
   ;; Don't merge ":" or ";" with some preceding punctuation such as ">".
   (smie-default-forward-token))
@@ -301,7 +329,31 @@
    ((memq (char-before) '(?: ?\;))
     (forward-char -1)
     (string (char-after)))
-   (t (smie-default-backward-token))))
+   (t
+    (let ((case-fold-search nil)
+          (token (smie-default-backward-token)))
+      (cond
+       ;; Handle if-(
+       ((and (or (equal token "") (not token)) (looking-back "if[ \t\n]*("))
+        (setq poke--smie-if-op (point))
+        (forward-char -1)
+        "if-(")
+       ;; Handle if-)
+       ((and (or (equal token "") (not token))
+             (not poke--smie-in-if-op) (looking-back ")"))
+        (condition-case nil
+            (when (save-excursion
+                    (setq poke--smie-in-if-op t)
+                    (backward-sexp)
+                    (setq poke--smie-in-if-op nil)
+                    (looking-back "if[ \t\n]*"))
+              (forward-char -1)
+              "if-)")
+          (scan-error
+           (setq poke--smie-in-if-op nil)
+           nil)))
+       (t
+        token))))))
 
 (defun poke-smie-rules (token kind)
   (pcase (cons token kind)
