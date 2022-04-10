@@ -318,10 +318,6 @@
      (t
       token))))
 
-  ;; FIXME:
-  ;; Don't merge ":" or ";" with some preceding punctuation such as ">".
-  (smie-default-forward-token))
-
 (defun poke--smie-backward-token ()
   (forward-comment (- (point)))
   (cond
