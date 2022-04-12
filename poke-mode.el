@@ -288,8 +288,8 @@
             ("try" stmt "catch" comp-stmt)
             ("try" stmt "catch" "catch-(" exp "catch-)" comp-stmt)
             (exp))
-      (exp-if ("if" "if-(" exp "if-)" stmt))
-      (stmts (stmts ";" stmts) (stmt)))
+      (stmts (stmts ";" stmts) (stmt))
+      (exp-if ("if" "if-(" exp "if-)" stmt)))
     '((assoc ";") (assoc ",")
       (assoc "+") (assoc "-")))))
 
