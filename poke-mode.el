@@ -287,6 +287,8 @@
             ("while" "while-(" exp "while-)" stmt)
             ("for" "for-(" stmts "for-)")
             ("for" "for-(" exp "in" exp "for-)")
+            ("try" stmt "catch" comp-stmt)
+            ("try" stmt "catch" "catch-(" exp "catch-)" comp-stmt)
             (exp))
       (exp-if ("if" "if-(" exp "if-)" stmt))
       (stmts (stmts ";" stmts) (stmt)))
@@ -297,7 +299,7 @@
   (let ((case-fold-search nil)
         (token (smie-default-forward-token)))
     (cond
-     ;; Handle if-(, while-(, for-(
+     ;; Handle if-(, while-(, for-(, catch-(
      ((and (or (equal token "") (not token)) (looking-at "("))
       (cond
        ((looking-back "if[ \t\n]*")
@@ -309,9 +311,12 @@
        ((looking-back "for[ \t\n]*")
         (forward-char 1)
         "for-(")
+       ((looking-back "catch[ \t\n]*")
+        (forward-char 1)
+        "catch-(")
        (t
         nil)))
-     ;; Handle if-), while-), for-)
+     ;; Handle if-), while-), for-), catch-)
      ((and (or (equal token "") (not token)) (looking-at ")"))
       (condition-case nil
           (let ((entity (save-excursion
@@ -325,6 +330,8 @@
                            "while-)")
                           ((looking-back "for[ \t\n]*")
                            "for-)")
+                          ((looking-back "catch[ \t\n]*")
+                           "catch-)")
                           (t
                            nil)))))
             (when entity
@@ -358,7 +365,11 @@
        ((and (or (equal token "") (not token)) (looking-back "for[ \t\n]*("))
         (forward-char -1)
         "for-(")
-       ;; Handle if-), while-), for-)
+       ;; Handle catch-(
+       ((and (or (equal token "") (not token)) (looking-back "catch[ \t\n]*("))
+        (forward-char -1)
+        "catch-(")
+       ;; Handle if-), while-), for-), catch-)
        ((and (or (equal token "") (not token)) (looking-back ")"))
         (condition-case nil
             (let ((entity (save-excursion
@@ -371,6 +382,8 @@
                               "while-)")
                              ((looking-back "for[ \t\n]*")
                               "for-)")
+                             ((looking-back "catch[ \t\n]*")
+                              "catch-)")
                              (t
                               nil)))))
               (when entity
