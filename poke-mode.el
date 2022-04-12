@@ -5,7 +5,7 @@
 ;; SMIE grammar and help from Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 0
 ;; Author: Aurelien Aptel <aaptel@suse.com>
-;; Maintainer: Aurelien Aptel <aaptel@suse.com>
+;; Maintainer: Jose E. Marchesi <jemarch@gnu.org>
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -28,11 +28,9 @@
 
 ;; A major mode for editing Poke programs.
 
-;; TODO: indentation via smie?
 ;; TODO: xref source for goto def/list refs
 ;; TODO: be smarter about types vs identifiers (e.g. offset)
 ;; TODO: highlight user-defined types/funcs/var/units
-;; TODO: comint mode for interactive session?
 
 ;;; Code:
 
