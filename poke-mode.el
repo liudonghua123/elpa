@@ -283,7 +283,8 @@
       (stmt (comp-stmt)
             (id "=" exp)
             ("return" exp)
-            ("else" exp-if)            
+            ("else" exp-if)
+            ("while" "while-(" exp "while-)" stmt)
             (exp))
       (exp-if ("if" "if-(" exp "if-)" stmt))
       (stmts (stmts ";" stmts) (stmt)))
@@ -294,21 +295,34 @@
   (let ((case-fold-search nil)
         (token (smie-default-forward-token)))
     (cond
-     ;; Handle if-(
+     ;; Handle if-(, while-(
      ((and (or (equal token "") (not token)) (looking-at "("))
-      (when (looking-back "if[ \t\n]*")
+      (cond
+       ((looking-back "if[ \t\n]*")
         (forward-char 1)
-        "if-("))
-     ;; Handle if-)
+        "if-(")
+       ((looking-back "while[ \t\n]*")
+        (forward-char 1)
+        "while-(")
+       (t
+        nil)))
+     ;; Handle if-), while-)
      ((and (or (equal token "") (not token)) (looking-at ")"))
       (condition-case nil
-          (when (save-excursion
-                  (forward-char 1)
-                  (let ((forward-sexp-function nil))
-                    (backward-sexp))
-                  (looking-back "if[ \t\n]*"))
-            (forward-char 1)
-            "if-)")
+          (let ((entity (save-excursion
+                         (forward-char 1)
+                         (let ((forward-sexp-function nil))
+                           (backward-sexp))
+                         (cond
+                          ((looking-back "if[ \t\n]*")
+                           "if-)")
+                          ((looking-back "while[ \t\n]*")
+                           "while-)")
+                          (t
+                           nil)))))
+            (when entity
+              (forward-char 1)
+              entity))
         (scan-error
          nil)))
      (t
@@ -329,15 +343,26 @@
        ((and (or (equal token "") (not token)) (looking-back "if[ \t\n]*("))
         (forward-char -1)
         "if-(")
-       ;; Handle if-)
+       ;; Handle while-(
+       ((and (or (equal token "") (not token)) (looking-back "while[ \t\n]*("))
+        (forward-char -1)
+        "while-(")
+       ;; Handle if-), while-)
        ((and (or (equal token "") (not token)) (looking-back ")"))
         (condition-case nil
-            (when (save-excursion
-                    (let ((forward-sexp-function nil))
-                      (backward-sexp))
-                    (looking-back "if[ \t\n]*"))
-              (forward-char -1)
-              "if-)")
+            (let ((entity (save-excursion
+                            (let ((forward-sexp-function nil))
+                              (backward-sexp))
+                            (cond
+                             ((looking-back "if[ \t\n]*")
+                              "if-)")
+                             ((looking-back "while[ \t\n]*")
+                              "while-)")
+                             (t
+                              nil)))))
+              (when entity
+                (forward-char -1)
+                entity))
           (scan-error
            nil)))
        (t
