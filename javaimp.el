@@ -695,8 +695,8 @@ in a major mode hook."
              ;; sub-alist
              (cons t (javaimp-scope-name scope))))
          (lambda (res)
-           (or (functionp (nth 2 res)) ;entry
-               (cdr res)))             ;non-empty sub-alist
+           (or (functionp (nth 2 res))  ; imenu entry
+               (cdr res)))              ; non-empty sub-alist
          forest)
       (let ((entries
              (mapcar #'javaimp-imenu--make-entry
@@ -724,7 +724,7 @@ in a major mode hook."
   (let* ((scopes (javaimp--parse-get-all-scopes
                   (lambda (scope)
                     (javaimp-test-scope-type scope
-                      '(class interface enum method)
+                      `(,@ javaimp--classlike-scope-types method)
                       javaimp--classlike-scope-types))))
          (methods (seq-filter
                    (lambda (scope)
@@ -830,7 +830,7 @@ with prefix arg, show all scopes."
               (unless show-all
                 (lambda (scope)
                   (javaimp-test-scope-type scope
-                    '(class interface enum method)
+                    `(,@ javaimp--classlike-scope-types method)
                     javaimp--classlike-scope-types)))))))
         (source-buf (current-buffer))
         (source-default-dir default-directory)
