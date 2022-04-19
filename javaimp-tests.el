@@ -105,15 +105,15 @@ extends Bar<? extends Baz<? extends Baz2>> {"
 (ert-deftest javaimp-test--parse-scope-anon-class ()
   (javaimp-test--single-parser #'javaimp--parse-scope-anon-class
     '(" = new Object < Class1 , Class2 > ( 1 + 1 , baz ) {"
-      anon-class "Object")
+      anon-class "<anon>Object")
     `(,(subst-char-in-string
         ?  ?\n
         " = new Object < Class1 , Class2 > ( 1 + 1 , baz ) {")
-      anon-class "Object")
+      anon-class "<anon>Object")
     '(" = (obj.getField()).new Object<Class1, Class2>(1, baz) {"
-      anon-class "Object")
+      anon-class "<anon>Object")
     '(" = obj.new Object<>(1, baz) {"
-      anon-class "Object")
+      anon-class "<anon>Object")
     ))
 
 (ert-deftest javaimp-test--parse-scope-method-or-stmt ()
