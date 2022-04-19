@@ -534,8 +534,8 @@ and END, both exclusive, optionally filtering them with PRED, and
 their parents with PARENT-PRED.  Neither of PRED or PARENT-PRED
 should move point.  Note that parents may be outside of region
 given by BEG and END.  BEG is the LIMIT argument to
-`previous-single-property-change', END defaults to end of
-accessible portion of the buffer."
+`previous-single-property-change', and so may be nil.  END
+defaults to end of accessible portion of the buffer."
   (javaimp--parse-all-scopes)
   (let ((pos (or end (point-max)))
         scope res)
