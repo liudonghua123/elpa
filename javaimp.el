@@ -118,9 +118,15 @@
 ;; (local-set-key (kbd "C-c o") #'javaimp-organize-imports)
 ;; (local-set-key (kbd "C-c s") #'javaimp-show-scopes)
 ;;
-;; To enable Imenu (overriding Imenu support from cc-mode):
+;; To override other functions from cc-mode:
 ;;
 ;; (setq imenu-create-index-function #'javaimp-imenu-create-index)
+;;
+;; (setq beginning-of-defun-function #'javaimp-beginning-of-defun)
+;; (setq end-of-defun-function #'javaimp-end-of-defun)
+;; (define-key java-mode-map (kbd "C-M-a") #'beginning-of-defun)
+;; (define-key java-mode-map (kbd "C-M-e") #'end-of-defun)
+;;
 
 
 ;;; Code:
@@ -571,13 +577,10 @@ If there's no such directive, then the last resort is just
 
 (defun javaimp--get-buffer-classes ()
   "Return fully-qualified names of all class-like scopes in the
-current buffer."
+current buffer.  Anonymous classes are not included."
   (let ((package (javaimp--parse-get-package))
         (scopes (javaimp--parse-get-all-scopes
-                 (lambda (scope)
-                   (javaimp-test-scope-type scope
-                     javaimp--classlike-scope-types
-                     javaimp--classlike-scope-types)))))
+                 nil nil (javaimp--defun-scope-pred))))
     (mapcar (lambda (class)
               (if package
                   (concat package "." class)
@@ -721,19 +724,17 @@ in a major mode hook."
               entries)))))
 
 (defun javaimp-imenu--get-forest ()
-  (let* ((scopes (javaimp--parse-get-all-scopes
-                  (lambda (scope)
-                    (javaimp-test-scope-type scope
-                      `(,@ javaimp--classlike-scope-types method)
-                      javaimp--classlike-scope-types))))
+  (let* ((defun-scopes
+          (javaimp--parse-get-all-scopes
+           nil nil (javaimp--defun-scope-pred '(method))))
          (methods (seq-filter
                    (lambda (scope)
                      (eq (javaimp-scope-type scope) 'method))
-                   scopes))
+                   defun-scopes))
          (classes (seq-filter
                    (lambda (scope)
                      (not (eq (javaimp-scope-type scope) 'method)))
-                   scopes))
+                   defun-scopes))
          (top-classes (seq-filter (lambda (s)
                                     (null (javaimp-scope-parent s)))
                                   classes))
@@ -816,22 +817,15 @@ opening brace."
 (define-derived-mode javaimp-show-scopes-mode special-mode "Javaimp Show Scopes"
   (setq next-error-function #'javaimp-show-scopes-next-error))
 
-(defun javaimp-show-scopes (&optional show-all)
-  "Show scopes in *javaimp-scopes* buffer, with clickable text.
-By default, the scopes are only those which appear in
-Imenu (`javaimp-imenu-create-index' is responsible for that), but
-with prefix arg, show all scopes."
-  (interactive "P")
+(defun javaimp-show-scopes ()
+  "Show scopes in *javaimp-scopes* buffer."
+  (interactive)
   (let ((scopes
          (save-excursion
            (save-restriction
              (widen)
              (javaimp--parse-get-all-scopes
-              (unless show-all
-                (lambda (scope)
-                  (javaimp-test-scope-type scope
-                    `(,@ javaimp--classlike-scope-types method)
-                    javaimp--classlike-scope-types)))))))
+              nil nil (javaimp--defun-scope-pred '(method anon-class))))))
         (source-buf (current-buffer))
         (source-default-dir default-directory)
         (buf (get-buffer-create "*javaimp-scopes*")))
@@ -887,6 +881,77 @@ with prefix arg, show all scopes."
   (if-let ((win (get-buffer-window (current-buffer) t)))
     (set-window-point win (point)))
   (javaimp-show-scopes-goto-scope nil))
+
+
+
+;; Navigation
+
+(defun javaimp-beginning-of-defun (arg)
+  "Function to be used as `beginning-of-defun-function'."
+  (if (zerop arg)
+      t
+    (when (> arg 0) (setq arg (1- arg)))
+    (when-let* ((tmp (javaimp--get-sibling-defuns))
+                (prev-idx (or (car tmp) -1))
+                (siblings (cdr tmp))
+                (target-idx (- prev-idx arg)))
+      (when (and (>= target-idx 0)
+                 (< target-idx (length siblings)))
+        (goto-char (javaimp-scope-open-brace
+                    (nth target-idx siblings)))))))
+
+(defun javaimp-end-of-defun ()
+  "Function to be used as `end-of-defun-function'."
+  (ignore-errors
+    (goto-char
+     (scan-lists (point) 1 0))))
+
+(defun javaimp--get-sibling-defuns ()
+  "Return list of the form (PREV-INDEX . SIBLINGS), where SIBLINGS
+is a list of all sibling defun scopes.  PREV-INDEX is the index
+of the \"previous\" (relative to point) scope in this list, or
+nil."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (let* ((pos (point))
+             (defun-pred (javaimp--defun-scope-pred '(method anon-class)))
+             (enc (javaimp--parse-get-enclosing-scope defun-pred))
+             (parent
+              (if (and enc (eq (javaimp-scope-type enc) 'method))
+                  ;; We're inside a method, and need to look at
+                  ;; sibling defuns within same parent (it's ok for
+                  ;; parent to be nil)
+                  (javaimp-scope-parent enc)
+                ;; We're either inside a type (but not within its
+                ;; nested defuns), or just at top-level.  Look at
+                ;; defuns whose parent is enc.
+                enc))
+             (sibling-pred (javaimp--scope-same-parent-pred parent))
+             (siblings
+              (javaimp--parse-get-all-scopes
+               ;; beg/end are not strictly needed, pred is enough, but
+               ;; provide them for effectiveness
+               (and parent (javaimp-scope-open-brace parent))
+               (and parent (ignore-errors
+                             (1- (scan-lists
+                                  (javaimp-scope-open-brace parent) 1 0))))
+               (lambda (s)
+                 (and (funcall defun-pred s)
+                      (funcall sibling-pred s)))))
+             (prev
+              (if (and enc (eq (javaimp-scope-type enc) 'method))
+                  enc
+                ;; try to find previous defun
+                (seq-find (lambda (s)
+                            (< (javaimp-scope-open-brace s) pos))
+                          (reverse siblings)))))
+        (cons (and prev
+                   (seq-position siblings prev
+                                 (lambda (s1 s2)
+                                   (= (javaimp-scope-open-brace s1)
+                                      (javaimp-scope-open-brace s2)))))
+              siblings)))))
 
 
 
