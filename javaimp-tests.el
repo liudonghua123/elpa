@@ -165,7 +165,10 @@ throws E1 {"
   (dolist (item test-items)
     (with-temp-buffer
       (insert (nth 0 item))
-      (let* ((javaimp--parse-scope-hook parser)
+      (let* ((javaimp--parse-scope-hook
+              (lambda (arg)
+                (save-excursion
+                  (funcall parser arg))))
              (scopes (javaimp--parse-get-all-scopes)))
         (should (= 1 (length scopes)))
         (should (eq (javaimp-scope-type (car scopes)) (nth 1 item)))
