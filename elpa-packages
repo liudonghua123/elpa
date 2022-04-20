@@ -35,7 +35,8 @@
 
 (("ace-window"		:url "https://github.com/abo-abo/ace-window"
   :auto-sync t)
- ("ack"			:url "https://github.com/leoliu/ack-el")
+ ("ack"			:url "https://github.com/leoliu/ack-el"
+  :aut-sync t)
  ("ada-mode"		:url nil :doc ("ada-mode.texi" "gpr-mode.texi"))
  ("ada-ref-man"		:url nil)
  ("adaptive-wrap"	:url nil)
@@ -189,7 +190,8 @@
  ("dts-mode"		:url nil) ;; Was "https://github.com/bgamari/dts-mode.git")
  ("easy-escape"		:url "https://github.com/cpitclaudel/easy-escape"
   :auto-sync t)
- ("easy-kill"		:url "https://github.com/leoliu/easy-kill")
+ ("easy-kill"		:url "https://github.com/leoliu/easy-kill"
+  :auto-sync t)
  ("ebdb"                :url "https://github.com/girzel/ebdb.git")
  ("ebdb-gnorb"		:url nil)
  ("ebdb-i18n-chn"	:url nil)
@@ -205,6 +207,8 @@
  ("eldoc-eval"		:url "https://github.com/thierryvolpiatto/eldoc-eval.git")
  ("electric-spacing"	:url nil)
  ("elisp-benchmarks"	:url nil)
+ ;; ("emacspeak"		:url nil
+ ;;  :lisp-dir "lisp")
  ("embark"
   :url "https://github.com/oantolin/embark"
   :doc "embark.texi"
@@ -283,7 +287,8 @@
  ("ftable"		:url "https://github.com/casouri/ftable"
   :auto-sync t)
  ("gcmh"		:url "https://gitlab.com/koral/gcmh")
- ("ggtags"		:url "https://github.com/leoliu/ggtags")
+ ("ggtags"		:url "https://github.com/leoliu/ggtags"
+  :auto-sync t)
  ("gited"		:url nil)
  ("gle-mode"		:url nil)
  ("gnome-c-style"	:url "https://github.com/ueno/gnome-c-style.git")
@@ -577,7 +582,8 @@
   :branch "package/taxy-magit-section"
   :doc "taxy-magit-section.info"
   :auto-sync t)
- ("temp-buffer-browse"  :url "https://github.com/leoliu/temp-buffer-browse")
+ ("temp-buffer-browse"  :url "https://github.com/leoliu/temp-buffer-browse"
+  :auto-sync)
  ("tempel"		:url "https://github.com/minad/tempel"
   :auto-sync t)
  ("test-simple"         :url "https://github.com/rocky/emacs-test-simple")
