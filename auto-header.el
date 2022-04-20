@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id$
+;; Version: $Id: auto-header.el,v 1.1 2022/04/20 17:15:42 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1.0
 ;; Keywords: c
 
@@ -141,6 +141,13 @@ NAME."
       (auto-header-insert-headers
        (mapcan #'auto-header-find-headers
 	       headers)))))
+
+(define-minor-mode auto-header-mode
+  "Run `auto-header-buffer' before saving."
+  :lighter " AH"
+  (if auto-header-mode
+      (add-hook 'before-save-hook #'auto-header-buffer nil t)
+    (remove-hook 'before-save-hook #'auto-header-buffer t)))
 
 (provide 'auto-header)
 ;;; auto-header.el ends here
