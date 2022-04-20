@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.1 2022/04/20 17:15:42 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.2 2022/04/20 17:18:40 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1.0
 ;; Keywords: c
 
@@ -29,7 +29,8 @@
 ;; invoke the functionality manually, or add `auto-header-buffer' to
 ;; `before-save-hook' (in most cases you want to only add it locally),
 ;; so that headers are updated just before saving the contents of a
-;; buffer.
+;; buffer.  This can also be done by enabling `auto-header-mode', or
+;; by adding it to a major mode hook (e.g. `c-mode-hook').
 
 ;;; Code:
 
