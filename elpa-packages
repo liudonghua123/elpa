@@ -589,6 +589,10 @@
  ("test-simple"         :url "https://github.com/rocky/emacs-test-simple")
  ("timerfunctions"	:url nil)
  ("tiny"		:url "https://github.com/abo-abo/tiny")
+ ("tmr"
+  :url "https://git.sr.ht/~protesilaos/tmr"
+  :auto-sync t
+  :ignored-files ("COPYING" "doclicense.texi"))
  ("tNFA"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("tramp"		:url "git://git.sv.gnu.org/tramp.git"
   :branch "externals/tramp"
