@@ -155,6 +155,10 @@
   :readme "README.org"
   :auto-sync t)
  ("csv-mode"		:url nil)
+ ("cursory"
+  :url "https://git.sr.ht/~protesilaos/cursory"
+  :auto-sync t
+  :ignored-files ("COPYING" "doclicense.texi"))
  ("cycle-quotes"	:url nil)
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
  ("dash"
