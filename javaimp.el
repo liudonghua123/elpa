@@ -365,7 +365,7 @@ contained in it as a list."
        (if (equal ext "jar") "tf" "list")
        ;; On cygwin, "jar/jmod" is a windows program, so file path
        ;; needs to be converted appropriately.
-       (javaimp-cygpath-convert-maybe file 'windows)))))
+       (javaimp-cygpath-convert-file-name file 'windows)))))
 
 (defun javaimp--read-jar-classes-handler ()
   "Used by `javaimp--read-jar-classes' to handle jar program

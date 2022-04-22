@@ -82,7 +82,7 @@ descriptor."
    :file (cdr (assq 'file alist))
    :file-orig file-orig
    ;; jar/war supported
-   :final-name (when-let ((final-name (javaimp-cygpath-convert-maybe
+   :final-name (when-let ((final-name (javaimp-cygpath-convert-file-name
                                        (cdr (assq 'final-name alist)))))
                  (and (member (file-name-extension final-name) '("jar" "war"))
                       final-name))
@@ -90,7 +90,7 @@ descriptor."
                         (javaimp--split-native-path
                          (cdr (assq 'source-dirs alist))))
    :build-dir (file-name-as-directory
-               (javaimp-cygpath-convert-maybe
+               (javaimp-cygpath-convert-file-name
                 (cdr (assq 'build-dir alist))))
    :dep-jars (javaimp--split-native-path (cdr (assq 'dep-jars alist)))
    :load-ts (current-time)
@@ -147,7 +147,7 @@ descriptor."
      ;; java-library projects.  See
      ;; https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_classes_usage
      "-Dorg.gradle.java.compile-classpath-packaging=true"
-     "-I" (javaimp-cygpath-convert-maybe
+     "-I" (javaimp-cygpath-convert-file-name
            (expand-file-name "javaimp-init-script.gradle"
                              (concat javaimp-basedir
                                      (file-name-as-directory "support"))))

@@ -122,15 +122,15 @@ resulting module trees."
                               (javaimp-xml-child 'finalName build-elt))
                              "." packaging)))
      :source-dirs (list (file-name-as-directory
-		         (javaimp-cygpath-convert-maybe
+		         (javaimp-cygpath-convert-file-name
 		          (javaimp-xml-first-child
 		           (javaimp-xml-child 'sourceDirectory build-elt))))
                         (file-name-as-directory
-		         (javaimp-cygpath-convert-maybe
+		         (javaimp-cygpath-convert-file-name
 			  (javaimp-xml-first-child
 			   (javaimp-xml-child 'testSourceDirectory build-elt)))))
      :build-dir (file-name-as-directory
-		 (javaimp-cygpath-convert-maybe
+		 (javaimp-cygpath-convert-file-name
 		  (javaimp-xml-first-child (javaimp-xml-child 'directory build-elt))))
      :dep-jars nil          ; dep-jars is initialized lazily on demand
      :load-ts (current-time)
@@ -219,7 +219,7 @@ are somewhat arbitrary."
     (javaimp--call-build-tool
      program
      handler
-     "-f" (javaimp-cygpath-convert-maybe file)
+     "-f" (javaimp-cygpath-convert-file-name file)
      task)))
 
 (provide 'javaimp-maven)
