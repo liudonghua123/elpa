@@ -201,7 +201,7 @@ are somewhat arbitrary."
    (lambda ()
      (search-forward "Dependencies classpath:")
      (forward-line 1)
-     (javaimp--split-native-path (thing-at-point 'line)))
+     (javaimp-split-native-path (thing-at-point 'line)))
    "dependency:build-classpath"
    ;; Invoke in original file's directory because there may be local
    ;; build tool wrapper.
@@ -216,7 +216,7 @@ are somewhat arbitrary."
          (program (if (file-exists-p local-mvnw)
                       (concat default-directory local-mvnw)
                     javaimp-mvn-program)))
-    (javaimp--call-build-tool
+    (javaimp-call-build-tool
      program
      handler
      "-f" (javaimp-cygpath-convert-file-name file)

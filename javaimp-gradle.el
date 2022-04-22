@@ -87,12 +87,12 @@ descriptor."
                  (and (member (file-name-extension final-name) '("jar" "war"))
                       final-name))
    :source-dirs (mapcar #'file-name-as-directory
-                        (javaimp--split-native-path
+                        (javaimp-split-native-path
                          (cdr (assq 'source-dirs alist))))
    :build-dir (file-name-as-directory
                (javaimp-cygpath-convert-file-name
                 (cdr (assq 'build-dir alist))))
-   :dep-jars (javaimp--split-native-path (cdr (assq 'dep-jars alist)))
+   :dep-jars (javaimp-split-native-path (cdr (assq 'dep-jars alist)))
    :load-ts (current-time)
    :dep-jars-fetcher #'javaimp-gradle--fetch-dep-jars
    :raw nil))
@@ -122,7 +122,7 @@ descriptor."
    (javaimp-module-file-orig module)
    (lambda ()
      (re-search-forward "^dep-jars=\\(.*\\)$")
-     (javaimp--split-native-path (match-string 1)))
+     (javaimp-split-native-path (match-string 1)))
    (let ((mod-path (mapconcat #'javaimp-id-artifact (cdr ids) ":")))
      (unless (string-empty-p mod-path)
        (format ":%s:" mod-path)))))
@@ -139,7 +139,7 @@ descriptor."
          (program (if (file-exists-p local-gradlew)
                       (concat default-directory local-gradlew)
                     javaimp-gradle-program)))
-    (javaimp--call-build-tool
+    (javaimp-call-build-tool
      program
      handler
      "-q"
