@@ -565,6 +565,7 @@
  ("sotlisp"		:url "https://github.com/Malabarba/speed-of-thought-lisp")
  ("spinner"		:url "https://github.com/Malabarba/spinner.el")
  ("sql-beeline"		:url nil)
+ ("sql-cassandra"	:url nil)
  ("sql-indent"          :url "https://github.com/alex-hhh/emacs-sql-indent")
  ("sql-smie"            :url nil)
  ("ssh-deploy"		:url "https://github.com/cjohansson/emacs-ssh-deploy")
@@ -634,7 +635,7 @@
  ("vc-hgcmd"		:url "https://github.com/muffinmad/emacs-vc-hgcmd"
   :auto-sync t)
  ("vc-backup"		:url "https://git.sr.ht/~pkal/vc-backup"
-  :auto-sync t) 
+  :auto-sync t)
  ("vcard"		:url nil)
  ("vdiff"               :url "https://github.com/justbur/emacs-vdiff")
  ("vcl-mode"	        :url "git://git.gnu.org.ua/vcl-mode")
