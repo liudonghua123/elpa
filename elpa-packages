@@ -187,7 +187,7 @@
  ("dismal"		:url nil)
  ("djvu"		:url nil)
  ("docbook"		:url nil)
- ("dtache"		:url "https://gitlab.com/niklaseklund/dtache"
+ ("dtache"		:url "https://git.sr.ht/~niklaseklund/dtache"
   :news "CHANGELOG.org"
   :readme "README.org"
   :auto-sync t)
