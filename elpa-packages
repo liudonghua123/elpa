@@ -308,6 +308,8 @@
  ("gpastel"		:url "https://gitlab.petton.fr/DamienCassou/gpastel")
  ("greader"		:url "https://gitlab.com/michelangelo-rodriguez/greader")
  ("greenbar"		:url nil)
+ ("gtags-mode"		:url "https://github.com/Ergus/gtags-mode"
+  :auto-sync t)
  ("guess-language"	:url "https://github.com/tmalsburg/guess-language.el")
  ("heap"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("hiddenquote"	:url "https://gitlab.com/mauroaranda/hiddenquote/hiddenquote")
