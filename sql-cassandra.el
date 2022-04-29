@@ -132,10 +132,6 @@ Refer to https://cassandra.apache.org/doc/latest/cassandra/cql/appendices.html#a
   (remove-hook 'sql-login-hook #'sql-cassandra--setup-interactive-mode)
 
   (setq comint-process-echoes t)
-  ;; Remove prefix from echoed continuation lines, otherwise comint
-  ;; doesn't recognize them
-  (add-hook 'comint-output-filter-functions
-	    #'sql-cassandra--remove-echo-prefix 0 t)
 
   ;; Use our product's terminator
   (setq-local sql-send-terminator t)
@@ -149,18 +145,6 @@ Refer to https://cassandra.apache.org/doc/latest/cassandra/cql/appendices.html#a
 		(goto-char (point-max))
 		(not (re-search-backward "^disabled query paging" nil t)))
       (sleep-for 0.1))))
-
-(defun sql-cassandra--remove-echo-prefix (_string)
-  "Remove prefix which cqlsh adds to each line it echoes.  This
-function is intended to be added to
-`comint-output-filter-functions'."
-  (when-let ((process (get-buffer-process (current-buffer)))
-	     (pmark (process-mark process)))
-    (save-excursion
-      (goto-char comint-last-output-start)
-      (while (re-search-forward "^ +\\.\\{3\\} " pmark t)
-	(replace-match "")))))
-
 
 ;;;###autoload
 (defun sql-cassandra (&optional buffer)
@@ -178,7 +162,8 @@ function is intended to be added to
  :sqli-comint-func #'sql-comint-cassandra
  :list-all "describe tables"
  :list-table "describe table %s"
- :prompt-regexp "^[^ .][^>\n]*> "
+ :prompt-regexp "^cqlsh:[[:alnum:]_]*> "
+ :prompt-cont-regexp "^ +\\.\\{3\\} "
  :syntax-alist '(;; map / set / udt literals
 		 (?{ . "(") (?} . ")")
 		 ;; list literals
