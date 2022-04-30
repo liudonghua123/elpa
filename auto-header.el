@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.4 2022/04/30 07:53:03 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.5 2022/04/30 08:05:31 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1.0
 ;; Keywords: c
 
@@ -138,8 +138,9 @@ NAME."
 		  symbol-end
 		  (* space) "(")
 	      nil t)
-	(unless (member (match-string-no-properties 1)
-			auto-header-c-keywords)
+	(unless (or (member (match-string-no-properties 1)
+			    auto-header-c-keywords)
+		    (nth 4 (syntax-ppss)))
 	  (push (match-string-no-properties 1) headers)))
       (auto-header-insert-headers
        (apply #'append (mapcar #'auto-header-find-headers
