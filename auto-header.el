@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.2 2022/04/20 17:18:40 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.3 2022/04/20 17:20:15 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1.0
 ;; Keywords: c
 
@@ -98,6 +98,7 @@
 	(delete-blank-lines))
       (newline))))
 
+;;;###autoload
 (defun auto-header-at-point (name)
   "Insert headers for NAME.
 When called interactively, use the symbol at or before point as
@@ -124,6 +125,7 @@ NAME."
     "_Imaginary" "_Noreturn" "_Static_assert" "_Thread_local")
   "List of keywords to not treat as functions.")
 
+;;;###autoload
 (defun auto-header-buffer ()
   "Insert the headers for all functions."
   (interactive)
@@ -143,6 +145,7 @@ NAME."
        (mapcan #'auto-header-find-headers
 	       headers)))))
 
+;;;###autoload
 (define-minor-mode auto-header-mode
   "Run `auto-header-buffer' before saving."
   :lighter " AH"
