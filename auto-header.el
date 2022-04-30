@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.3 2022/04/20 17:20:15 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.4 2022/04/30 07:53:03 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1.0
 ;; Keywords: c
 
@@ -142,8 +142,8 @@ NAME."
 			auto-header-c-keywords)
 	  (push (match-string-no-properties 1) headers)))
       (auto-header-insert-headers
-       (mapcan #'auto-header-find-headers
-	       headers)))))
+       (apply #'append (mapcar #'auto-header-find-headers
+			       headers))))))
 
 ;;;###autoload
 (define-minor-mode auto-header-mode
