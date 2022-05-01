@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.5 2022/04/30 08:05:31 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.6 2022/04/30 08:06:10 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1.0
 ;; Keywords: c
 
@@ -47,30 +47,30 @@
       (search-forward-regexp "^SYNOPSIS")
       (forward-line)
       (let ((start (point)))
-	(search-forward-regexp "^DESCRIPTION")
-	(narrow-to-region start (point)))
+        (search-forward-regexp "^DESCRIPTION")
+        (narrow-to-region start (point)))
       (goto-char (point-min))
       (let (next headers)
-	(while (not (eobp))
-	  (cond
-	   ((and (looking-at-p (rx bol (* blank) eol)) next)
-	    (setq headers nil
-		  next nil))
-	   ((looking-at (rx bol (* blank)
-			    "#include <"
-			    (group (+ nonl))
-			    ">" eol))
-	    (push (match-string 1) headers))
-	   ((looking-at (rx bol (* blank)
-			    (+? nonl) (+ blank)
-			    (group (+ alnum))
-			    "("))
-	    (unless (gethash (match-string 1) auto-header-cache)
-	      (puthash (match-string 1)
-		       (delete-dups headers)
-		       auto-header-cache)
-	      (setq next t))))
-	  (forward-line)))))
+        (while (not (eobp))
+          (cond
+           ((and (looking-at-p (rx bol (* blank) eol)) next)
+            (setq headers nil
+                  next nil))
+           ((looking-at (rx bol (* blank)
+                            "#include <"
+                            (group (+ nonl))
+                            ">" eol))
+            (push (match-string 1) headers))
+           ((looking-at (rx bol (* blank)
+                            (+? nonl) (+ blank)
+                            (group (+ alnum))
+                            "("))
+            (unless (gethash (match-string 1) auto-header-cache)
+              (puthash (match-string 1)
+                       (delete-dups headers)
+                       auto-header-cache)
+              (setq next t))))
+          (forward-line)))))
   (gethash name auto-header-cache))
 
 (defun auto-header-find-headers (name)
@@ -85,17 +85,17 @@
     (save-excursion
       (goto-char (point-min))
       (dolist (header headers)
-	(insert "#include <" header ">")
-	(newline))
+        (insert "#include <" header ">")
+        (newline))
       (goto-char (point-max))
       (when (search-backward-regexp "#include ?<" nil t)
-	(save-restriction
-	  (narrow-to-region (point-min) (line-end-position))
-	  (delete-duplicate-lines (point-min) (point-max) nil nil t)
-	  (sort-lines nil (point-min) (point-max))
-	  (goto-char (point-max))
-	  (newline))
-	(delete-blank-lines))
+        (save-restriction
+          (narrow-to-region (point-min) (line-end-position))
+          (delete-duplicate-lines (point-min) (point-max) nil nil t)
+          (sort-lines nil (point-min) (point-max))
+          (goto-char (point-max))
+          (newline))
+        (delete-blank-lines))
       (newline))))
 
 ;;;###autoload
@@ -105,10 +105,10 @@ When called interactively, use the symbol at or before point as
 NAME."
   (interactive
    (list (or (thing-at-point 'symbol t)
-	     (if (save-excursion
-		   (search-backward-regexp "\\_<\\(.+?\\)\\_>" nil t))
-		 (match-string-no-properties 1)
-	       (user-error "No symbol")))))
+             (if (save-excursion
+                   (search-backward-regexp "\\_<\\(.+?\\)\\_>" nil t))
+                 (match-string-no-properties 1)
+               (user-error "No symbol")))))
   (let ((headers (auto-header-find-headers name)))
     (auto-header-insert-headers headers)
     (message "Found %d headers for %s" (length headers) name)))
@@ -133,18 +133,18 @@ NAME."
     (let (headers)
       (goto-char (point-min))
       (while (search-forward-regexp
-	      (rx symbol-start
-		  (group alpha (* (or alnum ?_)))
-		  symbol-end
-		  (* space) "(")
-	      nil t)
-	(unless (or (member (match-string-no-properties 1)
-			    auto-header-c-keywords)
-		    (nth 4 (syntax-ppss)))
-	  (push (match-string-no-properties 1) headers)))
+              (rx symbol-start
+                  (group alpha (* (or alnum ?_)))
+                  symbol-end
+                  (* space) "(")
+              nil t)
+        (unless (or (member (match-string-no-properties 1)
+                            auto-header-c-keywords)
+                    (nth 4 (syntax-ppss)))
+          (push (match-string-no-properties 1) headers)))
       (auto-header-insert-headers
        (apply #'append (mapcar #'auto-header-find-headers
-			       headers))))))
+                               headers))))))
 
 ;;;###autoload
 (define-minor-mode auto-header-mode
