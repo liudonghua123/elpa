@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.6 2022/04/30 08:06:10 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.7 2022/05/01 20:15:59 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1.0
 ;; Keywords: c
 
@@ -36,10 +36,10 @@
 
 (eval-when-compile (require 'rx))
 
-(defvar auto-header-cache (make-hash-table :test 'equal)
+(defvar auto-header--cache (make-hash-table :test 'equal)
   "Hash table associating function to a list of header files.")
 
-(defun auto-header-parse-manpage (name)
+(defun auto-header--parse-manpage (name)
   "Parse and cache the results for the manpage NAME."
   (with-temp-buffer
     (when (zerop (call-process "man" nil t nil "-s" "2,3,3p" name))
@@ -65,20 +65,20 @@
                             (+? nonl) (+ blank)
                             (group (+ alnum))
                             "("))
-            (unless (gethash (match-string 1) auto-header-cache)
+            (unless (gethash (match-string 1) auto-header--cache)
               (puthash (match-string 1)
                        (delete-dups headers)
-                       auto-header-cache)
+                       auto-header--cache)
               (setq next t))))
           (forward-line)))))
-  (gethash name auto-header-cache))
+  (gethash name auto-header--cache))
 
 (defun auto-header-find-headers (name)
   "Return a list of headers for that have to be used for NAME."
-  (or (gethash name auto-header-cache)
-      (auto-header-parse-manpage name)))
+  (or (gethash name auto-header--cache)
+      (auto-header--parse-manpage name)))
 
-(defun auto-header-insert-headers (headers)
+(defun auto-header--insert-headers (headers)
   "Insert HEADERS at the beginning of the current buffer."
   (save-restriction
     (widen)
@@ -110,10 +110,10 @@ NAME."
                  (match-string-no-properties 1)
                (user-error "No symbol")))))
   (let ((headers (auto-header-find-headers name)))
-    (auto-header-insert-headers headers)
+    (auto-header--insert-headers headers)
     (message "Found %d headers for %s" (length headers) name)))
 
-(defvar auto-header-c-keywords
+(defvar auto-header--c-keywords
   ;; https://en.cppreference.com/w/c/keyword
   '("auto" "break" "case" "char" "const" "continue" "default"
     "do" "double" "else" "enum" "extern" "float" "for" "goto"
@@ -139,10 +139,10 @@ NAME."
                   (* space) "(")
               nil t)
         (unless (or (member (match-string-no-properties 1)
-                            auto-header-c-keywords)
+                            auto-header--c-keywords)
                     (nth 4 (syntax-ppss)))
           (push (match-string-no-properties 1) headers)))
-      (auto-header-insert-headers
+      (auto-header--insert-headers
        (apply #'append (mapcar #'auto-header-find-headers
                                headers))))))
 
