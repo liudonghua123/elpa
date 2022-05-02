@@ -7,6 +7,20 @@ greens. Highlights are subtle but easily visible. The active mode-line
 is white on blue to distinguish it from inactive mode-lines which are
 dark blue on light grey.
 
+Coverage includes:
+
+-   Standard Faces
+-   Font-Lock
+-   Flyspell
+-   Diff
+-   Magit
+-   Dired
+-   Eshell
+-   ANSI escape sequences (coloured terminal output)
+-   ERC
+-   Gnus
+-   Elfeed
+
 Copying
 =======
 

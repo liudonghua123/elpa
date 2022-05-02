@@ -110,15 +110,6 @@
 (custom-theme-set-faces
  'aircon
 
- `(ansi-color-black   ((t (:foreground "#000000"))))
- `(ansi-color-white   ((t (:foreground "#ffffff"))))
- `(ansi-color-blue    ((t (:foreground ,aircon-sapphire))))
- `(ansi-color-cyan    ((t (:foreground ,aircon-eden))))
- `(ansi-color-green   ((t (:foreground ,aircon-goblin))))
- `(ansi-color-magenta ((t (:foreground ,aircon-hibiscus))))
- `(ansi-color-red     ((t (:foreground ,aircon-brick))))
- `(ansi-color-yellow  ((t (:foreground ,aircon-marigold))))
-
  '(default ((t (:background "#ffffff" :foreground "#000000"))))
  `(cursor  ((t (:background ,aircon-cello))))
  '(fringe  ((t (:inherit (default)))))
@@ -224,6 +215,15 @@
  '(eshell-ls-readonly   ((t (:inherit aircon-sandstone))))
  '(eshell-ls-symlink    ((t (:inherit aircon-eden))))
  '(eshell-prompt        ((t (:inherit aircon-cello))))
+
+ `(ansi-color-black   ((t (:foreground "#000000"))))
+ `(ansi-color-white   ((t (:foreground "#ffffff"))))
+ `(ansi-color-blue    ((t (:foreground ,aircon-sapphire))))
+ `(ansi-color-cyan    ((t (:foreground ,aircon-eden))))
+ `(ansi-color-green   ((t (:foreground ,aircon-goblin))))
+ `(ansi-color-magenta ((t (:foreground ,aircon-hibiscus))))
+ `(ansi-color-red     ((t (:foreground ,aircon-brick))))
+ `(ansi-color-yellow  ((t (:foreground ,aircon-marigold))))
 
  '(erc-pal-face            ((t (:inherit aircon-hibiscus :weight bold))))
  '(erc-button              ((t (:inherit button))))
