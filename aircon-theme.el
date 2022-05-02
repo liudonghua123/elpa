@@ -224,6 +224,19 @@
  '(erc-prompt-face         ((t (:inherit minibuffer-prompt))))
  '(erc-timestamp-face      ((t (:inherit aircon-eden))))
 
+ '(gnus-group-mail-3-empty     ((t (:inherit (aircon-lilac)))))
+ '(gnus-summary-selected       ((t (:inherit (aircon-linen)))))
+ '(gnus-summary-normal-read    ((t (:inherit (aircon-scorpion)))))
+ '(gnus-summary-normal-ancient ((t (:inherit (aircon-sandstone)))))
+ '(gnus-summary-normal-ticked  ((t (:inherit (aircon-sapphire)))))
+
+ '(gnus-header-name            ((t (:inherit (aircon-sapphire bold)))))
+ '(gnus-header-from            ((t (:inherit (aircon-grape)))))
+ '(gnus-header-subject         ((t (:inherit (aircon-goblin bold)))))
+ '(gnus-header-content         ((t (:inherit (aircon-sandstone)))))
+
+ '(gnus-cite-1                 ((t (:inherit (aircon-cello)))))
+
  '(elfeed-search-date-face         ((t (:inherit (calendar-month-header)))))
  '(elfeed-search-feed-face         ((t (:inherit (aircon-eden)))))
  '(elfeed-search-last-update-face  ((t (:inherit (elfeed-search-date-face)))))
