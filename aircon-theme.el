@@ -240,6 +240,7 @@
  '(erc-timestamp-face      ((t (:inherit aircon-eden))))
 
  '(gnus-group-mail-3-empty     ((t (:inherit (aircon-lilac)))))
+
  '(gnus-summary-selected       ((t (:inherit (aircon-linen)))))
  '(gnus-summary-normal-read    ((t (:inherit (aircon-scorpion)))))
  '(gnus-summary-normal-ancient ((t (:inherit (aircon-sandstone)))))
