@@ -168,6 +168,7 @@
 
  '(link                         ((t (:inherit (aircon-sapphire underline)))))
  '(link-visited                 ((t (:inherit (aircon-lilac link)))))
+ '(textsec-suspicious           ((t (:inherit (aircon-blush aircon-brick)))))
 
  '(minibuffer-prompt            ((t (:inherit (aircon-cello bold)))))
 
