@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2022 Gregory Chamberlain.
 
-;; Version: 0.0.2
+;; Version: 0.0.3
 ;; Author: Gregory Chamberlain <greg@cosine.blue>
 ;; URL: https://git.sr.ht/~chambln/aircon-theme.el
 ;; Keywords: faces
