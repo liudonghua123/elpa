@@ -147,6 +147,7 @@
  '(highlight           ((t (:inherit (aircon-haze)))))
  '(region              ((t (:inherit (aircon-athens)))))
  '(secondary-selection ((t (:inherit (aircon-prelude)))))
+ '(trailing-whitespace ((t (:inherit (aircon-blush)))))
  '(isearch             ((t (:inherit (aircon-mango)))))
  '(isearch-fail        ((t (:inherit (aircon-blush)))))
  '(lazy-highlight      ((t (:inherit (aircon-linen)))))
