@@ -187,6 +187,20 @@
  '(diff-removed         ((t (:background "#ffcccc" :foreground "#4b1313"))))
  '(diff-refine-removed  ((t (:background "#ef9d9d" :foreground "#3a0a0a "))))
 
+ '(magit-bisect-bad              ((t (:inherit (aircon-brick)))))
+ '(magit-bisect-good             ((t (:inherit (aircon-goblin)))))
+ '(magit-bisect-skip             ((t (:inherit (aircon-marigold)))))
+
+ '(magit-diffstat-added          ((t (:inherit (aircon-goblin)))))
+ '(magit-diffstat-removed        ((t (:inherit (aircon-brick)))))
+
+ '(magit-section-heading         ((t (:inherit (aircon-sapphire bold)))))
+
+ '(magit-branch-local            ((t (:inherit (aircon-eden)))))
+ '(magit-branch-remote           ((t (:inherit (aircon-goblin)))))
+
+ '(magit-tag                     ((t (:inherit (aircon-marigold)))))
+
  '(magit-diff-added              ((t (:inherit diff-added))))
  '(magit-diff-added-highlight    ((t (:inherit diff-refine-added))))
  '(magit-diff-removed            ((t (:inherit diff-removed))))
