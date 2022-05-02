@@ -324,6 +324,7 @@
   :auto-sync t)
  ("hyperbole"           :url "https://git.savannah.gnu.org/r/hyperbole.git"
   :make ("kotl/kotl-autoloads.el")
+  :news "HY-NEWS"
   :auto-sync t)
  ("ilist"		:url "https://gitlab.com/mmemmew/ilist"
   :doc "ilist.texinfo"
