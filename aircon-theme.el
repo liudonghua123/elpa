@@ -152,6 +152,7 @@
  '(isearch-fail        ((t (:inherit (aircon-blush)))))
  '(lazy-highlight      ((t (:inherit (aircon-linen)))))
  '(tooltip             ((t (:inherit (aircon-linen)))))
+ '(match               ((t (:inherit (aircon-linen)))))
  '(show-paren-match    ((t (:inherit (aircon-mango)))))
  '(show-paren-mismatch ((t (:inherit (aircon-blush)))))
  '(show-paren-match-expression ((t (:inherit (aircon-linen)))))
