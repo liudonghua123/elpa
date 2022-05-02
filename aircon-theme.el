@@ -196,7 +196,7 @@
  '(magit-diff-added-highlight    ((t (:inherit diff-refine-added))))
  '(magit-diff-removed            ((t (:inherit diff-removed))))
  '(magit-diff-removed-highlight  ((t (:inherit diff-refine-removed))))
- `(magit-diff-whitespace-warning ((t (:background ,aircon-hibiscus))))
+ '(magit-diff-whitespace-warning ((t (:inherit trailing-whitespace))))
 
  '(dired-directory      ((t (:inherit (aircon-cello bold)))))
  '(dired-header         ((t (:inherit (dired-directory)))))
