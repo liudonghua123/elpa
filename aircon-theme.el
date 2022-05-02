@@ -216,8 +216,8 @@
  '(eshell-ls-symlink    ((t (:inherit aircon-eden))))
  '(eshell-prompt        ((t (:inherit aircon-cello))))
 
- `(ansi-color-black   ((t (:foreground "#000000"))))
- `(ansi-color-white   ((t (:foreground "#ffffff"))))
+ '(ansi-color-black   ((t (:foreground "#000000"))))
+ '(ansi-color-white   ((t (:foreground "#ffffff"))))
  `(ansi-color-blue    ((t (:foreground ,aircon-sapphire))))
  `(ansi-color-cyan    ((t (:foreground ,aircon-eden))))
  `(ansi-color-green   ((t (:foreground ,aircon-goblin))))
