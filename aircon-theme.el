@@ -289,7 +289,7 @@
  '(gnus-summary-selected       ((t (:inherit (aircon-athens)))))
  '(gnus-summary-normal-read    ((t (:inherit (aircon-scorpion)))))
  '(gnus-summary-normal-ancient ((t (:inherit (aircon-sandstone)))))
- '(gnus-summary-normal-ticked  ((t (:inherit (aircon-sapphire)))))
+ '(gnus-summary-normal-ticked  ((t (:inherit (aircon-sapphire bold)))))
 
  '(gnus-header-name            ((t (:inherit (message-header-name)))))
  '(gnus-header-from            ((t (:inherit (message-header-to)))))
