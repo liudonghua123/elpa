@@ -239,17 +239,25 @@
  '(erc-prompt-face         ((t (:inherit minibuffer-prompt))))
  '(erc-timestamp-face      ((t (:inherit aircon-eden))))
 
+ '(message-header-name         ((t (:inherit (aircon-sapphire bold)))))
+ '(message-header-other        ((t (:inherit (aircon-sandstone)))))
+ '(message-header-subject      ((t (:inherit (aircon-goblin bold)))))
+ '(message-header-to           ((t (:inherit (aircon-grape)))))
+ '(message-header-xheader      ((t (:inherit (aircon-hibiscus)))))
+ '(message-separator           ((t (:inherit (aircon-brick)))))
+ '(message-mml                 ((t (:inherit (aircon-goblin)))))
+
  '(gnus-group-mail-3-empty     ((t (:inherit (aircon-lilac)))))
 
- '(gnus-summary-selected       ((t (:inherit (aircon-linen)))))
+ '(gnus-summary-selected       ((t (:inherit (aircon-athens)))))
  '(gnus-summary-normal-read    ((t (:inherit (aircon-scorpion)))))
  '(gnus-summary-normal-ancient ((t (:inherit (aircon-sandstone)))))
  '(gnus-summary-normal-ticked  ((t (:inherit (aircon-sapphire)))))
 
- '(gnus-header-name            ((t (:inherit (aircon-sapphire bold)))))
- '(gnus-header-from            ((t (:inherit (aircon-grape)))))
- '(gnus-header-subject         ((t (:inherit (aircon-goblin bold)))))
- '(gnus-header-content         ((t (:inherit (aircon-sandstone)))))
+ '(gnus-header-name            ((t (:inherit (message-header-name)))))
+ '(gnus-header-from            ((t (:inherit (message-header-to)))))
+ '(gnus-header-subject         ((t (:inherit (message-header-subject)))))
+ '(gnus-header-content         ((t (:inherit (message-header-other)))))
 
  '(gnus-cite-1                 ((t (:inherit (aircon-cello)))))
 
