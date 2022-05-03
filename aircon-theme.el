@@ -122,8 +122,8 @@
                                    :box ,aircon-ghost))))
  '(mode-line-highlight        ((t (:inherit (mode-line)))))
 
- '(compilation-mode-line-fail ((t (:inherit (bold aircon-brick)))))
- '(compilation-error          ((t (:inherit (bold aircon-brick)))))
+ '(compilation-mode-line-fail ((t (:inherit error))))
+ '(compilation-error          ((t (:inherit error))))
 
  `(help-key-binding ((t (:inherit (aircon-header)
                          :box (:color ,aircon-ghost (1 . -1) :line-width)))))
@@ -199,9 +199,9 @@
  '(vc-dir-header-value       ((t (:inherit (aircon-lilac)))))
  '(vc-dir-status-edited      ((t (:inherit (bold)))))
 
- '(magit-bisect-bad              ((t (:inherit (aircon-brick)))))
- '(magit-bisect-good             ((t (:inherit (aircon-goblin)))))
- '(magit-bisect-skip             ((t (:inherit (aircon-marigold)))))
+ '(magit-bisect-bad              ((t (:inherit error))))
+ '(magit-bisect-good             ((t (:inherit success))))
+ '(magit-bisect-skip             ((t (:inherit warning))))
 
  '(magit-diffstat-added          ((t (:inherit (aircon-goblin)))))
  '(magit-diffstat-removed        ((t (:inherit (aircon-brick)))))
