@@ -190,7 +190,11 @@
  '(magit-branch-local            ((t (:inherit (aircon-eden)))))
  '(magit-branch-remote           ((t (:inherit (aircon-goblin)))))
 
+ '(magit-hash                    ((t (:inherit (aircon-scorpion)))))
  '(magit-tag                     ((t (:inherit (aircon-marigold)))))
+
+ '(magit-log-author              ((t (:inherit (aircon-lilac)))))
+ '(magit-log-date                ((t (:inherit (aircon-scorpion)))))
 
  '(magit-diff-added              ((t (:inherit diff-added))))
  '(magit-diff-added-highlight    ((t (:inherit diff-refine-added))))
