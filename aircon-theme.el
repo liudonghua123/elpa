@@ -233,6 +233,7 @@
  '(dired-marked         ((t (:inherit (aircon-mango)))))
  '(dired-perm-write     ((t (:inherit (aircon-goblin)))))
  '(dired-flagged        ((t (:inherit (aircon-blush)))))
+ '(dired-special        ((t (:inherit (aircon-hibiscus)))))
 
  '(eshell-ls-archive    ((t (:inherit aircon-cello))))
  '(eshell-ls-backup     ((t (:inherit dired-ignored))))
