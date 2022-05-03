@@ -6,6 +6,7 @@
 ;; Maintainer: Filipp Gunbin <fgunbin@fastmail.fm>
 
 (require 'ert)
+(require 'ert-x)
 (require 'javaimp-parse)
 (require 'javaimp-util)
 
@@ -298,8 +299,7 @@ import static some_class.fun_2; // comment
 
 (ert-deftest javaimp-parse-get-all-scopes ()
   (with-temp-buffer
-    (insert-file-contents
-     (file-name-concat javaimp-basedir "tests" "data" "test1-misc-classes.java"))
+    (insert-file-contents (ert-resource-file "test1.java"))
     (should-not javaimp-parse--dirty-pos)
     ;;
     ;; parse full buffer
