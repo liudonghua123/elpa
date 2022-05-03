@@ -606,6 +606,10 @@
   :auto-sync t
   :ignored-files ("COPYING" "doclicense.texi"))
  ("tNFA"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ("tomelr"		:url "https://github.com/kaushalmodi/tomelr"
+  :ignored-files ("LICENSE")
+  :news "CHANGELOG.org"
+  :auto-sync t)
  ("tramp"		:url "git://git.sv.gnu.org/tramp.git"
   :branch "externals/tramp"
   :main-file "trampver.el"
