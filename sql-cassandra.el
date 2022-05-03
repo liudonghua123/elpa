@@ -4,7 +4,8 @@
 
 ;; Author: Filipp Gunbin <fgunbin@fastmail.fm>
 ;; Maintainer: Filipp Gunbin <fgunbin@fastmail.fm>
-;; Version: 0.1
+;; Package-Requires: ((emacs "29"))
+;; Version: 0.2
 ;; Keywords: sql, cassandra, cql, cqlsh
 
 ;; This program is free software; you can redistribute it and/or modify
