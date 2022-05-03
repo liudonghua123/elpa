@@ -169,8 +169,12 @@
  '(completions-common-part      ((t (:inherit (aircon-linen)))))
  '(completions-first-difference ((t (:inherit (aircon-mango)))))
 
- `(flyspell-duplicate ((t (:underline (:color ,aircon-marigold :style wave)))))
- `(flyspell-incorrect ((t (:underline (:color ,aircon-brick :style wave)))))
+ `(flymake-error      ((t (:underline (:style wave :color ,aircon-brick)))))
+ `(flymake-note       ((t (:underline (:style wave :color ,aircon-sapphire)))))
+ `(flymake-warning    ((t (:underline (:style wave :color ,aircon-marigold)))))
+
+ '(flyspell-duplicate ((t (:inherit flymake-warning))))
+ '(flyspell-incorrect ((t (:inherit flymake-error))))
 
  '(diff-header            ((t (:inherit (aircon-header)))))
  '(diff-file-header       ((t (:inherit (diff-header) :weight bold))))
