@@ -188,6 +188,12 @@
  '(log-view-commit-body      ((t (:inherit (aircon-cello)))))
  '(log-view-file             ((t (:inherit (aircon-header)))))
 
+ '(vc-dir-directory          ((t (:inherit (dired-directory)))))
+ '(vc-dir-file               ((t (:inherit (default)))))
+ '(vc-dir-header             ((t (:inherit (aircon-sapphire bold)))))
+ '(vc-dir-header-value       ((t (:inherit (aircon-lilac)))))
+ '(vc-dir-status-edited      ((t (:inherit (bold)))))
+
  '(magit-bisect-bad              ((t (:inherit (aircon-brick)))))
  '(magit-bisect-good             ((t (:inherit (aircon-goblin)))))
  '(magit-bisect-skip             ((t (:inherit (aircon-marigold)))))
@@ -211,6 +217,7 @@
  '(magit-diff-removed            ((t (:inherit diff-removed))))
  '(magit-diff-removed-highlight  ((t (:inherit diff-refine-removed))))
  '(magit-diff-whitespace-warning ((t (:inherit trailing-whitespace))))
+ '(magit-diff-file-heading       ((t (:inherit vc-dir-status-edited))))
 
  '(dired-directory      ((t (:inherit (aircon-cello bold)))))
  '(dired-header         ((t (:inherit (dired-directory)))))
