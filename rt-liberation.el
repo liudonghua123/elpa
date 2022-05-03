@@ -5,7 +5,7 @@
 ;; Author: Yoni Rabkin <yrk@gnu.org>
 ;; Authors: Aaron S. Hawley <aaron.s.hawley@gmail.com>, John Sullivan <johnsu01@wjsullivan.net>
 ;; Maintainer: Yoni Rabkin <yrk@gnu.org>
-;; Version: 4
+;; Version: 5
 ;; Keywords: rt, tickets
 ;; Package-Type: multi
 ;; url: http://www.nongnu.org/rtliber/
@@ -1100,7 +1100,7 @@ ASSOC-BROWSER if non-nil should be a ticket browser."
 \\{rt-liber-viewer-mode-map}"
   (set
    (make-local-variable 'font-lock-defaults)
-   '((rt-liber-viewer-font-lock-keywords)))
+   '((rt-liber-viewer-font-lock-keywords) t))
   (set (make-local-variable 'revert-buffer-function)
        #'rt-liber-viewer-refresh-ticket-history)
   (set (make-local-variable 'buffer-stale-function)
