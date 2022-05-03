@@ -262,11 +262,14 @@
  '(erc-timestamp-face      ((t (:inherit aircon-eden))))
 
  '(message-header-name         ((t (:inherit (aircon-sapphire bold)))))
+ '(message-header-newsgroups   ((t (:inherit (aircon-cello bold)))))
+
  '(message-header-other        ((t (:inherit (aircon-sandstone)))))
  '(message-header-subject      ((t (:inherit (aircon-goblin bold)))))
  '(message-header-to           ((t (:inherit (aircon-grape)))))
+ '(message-header-cc           ((t (:inherit (aircon-lilac)))))
  '(message-header-xheader      ((t (:inherit (aircon-hibiscus)))))
- '(message-separator           ((t (:inherit (aircon-brick)))))
+ '(message-separator           ((t (:inherit (aircon-header)))))
  '(message-mml                 ((t (:inherit (aircon-goblin)))))
 
  '(gnus-group-mail-3-empty     ((t (:inherit (aircon-lilac)))))
