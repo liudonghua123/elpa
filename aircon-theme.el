@@ -180,6 +180,11 @@
  '(diff-indicator-removed ((t (:inherit (diff-removed bold)))))
  '(diff-refine-removed    ((t (:background "#ef9d9d" :foreground "#3a0a0a "))))
 
+ '(change-log-date           ((t (:inherit (aircon-scorpion)))))
+ '(change-log-list           ((t (:inherit (aircon-eden)))))
+ '(change-log-name           ((t (:inherit (aircon-lilac)))))
+ '(change-log-acknowledgment ((t (:inherit (aircon-scorpion)))))
+
  '(magit-bisect-bad              ((t (:inherit (aircon-brick)))))
  '(magit-bisect-good             ((t (:inherit (aircon-goblin)))))
  '(magit-bisect-skip             ((t (:inherit (aircon-marigold)))))
@@ -192,11 +197,11 @@
  '(magit-branch-local            ((t (:inherit (aircon-eden)))))
  '(magit-branch-remote           ((t (:inherit (aircon-goblin)))))
 
- '(magit-hash                    ((t (:inherit (aircon-scorpion)))))
+ '(magit-hash                    ((t (:inherit (change-log-acknowledgment)))))
  '(magit-tag                     ((t (:inherit (aircon-marigold)))))
 
- '(magit-log-author              ((t (:inherit (aircon-lilac)))))
- '(magit-log-date                ((t (:inherit (aircon-scorpion)))))
+ '(magit-log-author              ((t (:inherit (change-log-name)))))
+ '(magit-log-date                ((t (:inherit (change-log-date)))))
 
  '(magit-diff-added              ((t (:inherit diff-added))))
  '(magit-diff-added-highlight    ((t (:inherit diff-refine-added))))
