@@ -251,6 +251,9 @@
  `(ansi-color-red     ((t (:foreground ,aircon-brick))))
  `(ansi-color-yellow  ((t (:foreground ,aircon-marigold))))
 
+ '(elisp-shorthand-font-lock-face
+   ((t (:inherit (font-lock-variable-name-face italic)))))
+
  '(erc-pal-face            ((t (:inherit aircon-hibiscus :weight bold))))
  '(erc-button              ((t (:inherit button))))
  '(erc-keyword-face        ((t (:inherit aircon-sapphire))))
