@@ -231,6 +231,7 @@
  '(dired-ignored        ((t (:inherit (shadow)))))
  '(dired-mark           ((t (:inherit (aircon-mango) :background "#ffffff"))))
  '(dired-marked         ((t (:inherit (aircon-mango)))))
+ '(dired-perm-write     ((t (:inherit (aircon-goblin)))))
  '(dired-flagged        ((t (:inherit (aircon-blush)))))
 
  '(eshell-ls-archive    ((t (:inherit aircon-cello))))
