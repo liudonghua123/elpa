@@ -174,8 +174,10 @@
  '(diff-header          ((t (:inherit (aircon-header)))))
  '(diff-file-header     ((t (:inherit (diff-header) :weight bold))))
  '(diff-added           ((t (:background "#c4face" :foreground "#143c1d"))))
+ '(diff-indicator-added ((t (:inherit (diff-added bold)))))
  '(diff-refine-added    ((t (:background "#88cd98" :foreground "#0c2912 "))))
  '(diff-removed         ((t (:background "#ffcccc" :foreground "#4b1313"))))
+ '(diff-indicator-removed ((t (:inherit (diff-removed bold)))))
  '(diff-refine-removed  ((t (:background "#ef9d9d" :foreground "#3a0a0a "))))
 
  '(magit-bisect-bad              ((t (:inherit (aircon-brick)))))
