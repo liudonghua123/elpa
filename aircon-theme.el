@@ -185,6 +185,8 @@
  '(change-log-name           ((t (:inherit (aircon-lilac)))))
  '(change-log-acknowledgment ((t (:inherit (aircon-scorpion)))))
  '(log-view-message          ((t (:inherit (change-log-acknowledgment)))))
+ '(log-view-commit-body      ((t (:inherit (aircon-cello)))))
+ '(log-view-file             ((t (:inherit (aircon-header)))))
 
  '(magit-bisect-bad              ((t (:inherit (aircon-brick)))))
  '(magit-bisect-good             ((t (:inherit (aircon-goblin)))))
