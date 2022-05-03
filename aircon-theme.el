@@ -157,7 +157,7 @@
  '(font-lock-string-face        ((t (:inherit (aircon-goblin)))))
  '(font-lock-type-face          ((t (:inherit (aircon-hibiscus bold)))))
  '(font-lock-variable-name-face ((t (:inherit (aircon-lilac)))))
- '(font-lock-warning-face       ((t (:inherit (aircon-brick)))))
+ '(font-lock-warning-face       ((t (:inherit (warning)))))
  '(font-lock-doc-face           ((t (:inherit (italic aircon-goblin)))))
 
  '(link                         ((t (:inherit (aircon-sapphire underline)))))
