@@ -265,6 +265,9 @@
  '(erc-prompt-face         ((t (:inherit minibuffer-prompt))))
  '(erc-timestamp-face      ((t (:inherit aircon-eden))))
 
+ '(eww-invalid-certificate ((t (:inherit error))))
+ '(eww-valid-certificate   ((t (:inherit success))))
+
  '(message-header-name         ((t (:inherit (aircon-sapphire bold)))))
  '(message-header-newsgroups   ((t (:inherit (aircon-cello bold)))))
 
