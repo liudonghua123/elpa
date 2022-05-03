@@ -40,6 +40,7 @@
 (defconst aircon-eden      "#18566e")
 (defconst aircon-ghost     "#a3a4ae")
 (defconst aircon-goblin    "#327038")
+(defconst aircon-grape     "#412f7e")
 (defconst aircon-hibiscus  "#9a2d71")
 (defconst aircon-lilac     "#5f4f93")
 (defconst aircon-marigold  "#b88325")
@@ -70,7 +71,7 @@
   `((((class color) (min-colors 89)) (:foreground ,aircon-goblin)))
   "Aircon goblin.")
 (defface aircon-grape
-  '((((class color) (min-colors 89)) (:foreground "#412f7e")))
+  `((((class color) (min-colors 89)) (:foreground ,aircon-grape)))
   "Aircon grape.")
 (defface aircon-haze
   '((((class color) (min-colors 89)) (:background "#c4cbdc")))
