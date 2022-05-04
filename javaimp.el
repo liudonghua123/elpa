@@ -818,7 +818,6 @@ in a major mode hook."
     map)
   "Javaimp Show Scopes keymap.")
 
-;; TODO handle mouse-1
 (defun javaimp-show-scopes-goto-scope (event &optional to-start)
   "Go to the opening brace (`javaimp-scope-open-brace') of the scope.
 Target scope is determined by location of mouse EVENT, if it's
@@ -826,55 +825,78 @@ non-nil.  Else, take the scope at current line.  When TO-START is
 non-nil, go to scope start (`javaimp-scope-start') instead of the
 opening brace."
   (interactive (list last-nonmenu-event current-prefix-arg))
-  (let ((buf (current-buffer))
-        (scopes-buf-pos
-         (if event
-             (cons (window-buffer (posn-window (event-end event)))
-                   (posn-point (event-end event)))
-           (cons (current-buffer)
-                 (point))))
-        source-file scope)
-    (with-current-buffer (car scopes-buf-pos)
-      (setq source-file
-            (get-text-property (point-min) 'javaimp-show-scopes-file)
-            scope
-            (get-text-property (cdr scopes-buf-pos) 'javaimp-show-scopes-scope)))
-    (unless (and source-file scope)
-      (user-error "No target scope"))
-    (pop-to-buffer (find-file-noselect source-file))
-    (goto-char (if to-start
-                   (javaimp-scope-start scope)
-                 (javaimp-scope-open-brace scope)))
+  (let* ((buf (current-buffer))
+         (scopes-buf (if event
+                         (window-buffer (posn-window (event-end event)))
+                       (current-buffer)))
+         (scopes-pos (if event
+                         (posn-point (event-end event))
+                       (point)))
+         (markers (or (with-current-buffer scopes-buf
+                        (get-text-property scopes-pos 'javaimp-show-scopes-markers))
+                      (user-error "No scope on this line")))
+         (marker (if to-start
+                     (cadr markers)
+                   (car markers))))
+    (unless (buffer-live-p (marker-buffer marker))
+      (user-error "Buffer for this scope was killed"))
+    (pop-to-buffer (marker-buffer marker))
+    (goto-char marker)
     (next-error-found buf (current-buffer))))
-
 
 (put 'javaimp-show-scopes-mode 'mode-class 'special)
 (define-derived-mode javaimp-show-scopes-mode special-mode "Javaimp Show Scopes"
+  (setq-local revert-buffer-function #'javaimp-show-scopes-revert)
   (setq next-error-function #'javaimp-show-scopes-next-error))
 
 (defun javaimp-show-scopes ()
   "Show scopes in *javaimp-scopes* buffer."
   (interactive)
+  (display-buffer
+   (javaimp-show-scopes-1 (current-buffer))))
+
+(defun javaimp-show-scopes-revert (_ignore1 _ignore2)
+  "Function to be used as `revert-buffer-function' in
+`javaimp-show-scopes-mode' buffers."
+  (let ((source-buf
+         (get-file-buffer
+          (get-text-property (point-min) 'javaimp-show-scopes-file))))
+    (if source-buf
+        (javaimp-show-scopes-1 source-buf)
+      (user-error "Source buffer has been killed"))))
+
+(defun javaimp-show-scopes-1 (source-buf)
+  "Subroutine of `javaimp-show-scopes', outputs scopes from
+SOURCE-BUF in *javaimp-scopes* buffer.  Returns resulting
+buffer."
   (let ((scopes
-         (save-excursion
-           (save-restriction
-             (widen)
-             (javaimp-parse-get-all-scopes
-              nil nil (javaimp-scope-defun-p '(method anon-class))))))
-        (source-buf (current-buffer))
-        (source-default-dir default-directory)
+         (with-current-buffer source-buf
+           (save-excursion
+             (save-restriction
+               (widen)
+               (javaimp-parse-get-all-scopes
+                nil nil (javaimp-scope-defun-p '(method anon-class)))))))
+        (default-dir
+         (with-current-buffer source-buf
+           default-directory))
         (buf (get-buffer-create "*javaimp-scopes*")))
     (with-current-buffer buf
-      (setq default-directory source-default-dir)
+      (setq default-directory default-dir)
       (javaimp-show-scopes-mode)
       (let ((inhibit-read-only t)
             (buffer-undo-list t))
         (erase-buffer)
-        (insert (propertize (format "%s\n\n" (buffer-file-name source-buf))
-                            'javaimp-show-scopes-file (buffer-file-name source-buf)))
+        (insert (propertize (format "%s" (buffer-file-name source-buf))
+                            'javaimp-show-scopes-file (buffer-file-name source-buf))
+                "\n\n")
         (dolist (scope scopes)
           (let ((depth 0)
-                (tmp scope))
+                (tmp scope)
+                (markers
+                 (list (set-marker
+                        (make-marker) (javaimp-scope-open-brace scope) source-buf)
+                       (set-marker
+                        (make-marker) (javaimp-scope-start scope) source-buf))))
             (while (setq tmp (javaimp-scope-parent tmp))
               (setq depth (1+ depth)))
             (insert (propertize
@@ -888,35 +910,35 @@ opening brace."
                              (javaimp-scope-name scope))
                      'mouse-face 'highlight
                      'help-echo "mouse-2: go to this scope"
-                     'javaimp-show-scopes-scope scope
-                     'follow-link t)
+                     'follow-link t
+                     'javaimp-show-scopes-markers markers)
                     ?\n)))
         (insert (format "\nTotal: %d scopes\n" (length scopes)))
         (goto-char (point-min))
         (setq next-error-last-buffer buf)
         (setq buffer-read-only t)
         (set-buffer-modified-p nil)))
-    (display-buffer buf)))
+    buf))
 
 (defun javaimp-show-scopes-next-error (&optional argp reset)
-  "Compatibility function for \\[next-error] invocations."
+  "Compatibility function for \\[next-error] invocations after
+`javaimp-show-scopes'."
   (interactive "p")
   (or argp (setq argp 1))
   (when reset
     (if-let ((pos (next-single-property-change
-                   (point-min) 'javaimp-show-scopes-scope)))
+                   (point-min) 'javaimp-show-scopes-markers)))
         (progn
           (goto-char pos)
           (forward-line -1))
       (user-error "No scopes")))
   (forward-line argp)
-  (unless (get-text-property (point) 'javaimp-show-scopes-scope)
+  (unless (get-text-property (point) 'javaimp-show-scopes-markers)
     (user-error "No more scopes"))
   ;; In case the buffer is visible in a nonselected window.
-  (if-let ((win (get-buffer-window (current-buffer) t)))
+  (when-let ((win (get-buffer-window (current-buffer) t)))
     (set-window-point win (point)))
   (javaimp-show-scopes-goto-scope nil))
-
 
 
 ;; Navigation
