@@ -154,6 +154,9 @@ Refer to https://cassandra.apache.org/doc/latest/cassandra/cql/appendices.html#a
   (interactive "P")
   (sql-product-interactive 'cassandra buffer))
 
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.cql\\'" . sql-mode))
+
 (sql-add-product
  'cassandra "Cassandra"
  :free-software t
