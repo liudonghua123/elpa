@@ -28,7 +28,8 @@
 ;; errors.  In addition, this module provides good Imenu support for
 ;; Java source files - with nesting and abstract methods in interfaces
 ;; and abstract classes.  It provides suitable functions to use as
-;; beginning-of-defun-function / end-of-defun-function as well.
+;; `beginning-of-defun-function' / `end-of-defun-function' /
+;; `add-log-current-defun-function' as well.
 ;;
 ;;
 ;;   Quick start:
@@ -95,8 +96,8 @@
 ;; Parsing is also used for Imenu support and for navigation commands.
 ;; As there's no minor/major mode (yet), you have to set
 ;; `imenu-create-index-function' and `beginning-of-defun-function' /
-;; `end-of-defun-function' in major mode hook yourself.  See example
-;; below.
+;; `end-of-defun-function' / `add-log-current-defun-function' in major
+;; mode hook yourself.  See example below.
 ;;
 ;; - `javaimp-imenu-use-sub-alists' - if non-nil then Imenu items are
 ;; presented in a nested fashion, instead of a flat list (the
@@ -132,6 +133,7 @@
 ;;
 ;; (setq beginning-of-defun-function #'javaimp-beginning-of-defun)
 ;; (setq end-of-defun-function #'javaimp-end-of-defun)
+;; (setq add-log-current-defun-function #'javaimp-add-log-current-defun)
 ;; (define-key java-mode-map (kbd "C-M-a") #'beginning-of-defun)
 ;; (define-key java-mode-map (kbd "C-M-e") #'end-of-defun)
 ;;
@@ -999,6 +1001,28 @@ after this group of defuns."
                                (= (javaimp-scope-open-brace s1)
                                   (javaimp-scope-open-brace s2))))))
          siblings)))))
+
+
+(defun javaimp-add-log-current-defun ()
+  "Function to be used as `add-log-current-defun-function'."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (let ((s (javaimp-parse-get-enclosing-scope
+                (javaimp-scope-defun-p '(method anon-class))))
+            names)
+        (while s
+          (push (javaimp-scope-name s) names)
+          (setq s (javaimp-scope-parent s)))
+        ;; Omit top-level class name if there're other components,
+        ;; but only if it matches file name (it usually will).
+        (when (and (> (length names) 1)
+                   buffer-file-name
+                   (equal (car names) (file-name-sans-extension
+                                       (file-name-nondirectory buffer-file-name))))
+          (setq names (cdr names)))
+        (when names
+          (string-join names "."))))))
 
 
 
