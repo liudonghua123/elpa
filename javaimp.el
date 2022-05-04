@@ -812,6 +812,7 @@ in a major mode hook."
     (set-keymap-parent map text-mode-map)
     (define-key map "\C-m" #'javaimp-show-scopes-goto-scope)
     (define-key map [mouse-2] #'javaimp-show-scopes-goto-scope)
+    (define-key map "g" #'revert-buffer)
     (define-key map "n" #'next-error-no-select)
     (define-key map "p" #'previous-error-no-select)
     (define-key map "l" #'recenter-current-error)
