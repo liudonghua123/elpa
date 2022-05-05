@@ -129,7 +129,6 @@
 
 (require 'imenu)
 
-
 ;; User options
 
 (defgroup javaimp ()
@@ -240,56 +239,6 @@ https://docs.gradle.org/current/userguide/java_library_plugin.html\
     (class . "cl")
     (interface . "in")
     (enum . "en")))
-
-
-;;;###autoload
-(defun javaimp-visit-project (file)
-  "Loads a project and its submodules from FILE.
-FILE should have a handler as per `javaimp-handler-regexp-alist'.
-Interactively, finds suitable files in this directory and parent
-directories, and offers them as completion alternatives for FILE,
-topmost first.
-
-After being processed by this command, the module tree becomes
-known to javaimp and `javaimp-add-import' may be called inside
-any module's source file."
-  (interactive
-   (let ((file-regexp (mapconcat #'car javaimp-handler-regexp-alist "\\|"))
-         (cur-dir (expand-file-name default-directory))
-         files parent)
-     (while (setq files (append (directory-files cur-dir t file-regexp) files)
-                  ;; Prevent infloop on root
-                  parent (file-name-directory (directory-file-name cur-dir))
-                  cur-dir (unless (string= parent cur-dir) parent)))
-     (list (read-file-name "Visit project from file: " nil files t))))
-  (setq file (expand-file-name file))
-  (let ((handler (or (assoc-default (file-name-nondirectory file)
-                                    javaimp-handler-regexp-alist
-                                    #'string-match)
-                     (user-error "No handler for file: %s" file))))
-    ;; Forget previous tree(s) loaded from this build file, if any.
-    ;; Additional project trees (see below) have the same file-orig,
-    ;; so there may be several here.
-    (when-let ((existing-list
-                (seq-filter (lambda (node)
-                              (equal (javaimp-module-file-orig
-                                      (javaimp-node-contents node))
-	                             file))
-                            javaimp-project-forest)))
-      (if (y-or-n-p "Forget already loaded project(s)?")
-          (setq javaimp-project-forest
-                (seq-remove (lambda (node)
-                              (memq node existing-list))
-                            javaimp-project-forest))
-        (user-error "Aborted")))
-    (let ((trees (funcall handler file)))
-      (push (car trees) javaimp-project-forest)
-      (dolist (node (cdr trees))
-        (when (y-or-n-p
-               (format "Include additional project tree rooted at %S?"
-                       (javaimp-module-id (javaimp-node-contents node))))
-          (push node javaimp-project-forest)))
-      (message "Loaded project from %s" file))))
 
 
 ;; Dependencies
@@ -1028,7 +977,6 @@ after this group of defuns."
         (when names
           (string-join names "."))))))
 
-
 
 ;; Main
 
@@ -1070,6 +1018,57 @@ using Javaimp facilities.
                      #'javaimp-end-of-defun)
     (remove-function (local 'add-log-current-defun-function)
                      #'javaimp-add-log-current-defun)))
+
+
+;;;###autoload
+(defun javaimp-visit-project (file)
+  "Loads a project and its submodules from FILE.
+FILE should have a handler as per `javaimp-handler-regexp-alist'.
+Interactively, finds suitable files in this directory and parent
+directories, and offers them as completion alternatives for FILE,
+topmost first.
+
+After being processed by this command, the module tree becomes
+known to javaimp and `javaimp-add-import' may be called inside
+any module's source file."
+  (interactive
+   (let ((file-regexp (mapconcat #'car javaimp-handler-regexp-alist "\\|"))
+         (cur-dir (expand-file-name default-directory))
+         files parent)
+     (while (setq files (append (directory-files cur-dir t file-regexp) files)
+                  ;; Prevent infloop on root
+                  parent (file-name-directory (directory-file-name cur-dir))
+                  cur-dir (unless (string= parent cur-dir) parent)))
+     (list (read-file-name "Visit project from file: " nil files t))))
+  (setq file (expand-file-name file))
+  (let ((handler (or (assoc-default (file-name-nondirectory file)
+                                    javaimp-handler-regexp-alist
+                                    #'string-match)
+                     (user-error "No handler for file: %s" file))))
+    ;; Forget previous tree(s) loaded from this build file, if any.
+    ;; Additional project trees (see below) have the same file-orig,
+    ;; so there may be several here.
+    (when-let ((existing-list
+                (seq-filter (lambda (node)
+                              (equal (javaimp-module-file-orig
+                                      (javaimp-node-contents node))
+	                             file))
+                            javaimp-project-forest)))
+      (if (y-or-n-p "Forget already loaded project(s)?")
+          (setq javaimp-project-forest
+                (seq-remove (lambda (node)
+                              (memq node existing-list))
+                            javaimp-project-forest))
+        (user-error "Aborted")))
+    (let ((trees (funcall handler file)))
+      (push (car trees) javaimp-project-forest)
+      (dolist (node (cdr trees))
+        (when (y-or-n-p
+               (format "Include additional project tree rooted at %S?"
+                       (javaimp-module-id (javaimp-node-contents node))))
+          (push node javaimp-project-forest)))
+      (message "Loaded project from %s" file))))
+
 
 (defun javaimp-forget-visited-projects ()
   "Forget all visited projects."
