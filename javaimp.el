@@ -1049,7 +1049,51 @@ after this group of defuns."
 
 
 
-;; Misc
+;; Main
+
+(defvar-keymap javaimp-basic-map
+  "i" #'javaimp-add-import
+  "o" #'javaimp-organize-imports
+  "s" #'javaimp-show-scopes)
+
+(defvar-keymap javaimp-minor-mode-map
+  "C-c j" javaimp-basic-map
+  ;; Override functions from java-mode
+  "C-M-a" #'beginning-of-defun
+  "C-M-e" #'end-of-defun)
+
+;;;###autoload
+(define-minor-mode javaimp-minor-mode
+  "Javaimp minor mode.
+When enabled, provides Imenu support and navigation functions
+using Javaimp facilities.
+
+\\{javaimp-minor-mode-map}"
+  :lighter " JavaImp"
+  :interactive (java-mode)
+  (if javaimp-minor-mode
+      (progn
+        (add-function :override (local 'imenu-create-index-function)
+                      #'javaimp-imenu-create-index)
+        (add-function :override (local 'beginning-of-defun-function)
+                      #'javaimp-beginning-of-defun)
+        (add-function :override (local 'end-of-defun-function)
+                      #'javaimp-end-of-defun)
+        (add-function :override (local 'add-log-current-defun-function)
+                      #'javaimp-add-log-current-defun))
+    (remove-function (local 'imenu-create-index-function)
+                     #'javaimp-imenu-create-index)
+    (remove-function (local 'beginning-of-defun-function)
+                     #'javaimp-beginning-of-defun)
+    (remove-function (local 'end-of-defun-function)
+                     #'javaimp-end-of-defun)
+    (remove-function (local 'add-log-current-defun-function)
+                     #'javaimp-add-log-current-defun)))
+
+(defun javaimp-forget-visited-projects ()
+  "Forget all visited projects."
+  (interactive)
+  (setq javaimp-project-forest nil))
 
 (defun javaimp-flush-cache ()
   "Flush all caches."
