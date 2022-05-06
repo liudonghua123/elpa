@@ -13,3 +13,6 @@ Using quelpa:
 
 Running `M-x cpupower-info` or `M-x cpupower-set-governor` will
 probably be what you want to do.
+
+Additionally there is `M-x cpupower-helm-set-governor` for those with
+`'helm`.

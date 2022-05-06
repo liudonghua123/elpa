@@ -1,10 +1,10 @@
 ;;; cpupower.el --- cpupower command interface  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021 Stephen Meister
+;; Copyright (C) 2021  Free Software Foundation, Inc.
 
 ;; Author: Stephen Meister
 ;; URL: https://gitlab.com/steve-emacs-stuff/cpupower-el
-;; Version: 1.0.2
+;; Version: 1.0.3
 ;; Keywords: hardware, cpupower, cpu, frequency-scaling
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -28,8 +28,6 @@
 ;; command line).  You can configure how cpupower is called by
 ;; customizing cpupower-cmd.
 ;;
-;; This module interacts with cpupower via running it in a shell.
-;;
 ;; The commands you'll probably want to use:
 ;; * cpupower-info
 ;;   - displays (briefly) the current cpupower information
@@ -45,6 +43,11 @@
 ;;   - returns a list of all cpu governors by core.
 
 ;;; Code:
+(defgroup cpupower nil
+  "Interface to cpupower."
+  :group 'external
+  :tag "Cpupower"
+  :prefix "cpupower-")
 
 (defcustom cpupower-cmd
   "sudo cpupower"
@@ -61,13 +64,13 @@ messages buffer"
   :group 'cpupower)
 
 (defconst cpupower--compatible-versions
-  '("5.4")
+  '("5.4" "5.12")
   "Versions of cpupower which cpupower.el can work with.
 
 It is possible that other versions of cpupower have the same
 command line input/output structure.  If you are working with a
 version of cpupower not listed here but you suspect is
-compatible, extending this list with you version will all you to
+compatible, extending this list with your version will all you to
 test.")
 
 (defvar cpupower--cache
@@ -95,7 +98,7 @@ will be called if the value is not cached."
 Note: this function skips the safety check because the safety
 check is composed of this function."
   (cpupower--with-cache-slot :version
-    (let* ((output (cpupower--run "--version" t))
+    (let* ((output (cpupower--run '("--version") t))
            (tokens (split-string output)))
       (when (string-equal (car tokens) "cpupower")
         (cadr tokens)))))
@@ -108,14 +111,15 @@ acceptible version."
   (let ((is-valid (cpupower--with-cache-slot :valid
                     (cl-member (cpupower--get-version)
                                cpupower--compatible-versions
-                               :test 'string-equal))))
+                               :test #'string-equal))))
     (unless is-valid
       (let ((version (cpupower--get-version)))
         (if (null version)
             (error "Unable to communicate with cpupower (shell command: \"%s\")"
                    cpupower-cmd)
           (error "Invalid cpu power version %s.  Must be one of: %s"
-                 version (mapconcat 'identity cpupower--compatible-versions ", ")))))))
+                 version (mapconcat #'identity
+                                    cpupower--compatible-versions ", ")))))))
 
 (defun cpupower--get-num-cpus ()
   "Return the number of CPUs on this system."
@@ -130,23 +134,32 @@ cpus but currently it just finds _all_ governors."
   (cpupower--with-cache-slot :governors
     (seq-uniq
      (mapcan
-      'split-string
-      (cpupower--parse-find (cpupower--run "--cpu all frequency-info")
+      #'split-string
+      (cpupower--parse-find (cpupower--run '("--cpu" "all" "frequency-info"))
                             "available cpufreq governors:"
-                            "\n")))))
+                            "\n"))
+     #'equal)))
 
-(defun cpupower--run (subcommand &optional skip-safety-check)
-  "Execute cpupower with SUBCOMMAND arguments return the output as a string.
+(defun cpupower--run (args &optional skip-safety-check)
+  "Execute cpupower with ARGS (list of args) returning the output as a string.
 
 When SKIP-SAFETY-CHECK is non-nil the cpupower configuration will
-be checked before executing any commands."
+not be checked before executing any commands."
   (unless skip-safety-check
     (cpupower--ensure-executable-valid))
-  (with-temp-buffer
-    (let ((command (format "%s %s" cpupower-cmd subcommand)))
+  (let* ((listified-command (split-string cpupower-cmd))
+         (actual-command (car listified-command)))
+    (with-temp-buffer
       (when cpupower-enable-logging
-        (message "cpupower.el cmd: %s" command))
-      (shell-command command (current-buffer))
+        (message "cpupower.el cmd: %s %s"
+                 cpupower-cmd
+                 args))
+      (apply #'call-process
+             (cl-concatenate 'list
+                             `(,actual-command)
+                             '(nil t nil)
+                             (cdr listified-command)
+                             args))
       (buffer-string))))
 
 (defun cpupower--format-KHz (KHz)
@@ -186,11 +199,12 @@ function returns: (\"and\" \"too\")
 This is indented as the primary way for humans to see this
 information."
   (interactive)
-  (let ((governors (seq-uniq (cpupower-get-current-governors) 'string-equal))
-        (frequencies (mapcar 'cpupower--format-KHz (cpupower-get-current-frequencies))))
+  (let ((governors (seq-uniq (cpupower-get-current-governors) #'string-equal))
+        (frequencies (mapcar #'cpupower--format-KHz
+                             (cpupower-get-current-frequencies))))
     (message "Governor: %s [ %s ] (version: %s)"
-             (mapconcat 'identity governors ", ")
-             (mapconcat 'identity frequencies ", ")
+             (mapconcat #'identity governors ", ")
+             (mapconcat #'identity frequencies ", ")
              (cpupower--get-version))))
 
 (defun cpupower-set-governor (governor)
@@ -199,7 +213,7 @@ information."
   (let ((valid-governors (cpupower--get-available-governors)))
     (unless (member governor valid-governors)
       (error "Invalid governor: %s, must be one of %s" governor valid-governors))
-    (cpupower--run (format "--cpu all frequency-set -g %s" governor))
+    (cpupower--run `("--cpu" "all" "frequency-set" "-g" ,governor))
     (cpupower-info)))
 
 (defun cpupower-get-current-frequencies (&optional print-message)
@@ -208,12 +222,12 @@ information."
 When called interactively (PRINT-MESSAGE will be true) it will
 message the user with current CPU frequencies."
   (interactive "p")
-  (let* ((output (cpupower--run "--cpu all frequency-info -f"))
-         (frequencies (mapcar 'string-to-number
+  (let* ((output (cpupower--run '("--cpu" "all" "frequency-info" "-f")))
+         (frequencies (mapcar #'string-to-number
                               (cpupower--parse-find output "frequency:"))))
     (when print-message
       (message (format "CPU Frequencies: %s"
-                       (mapconcat 'cpupower--format-KHz frequencies ", "))))
+                       (mapconcat #'cpupower--format-KHz frequencies ", "))))
     frequencies))
 
 (defun cpupower-get-current-governors (&optional print-message)
@@ -222,14 +236,14 @@ message the user with current CPU frequencies."
 When called interactively (PRINT-MESSAGE will be true) it will
 message the user with current CPU governors"
   (interactive "p")
-  (let* ((output (cpupower--run "--cpu all frequency-info -p"))
+  (let* ((output (cpupower--run '("--cpu" "all" "frequency-info" "-p")))
          (governors (mapcar (lambda (quoted)
                               (string-replace "\"" "" quoted))
                             (cpupower--parse-find output "governor"))))
     (when print-message
       (message (format "CPU Governors: %s"
-                       (mapconcat 'identity
-                                  (seq-uniq governors 'string-equal)
+                       (mapconcat #'identity
+                                  (seq-uniq governors #'string-equal)
                                   ", "))))
     governors))
 
@@ -242,10 +256,10 @@ message the user with current CPU governors"
   (require 'helm)
   (defun cpupower-helm-set-governor ()
     "Set cpu governor using helm."
-    (interactive) 
+    (interactive)
     (cpupower-set-governor
      (helm :sources (helm-make-source "cpu-governors" 'helm-source-sync
-                      :candidates (cpupower--get-available-governors)) 
+                      :candidates (cpupower--get-available-governors))
            :buffer "*helm set cpu governor*"))))
 
 (provide 'cpupower)
