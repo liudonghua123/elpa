@@ -402,7 +402,7 @@ current module or source tree, see
           (module (when node
                     (javaimp--update-module-maybe node)
                     (javaimp-node-contents node)))
-          (classes (append
+          (classes (nconc
                     ;; jdk
                     (when javaimp-java-home
                       (javaimp--get-jdk-classes javaimp-java-home))
@@ -513,7 +513,7 @@ If there's no such directive, then the last resort is just
         (if-let ((buf (get-file-buffer s)))
             (push buf buffers)
           (push s files)))
-      (append
+      (nconc
        ;; Read files
        (javaimp--collect-classes
         'javaimp-source-file-cache #'javaimp--read-source-classes files)
