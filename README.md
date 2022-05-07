@@ -26,9 +26,18 @@ integration is welcomed.
 How to use
 ----------
 
-This package is published on [MELPA]. Using [`setup`][setup], one
-might configure `autocrypt.el` to read headers using Rmail and inject
-headers using `message-mode` as follows:
+This package is published on [MELPA], but there is an intention to
+eventually move over to GNU ELPA.
+
+One might configure `autocrypt.el` to read headers using Rmail and
+inject headers using `message-mode` as follows:
+
+~~~elisp
+(add-hook 'rmail-mode-hook #'autocrypt-mode)
+(add-hook 'message-mode #'autocrypt-mode)
+~~~
+
+alternatively, using [`setup`][setup]:
 
 ~~~elisp
 (setup (:package autocrypt)
