@@ -278,11 +278,11 @@ cache not updated."
        (setf (alist-get filename (symbol-value cache-sym) nil 'remove #'string=) nil)
        (signal (car err) (cdr err))))))
 
-(defun javaimp--collect-from-files (fun files cache-sym)
+(defun javaimp--collect-from-files (fun files cache-sym what-desc)
   "Collect values for FILES in a flat list.  Each element in FILES
 should be a file name, or a cons where car is a file name.  FUN
 and CACHE-SYM are passed to `javaimp--collect-from-file', which
-see."
+see.  WHAT-DESC is included in the messages."
   (let (tmp unread res errors)
     ;; Collect from cache hits
     (dolist (file files)
@@ -293,8 +293,9 @@ see."
     ;; Now read all cache misses
     (when unread
       (let ((reporter (make-progress-reporter
-                       (format "Reading %d files (%d taken from cache) ..."
-                               (length unread) (- (length files) (length unread)))
+                       (format "Reading %d %s files (%d taken from cache) ..."
+                               (length unread) what-desc
+                               (- (length files) (length unread)))
                        0 (length unread)))
             (i 0)
             filename)
@@ -319,7 +320,7 @@ see."
           (terpri))))
     res))
 
-(defun javaimp--collect-from-source-dir (fun dir cache-sym)
+(defun javaimp--collect-from-source-dir (fun dir cache-sym what-desc)
   "For each Java source file in DIR, invoke FUN and collect results
 in a flat list.  FUN is given two arguments: a buffer BUF, and
 file name FILE, which is non-nil only if BUF is a temporary
@@ -327,8 +328,9 @@ buffer.  It should return a list of some values.
 
 Files which are not visited in some buffer in the current session
 are processed with `javaimp--collect-from-files', with CACHE-SYM
-given as corresponding argument.  In this case we visit the file
-in a temp buffer, and so FILE given to FUN will be non-nil.
+and WHAT-DESC given as corresponding arguments.  In this case we
+visit the file in a temp buffer, and so FILE given to FUN will be
+non-nil.
 
 Unparsed or partially parsed buffers (as determined by
 `javaimp-parse-fully-parsed-p') are processed in
@@ -355,7 +357,10 @@ Finally, already parsed buffers are processed in
           (with-temp-buffer
             (insert-file-contents file)
             (funcall fun (current-buffer) file)))
-        files cache-sym)
+        files cache-sym
+        (concat what-desc
+                (when javaimp-verbose
+                  (format " (dir %s)" dir))))
        ;; Parse unparsed buffers
        (when unparsed-bufs
          (let (tmp)
@@ -389,9 +394,9 @@ then just return `default-directory'."
 
 ;; Subroutines for identifiers
 
-(defun javaimp--read-dir-source-idents (dir)
+(defun javaimp--read-dir-source-idents (dir what-desc)
   (javaimp--collect-from-source-dir
-   #'javaimp--collect-identifiers dir 'javaimp--source-idents-cache))
+   #'javaimp--collect-identifiers dir 'javaimp--source-idents-cache what-desc))
 
 (defun javaimp--collect-identifiers (buf file)
   "Return all identifiers in buffer BUF, which is temporary if FILE
@@ -549,7 +554,8 @@ build the list each time because jars may change."
     (javaimp--collect-from-files
      #'javaimp--read-jar-classes
      dep-jars-no-source
-     'javaimp--jar-idents-cache)))
+     'javaimp--jar-idents-cache
+     (concat (javaimp-print-id (javaimp-module-id module)) " dep jars"))))
 
 (defun javaimp--collect-module-dep-jars-with-source-idents (module)
   "Return list of identifiers from MODULE's dependencies for which
@@ -566,7 +572,8 @@ file_, so cache is refreshed only when artifact is rebuilt."
          (error "Could not find module %s!  Please re-visit its \
 top-level project." (javaimp-print-id mod-id)))))
    (javaimp-module-dep-jars-with-source module)
-   'javaimp--module-idents-cache))
+   'javaimp--module-idents-cache
+   (concat (javaimp-print-id (javaimp-module-id module)) " dep sources")))
 
 (defun javaimp--read-module-source-idents (module)
   (let ((source-dirs
@@ -576,8 +583,11 @@ top-level project." (javaimp-print-id mod-id)))))
                     (file-name-as-directory
                      (file-name-concat (javaimp-module-build-dir module) dir)))
                   javaimp-additional-source-dirs))))
-  (seq-mapcat #'javaimp--read-dir-source-idents
-              source-dirs)))
+    (seq-mapcat (lambda (dir)
+                  (javaimp--read-dir-source-idents
+                   dir (concat (javaimp-print-id (javaimp-module-id module))
+                               " source")))
+                source-dirs)))
 
 
 
@@ -636,7 +646,7 @@ its jar dependencies, as well as its source dependencies.
                     (if module
                         (javaimp--read-module-source-idents module)
                       (javaimp--read-dir-source-idents
-                       (javaimp--get-current-source-dir))))))
+                       (javaimp--get-current-source-dir) "current source")))))
           (completion-regexp-list
            (and (not current-prefix-arg)
                 (symbol-at-point)
@@ -655,12 +665,12 @@ JAVA-HOME (earlier Java versions), read all .jar files in it."
     (if (file-directory-p dir)
         (javaimp--collect-from-files
          #'javaimp--read-jar-classes (directory-files dir t "\\.jmod\\'")
-         'javaimp--jar-idents-cache)
+         'javaimp--jar-idents-cache "jdk .jmod")
       (setq dir (file-name-concat java-home "jre" "lib"))
       (if (file-directory-p dir)
           (javaimp--collect-from-files
            #'javaimp--read-jar-classes (directory-files dir t "\\.jar\\'")
-           'javaimp--jar-idents-cache)
+           'javaimp--jar-idents-cache "jdk .jar")
         (user-error "Could not load JDK classes")))))
 
 
@@ -853,7 +863,7 @@ in a major mode hook."
        (javaimp--collect-module-dep-jars-with-source-idents module)
        (javaimp--read-module-source-idents module))
     (javaimp--read-dir-source-idents
-     (javaimp--get-current-source-dir))))
+     (javaimp--get-current-source-dir) "current source")))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql 'javaimp)))
   (javaimp-xref--module-completion-table))
