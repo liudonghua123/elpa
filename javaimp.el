@@ -402,21 +402,20 @@ then just return `default-directory'."
 
 ;; Subroutines for identifiers
 
-(defun javaimp--read-dir-source-idents (dir what-desc)
+(defun javaimp--read-dir-source-idents (scope-pred dir what-desc)
   (javaimp--collect-from-source-dir
-   #'javaimp--collect-idents dir 'javaimp--source-idents-cache what-desc))
+   (apply-partially #'javaimp--collect-idents scope-pred)
+    dir 'javaimp--source-idents-cache what-desc))
 
-(defun javaimp--collect-idents (buf file)
-  "Return all identifiers in buffer BUF, which is temporary if FILE
-is non-nil.  Suitable for use as argument to
-`javaimp--collect-from-source-dir', which see."
+(defun javaimp--collect-idents (scope-pred buf file)
+  "Return all identifiers satisfying SCOPE-PRED in buffer BUF,
+which is temporary if FILE is non-nil."
   (with-current-buffer buf
     (save-excursion
       (save-restriction
         (widen)
         (let* ((package (javaimp-parse-get-package))
-               (scopes (javaimp-parse-get-all-scopes
-                        nil nil (javaimp-scope-defun-p '(method)))))
+               (scopes (javaimp-parse-get-all-scopes nil nil scope-pred)))
           (mapcar (lambda (s)
                     (goto-char (javaimp-scope-open-brace s))
                     (propertize (javaimp-scope-name s)
@@ -561,10 +560,11 @@ build the list each time because jars may change."
      'javaimp--jar-idents-cache
      (concat (javaimp-print-id (javaimp-module-id module)) " dep jars"))))
 
-(defun javaimp--collect-module-dep-jars-with-source-idents (module)
-  "Return list of identifiers from MODULE's dependencies for which
-we know where the source is.  The list is cached by _artifact
-file_, so cache is refreshed only when artifact is rebuilt."
+(defun javaimp--collect-module-dep-jars-with-source-idents (scope-pred module)
+  "Return list of identifiers satisfying SCOPE-PRED from MODULE's
+dependencies for which we know where the source is.  The list is
+cached by _artifact file_, so cache is refreshed only when
+artifact is rebuilt."
   (javaimp--collect-from-files
    (lambda (artifact-and-id)
      (let* ((mod-id (cdr artifact-and-id))
@@ -572,17 +572,18 @@ file_, so cache is refreshed only when artifact is rebuilt."
                   (lambda (m)
                     (equal (javaimp-module-id m) mod-id)))))
        (if mod
-           (javaimp--read-module-source-idents mod)
+           (javaimp--read-module-source-idents scope-pred mod)
          (error "Could not find module %s!  Please re-visit its \
 top-level project." (javaimp-print-id mod-id)))))
    (javaimp-module-dep-jars-with-source module)
    'javaimp--module-idents-cache
    (concat (javaimp-print-id (javaimp-module-id module)) " dep sources")
-   ;; The real loop is inside the function, so don't report progress
-   ;; outside
+   ;; We have "inner" loop inside the function passed to
+   ;; javaimp--collect-from-files, so don't report progress on "outer"
+   ;; loop
    t))
 
-(defun javaimp--read-module-source-idents (module)
+(defun javaimp--read-module-source-idents (scope-pred module)
   (let ((source-dirs
          (append
           (javaimp-module-source-dirs module)
@@ -592,8 +593,9 @@ top-level project." (javaimp-print-id mod-id)))))
                   javaimp-additional-source-dirs))))
     (seq-mapcat (lambda (dir)
                   (javaimp--read-dir-source-idents
-                   dir (concat (javaimp-print-id (javaimp-module-id module))
-                               " source")))
+                   scope-pred dir
+                   (concat (javaimp-print-id (javaimp-module-id module))
+                           " source")))
                 source-dirs)))
 
 
@@ -637,23 +639,27 @@ its jar dependencies, as well as its source dependencies.
 `javaimp--get-current-source-dir')."
   (interactive
    (let* ((module (javaimp--detect-module))
+          (scope-pred (javaimp-scope-defun-p))
           (classes
            (nconc
-            ;; jdk
+            ;; JDK
             (when javaimp-java-home
               (javaimp--get-jdk-classes javaimp-java-home))
             (when module
               (nconc
+               ;; Jar dependencies
                (javaimp--collect-module-dep-jars-classes module)
+               ;; Source dependencies
                (mapcar #'javaimp--ident-to-fqcn
                        (javaimp--collect-module-dep-jars-with-source-idents
-                        module))))
+                        scope-pred module))))
             ;; Current module or source tree
             (mapcar #'javaimp--ident-to-fqcn
                     (if module
-                        (javaimp--read-module-source-idents module)
+                        (javaimp--read-module-source-idents scope-pred module)
                       (javaimp--read-dir-source-idents
-                       (javaimp--get-current-source-dir) "current source")))))
+                       scope-pred (javaimp--get-current-source-dir)
+                       "current source")))))
           (completion-regexp-list
            (and (not current-prefix-arg)
                 (symbol-at-point)
@@ -865,12 +871,14 @@ in a major mode hook."
 (defun javaimp-xref--backend () 'javaimp)
 
 (defun javaimp-xref--ident-completion-table ()
-  (if-let ((module (javaimp--detect-module)))
-      (nconc
-       (javaimp--collect-module-dep-jars-with-source-idents module)
-       (javaimp--read-module-source-idents module))
-    (javaimp--read-dir-source-idents
-     (javaimp--get-current-source-dir) "current source")))
+  (let ((scope-pred (javaimp-scope-defun-p '(method)))
+        (module (javaimp--detect-module)))
+    (if module
+        (nconc
+         (javaimp--collect-module-dep-jars-with-source-idents scope-pred module)
+         (javaimp--read-module-source-idents scope-pred module))
+      (javaimp--read-dir-source-idents
+       scope-pred (javaimp--get-current-source-dir) "current source"))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql 'javaimp)))
   (javaimp-xref--ident-completion-table))
