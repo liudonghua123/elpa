@@ -862,7 +862,7 @@ in a major mode hook."
 
 (defun javaimp-xref--backend () 'javaimp)
 
-(defun javaimp-xref--module-completion-table ()
+(defun javaimp-xref--ident-completion-table ()
   (if-let ((module (javaimp--detect-module)))
       (nconc
        (javaimp--collect-module-dep-jars-with-source-idents module)
@@ -871,23 +871,33 @@ in a major mode hook."
      (javaimp--get-current-source-dir) "current source")))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql 'javaimp)))
-  (javaimp-xref--module-completion-table))
+  (javaimp-xref--ident-completion-table))
+
+(defun javaimp-xref--ident-definition (ident)
+  (let* ((file (get-text-property 0 'file ident))
+         (buf (get-file-buffer file))
+         (loc (if buf
+                  (xref-make-buffer-location
+                   buf (get-text-property 0 'pos ident))
+                (xref-make-file-location
+                 file
+                 (get-text-property 0 'line ident)
+                 (get-text-property 0 'column ident)))))
+    (xref-make ident loc)))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql 'javaimp)) identifier)
-  (let* ((comp-table (javaimp-xref--module-completion-table))
+  (let* ((comp-table (javaimp-xref--ident-completion-table))
          (identifiers (all-completions identifier comp-table)))
-    (mapcar (lambda (ident)
-              (let* ((file (get-text-property 0 'file ident))
-                     (buf (get-file-buffer file))
-                     (loc (if buf
-                              (xref-make-buffer-location
-                               buf (get-text-property 0 'pos ident))
-                            (xref-make-file-location
-                             file
-                             (get-text-property 0 'line ident)
-                             (get-text-property 0 'column ident)))))
-                (xref-make ident loc)))
-            identifiers)))
+    (mapcar #'javaimp-xref--ident-definition identifiers)))
+
+(cl-defmethod xref-backend-apropos ((_backend (eql 'javaimp)) pattern)
+  (let* ((comp-table (javaimp-xref--ident-completion-table))
+         (identifiers (seq-filter
+                       (apply-partially #'string-match
+                                        (xref-apropos-regexp pattern))
+                       comp-table)))
+    (mapcar #'javaimp-xref--ident-definition
+            (sort identifiers #'string-lessp))))
 
 
 
