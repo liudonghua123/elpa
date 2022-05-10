@@ -377,12 +377,12 @@ Finally, already parsed buffers are processed in
              (setq tmp (nconc tmp (funcall fun buf nil))))))
        ;; Read parsed buffers - usually will be quick
        (when parsed-bufs
-         (let (tmp)
-           (with-delayed-message
+         (with-delayed-message
                (1 (format "Reading %d parsed buffers..." (length parsed-bufs)))
-             (dolist (buf parsed-bufs tmp)
-               (setq tmp (nconc tmp (funcall fun buf nil)))))))))))
-
+           (mapcan
+            (lambda (buf)
+              (funcall fun buf nil))
+            parsed-bufs)))))))
 
 (defun javaimp--get-current-source-dir ()
   "Try to determine current root source directory from 'package'
