@@ -274,15 +274,17 @@ cache not updated."
                   cached-file)
             (javaimp-cached-file-value cached-file)))
       (t
-       ;; Clear on any error
+       ;; Clear on any signal
        (setf (alist-get filename (symbol-value cache-sym) nil 'remove #'string=) nil)
        (signal (car err) (cdr err))))))
 
-(defun javaimp--collect-from-files (fun files cache-sym what-desc)
+(defun javaimp--collect-from-files (fun files cache-sym what-desc
+                                        &optional no-progress-report)
   "Collect values for FILES in a flat list.  Each element in FILES
 should be a file name, or a cons where car is a file name.  FUN
 and CACHE-SYM are passed to `javaimp--collect-from-file', which
-see.  WHAT-DESC is included in the messages."
+see.  WHAT-DESC is included in the messages.  NO-PROGRESS-REPORT,
+when non-nil, prevents progress reporter creation."
   (let (tmp unread res errors)
     ;; Collect from cache hits
     (dolist (file files)
@@ -292,25 +294,29 @@ see.  WHAT-DESC is included in the messages."
         (setq res (nconc res (copy-sequence tmp)))))
     ;; Now read all cache misses
     (when unread
-      (let ((reporter (make-progress-reporter
-                       (format "Reading %d %s files (%d taken from cache) ..."
-                               (length unread) what-desc
-                               (- (length files) (length unread)))
-                       0 (length unread)))
+      (let ((reporter (unless no-progress-report
+                        (make-progress-reporter
+                         (format "Reading %d %s files (%d taken from cache) ..."
+                                 (length unread) what-desc
+                                 (- (length files) (length unread)))
+                         0 (length unread))))
             (i 0)
             filename)
         (dolist (file unread)
           (setq filename (if (consp file) (car file) file)
                 tmp (condition-case err
                         (javaimp--collect-from-file file cache-sym fun)
-                      (t
+                      (error
                        (push (concat filename ": " (error-message-string err))
                              errors)
                        nil)))
-          (setq res (nconc res (copy-sequence tmp)))
+          (when tmp
+            (setq res (nconc res (copy-sequence tmp))))
           (setq i (1+ i))
-          (progress-reporter-update reporter i filename))
-        (progress-reporter-done reporter)))
+          (when reporter
+            (progress-reporter-update reporter i filename)))
+        (when reporter
+          (progress-reporter-done reporter))))
     (when errors
       (with-output-to-temp-buffer "*Javaimp errors*"
         (princ javaimp--jar-error-header)
@@ -365,15 +371,15 @@ Finally, already parsed buffers are processed in
        (when unparsed-bufs
          (let (tmp)
            (dolist-with-progress-reporter (buf unparsed-bufs tmp)
-               (format "Parsing %d buffers..." (length unparsed-bufs))
+               (format "Parsed %d yet unparsed buffers..." (length unparsed-bufs))
              (setq tmp (nconc tmp (funcall fun buf nil))))))
        ;; Read parsed buffers - usually will be quick
        (when parsed-bufs
-         (with-delayed-message
-             (1 (format "Reading %d buffers..." (length parsed-bufs)))
-           (seq-mapcat (lambda (buf)
-                         (funcall fun buf nil))
-                       parsed-bufs)))))))
+         (let (tmp)
+           (with-delayed-message
+               (1 (format "Reading %d parsed buffers..." (length parsed-bufs)))
+             (dolist (buf parsed-bufs tmp)
+               (setq tmp (nconc tmp (funcall fun buf nil)))))))))))
 
 
 (defun javaimp--get-current-source-dir ()
@@ -396,23 +402,23 @@ then just return `default-directory'."
 
 (defun javaimp--read-dir-source-idents (dir what-desc)
   (javaimp--collect-from-source-dir
-   #'javaimp--collect-identifiers dir 'javaimp--source-idents-cache what-desc))
+   #'javaimp--collect-idents dir 'javaimp--source-idents-cache what-desc))
 
-(defun javaimp--collect-identifiers (buf file)
+(defun javaimp--collect-idents (buf file)
   "Return all identifiers in buffer BUF, which is temporary if FILE
-is non-nil.  Suitable for use with
+is non-nil.  Suitable for use as argument to
 `javaimp--collect-from-source-dir', which see."
   (with-current-buffer buf
     (save-excursion
       (save-restriction
         (widen)
-        (let* ((javaimp-parse--scope-hook ;optimization
+        (let* ((javaimp-parse--scope-hook
                 (if file
                     #'javaimp-parse--scope-class
                   javaimp-parse--scope-hook))
                (package (javaimp-parse-get-package))
                (scopes (javaimp-parse-get-all-scopes
-                        nil nil (javaimp-scope-defun-p))))
+                        nil nil (javaimp-scope-defun-p '(method)))))
           (mapcar (lambda (s)
                     (goto-char (javaimp-scope-open-brace s))
                     (propertize (javaimp-scope-name s)
@@ -573,7 +579,10 @@ file_, so cache is refreshed only when artifact is rebuilt."
 top-level project." (javaimp-print-id mod-id)))))
    (javaimp-module-dep-jars-with-source module)
    'javaimp--module-idents-cache
-   (concat (javaimp-print-id (javaimp-module-id module)) " dep sources")))
+   (concat (javaimp-print-id (javaimp-module-id module)) " dep sources")
+   ;; The real loop is inside the function, so don't report progress
+   ;; outside
+   t))
 
 (defun javaimp--read-module-source-idents (module)
   (let ((source-dirs
