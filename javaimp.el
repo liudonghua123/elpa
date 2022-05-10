@@ -23,12 +23,14 @@
 ;;; Commentary:
 
 ;; Allows to manage Java import statements in Maven / Gradle projects,
-;; plus some editing and navigation support.  This module does not add
-;; all needed imports automatically!  It only helps you to quickly add
-;; imports when stepping through compilation errors.  In addition,
-;; this module provides `javaimp-minor-mode' which enables decent
-;; Imenu support (with nesting and abstract methods in interfaces and
-;; abstract classes) and some navigation functions.
+;; plus some editing and navigation support.  This package does not
+;; add all needed imports automatically!  It only helps you to quickly
+;; add imports when stepping through compilation errors.
+;;
+;; In addition, this package provides `javaimp-minor-mode' which
+;; enables decent Imenu support (with nesting and abstract methods in
+;; interfaces and abstract classes), xref support (though with default
+;; xref-find-references) and some navigation functions.
 ;;
 ;;   Quick start
 ;;
@@ -111,8 +113,8 @@
 ;; of code in braces) in the current buffer, with support for
 ;; `next-error'.
 ;;
-;; Parsing is also used for Imenu support and for navigation commands,
-;; these are installed by `javaimp-minor-mode'.
+;; Parsing is also used for Imenu support, for xref support and for
+;; navigation commands, these are installed by `javaimp-minor-mode'.
 ;;
 ;; `javaimp-imenu-use-sub-alists': if non-nil then Imenu items are
 ;; presented in a nested fashion, instead of a flat list (default is
