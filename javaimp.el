@@ -45,7 +45,10 @@
 ;; - Call `javaimp-visit-project', giving it the top-level build file
 ;; of your project.  If called within a project, supplies useful
 ;; default candidates in minibuffer input (topmost build file in the
-;; current directory hierarchy, then nested ones).
+;; current directory hierarchy, then nested ones).  If you don't visit
+;; a project, then Javaimp will try to determine current source root
+;; directory from the 'package' directive in the current file, and
+;; will still offer some functions.
 ;;
 ;; - Then in a Java buffer visiting a file under that project or one
 ;; of its submodules call `javaimp-organize-imports' or
@@ -98,6 +101,12 @@
 ;;
 ;; `javaimp-organize-import': command to organize imports in the
 ;; current buffer, sorting and deleting duplicates.
+;;
+;; If you don't visit a project, then Javaimp tries to determine
+;; current source root directory (see
+;; `javaimp--get-current-source-dir'), dependency information of
+;; course will not be available, and you'll get completions only from
+;; your current sources (and from JDK).
 ;;
 ;;
 ;;   Source parsing
