@@ -412,11 +412,7 @@ is non-nil.  Suitable for use as argument to
     (save-excursion
       (save-restriction
         (widen)
-        (let* ((javaimp-parse--scope-hook
-                (if file
-                    #'javaimp-parse--scope-class
-                  javaimp-parse--scope-hook))
-               (package (javaimp-parse-get-package))
+        (let* ((package (javaimp-parse-get-package))
                (scopes (javaimp-parse-get-all-scopes
                         nil nil (javaimp-scope-defun-p '(method)))))
           (mapcar (lambda (s)
