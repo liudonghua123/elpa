@@ -1195,7 +1195,8 @@ using Javaimp facilities.
                       #'javaimp-end-of-defun)
         (add-function :override (local 'add-log-current-defun-function)
                       #'javaimp-add-log-current-defun)
-        (add-hook 'xref-backend-functions #'javaimp-xref--backend nil t))
+        (add-hook 'xref-backend-functions #'javaimp-xref--backend nil t)
+        (setq-local imenu-space-replacement nil))
     (remove-function (local 'imenu-create-index-function)
                      #'javaimp-imenu-create-index)
     (remove-function (local 'beginning-of-defun-function)
@@ -1204,7 +1205,8 @@ using Javaimp facilities.
                      #'javaimp-end-of-defun)
     (remove-function (local 'add-log-current-defun-function)
                      #'javaimp-add-log-current-defun)
-    (remove-hook 'xref-backend-functions #'javaimp-xref--backend t)))
+    (remove-hook 'xref-backend-functions #'javaimp-xref--backend t)
+    (kill-local-variable 'imenu-space-replacement)))
 
 
 ;;;###autoload
