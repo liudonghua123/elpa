@@ -487,6 +487,10 @@
   :auto-sync nil
   )
  ("pinentry"		:url "https://github.com/ueno/pinentry-el.git")
+ ("plz"                 :url "https://github.com/alphapapa/plz.el.git"
+  :ignored-files ("LICENSE")
+  :doc "README.org"
+  :auto-sync t)
  ("poke"		:url "git://git.sv.gnu.org/poke/poke-el.git"
   :doc "poke-el.texi"
   :ignored-files ("COPYING")
