@@ -192,8 +192,9 @@ function is to just skip whitespace / comments."
                  ;; move out of comment/string if in one
                  (goto-char (nth 8 state)))
                 ((and (not (bobp))
-                      ;; FIXME use syntax-after instead
-                      (member (char-syntax (char-before)) '(?> ?!)))
+                      (memql (syntax-class (syntax-after (1- (point))))
+                             ;; comment end, generic comment
+                             '(12 14)))
                  (backward-char))
                 ((funcall stop-p last-what last-pos)
                  (throw 'done (if (and last-what last-pos)
@@ -201,7 +202,7 @@ function is to just skip whitespace / comments."
                                 t)))
                 ((bobp)
                  (throw 'done nil))
-                ((= (char-syntax (char-before)) ?\))
+                ((= (syntax-class (syntax-after (1- (point)))) 5) ;close-paren
                  (backward-list)
                  (setq last-what 'list
                        last-pos (point)))
