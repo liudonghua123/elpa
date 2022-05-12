@@ -277,7 +277,7 @@ unchanged)."
                               '(?@ ?\(  ;annotation type / args
                                    ?<)) ;generic type
                       ;; keyword / identifier first char
-                      (= (char-syntax pos) ?w)))
+                      (= (syntax-class (syntax-after pos)) 2))) ;word
         (goto-char (setq res pos))))
     res))
 
