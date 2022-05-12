@@ -79,6 +79,9 @@ regexp.  First group is directive, second group is identifier."
     (modify-syntax-entry ?< "(>" st)
     (modify-syntax-entry ?> ")<" st)
     (modify-syntax-entry ?. "_" st) ; separates parts of fully-qualified type
+    ;; Override prefix syntax so that scan-sexps right after @ in
+    ;; annotation doesn't ignore it.
+    (modify-syntax-entry ?@ "_" st)
     st)
   "Enables parsing angle brackets as lists")
 

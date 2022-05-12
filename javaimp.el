@@ -1226,8 +1226,12 @@ PREV-INDEX gives the index of the method itself."
 ;;;###autoload
 (define-minor-mode javaimp-minor-mode
   "Javaimp minor mode.
-When enabled, provides Imenu support and navigation functions
-using Javaimp facilities.
+When enabled, provides Imenu support, Xref support and navigation
+functions using Javaimp facilities.
+
+Set `narrow-to-defun-include-comments' to non-nil if you want
+defun javadoc to be included in the narrowed region when using
+\\[narrow-to-defun].
 
 \\{javaimp-minor-mode-map}"
   :lighter " JavaImp"
