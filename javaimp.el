@@ -870,8 +870,11 @@ in a major mode hook."
      top-classes)))
 
 (defun javaimp-imenu--function (_index-name index-position _scope)
-  (goto-char index-position)
-  (back-to-indentation))
+  (let ((decl-beg (javaimp--beg-of-defun-decl index-position)))
+    (if decl-beg
+        (goto-char decl-beg)
+      (goto-char index-position)
+      (back-to-indentation))))
 
 
 
@@ -1064,34 +1067,28 @@ buffer."
   (if (zerop arg)
       t
     (let* ((ctx (javaimp--get-sibling-context))
-           (parent-beg (nth 0 ctx))
-           (parent-end (nth 1 ctx))
+           (parent-start (nth 0 ctx))
            (offset-from-prev (if (> arg 0)
                                  (1- arg)
                                arg))
-           (target-idx (- (nth 2 ctx) offset-from-prev))
-           (siblings (nthcdr 3 ctx)))
-      (cond ((or (not siblings) (< target-idx 0))
-             (when (= (abs arg) 1)
-               ;; Special case: ok to move to floor.  If there's
-               ;; parent - try to skip its decl prefix too.
-               (if parent-beg
-                   (goto-char (or (javaimp--beg-of-defun-decl parent-beg)
-                                  parent-beg))
-                 (goto-char (point-min))
-                 nil)))
-            ((>= target-idx (length siblings))
-             (when (= (abs arg) 1)
-               ;; Special case: ok to move to ceil.
-               (if parent-end
-                   (goto-char parent-end)
-                 (goto-char (point-max))
-                 nil)))
-            (t
-             (let ((scope (nth target-idx siblings)))
-               (goto-char (or (javaimp--beg-of-defun-decl
-                               (javaimp-scope-start scope) parent-beg)
-                              (javaimp-scope-open-brace scope)))))))))
+           (target-idx (- (nth 1 ctx) offset-from-prev))
+           (siblings (nthcdr 2 ctx)))
+      (if (or (not siblings)
+              (< target-idx 0)
+              (>= target-idx (length siblings)))
+          (if parent-start
+              ;; Move up to parent, trying to also skip its decl
+              ;; prefix
+              (goto-char (or (javaimp--beg-of-defun-decl parent-start)
+                             parent-start))
+            (goto-char (if (> arg 0)
+                           (point-min)
+                         (point-max)))
+            nil)
+        (let ((scope (nth target-idx siblings)))
+          (goto-char (or (javaimp--beg-of-defun-decl
+                          (javaimp-scope-start scope) parent-start)
+                         (javaimp-scope-open-brace scope))))))))
 
 (defun javaimp--beg-of-defun-decl (pos &optional bound)
   "Assuming POS is somewhere inside the defun declaration, return
@@ -1105,6 +1102,8 @@ than BOUND."
 
 (defun javaimp-end-of-defun ()
   "Function to be used as `end-of-defun-function'."
+  ;; Called after beginning-of-defun-raw, so we can safely inspect
+  ;; properties
   (when-let* ((brace-pos
                (next-single-property-change (point) 'javaimp-parse-scope))
               ((get-text-property brace-pos 'javaimp-parse-scope)))
@@ -1113,11 +1112,11 @@ than BOUND."
        (scan-lists brace-pos 1 0)))))
 
 (defun javaimp--get-sibling-context ()
-  "Return list of the form (PARENT-BEG PARENT-END PREV-INDEX .
+  "Return list of the form (PARENT-START PREV-INDEX .
  SIBLINGS), where SIBLINGS is a list of all sibling defun scopes.
 PREV-INDEX is the index of the \"previous\" (relative to point)
-scope in this list, or -1.  PARENT-BEG and PARENT-END are the
-positions of beginning and end of parent defun, if any.
+scope in this list, or -1.  PARENT-START is the position of
+beginning (as in `javaimp-scope-start') of parent defun, if any.
 
 Both when we're inside a method and between methods, the parent
 is the method's enclosing class.  When we're inside the method,
@@ -1139,15 +1138,14 @@ PREV-INDEX gives the index of the method itself."
                 ;; defuns whose parent is enc.
                 enc))
              (parent-beg (and parent (javaimp-scope-open-brace parent)))
-             (parent-end (when parent-beg
-                           (ignore-errors
-                             (scan-lists parent-beg 1 0))))
              (sibling-pred (javaimp-scope-same-parent-p parent))
              (siblings
               (javaimp-parse-get-all-scopes
                ;; beg/end are not strictly needed, pred is enough, but
                ;; provide them for effectiveness
-               parent-beg parent-end
+               parent-beg (when parent-beg
+                            (ignore-errors
+                              (scan-lists parent-beg 1 0)))
                (lambda (s)
                  (and (funcall defun-pred s)
                       (funcall sibling-pred s)))))
@@ -1182,7 +1180,6 @@ PREV-INDEX gives the index of the method itself."
           ;; Return start, not open brace, as this is where we'd like
           ;; to go when no sibling
           (and parent (javaimp-scope-start parent))
-          parent-end
           (or (and prev
                    (seq-position siblings prev
                                  (lambda (s1 s2)
@@ -1251,6 +1248,7 @@ defun javadoc to be included in the narrowed region when using
         (add-function :override (local 'add-log-current-defun-function)
                       #'javaimp-add-log-current-defun)
         (add-hook 'xref-backend-functions #'javaimp-xref--backend nil t)
+        ;; There're spaces within generic types, just show them
         (setq-local imenu-space-replacement nil))
     (remove-function (local 'imenu-create-index-function)
                      #'javaimp-imenu-create-index)
