@@ -1163,8 +1163,12 @@ PREV-INDEX gives the index of the method itself."
                                  (lambda (s)
                                    (>= (javaimp-scope-open-brace s) pos))
                                  siblings))
-                          (beg-decl (javaimp--beg-of-defun-decl pos))
-                          ((<= beg-decl pos)))
+                          (next-beg-decl
+                           (javaimp--beg-of-defun-decl
+                            (javaimp-scope-start next) parent-beg))
+                          (beg-decl
+                           (javaimp--beg-of-defun-decl pos parent-beg))
+                          ((= next-beg-decl beg-decl)))
                     ;; If we're inside next's declaration - behave as
                     ;; if we were inside its body, so it becomes our
                     ;; prev
