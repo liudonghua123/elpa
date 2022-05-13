@@ -257,12 +257,8 @@ point (but not farther than BOUND).  Matches inside comments /
 strings are skipped.  Return the beginning of the match (then the
 point is also at that position) or nil (then the point is left
 unchanged)."
-  (let ((state (syntax-ppss))
-        prev-semi pos res)
-    ;; Move out of any comment/string
-    (when (nth 8 state)
-      (goto-char (nth 8 state))
-      (setq state (syntax-ppss)))
+  (let (prev-semi pos res)
+    (javaimp-parse--skip-back-until)
     ;; If we skip a previous scope (including unnamed initializers),
     ;; or reach enclosing scope start, we'll fail the check in the
     ;; below loop.  But a semicolon, which delimits statements, will
@@ -573,12 +569,9 @@ call this function first."
 
 (defun javaimp-parse--enclosing-scope (&optional pred)
   "Return innermost enclosing scope matching PRED."
-  (let ((state (syntax-ppss)))
-    ;; Move out of any comment/string
-    (when (nth 8 state)
-      (goto-char (nth 8 state))
-      (setq state (syntax-ppss)))
-    (catch 'found
+  (javaimp-parse--skip-back-until)
+  (catch 'found
+    (let ((state (syntax-ppss)))
       (while t
         (let ((res (save-excursion
                      (javaimp-parse--scopes nil))))
