@@ -208,6 +208,11 @@
  '(magit-diffstat-removed        ((t (:inherit (aircon-brick)))))
 
  '(magit-section-heading         ((t (:inherit (aircon-sapphire bold)))))
+ '(magit-section-highlight       ((t (:inherit (aircon-header)))))
+
+ '(magit-blame-heading           ((t (:inherit aircon-header))))
+ '(magit-blame-highlight         ((t (:inherit aircon-header))))
+ '(magit-blame-margin            ((t (:inherit aircon-header))))
 
  '(magit-branch-local            ((t (:inherit (aircon-eden)))))
  '(magit-branch-remote           ((t (:inherit (aircon-goblin)))))
@@ -218,12 +223,21 @@
  '(magit-log-author              ((t (:inherit (change-log-name)))))
  '(magit-log-date                ((t (:inherit (change-log-date)))))
 
+ '(magit-diff-base               ((t (:inherit aircon-linen))))
+ '(magit-diff-base-highlight     ((t (:inherit aircon-mango))))
  '(magit-diff-added              ((t (:inherit diff-added))))
  '(magit-diff-added-highlight    ((t (:inherit diff-refine-added))))
  '(magit-diff-removed            ((t (:inherit diff-removed))))
  '(magit-diff-removed-highlight  ((t (:inherit diff-refine-removed))))
  '(magit-diff-whitespace-warning ((t (:inherit trailing-whitespace))))
  '(magit-diff-file-heading       ((t (:inherit vc-dir-status-edited))))
+
+ '(magit-diff-hunk-heading               ((t (:inherit (aircon-header)))))
+ `(magit-diff-hunk-heading-highlight     ((t (:background ,aircon-ghost))))
+ '(magit-diff-context                    ((t (:inherit (aircon-scorpion)))))
+ '(magit-diff-context-highlight          ((t (:inherit (aircon-header)))))
+ '(magit-diff-file-heading-highlight     ((t (:inherit (aircon-header)))))
+ '(magit-diff-revision-summary-highlight ((t (:inherit (aircon-header)))))
 
  '(dired-directory      ((t (:inherit (aircon-cello bold)))))
  '(dired-header         ((t (:inherit (dired-directory)))))
