@@ -35,18 +35,18 @@
 
 (deftheme aircon "Cool and legible light theme.")
 
-(defconst aircon-brick     "#8d2934")
-(defconst aircon-cello     "#243867")
-(defconst aircon-eden      "#18566e")
+(defconst aircon-brick     "#8d2934")   ; error
+(defconst aircon-cello     "#243867")   ; builtin
+(defconst aircon-eden      "#18566e")   ; constant
 (defconst aircon-ghost     "#a3a4ae")
-(defconst aircon-goblin    "#327038")
-(defconst aircon-grape     "#412f7e")
-(defconst aircon-hibiscus  "#9a2d71")
-(defconst aircon-lilac     "#5f4f93")
-(defconst aircon-marigold  "#b88325")
+(defconst aircon-goblin    "#327038")   ; string, success
+(defconst aircon-grape     "#412f7e")   ; function name
+(defconst aircon-hibiscus  "#9a2d71")   ; special
+(defconst aircon-lilac     "#5f4f93")   ; variable
+(defconst aircon-marigold  "#b88325")   ; warning
 (defconst aircon-midnight  "#010e2c")
-(defconst aircon-sandstone "#615855")
-(defconst aircon-sapphire  "#2e4d98")
+(defconst aircon-sandstone "#615855")   ; comment
+(defconst aircon-sapphire  "#2e4d98")   ; keyword
 (defconst aircon-shark     "#303645")
 
 (defface aircon-athens
