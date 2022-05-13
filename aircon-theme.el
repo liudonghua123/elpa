@@ -78,7 +78,8 @@
   '((((class color) (min-colors 89)) (:background "#c4cbdc")))
   "Aircon haze.")
 (defface aircon-header
-  `((t (:inherit (aircon-athens) :foreground ,aircon-shark)))
+  `((((class color) (min-colors 89))
+     (:inherit (aircon-athens) :foreground ,aircon-shark)))
   "Aircon header.")
 (defface aircon-hibiscus
   `((((class color) (min-colors 89)) (:foreground ,aircon-hibiscus)))
