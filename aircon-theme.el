@@ -47,6 +47,7 @@
 (defconst aircon-midnight  "#010e2c")
 (defconst aircon-sandstone "#615855")   ; comment
 (defconst aircon-sapphire  "#2e4d98")   ; keyword
+(defconst aircon-scorpion  "#595959")   ; shadow
 (defconst aircon-shark     "#303645")
 
 (defface aircon-athens
@@ -105,7 +106,7 @@
   `((((class color) (min-colors 89)) (:foreground ,aircon-sapphire)))
   "Aircon sapphire.")
 (defface aircon-scorpion
-  '((((class color) (min-colors 89)) (:foreground "#595959")))
+  `((((class color) (min-colors 89)) (:foreground ,aircon-scorpion)))
   "Aircon scorpion.")
 
 (custom-theme-set-faces
