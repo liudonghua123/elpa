@@ -61,6 +61,56 @@ Exception4<? super Exception5>>")
       (should (equal (javaimp-parse--arglist (point-min) (point-max) t)
                      (cdr data))))))
 
+(ert-deftest javaimp-parse-decl-prefix ()
+  (dolist (data '(;; simple
+                  (" void " . 2)
+                  (" public static void " . 2)
+
+                  ;; no sexps
+                  (" ")
+                  ;; incomplete sexps
+                  ("var)")
+                  (")   ")
+
+                  ;; don't go over / into braces
+                  ("{  } void" . 6)
+                  ("} void" . 3)
+                  ;; don't go into parens
+                  (") void" . 3)
+
+                  ;; comments
+                  ("\
+  /**
+   * javadoc1
+   */
+  public
+  // line comment
+  /**
+   * javadoc2
+   */
+  void " . 29)
+
+                  ;; annotations
+                  ("\
+  @Annotation1
+  @Annotation2(value = \"foo\")
+  @Annotation3({@Ann4(value = \"bar\"), @Ann4})
+  void " . 3)
+
+                  ;; generics
+                  ("public <T extends S> T " . 1)
+                  ("<T extends S> T " . 1)
+                  ;; don't go into incomplete generic
+                  ("S> T " . 4)
+
+                  ;; don't go over semicolon
+                  ("foo(); void " . 8)))
+    (javaimp-with-temp-buffer nil
+      (insert (car data))
+      (should (equal (cdr data)
+                     (javaimp-parse--decl-prefix))))))
+
+
 
 ;; Tests for scope parsers
 
