@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.7 2022/05/01 20:15:59 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.8 2022/05/01 20:19:34 oj14ozun Exp $
 ;; Package-Version: 1.0
 ;; Keywords: c
 
@@ -151,7 +151,10 @@ NAME."
   "Run `auto-header-buffer' before saving."
   :lighter " AH"
   (if auto-header-mode
-      (add-hook 'before-save-hook #'auto-header-buffer nil t)
+      (progn
+        (unless (derived-mode-p 'c-mode)
+          (warn "Auto-header ought to be used in a C-mode buffer"))
+        (add-hook 'before-save-hook #'auto-header-buffer nil t))
     (remove-hook 'before-save-hook #'auto-header-buffer t)))
 
 (provide 'auto-header)
