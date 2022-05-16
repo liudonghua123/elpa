@@ -4,8 +4,8 @@
 
 ;; Author: Filipp Gunbin <fgunbin@fastmail.fm>
 ;; Maintainer: Filipp Gunbin <fgunbin@fastmail.fm>
-;; Version: 0.1
-;; Keywords: sql, hive, beeline, hiveserver2
+;; Version: 0.2
+;; Keywords: sql, hive, beeline, hiveserver2, impala
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -69,7 +69,14 @@
         ;; every few milliseconds - we don't want it because it
         ;; just makes garbage.
         (comint-terminfo-terminal ""))
-    (sql-comint product params buf-name)))
+    (sql-comint product params buf-name)
+    (add-hook 'sql-login-hook #'sql-beeline--setup-interactive-mode)))
+
+(defun sql-beeline--setup-interactive-mode ()
+  (remove-hook 'sql-login-hook #'sql-beeline--setup-interactive-mode)
+
+  (setq comint-process-echoes t))
+
 
 ;;;###autoload
 (defun sql-beeline (&optional buffer)
