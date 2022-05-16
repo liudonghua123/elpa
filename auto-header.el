@@ -3,7 +3,8 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.9 2022/05/15 18:19:13 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.10 2022/05/15 18:19:29 oj14ozun Exp oj14ozun $
+;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/auto-header.el
 ;; Package-Version: 1
 ;; Keywords: c
 
