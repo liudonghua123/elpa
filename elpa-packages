@@ -585,6 +585,10 @@
  ("sql-cassandra"	:url nil)
  ("sql-indent"          :url "https://github.com/alex-hhh/emacs-sql-indent")
  ("sql-smie"            :url nil)
+ ("srht"		:url "https://git.sr.ht/~akagi/srht.el"
+  :ignored-files ("LICENSE")
+  :lisp-dir "lisp"
+  :auto-sync t)
  ("ssh-deploy"		:url "https://github.com/cjohansson/emacs-ssh-deploy")
  ("stream"		:url nil)
  ("svg"			:core ("lisp/svg.el"))
