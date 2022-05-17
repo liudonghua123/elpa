@@ -614,6 +614,7 @@
  ("tmr"
   :url "https://git.sr.ht/~protesilaos/tmr"
   :auto-sync t
+  :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi" "Makefile"))
  ("tNFA"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("tomelr"		:url "https://github.com/kaushalmodi/tomelr"
