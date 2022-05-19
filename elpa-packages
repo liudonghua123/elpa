@@ -198,7 +198,8 @@
   :auto-sync t)
  ("easy-kill"		:url "https://github.com/leoliu/easy-kill"
   :auto-sync t)
- ("ebdb"                :url "https://github.com/girzel/ebdb.git")
+ ("ebdb"                :url "https://github.com/girzel/ebdb.git"
+  :auto-sync t)
  ("ebdb-gnorb"		:url nil)
  ("ebdb-i18n-chn"	:url nil)
  ("ediprolog"		:url nil)
@@ -280,7 +281,8 @@
   :auto-sync t)
  ("excorporate"		:url nil)
  ("expand-region"	:url "https://github.com/magnars/expand-region.el")
- ("exwm"		:url "https://github.com/ch11ng/exwm.git")
+ ("exwm"		:url "https://github.com/ch11ng/exwm.git"
+  :auto-sync t)
  ("f90-interface-browser" :url nil) ;; Was "https://github.com/wence-/f90-iface"
  ("filladapt"		:url nil)
  ("flylisp"		:url nil)
@@ -309,7 +311,8 @@
  ("gnugo"		:url nil)
  ("gnus-mock"		:url nil)
  ("gpastel"		:url "https://gitlab.petton.fr/DamienCassou/gpastel")
- ("greader"		:url "https://gitlab.com/michelangelo-rodriguez/greader")
+ ("greader"		:url "https://gitlab.com/michelangelo-rodriguez/greader"
+  :auto-sync t)
  ("greenbar"		:url nil)
  ("gtags-mode"		:url "https://github.com/Ergus/gtags-mode"
   :auto-sync t)
@@ -537,7 +540,8 @@
   :auto-sync t)
  ("realgud-ipdb"        :url "https://github.com/realgud/realgud-ipdb")
  ("realgud-jdb"         :url "https://github.com/realgud/realgud-jdb")
- ("realgud-lldb"        :url "https://github.com/realgud/realgud-lldb")
+ ("realgud-lldb"        :url "https://github.com/realgud/realgud-lldb"
+  :auto-sync t)
  ("realgud-node-debug"  :url "https://github.com/realgud/realgud-node-debug")
  ("realgud-node-inspect" :url "https://github.com/realgud/realgud-node-inspect")
  ("realgud-trepan-ni"   :url "https://github.com/realgud/realgud-trepan-ni")
@@ -583,7 +587,8 @@
  ("spinner"		:url "https://github.com/Malabarba/spinner.el")
  ("sql-beeline"		:url nil)
  ("sql-cassandra"	:url nil)
- ("sql-indent"          :url "https://github.com/alex-hhh/emacs-sql-indent")
+ ("sql-indent"          :url "https://github.com/alex-hhh/emacs-sql-indent"
+  :auto-sync t)
  ("sql-smie"            :url nil)
  ("srht"		:url "https://git.sr.ht/~akagi/srht.el"
   :ignored-files ("LICENSE")
@@ -598,7 +603,8 @@
  ("svg-tag-mode"	:url "https://github.com/rougier/svg-tag-mode"
   :auto-sync t)
  ("swiper"		:url "https://github.com/abo-abo/swiper")
- ("system-packages"	:url "https://gitlab.com/jabranham/system-packages")
+ ("system-packages"	:url "https://gitlab.com/jabranham/system-packages"
+  :auto-sync t)
  ("systemd"		:url nil)
  ("taxy"                :url "https://github.com/alphapapa/taxy.el.git"
   :doc "taxy.info"
@@ -637,6 +643,7 @@
  ("tramp-theme"		:url nil)
  ("transcribe"		:url nil)
  ("transient"		:url "https://github.com/magit/transient"
+  :auto-sync nil ;;Prefers manual control.
   :lisp-dir "lisp"
   :renames (("docs/" ""))
   :news "CHANGELOG"
