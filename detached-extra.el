@@ -1,4 +1,4 @@
-;;; detached-extra.el --- Detached integration for external packages -*- lexical-binding: t -*-
+;;; dtache-extra.el --- Dtache integration for external packages -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022  Free Software Foundation, Inc.
 
@@ -19,37 +19,37 @@
 
 ;;; Commentary:
 
-;; This package provides a collection of functionality to integrate `detached' with external packages.
+;; This package provides a collection of functionality to integrate `dtache' with external packages.
 
 ;;; Code:
 
 ;;;; Requirements
 
-(declare-function detached-compile "detached")
-(declare-function detached-start-session "detached")
+(declare-function dtache-compile "dtache")
+(declare-function dtache-start-session "dtache")
 
-(defvar detached-session-origin)
-(defvar detached-local-session)
+(defvar dtache-session-origin)
+(defvar dtache-local-session)
 
 ;;;; Functions
 
 ;;;###autoload
-(defun detached-extra-projectile-run-compilation (cmd &optional use-comint-mode)
-  "If CMD is a string execute it with `detached-compile'.
+(defun dtache-extra-projectile-run-compilation (cmd &optional use-comint-mode)
+  "If CMD is a string execute it with `dtache-compile'.
 
 Optionally USE-COMINT-MODE"
   (if (functionp cmd)
       (funcall cmd)
-    (let ((detached-session-origin 'projectile))
-      (detached-compile cmd use-comint-mode))))
+    (let ((dtache-session-origin 'projectile))
+      (dtache-compile cmd use-comint-mode))))
 
 ;;;###autoload
-(defun detached-extra-dired-rsync (command _details)
-  "Run COMMAND with `detached'."
-  (let ((detached-local-session t)
-        (detached-session-origin 'rsync))
-    (detached-start-session command t)))
+(defun dtache-extra-dired-rsync (command _details)
+  "Run COMMAND with `dtache'."
+  (let ((dtache-local-session t)
+        (dtache-session-origin 'rsync))
+    (dtache-start-session command t)))
 
-(provide 'detached-extra)
+(provide 'dtache-extra)
 
-;;; detached-extra.el ends here
+;;; dtache-extra.el ends here

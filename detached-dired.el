@@ -1,4 +1,4 @@
-;;; detached-dired.el --- Detached integration for dired -*- lexical-binding: t -*-
+;;; dtache-dired.el --- Dtache integration for dired -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022  Free Software Foundation, Inc.
 
@@ -19,27 +19,27 @@
 
 ;;; Commentary:
 
-;; This package integrates `detached' with `dired'.
+;; This package integrates `dtache' with `dired'.
 
 ;;; Code:
 
 ;;;; Requirements
 
 (require 'dired)
-(require 'detached)
+(require 'dtache)
 
 ;;;; Functions
 
 ;;;###autoload
-(defun detached-dired-do-shell-command (dired-do-shell-command &rest args)
-  "Ensure `detached' is used before running DIRED-DO-SHELL-COMMAND with ARGS."
-  (cl-letf* ((detached-session-origin 'dired)
+(defun dtache-dired-do-shell-command (dired-do-shell-command &rest args)
+  "Ensure `dtache' is used before running DIRED-DO-SHELL-COMMAND with ARGS."
+  (cl-letf* ((dtache-session-origin 'dired)
              ((symbol-function #'dired-run-shell-command)
               (lambda (command)
-                (detached-start-session command)
+                (dtache-start-session command)
                 nil)))
     (apply dired-do-shell-command args)))
 
-(provide 'detached-dired)
+(provide 'dtache-dired)
 
-;;; detached-dired.el ends here
+;;; dtache-dired.el ends here

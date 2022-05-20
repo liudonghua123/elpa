@@ -1,4 +1,4 @@
-;;; detached-consult.el --- Detached interface using Consult multi sources -*- lexical-binding: t -*-
+;;; dtache-consult.el --- Dtache interface using Consult multi sources -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021-2022  Free Software Foundation, Inc.
 
@@ -19,8 +19,8 @@
 
 ;;; Commentary:
 
-;; This package integrates `detached' with `consult'[1].  The package
-;; provides a command `detached-consult-session' which provides multiple session sources.
+;; This package integrates `dtache' with `consult'[1].  The package
+;; provides a command `dtache-consult-session' which provides multiple session sources.
 ;;
 ;; [1] https://github.com/minad/consult
 
@@ -28,37 +28,37 @@
 
 ;;;; Requirements
 
-(require 'detached)
+(require 'dtache)
 
 (declare-function consult--multi "consult")
 
 ;;;; Variables
 
-(defcustom detached-consult-hidden-predicates nil
+(defcustom dtache-consult-hidden-predicates nil
   "Predicates for sessions that should be hidden."
   :type '(repeat function)
-  :group 'detached)
+  :group 'dtache)
 
-(defcustom detached-consult-sources
-  '(detached-consult--source-session
-    detached-consult--source-active-session
-    detached-consult--source-inactive-session
-    detached-consult--source-hidden-session
-    detached-consult--source-success-session
-    detached-consult--source-failure-session
-    detached-consult--source-local-session
-    detached-consult--source-remote-session
-    detached-consult--source-current-session)
-  "Sources used by `detached-consult-session'.
+(defcustom dtache-consult-sources
+  '(dtache-consult--source-session
+    dtache-consult--source-active-session
+    dtache-consult--source-inactive-session
+    dtache-consult--source-hidden-session
+    dtache-consult--source-success-session
+    dtache-consult--source-failure-session
+    dtache-consult--source-local-session
+    dtache-consult--source-remote-session
+    dtache-consult--source-current-session)
+  "Sources used by `dtache-consult-session'.
 
 See `consult-multi' for a description of the source values."
   :type '(repeat symbol)
-  :group 'detached)
+  :group 'dtache)
 
-(defvar detached-consult--source-session
-  `(:category detached
-              :annotate detached-session-annotation
-              :action (lambda (x) (detached-open-session (detached--decode-session x)))
+(defvar dtache-consult--source-session
+  `(:category dtache
+              :annotate dtache-session-annotation
+              :action (lambda (x) (dtache-open-session (dtache--decode-session x)))
               :items
               ,(lambda ()
                  (mapcar #'car
@@ -66,16 +66,16 @@ See `consult-multi' for a description of the source values."
                           (lambda (x)
                             (seq-find (lambda (predicate)
                                         (apply predicate `(,(cdr x))))
-                                      detached-consult-hidden-predicates))
-                          (detached-session-candidates (detached-get-sessions))))))
-  "All `detached' sessions as a source for `consult'.")
+                                      dtache-consult-hidden-predicates))
+                          (dtache-session-candidates (dtache-get-sessions))))))
+  "All `dtache' sessions as a source for `consult'.")
 
-(defvar detached-consult--source-hidden-session
+(defvar dtache-consult--source-hidden-session
   `(:narrow (?\s . "Hidden")
             :hidden t
-            :category detached
-            :annotate detached-session-annotation
-            :action (lambda (x) (detached-open-session (detached--decode-session x)))
+            :category dtache
+            :annotate dtache-session-annotation
+            :action (lambda (x) (dtache-open-session (dtache--decode-session x)))
             :items
             ,(lambda ()
                (mapcar #'car
@@ -83,128 +83,128 @@ See `consult-multi' for a description of the source values."
                         (lambda (x)
                           (seq-find (lambda (predicate)
                                       (apply predicate `(,(cdr x))))
-                                    detached-consult-hidden-predicates))
-                        (detached-session-candidates (detached-get-sessions))))))
-  "Active `detached' sessions as a source for `consult'.")
+                                    dtache-consult-hidden-predicates))
+                        (dtache-session-candidates (dtache-get-sessions))))))
+  "Active `dtache' sessions as a source for `consult'.")
 
-(defvar detached-consult--source-active-session
+(defvar dtache-consult--source-active-session
   `(:narrow (?a . "Active")
             :hidden t
-            :category detached
-            :annotate detached-session-annotation
-            :action (lambda (x) (detached-open-session (detached--decode-session x)))
+            :category dtache
+            :annotate dtache-session-annotation
+            :action (lambda (x) (dtache-open-session (dtache--decode-session x)))
             :items
             ,(lambda ()
                (mapcar #'car
                        (seq-filter
                         (lambda (x)
-                          (eq 'active (detached--session-state (cdr x))))
-                        (detached-session-candidates (detached-get-sessions))))))
-  "Active `detached' sessions as a source for `consult'.")
+                          (eq 'active (dtache--session-state (cdr x))))
+                        (dtache-session-candidates (dtache-get-sessions))))))
+  "Active `dtache' sessions as a source for `consult'.")
 
-(defvar detached-consult--source-inactive-session
+(defvar dtache-consult--source-inactive-session
   `(:narrow (?i . "Inactive")
             :hidden t
-            :category detached
-            :annotate detached-session-annotation
-            :action (lambda (x) (detached-open-session (detached--decode-session x)))
+            :category dtache
+            :annotate dtache-session-annotation
+            :action (lambda (x) (dtache-open-session (dtache--decode-session x)))
             :items
             ,(lambda ()
                (mapcar #'car
                        (seq-filter
                         (lambda (x)
-                          (eq 'inactive (detached--session-state (cdr x))))
-                        (detached-session-candidates (detached-get-sessions))))))
-  "Inactive `detached' sessions as a source for `consult'.")
+                          (eq 'inactive (dtache--session-state (cdr x))))
+                        (dtache-session-candidates (dtache-get-sessions))))))
+  "Inactive `dtache' sessions as a source for `consult'.")
 
-(defvar detached-consult--source-failure-session
+(defvar dtache-consult--source-failure-session
   `(:narrow (?f . "Failure")
             :hidden t
-            :category detached
-            :annotate detached-session-annotation
-            :action (lambda (x) (detached-open-session (detached--decode-session x)))
+            :category dtache
+            :annotate dtache-session-annotation
+            :action (lambda (x) (dtache-open-session (dtache--decode-session x)))
             :items
             ,(lambda ()
                (mapcar #'car
                        (seq-filter
                         (lambda (x)
-                          (eq 'failure (car (detached--session-status (cdr x)))))
-                        (detached-session-candidates (detached-get-sessions))))))
-  "Failed `detached' sessions as a source for `consult'.")
+                          (eq 'failure (car (dtache--session-status (cdr x)))))
+                        (dtache-session-candidates (dtache-get-sessions))))))
+  "Failed `dtache' sessions as a source for `consult'.")
 
-(defvar detached-consult--source-success-session
+(defvar dtache-consult--source-success-session
   `(:narrow (?s . "Success")
             :hidden t
-            :category detached
-            :annotate detached-session-annotation
-            :action (lambda (x) (detached-open-session (detached--decode-session x)))
+            :category dtache
+            :annotate dtache-session-annotation
+            :action (lambda (x) (dtache-open-session (dtache--decode-session x)))
             :items
             ,(lambda ()
                (mapcar #'car
                        (seq-filter
                         (lambda (x)
-                          (eq 'success (car (detached--session-status (cdr x)))))
-                        (detached-session-candidates (detached-get-sessions))))))
-  "Successful `detached' sessions as a source for `consult'.")
+                          (eq 'success (car (dtache--session-status (cdr x)))))
+                        (dtache-session-candidates (dtache-get-sessions))))))
+  "Successful `dtache' sessions as a source for `consult'.")
 
-(defvar detached-consult--source-local-session
+(defvar dtache-consult--source-local-session
   `(:narrow (?l . "Local Host")
             :hidden t
-            :category detached
-            :annotate detached-session-annotation
-            :action (lambda (x) (detached-open-session (detached--decode-session x)))
+            :category dtache
+            :annotate dtache-session-annotation
+            :action (lambda (x) (dtache-open-session (dtache--decode-session x)))
             :items
             ,(lambda ()
                (mapcar #'car
                        (seq-filter
                         (lambda (x)
-                          (eq 'local (cdr (detached--session-host (cdr x)))))
-                        (detached-session-candidates (detached-get-sessions)))))
-            "Local host `detached' sessions as a source for `consult'."))
+                          (eq 'local (cdr (dtache--session-host (cdr x)))))
+                        (dtache-session-candidates (dtache-get-sessions)))))
+            "Local host `dtache' sessions as a source for `consult'."))
 
-(defvar detached-consult--source-remote-session
+(defvar dtache-consult--source-remote-session
   `(:narrow (?r . "Remote Host")
             :hidden t
-            :category detached
-            :annotate detached-session-annotation
-            :action (lambda (x) (detached-open-session (detached--decode-session x)))
+            :category dtache
+            :annotate dtache-session-annotation
+            :action (lambda (x) (dtache-open-session (dtache--decode-session x)))
             :items
             ,(lambda ()
                (mapcar #'car
                        (seq-filter
                         (lambda (x)
-                          (eq 'remote (cdr (detached--session-host (cdr x)))))
-                        (detached-session-candidates (detached-get-sessions))))))
-  "Remote host `detached' sessions as a source for `consult'.")
+                          (eq 'remote (cdr (dtache--session-host (cdr x)))))
+                        (dtache-session-candidates (dtache-get-sessions))))))
+  "Remote host `dtache' sessions as a source for `consult'.")
 
-(defvar detached-consult--source-current-session
+(defvar dtache-consult--source-current-session
   `(:narrow (?c . "Current Host")
             :hidden t
-            :category detached
-            :annotate detached-session-annotation
-            :action (lambda (x) (detached-open-session (detached--decode-session x)))
+            :category dtache
+            :annotate dtache-session-annotation
+            :action (lambda (x) (dtache-open-session (dtache--decode-session x)))
             :items
             ,(lambda ()
-               (let ((host-name (car (detached--host))))
+               (let ((host-name (car (dtache--host))))
                  (mapcar #'car (seq-filter
                                 (lambda (x)
-                                  (string= (car (detached--session-host (cdr x))) host-name))
-                                (detached-session-candidates (detached-get-sessions)))))))
-  "Current host `detached' sessions as a source for `consult'.")
+                                  (string= (car (dtache--session-host (cdr x))) host-name))
+                                (dtache-session-candidates (dtache-get-sessions)))))))
+  "Current host `dtache' sessions as a source for `consult'.")
 
 ;;;; Commands
 
 ;;;###autoload
-(defun detached-consult-session ()
-  "Enhanced `detached-open-session' command."
+(defun dtache-consult-session ()
+  "Enhanced `dtache-open-session' command."
   (interactive)
   (unless (require 'consult nil 'noerror)
-    (error "Install Consult to use detached-consult"))
-  (consult--multi detached-consult-sources
+    (error "Install Consult to use dtache-consult"))
+  (consult--multi dtache-consult-sources
                   :prompt "Select session: "
                   :require-match t
                   :sort nil))
 
-(provide 'detached-consult)
+(provide 'dtache-consult)
 
-;;; detached-consult.el ends here
+;;; dtache-consult.el ends here

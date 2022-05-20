@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
 
-# detached-env is a script which purpose is to run a detached command, and
+# dtache-env is a script which purpose is to run a dtache command, and
 # issue to stdout, based on the exit code.
 
 mode="$1"
 shift
-detached_command="$*"
+dtache_command="$*"
 
-# detached-env features two different modes:
+# dtache-env features two different modes:
 # 1) Plain-text: where plain text data will be logged in the sessions output
 # 2) Terminal-data: the script command is used to record the terminal
 #    data in raw format, this includes ansi escape sequences. The TERM
 #    environmental variable is set to eterm-color in order to enabled
-#    colored outputs from the detached_command
+#    colored outputs from the dtache_command
 
 if [ "$mode" = "plain-text" ]; then
-    if eval "$detached_command"; then
-        echo -e "\nDetached session finished"
+    if eval "$dtache_command"; then
+        echo -e "\nDtache session finished"
     else
-        echo -e "\nDetached session exited abnormally with code $?"
+        echo -e "\nDtache session exited abnormally with code $?"
     fi
 elif [ "$mode" = "terminal-data" ]; then
     TERM="eterm-color"
-    if eval script --quiet --flush --return --command "\"$detached_command\"" /dev/null; then
-        echo -e "\nDetached session finished"
+    if eval script --quiet --flush --return --command "\"$dtache_command\"" /dev/null; then
+        echo -e "\nDtache session finished"
     else
-        echo -e "\nDetached session exited abnormally with code $?"
+        echo -e "\nDtache session exited abnormally with code $?"
     fi
 fi

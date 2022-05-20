@@ -1,4 +1,4 @@
-;;; detached-init.el --- Initialize detached -*- lexical-binding: t -*-
+;;; dtache-init.el --- Initialize dtache -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022  Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 
 ;;; Commentary:
 
-;; This is intended to aid users in configuring `detached's integration with other packages.
+;; This is intended to aid users in configuring `dtache's integration with other packages.
 
 ;;; Code:
 
@@ -27,28 +27,28 @@
 
 (require 'subr-x)
 
-(declare-function detached-attach-session "detached")
-(declare-function detached-compile-session "detached")
-(declare-function detached-delete-session "detached")
-(declare-function detached-insert-session-command "detached")
-(declare-function detached-kill-session "detached")
-(declare-function detached-rerun-session "detached")
-(declare-function detached-tail-session "detached")
-(declare-function detached-view-session "detached")
-(declare-function detached-copy-session-command "detached")
-(declare-function detached-copy-session "detached")
-(declare-function detached-diff-session "detached")
+(declare-function dtache-attach-session "dtache")
+(declare-function dtache-compile-session "dtache")
+(declare-function dtache-delete-session "dtache")
+(declare-function dtache-insert-session-command "dtache")
+(declare-function dtache-kill-session "dtache")
+(declare-function dtache-rerun-session "dtache")
+(declare-function dtache-tail-session "dtache")
+(declare-function dtache-view-session "dtache")
+(declare-function dtache-copy-session-command "dtache")
+(declare-function dtache-copy-session "dtache")
+(declare-function dtache-diff-session "dtache")
 
-(declare-function detached-shell-mode "detached")
-(declare-function detached-compile-start "detached-compile")
-(declare-function detached-dired-do-shell-command "detached-dired")
-(declare-function detached-eshell-mode "detached-eshell")
-(declare-function detached-extra-projectile-run-compilation "detached-extra")
-(declare-function detached-extra-dired-rsync "detached-extra")
-(declare-function detached-org-babel-sh "detached-org")
-(declare-function detached-shell-override-history "detached-shell")
-(declare-function detached-shell-save-history-on-kill "detached-shell")
-(declare-function detached-vterm-mode "detached-vterm")
+(declare-function dtache-shell-mode "dtache")
+(declare-function dtache-compile-start "dtache-compile")
+(declare-function dtache-dired-do-shell-command "dtache-dired")
+(declare-function dtache-eshell-mode "dtache-eshell")
+(declare-function dtache-extra-projectile-run-compilation "dtache-extra")
+(declare-function dtache-extra-dired-rsync "dtache-extra")
+(declare-function dtache-org-babel-sh "dtache-org")
+(declare-function dtache-shell-override-history "dtache-shell")
+(declare-function dtache-shell-save-history-on-kill "dtache-shell")
+(declare-function dtache-vterm-mode "dtache-vterm")
 
 (declare-function org-babel-sh-evaluate "ob-shell")
 (declare-function dired-rsync--do-run "dired-rsync")
@@ -61,108 +61,108 @@
 
 ;;;; Variables
 
-(defcustom detached-init-block-list nil
+(defcustom dtache-init-block-list nil
   "A list of blocked packages."
-  :group 'detached
+  :group 'dtache
   :type 'list)
 
-(defcustom detached-init-allow-list
+(defcustom dtache-init-allow-list
   '(compile dired dired-rsync embark eshell org projectile shell vterm)
   "A list of allowed packages."
-  :group 'detached
+  :group 'dtache
   :type 'list)
 
-(defvar detached-action-map
+(defvar dtache-action-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "a" #'detached-attach-session)
-    (define-key map "c" #'detached-compile-session)
-    (define-key map "d" #'detached-delete-session)
-    (define-key map "i" #'detached-insert-session-command)
-    (define-key map "k" #'detached-kill-session)
-    (define-key map "r" #'detached-rerun-session)
-    (define-key map "t" #'detached-tail-session)
-    (define-key map "v" #'detached-view-session)
-    (define-key map "w" #'detached-copy-session-command)
-    (define-key map "W" #'detached-copy-session)
-    (define-key map "=" #'detached-diff-session)
+    (define-key map "a" #'dtache-attach-session)
+    (define-key map "c" #'dtache-compile-session)
+    (define-key map "d" #'dtache-delete-session)
+    (define-key map "i" #'dtache-insert-session-command)
+    (define-key map "k" #'dtache-kill-session)
+    (define-key map "r" #'dtache-rerun-session)
+    (define-key map "t" #'dtache-tail-session)
+    (define-key map "v" #'dtache-view-session)
+    (define-key map "w" #'dtache-copy-session-command)
+    (define-key map "W" #'dtache-copy-session)
+    (define-key map "=" #'dtache-diff-session)
     map))
 
 ;;;; Support functions
 
-(defvar detached-init--package-integration '((compile . detached-init-compile)
-                                             (dired . detached-init-dired)
-                                             (dired-rsync . detached-init-dired-rsync)
-                                             (embark . detached-init-embark)
-                                             (eshell . detached-init-eshell)
-                                             (org . detached-init-org)
-                                             (projectile . detached-init-projectile)
-                                             (shell . detached-init-shell)
-                                             (vterm . detached-init-vterm))
+(defvar dtache-init--package-integration '((compile . dtache-init-compile)
+                                             (dired . dtache-init-dired)
+                                             (dired-rsync . dtache-init-dired-rsync)
+                                             (embark . dtache-init-embark)
+                                             (eshell . dtache-init-eshell)
+                                             (org . dtache-init-org)
+                                             (projectile . dtache-init-projectile)
+                                             (shell . dtache-init-shell)
+                                             (vterm . dtache-init-vterm))
   "Alist which contain names of packages and their initialization function.")
 
 ;;;; Functions
 
 ;;;###autoload
-(defun detached-init ()
-  "Initialize `detached' integration with all packages."
+(defun dtache-init ()
+  "Initialize `dtache' integration with all packages."
 
-  ;; Required for `detached-shell-command' which is always provided
-  (add-hook 'shell-mode-hook #'detached-shell-mode)
+  ;; Required for `dtache-shell-command' which is always provided
+  (add-hook 'shell-mode-hook #'dtache-shell-mode)
 
   (let ((init-functions
-         (thread-last detached-init--package-integration
+         (thread-last dtache-init--package-integration
                       (seq-filter (lambda (it)
-                                    (member (car it) detached-init-allow-list)))
+                                    (member (car it) dtache-init-allow-list)))
                       (seq-remove (lambda (it)
-                                    (member (car it) detached-init-block-list)))
+                                    (member (car it) dtache-init-block-list)))
                       (seq-map #'cdr))))
     (dolist (init-function init-functions)
       (funcall init-function))))
 
-(defun detached-init-shell ()
+(defun dtache-init-shell ()
   "Initialize integration with `shell'."
-  (advice-add #'shell :around #'detached-shell-override-history)
-  (add-hook 'shell-mode-hook #'detached-shell-save-history-on-kill))
+  (advice-add #'shell :around #'dtache-shell-override-history)
+  (add-hook 'shell-mode-hook #'dtache-shell-save-history-on-kill))
 
-(defun detached-init-compile ()
+(defun dtache-init-compile ()
   "Initialize integration with `compile'."
-  (add-hook 'compilation-start-hook #'detached-compile-start)
-  (add-hook 'compilation-shell-minor-mode-hook #'detached-shell-mode))
+  (add-hook 'compilation-start-hook #'dtache-compile-start)
+  (add-hook 'compilation-shell-minor-mode-hook #'dtache-shell-mode))
 
-(defun detached-init-eshell ()
+(defun dtache-init-eshell ()
   "Initialize integration with `eshell'."
-  (add-hook 'eshell-mode-hook #'detached-eshell-mode))
+  (add-hook 'eshell-mode-hook #'dtache-eshell-mode))
 
-(defun detached-init-org ()
+(defun dtache-init-org ()
   "Initialize integration with `org'."
-  (advice-add #'org-babel-sh-evaluate :around #'detached-org-babel-sh))
+  (advice-add #'org-babel-sh-evaluate :around #'dtache-org-babel-sh))
 
-(defun detached-init-dired ()
+(defun dtache-init-dired ()
   "Initialize integration with `dired'."
-  (advice-add 'dired-do-shell-command :around #'detached-dired-do-shell-command))
+  (advice-add 'dired-do-shell-command :around #'dtache-dired-do-shell-command))
 
-(defun detached-init-dired-rsync ()
+(defun dtache-init-dired-rsync ()
   "Initialize integration with `dired-rsync'."
   (when (functionp #'dired-rsync)
-    (advice-add #'dired-rsync--do-run :override #'detached-extra-dired-rsync)))
+    (advice-add #'dired-rsync--do-run :override #'dtache-extra-dired-rsync)))
 
-(defun detached-init-projectile ()
+(defun dtache-init-projectile ()
   "Initialize integration with `projectile'."
   (when (functionp #'projectile)
     (advice-add 'projectile-run-compilation
-                :override #'detached-extra-projectile-run-compilation)))
+                :override #'dtache-extra-projectile-run-compilation)))
 
-(defun detached-init-vterm ()
+(defun dtache-init-vterm ()
   "Initialize integration with `vterm'."
   (when (functionp #'vterm)
-    (add-hook 'vterm-mode-hook #'detached-vterm-mode)))
+    (add-hook 'vterm-mode-hook #'dtache-vterm-mode)))
 
-(defun detached-init-embark ()
+(defun dtache-init-embark ()
   "Initialize integration with `embark'."
   (with-eval-after-load 'embark
-    (defvar embark-detached-map (make-composed-keymap detached-action-map embark-general-map))
-    (add-to-list 'embark-keymap-alist '(detached . embark-detached-map))))
+    (defvar embark-dtache-map (make-composed-keymap dtache-action-map embark-general-map))
+    (add-to-list 'embark-keymap-alist '(dtache . embark-dtache-map))))
 
-(provide 'detached-init)
+(provide 'dtache-init)
 
-;;; detached-init.el ends here
+;;; dtache-init.el ends here
