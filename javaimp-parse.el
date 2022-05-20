@@ -301,8 +301,9 @@ point is also at that position) or nil."
                              '(?@ ?\(   ;annotation type / args
                                   ?<    ;generic type
                                   ?\[)) ;array
-                      ;; keyword / identifier first char
-                      (= (syntax-class (syntax-after pos)) 2))) ;word
+                      ;; keyword / identifier first char: word or
+                      ;; symbol
+                      (memql (syntax-class (syntax-after pos)) '(2 3))))
         (goto-char (setq res pos))))
     res))
 
