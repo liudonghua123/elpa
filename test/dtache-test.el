@@ -283,13 +283,7 @@
   (let ((str "
 [EOF - dtach terminating]
 user@machine "))
-    (should (string= "user@machine " (detached--dtach-eof-message-filter str)))))
-
-(ert-deftest dtache-test-dtach-dtache-message-filter ()
-  (let ((str "
-[detached]
-user@machine "))
-    (should (string= "user@machine " (detached--dtach-detached-message-filter str)))))
+    (should (string= "user@machine " (dtache--dtach-eof-message-filter str)))))
 
 (ert-deftest dtache-test-dtache-env-message-filter ()
   (let ((str "output\n\nDtache session exited abnormally with code 127"))
