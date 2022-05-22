@@ -377,7 +377,8 @@ Argument DATE contains the time value of the \"From\" tag."
 ;; https://autocrypt.org/level1.html#updating-autocrypt-peer-state
 (defun autocrypt-process-header ()
   "Update internal autocrypt state."
-  (let* ((from (autocrypt-canonicalise (autocrypt-get-header "From")))
+  (let* ((from-raw (autocrypt-get-header "From"))
+         (from (and from-raw (autocrypt-canonicalise from-raw)))
          (date (autocrypt-get-header "Date"))
          (header (autocrypt-get-header "Autocrypt"))
          parse addr preference keydata peer)
