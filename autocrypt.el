@@ -68,8 +68,8 @@ configure it, or by calling `autocrypt-create-account'."
 This will inject \"Autocrypt-Gossip\" headers when required, and
 process \"Autocrypt-Gossip\" headers when received."
   :type '(choice (const :tag "Enable Gossip" t)
-                 (const :tag "Only receive" 'only-receive)
-                 (const :tag "Only send" 'only-send)
+                 (const :tag "Only receive" only-receive)
+                 (const :tag "Only send" only-send)
                  (const :tag "Disable Gossip" nil)))
 
 (defcustom autocrypt-save-file
