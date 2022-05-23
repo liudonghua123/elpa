@@ -193,10 +193,11 @@
  ("dismal"		:url nil)
  ("djvu"		:url nil)
  ("docbook"		:url nil)
- ("dtache"		:url "https://git.sr.ht/~niklaseklund/dtache"
-  :news "CHANGELOG.org"
-  :readme "README.md"
-  :auto-sync t)
+ ;; `dtache' was renamed to `detached' in May 2022.
+ ;;("dtache"		:url "https://git.sr.ht/~niklaseklund/dtache"
+ ;; :news "CHANGELOG.org"
+ ;; :readme "README.md"
+ ;; :auto-sync t)
  ("dts-mode"		:url nil) ;; Was "https://github.com/bgamari/dts-mode.git")
  ("easy-escape"		:url "https://github.com/cpitclaudel/easy-escape"
   :auto-sync t)
