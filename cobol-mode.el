@@ -1,6 +1,6 @@
 ;;; cobol-mode.el --- Mode for editing COBOL code -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2019  Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022  Free Software Foundation, Inc.
 
 ;; Author: Edward Hart <edward.dan.hart@gmail.com>
 ;; Maintainer: Edward Hart <edward.dan.hart@gmail.com>
@@ -2323,7 +2323,8 @@ Code copied from the Emacs source."
             ;; If the first quote began a string, then the next quote may be the
             ;; first character in another escaped quote sequence.
             (forward-char 1))))))
-    "Syntax rule to mark the first of adjacent quotes, e.g. \"\" or '', as an escape character."))
+    "Syntax rule to mark the first of adjacent quotes.
+It marks the first of \"\" or '' as an escape character."))
 
 (defun cobol--syntax-propertize-function (beg end)
   "Syntax propertize awkward COBOL features (fixed-form comments, indicators
@@ -3046,7 +3047,7 @@ start of area A, if fixed-format)."
 
 (defvar cobol-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap back-to-indentation] 'cobol-back-to-indentation)
+    (define-key map [remap back-to-indentation] #'cobol-back-to-indentation)
     ;;(define-key map (kbd "RET") #'newline-and-indent)
     map))
 

@@ -1,0 +1,3 @@
+*.elc
+/cobol-mode-autoloads.el
+/cobol-mode-pkg.el
