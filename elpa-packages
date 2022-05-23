@@ -431,6 +431,7 @@
   :auto-sync t)
  ("nano-theme"		:url "https://github.com/rougier/nano-theme"
   :auto-sync t)
+ ("nftables-mode"	:url nil)
  ("nhexl-mode"		:url nil)
  ("nlinum"		:url nil)
  ("notes-mode"		:url nil)
