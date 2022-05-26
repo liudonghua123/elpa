@@ -127,7 +127,7 @@ This function must accept one argument, a symbol designating the
 command (`install', `get-header', ...) and returns a function
 with the right signature.")
 
-(defun autocrypt-find-function (command silent)
+(defsubst autocrypt-find-function (command silent)
   "Return a function for handling COMMAND.
 If SILENT is non-nil, return nil when no implementation could be
 found."
