@@ -1,6 +1,6 @@
-;;; fsm.el --- state machine library  -*- lexical-binding: t; -*-
+;;; fsm.el --- State machine library  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006, 2007, 2008, 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2022  Free Software Foundation, Inc.
 
 ;; Author: Magnus Henoch <magnus.henoch@gmail.com>
 ;; Maintainer: Thomas Fitzsimmons <fitzsim@fitzsim.org>
@@ -92,6 +92,8 @@
 ;; form with `nil', eval just the `cl-labels' form and then type
 ;; M-x start-pingpong RET -16 RET.
 
+;;; News:
+
 ;; Version 0.2:
 ;; -- Delete trailing whitespace.
 ;; -- Fix formatting.
@@ -116,8 +118,6 @@
 
 ;;; Code:
 
-;; We require cl-lib at runtime, since we insert `cl-destructuring-bind' into
-;; modules that use fsm.el.
 (require 'cl-lib)
 
 (defvar fsm-debug "*fsm-debug*"
@@ -139,7 +139,7 @@ FORMAT and ARGS are passed to `format'."
 	(insert (if fsm-debug-timestamp-format
 		    (format-time-string fsm-debug-timestamp-format)
 		  (concat (current-time-string) ": "))
-		(apply 'format format args) "\n")))))
+		(apply #'format format args) "\n")))))
 
 (cl-defmacro define-state-machine (name &key start sleep)
   "Define a state machine class called NAME.
@@ -155,7 +155,7 @@ bound variable `fsm'.
 SLEEP-FUNCTION, if provided, takes one argument, the number of
 seconds to sleep while allowing events concerning this state
 machine to happen.  There is probably no reason to change the
-default, which is accept-process-output with rearranged
+default, which is `accept-process-output' with rearranged
 arguments.
 
 \(fn NAME :start ((ARG ...) DOCSTRING BODY) [:sleep SLEEP-FUNCTION])"
@@ -180,19 +180,17 @@ arguments.
 	   ,docstring
 	   ,@interactive-spec
 	   (fsm-debug-output "Starting %s" ',name)
-	   (let ((fsm (cl-gensym (concat "fsm-" ,(symbol-name name) "-"))))
-	     (cl-destructuring-bind (state state-data &optional timeout)
-		 (progn ,@body)
-	       (put fsm :name ',name)
-	       (put fsm :state nil)
-	       (put fsm :state-data nil)
-	       (put fsm :sleep ,(or sleep '(lambda (secs)
-					     (accept-process-output
-					      nil secs))))
-
-	       (put fsm :deferred nil)
-	       (fsm-update fsm state state-data timeout)
-	       fsm)))))))
+	   (let* ((fsm (cl-gensym (concat "fsm-" ,(symbol-name name) "-")))
+	          (result (progn ,@body)))
+	     (put fsm :name ',name)
+	     (put fsm :state nil)
+	     (put fsm :state-data nil)
+	     (put fsm :sleep ,(or sleep '(lambda (secs)
+					   (accept-process-output
+					    nil secs))))
+	     (put fsm :deferred nil)
+	     (apply #'fsm-update fsm result)
+	     fsm))))))
 
 (cl-defmacro define-state (fsm-name state-name arglist &body body)
   "Define a state called STATE-NAME in the state machine FSM-NAME.
@@ -330,7 +328,7 @@ If the state machine generates a response, eventually call
 CALLBACK with the response as only argument."
   (run-with-timer 0 nil #'fsm-send-sync fsm event callback))
 
-(defun fsm-update (fsm new-state new-state-data timeout)
+(defun fsm-update (fsm new-state new-state-data &optional timeout)
   "Update FSM with NEW-STATE, NEW-STATE-DATA and TIMEOUT."
   (let ((fsm-name (get fsm :name))
 	(old-state (get fsm :state)))
@@ -357,7 +355,7 @@ CALLBACK with the response as only argument."
       (let ((deferred (nreverse (get fsm :deferred))))
 	(put fsm :deferred nil)
 	(dolist (event deferred)
-	  (apply 'fsm-send-sync fsm event))))))
+	  (apply #'fsm-send-sync fsm event))))))
 
 (defun fsm-send-sync (fsm event &optional callback)
   "Send EVENT to FSM synchronously.
@@ -391,9 +389,7 @@ CALLBACK with the response as only argument."
 	 ((and (listp result)
 	       (<= 2 (length result))
 	       (<= (length result) 3))
-	  (cl-destructuring-bind (new-state new-state-data &optional timeout)
-	      result
-	    (fsm-update fsm new-state new-state-data timeout)))
+	  (apply #'fsm-update fsm result))
 	 (t
 	  (fsm-debug-output "Incorrect return value in %s/%s: %S"
 			    fsm-name state
@@ -411,16 +407,14 @@ Return the reply.  `with-timeout' might be useful."
 (defun fsm-make-filter (fsm)
   "Return a filter function that sends events to FSM.
 Events sent are of the form (:filter PROCESS STRING)."
-  (let ((fsm fsm))
-    (lambda (process string)
-      (fsm-send-sync fsm (list :filter process string)))))
+  (lambda (process string)
+    (fsm-send-sync fsm (list :filter process string))))
 
 (defun fsm-make-sentinel (fsm)
   "Return a sentinel function that sends events to FSM.
 Events sent are of the form (:sentinel PROCESS STRING)."
-  (let ((fsm fsm))
-    (lambda (process string)
-      (fsm-send-sync fsm (list :sentinel process string)))))
+  (lambda (process string)
+    (fsm-send-sync fsm (list :sentinel process string))))
 
 (defun fsm-sleep (fsm secs)
   "Sleep up to SECS seconds in a way that lets FSM receive events."
