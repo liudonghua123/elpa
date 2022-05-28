@@ -145,6 +145,9 @@
   :doc "README.org"
   :renames (("extensions/" ""))
   :auto-sync t)
+ ;; ("corfu-doc"		:url "https://github.com/galeo/corfu-doc"
+ ;;  :ignored-files ("LICENSE")
+ ;;  :auto-sync t)
  ("coterm"		:url "https://repo.or.cz/emacs-coterm.git"
   :auto-sync t)
  ("counsel"		:url "https://github.com/abo-abo/swiper")
@@ -675,9 +678,9 @@
  ("url-http-ntlm" 	:url nil)
  ("validate"		:url "https://github.com/Malabarba/validate.el")
  ("valign"		:url "https://github.com/casouri/valign")
- ("vc-got"		:url "https://git.omarpolo.com/vc-got"
+ ("vc-got"		:url "https://git.omarpolo.com/vc-got.git"
   ;; Mirror: https://github.com/omar-polo/vc-got/
-  :ignored-files ("targets")
+  :ignored-files ("targets" "LICENSE")
   :auto-sync t)
  ("vc-hgcmd"		:url "https://github.com/muffinmad/emacs-vc-hgcmd"
   :auto-sync t)
