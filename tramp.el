@@ -255,6 +255,8 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     - \"%n\" expands to \"2>/dev/null\".
     - \"%x\" is replaced by the `tramp-scp-strict-file-name-checking'
       argument if it is supported.
+    - \"%y\" is replaced by the `tramp-scp-force-scp-protocol'
+      argument if it is supported.
 
     The existence of `tramp-login-args', combined with the
     absence of `tramp-copy-args', is an indication that the
@@ -495,7 +497,8 @@ interpreted as a regular expression which always matches."
 ;; either lower case or upper case letters.  See
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=38079#20>.
 (defcustom tramp-restricted-shell-hosts-alist
-  (when (eq system-type 'windows-nt)
+  (when (and (eq system-type 'windows-nt)
+             (not (string-match-p "sh$" tramp-encoding-shell)))
     (list (format "\\`\\(%s\\|%s\\)\\'"
 		  (regexp-quote (downcase tramp-system-name))
 		  (regexp-quote (upcase tramp-system-name)))))
