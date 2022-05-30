@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.10 2022/05/15 18:19:29 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.11 2022/05/16 08:32:02 oj14ozun Exp oj14ozun $
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/auto-header.el
 ;; Package-Version: 1
 ;; Keywords: c
@@ -98,6 +98,11 @@
           (newline))
         (delete-blank-lines))
       (newline))))
+
+(defun auto-header-insert (header)
+  "Add HEADER to the top of the file."
+  (interactive "MAdd header: ")
+  (auto-header--insert-headers (list header)))
 
 ;;;###autoload
 (defun auto-header-at-point (name)
