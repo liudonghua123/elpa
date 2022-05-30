@@ -3,8 +3,9 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
+;; Version: $Id: auto-header.el,v 1.11 2022/05/16 08:32:02 oj14ozun Exp oj14ozun $
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/auto-header.el
-;; Version: $Revision$
+;; Package-Version: 1
 ;; Keywords: c
 
 ;; This program is free software; you can redistribute it and/or modify
