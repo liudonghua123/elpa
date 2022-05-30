@@ -6,7 +6,7 @@
 ;; Maintainer: Antoine Kalmbach <ane@iki.fi>
 ;; URL: https://www.gnu.org/software/recutils/
 ;; Package-Requires: ((emacs "25"))
-;; Version: 1.8.3
+;; Version: 1.8.4
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -1643,7 +1643,7 @@ The result of the selection is stored in `rec-current-selection'."
 
 Argument PREFIX when non-nil means to use a case-insensitive search."
   (interactive "P\nsFast string query: ")
-  (when (not (equal str ""))
+  (when (not (equal fast-string ""))
     (setq rec-current-selection
           (rec--parse-sexp-records
            (rec-query :fast-string fast-string
