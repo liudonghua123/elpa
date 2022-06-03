@@ -208,8 +208,9 @@
  '(magit-diffstat-added          ((t (:inherit (aircon-goblin)))))
  '(magit-diffstat-removed        ((t (:inherit (aircon-brick)))))
 
- '(magit-section-heading         ((t (:inherit (aircon-sapphire bold)))))
- '(magit-section-highlight       ((t (:inherit (aircon-header)))))
+ '(magit-section-heading           ((t (:inherit (aircon-sapphire bold)))))
+ '(magit-section-heading-selection ((t (:inherit (aircon-mango)))))
+ '(magit-section-highlight         ((t (:inherit (aircon-header)))))
 
  '(magit-blame-heading           ((t (:inherit aircon-header))))
  '(magit-blame-highlight         ((t (:inherit aircon-header))))
@@ -232,6 +233,7 @@
  '(magit-diff-removed-highlight  ((t (:inherit diff-refine-removed))))
  '(magit-diff-whitespace-warning ((t (:inherit trailing-whitespace))))
  '(magit-diff-file-heading       ((t (:inherit vc-dir-status-edited))))
+ '(magit-diff-file-heading-selection ((t (:inherit (aircon-mango)))))
 
  '(magit-diff-hunk-heading               ((t (:inherit (aircon-header)))))
  `(magit-diff-hunk-heading-highlight     ((t (:background ,aircon-ghost))))
