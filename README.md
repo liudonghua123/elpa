@@ -5,12 +5,16 @@ Organize multiple local and remote Emacs shell buffers.
 
 Multishell is available via Emacs package manager, [in ELPA](https://elpa.gnu.org/packages/multishell.html). Install "multishell" from the `M-x package-list-packages` listing.
 
-I use almost as many emacs shell buffers as I do tabs in my browser
-sessions. Multishell makes it easy to organize my use of them with distinct
-names for each, tramp syntax for remote and / or sudo shells, a roster of
-them all that can be saved between emacs sessions (preserving remote and
-sudo specifications), and more. With a customizable master keybinding,
-multishell makes it easy to:
+I sometimes have almost as many emacs shell buffers going as I do tabs in
+my browser: one for each project I have going, one for each remote host or
+sudo shell (and remote sudo shells), one for doing maintenance chores that
+go across projects, and so on. Multishell makes it easy to organize my use
+of them all with distinct names for each, tramp syntax for remote and / or
+sudo shells, a roster of them all that can be saved between emacs sessions
+(preserving remote and sudo specifications), and a single key binding to
+access and manage my use of it all.
+
+With a customizable master keybinding, multishell makes it easy to:
 
 * Get to the input point from wherever you are in a shell buffer,
   or to any of your shell buffers, from anywhere inside emacs.
