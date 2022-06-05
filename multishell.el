@@ -1,9 +1,9 @@
-;;; multishell.el --- Easily use multiple shell buffers, local and remote  -*- lexical-binding:t -*-
+;;; multishell.el --- Organize use of multiple shell buffers, local and remote  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2020 Free Software Foundation, Inc. and Ken Manheimer
 
 ;; Author: Ken Manheimer <ken.manheimer@gmail.com>
-;; Version: 1.1.9
+;; Version: 1.1.10
 ;; Created: 1999 -- first public availability
 ;; Keywords: processes
 ;; Package-Requires: ((cl-lib "0.5"))
@@ -65,6 +65,10 @@
 ;;
 ;; Change Log:
 ;;
+;; * 2022-06-04 1.1.10 Ken Manheimer:
+;;   - Autoload customizations so customized multishell keybinding triggers
+;;     load of the package.
+;;   - Refine multishell features description.
 ;; * 2021-08-02 1.1.10 Ken Manheimer:
 ;;   - Get basic multishell command-key customization working.
 ;; * 2020-10-30 1.1.9 Ken Manheimer:
