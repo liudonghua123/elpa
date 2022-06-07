@@ -165,6 +165,7 @@
  ("cursory"
   :url "https://git.sr.ht/~protesilaos/cursory"
   :auto-sync t
+  :doc "README.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  ("cycle-quotes"	:url nil)
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
@@ -302,6 +303,7 @@
  ("fontaine"
   :url "https://git.sr.ht/~protesilaos/fontaine"
   :auto-sync t
+  :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  ("frame-tabs"		:url nil)
@@ -393,6 +395,7 @@
  ("lex"			:url nil)
  ("lin"		:url "https://git.sr.ht/~protesilaos/lin"
   :auto-sync t
+  :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  ("lmc"			:url nil)
@@ -402,6 +405,7 @@
  ("loccur"		:url "https://github.com/fourier/loccur")
  ("logos"		:url "https://git.sr.ht/~protesilaos/logos"
   :auto-sync t
+  :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  ("map"                 :core "lisp/emacs-lisp/map.el")
@@ -537,6 +541,7 @@
  ("pspp-mode"		:url nil) ;; Was "https://git.sv.gnu.org/r/pspp.git"
  ("pulsar"		:url "https://git.sr.ht/~protesilaos/pulsar"
   :auto-sync t
+  :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  ("pyim"
@@ -641,6 +646,7 @@
  ("tmr"
   :url "https://git.sr.ht/~protesilaos/tmr"
   :auto-sync t
+  :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi" "Makefile"))
  ("tNFA"		:url "http://www.dr-qubit.org/git/predictive.git")
