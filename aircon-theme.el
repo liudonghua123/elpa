@@ -1,14 +1,15 @@
 ;;; aircon-theme.el --- Cool and legible light theme  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Gregory Chamberlain.
+;; Copyright (C) 2022  Free Software Foundation, Inc.
 
-;; Version: 0.0.3
+;; Version: 0.0.5
 ;; Author: Gregory Chamberlain <greg@cosine.blue>
+;; Maintainer: Gregory Chamberlain <~chambln/public-inbox@lists.sr.ht>
 ;; URL: https://git.sr.ht/~chambln/aircon-theme.el
 ;; Keywords: faces
 ;; Package-Requires: ((emacs "24.4"))
 
-;; This file is NOT part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,13 +26,18 @@
 
 ;;; Commentary:
 
-;; Aircon is a clean and high contrast custom theme for Emacs. It
+;; Aircon is a clean and high contrast custom theme for Emacs.  It
 ;; consists of a white (#ffffff) background and mostly blues, purples
-;; and greens. Highlights are subtle but easily visible. The active
+;; and greens.  Highlights are subtle but easily visible.  The active
 ;; mode-line is white on blue to distinguish it from inactive
 ;; mode-lines which are dark blue on light grey.
 
 ;;; Code:
+
+(defgroup aircon nil
+  "Cool and legible light theme."
+  :prefix "aircon-"
+  :group 'faces)
 
 (deftheme aircon "Cool and legible light theme.")
 

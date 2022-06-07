@@ -1,11 +1,11 @@
 Aircon theme
 ============
 
-Aircon is a clean and high contrast Custom theme for Emacs. It
+Aircon is a clean and high contrast Custom theme for Emacs.  It
 consists of a white (#ffffff) background and mostly blues, purples and
-greens. Highlights are subtle but easily visible. The active mode-line
-is white on blue to distinguish it from inactive mode-lines which are
-dark blue on light grey.
+greens.  Highlights are subtle but easily visible.  The active
+mode-line is white on blue to distinguish it from inactive mode-lines
+which are dark blue on light grey.
 
 Coverage includes:
 
@@ -24,7 +24,7 @@ Coverage includes:
 Copying
 =======
 
-Copyright (C) 2022  Gregory Chamberlain
+Copyright (C) 2022  Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
