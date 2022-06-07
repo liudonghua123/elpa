@@ -210,7 +210,7 @@
 
  '(magit-section-heading           ((t (:inherit (aircon-sapphire bold)))))
  '(magit-section-heading-selection ((t (:inherit (aircon-mango)))))
- '(magit-section-highlight         ((t (:inherit (aircon-header)))))
+ '(magit-section-highlight         ((t (:inherit (highlight)))))
 
  '(magit-blame-heading           ((t (:inherit aircon-header))))
  '(magit-blame-highlight         ((t (:inherit aircon-header))))
