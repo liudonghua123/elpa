@@ -308,6 +308,7 @@
  '(message-separator           ((t (:inherit (aircon-header)))))
  '(message-mml                 ((t (:inherit (aircon-goblin)))))
 
+ '(gnus-group-mail-1-empty     ((t (:inherit (aircon-hibiscus)))))
  '(gnus-group-mail-3-empty     ((t (:inherit (aircon-lilac)))))
 
  '(gnus-summary-selected       ((t (:inherit (aircon-athens)))))
