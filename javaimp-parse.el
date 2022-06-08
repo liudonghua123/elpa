@@ -278,12 +278,10 @@ point (but not farther than BOUND).  Matches inside comments /
 strings are skipped.  Return the beginning of the match (then the
 point is also at that position) or nil."
   (javaimp-parse--skip-back-until)
-  ;; If we skip a previous scope (including unnamed initializers), or
-  ;; reach enclosing scope start, we'll fail the check in the below
-  ;; loop.  But a semicolon, which delimits statements, will just be
-  ;; skipped by scan-sexps, so find it and use as bound.  If it is in
-  ;; another scope, that's not a problem, for the same reasons as
-  ;; described above.
+  ;; A semicolon, which delimits statements, will just be skipped by
+  ;; scan-sexps, so find it and use as bound.  If it is in another
+  ;; scope, that's not a problem: we'll attempt to skip that scope,
+  ;; and exit the loop anyway.
   (let* ((prev-semi (save-excursion
                       (javaimp-parse--rsb-keyword ";" bound t)))
          (bound (when (or bound prev-semi)
