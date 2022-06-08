@@ -36,7 +36,7 @@
 (("ace-window"		:url "https://github.com/abo-abo/ace-window"
   :auto-sync t)
  ("ack"			:url "https://github.com/leoliu/ack-el"
-  :aut-sync t)
+  :auto-sync t)
  ("ada-mode"		:url nil :doc ("ada-mode.texi" "gpr-mode.texi"))
  ("ada-ref-man"		:url nil)
  ("adaptive-wrap"	:url nil)
