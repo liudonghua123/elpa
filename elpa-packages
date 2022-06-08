@@ -40,6 +40,10 @@
  ("ada-mode"		:url nil :doc ("ada-mode.texi" "gpr-mode.texi"))
  ("ada-ref-man"		:url nil)
  ("adaptive-wrap"	:url nil)
+ ("aircon-theme"        :url "https://git.sr.ht/~chambln/aircon-theme.el"
+  :ignored-files ("README" "COPYING")
+  :readme ignore
+  :auto-sync t)
  ("adjust-parens"	:url nil)
  ("advice-patch"	:url nil)
  ("aggressive-completion" :url nil)
