@@ -5,7 +5,7 @@
 ;; Author: Filipp Gunbin <fgunbin@fastmail.fm>
 ;; Maintainer: Filipp Gunbin <fgunbin@fastmail.fm>
 ;; Package-Requires: ((emacs "29"))
-;; Version: 0.2.1
+;; Version: 0.2.2
 ;; Keywords: sql, cassandra, cql, cqlsh
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -167,7 +167,7 @@ Refer to https://cassandra.apache.org/doc/latest/cassandra/cql/appendices.html#a
  :sqli-comint-func #'sql-comint-cassandra
  :list-all "describe tables"
  :list-table "describe table %s"
- :prompt-regexp "^cqlsh:[[:alnum:]_]*> "
+ :prompt-regexp "^\\(?:[[:alnum:]_]+@\\)?cqlsh:[[:alnum:]_]*> "
  :prompt-cont-regexp "^ +\\.\\{3\\} "
  :syntax-alist '(;; map / set / udt literals
 		 (?{ . "(") (?} . ")")
