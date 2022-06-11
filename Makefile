@@ -9,4 +9,7 @@ manifest.scm: admin
 	ln -s admin/elpa-manifest.scm $@
 
 admin:
+	git show-ref --verify --quiet remotes/origin/elpa-admin || { \
+	    git remote set-branches --add origin elpa-admin;	     \
+	    git fetch origin; }
 	git worktree add -b elpa-admin admin origin/elpa-admin
