@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.15 2022/06/13 18:34:32 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.16 2022/06/13 18:48:30 oj14ozun Exp oj14ozun $
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/auto-header.el
 ;; Package-Version: 1
 ;; Keywords: c
@@ -104,9 +104,43 @@
 	  (newline))
 	(delete-blank-lines)))))
 
+(defvar auto-header--header-cache nil
+  "Cache of known header files.")
+
+(defun auto-header--header-list ()
+  "Return a list of known header files."
+  (catch 'fail
+    (unless auto-header--header-cache
+      (with-temp-buffer
+	(process-file (or (executable-find "GCC")
+			  (executable-find "clang")
+			  (throw 'fail nil))
+		      nil t nil
+		      "-xc" "-E" "-v" "-")
+	(goto-char (point-min))
+	(search-forward "#include <...> search starts here:")
+	(forward-line 1)
+	(let ((start (point)))
+	  (search-forward "End of search list.")
+	  (beginning-of-line)
+	  (narrow-to-region start (point)))
+	(goto-char (point-min))
+	(while (search-forward-regexp (rx bol (* space) (group (+ nonl)) eol)
+				      nil t)
+	  (let ((dir (match-string 1)))
+	    (setq auto-header--header-cache
+		  (nconc
+		   (mapcar
+		    (lambda (file) (file-relative-name file dir))
+		    (directory-files-recursively dir "\\.h$"))
+		   auto-header--header-cache)))))
+      (setq auto-header--header-cache
+	    (delete-dups auto-header--header-cache)))
+    auto-header--header-cache))
+
 (defun auto-header-insert (header)
   "Add HEADER to the top of the file."
-  (interactive "MAdd header: ")
+  (interactive (completing-read "Add header: " (auto-header--header-list)))
   (auto-header--insert-headers (list header)))
 
 ;;;###autoload
