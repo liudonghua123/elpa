@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.11 2022/05/16 08:32:02 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.11 2022/05/16 08:32:02 oj14ozun Exp $
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/auto-header.el
 ;; Package-Version: 1
 ;; Keywords: c
@@ -85,24 +85,24 @@
     (widen)
     (save-excursion
       (goto-char (point-min))
+      (when (forward-comment 1)
+	(search-forward-regexp "^.+$" nil t)
+	(forward-paragraph))
       (dolist (header headers)
-        (insert "#include <" header ">")
-        (newline))
+	(insert "#include <" header ">")
+	(newline))
       (goto-char (point-max))
       (when (search-backward-regexp "#include ?<" nil t)
-        (save-restriction
-          (narrow-to-region (point-min) (line-end-position))
-          (delete-duplicate-lines (point-min) (point-max) nil nil t)
-          (sort-lines nil (point-min) (point-max))
-          (goto-char (point-max))
-          (newline))
-        (delete-blank-lines))
-      (newline))))
-
-(defun auto-header-insert (header)
-  "Add HEADER to the top of the file."
-  (interactive "MAdd header: ")
-  (auto-header--insert-headers (list header)))
+	(save-restriction
+	  (let ((end (line-end-position)))
+	    (goto-char (point-min))
+	    (forward-comment 1)
+	    (narrow-to-region (point) end)
+	    (delete-duplicate-lines (point-min) (point-max) nil nil t)
+	    (sort-lines nil (point-min) (point-max)))
+	  (goto-char (point-max))
+	  (newline))
+	(delete-blank-lines)))))
 
 ;;;###autoload
 (defun auto-header-at-point (name)
