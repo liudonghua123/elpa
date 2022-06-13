@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.16 2022/06/13 18:48:30 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.17 2022/06/13 19:22:42 oj14ozun Exp oj14ozun $
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/auto-header.el
 ;; Package-Version: 1
 ;; Keywords: c
@@ -112,7 +112,7 @@
   (catch 'fail
     (unless auto-header--header-cache
       (with-temp-buffer
-	(process-file (or (executable-find "GCC")
+	(process-file (or (executable-find "gcc")
 			  (executable-find "clang")
 			  (throw 'fail nil))
 		      nil t nil
