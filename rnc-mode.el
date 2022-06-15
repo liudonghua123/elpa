@@ -1,6 +1,6 @@
 ;;; rnc-mode.el --- Emacs mode to edit Relax-NG Compact files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1998, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: xml relaxng
@@ -96,11 +96,18 @@
     '((assoc "," "&" "|") (nonassoc "?" "*" "+"))
     )))
 
+(defconst rnc-smie--def-regexp
+  (concat "\\(?:\\(?:namespace\\|datatypes\\)[ \t\n]+\\)?"
+          "\\(?:\\s_\\|\\sw\\)+[ \t\n]*[|&]?=")
+  "Regexp matching a \"definition\".
+Any line that starts with this is presumed to start a new definition,
+so the preceding newline is turned into an implicit \" ; \" token.")
+
 (defun rnc-smie-forward-token ()
   (let ((start (point)))
     (forward-comment (point-max))
     (if (and (> (point) start)
-             (looking-at "\\(?:\\s_\\|\\sw\\)+[ \t\n]*[|&]?=")
+             (looking-at rnc-smie--def-regexp)
              (save-excursion
                (goto-char start)
                (forward-comment -1)
@@ -120,7 +127,7 @@
              (let ((pos (point)))
                (goto-char start)
                (prog1
-                   (looking-at "\\(?:\\s_\\|\\sw\\)+[ \t\n]*[|&]?=")
+                   (looking-at rnc-smie--def-regexp)
                  (goto-char pos))))
         " ; "
       (if (looking-back "\\s." (1- (point)))
