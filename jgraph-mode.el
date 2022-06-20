@@ -1,6 +1,6 @@
 ;;; jgraph-mode.el --- Major mode for Jgraph files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2006, 2011-2012, 2014, 2015  Free Software Foundation, Inc
+;; Copyright (C) 2006-2022  Free Software Foundation, Inc
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.1
@@ -214,7 +214,7 @@
   "Indent current line of Jgraph code."
   (interactive)
   (let* ((savep (point))
-	 (indent (or (with-demoted-errors
+	 (indent (or (with-demoted-errors "%S"
                        (save-excursion
                          (forward-line 0)
                          (skip-chars-forward " \t")
