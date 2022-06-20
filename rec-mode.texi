@@ -3,10 +3,10 @@
 @documentencoding UTF-8
 @setfilename rec-mode.info
 @settitle rec-mode for Emacs
-@set UPDATED 27 November 2020
+@set UPDATED 19 June 2022
 @set EDITION 1.8.90
 @set VERSION 1.8.90
-@set RECMODEVERSION 1.8.0
+@set RECMODEVERSION 1.9.0
 @afourpaper
 @comment %**end of header
 
@@ -28,10 +28,10 @@
 @synindex cp vr
 
 @copying
-This manual is for rec-mode for Emacs, which is part of the GNU
-recutils suite (version @value{VERSION}, @value{UPDATED}).
+This manual is for rec-mode @value{RECMODEVERSION} for Emacs, which is part of the GNU
+recutils suite. This rec-mode manual has last been updated @value{UPDATED}.
 
-Copyright @copyright{} 2012-2021 Free Software Foundation, Inc.
+Copyright @copyright{} 2012-2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -108,7 +108,8 @@ Selecting records
 
 Cross referencing
 
-* Cross referencing by selection:: Cross reference matching selections.
+* Cross-referencing records using foreign keys:: Jump to records using foreign keys
+* Cross referencing by selection:: Navigate between records using selection expressions
 
 Configuration
 
@@ -629,11 +630,6 @@ search results for certain keywords an identifiers. For records, this
 could mean the following:
 
 @enumerate
-@item
-Finding the type definition of a field.
-@item
-Finding the uses of a certain type, the inverse of above.
-@item
 Finding the referred record of a foreign key.  If a field is a key
 referring to another record, you can jump to that record.
 @item
@@ -643,8 +639,10 @@ Finding records that match a certain selection expression or fast
 string search.
 @end enumerate
 
-@noindent Emacs provides a unified interface for this called Xref.  @xref{Find
-Identifier Referencs,,,emacs,GNU Emacs Manual}.
+@noindent Emacs provides a unified interface for this called Xref, see
+@xref{Xref,,,emacs,GNU Emacs Manual}.  rec-mode
+implements a custom xref backend for the purpose of easier navigating
+between records.
 
 Regardless of functionality, if there are more than one search result,
 Xref searches present their results in a special @code{XREF} buffer.
@@ -654,13 +652,85 @@ easy to navigate between search results, as it binds the
 @code{next-error} functionality, letting you navigate the results even
 if you are @i{outside} the rec mode buffer.
 
-As of version @value{RECMODEVERSION}, Xref implements only the last
-functionality, cross referencing records by selection expressions or
-fast string searches.
-
 @menu
+* Cross-referencing records using foreign keys::
 * Cross referencing by selection::
 @end menu
+
+@node Cross-referencing records using foreign keys
+@section Cross-referencing records using foreign keys
+@cindex cross referencing, foreign keys
+
+When a record field is a reference to another record, it is possible
+to use navigate from the referring field to that record. Consider the
+following record:
+
+@example
+%rec: Book
+%type: Published int
+%type: Author rec Author
+
+Title: Cat's Cradle
+Published: 1963
+Author: KurtVonnegut
+
+Title: Breakfast of Champions
+Published: 1973
+Author: KurtVonnegut
+
+Title: The Left Hand of Darkness
+Published: 1969
+Author: UrsulaKLeGuin
+
+%rec: Author
+%key: Id
+
+Id: UrsulaKLeGuin
+Name: Ursula K. Le Guin
+
+Id: KurtVonnegut
+Name: Kurt Vonnegut, Jr.
+
+@end example
+
+@subsection Navigating to referred records
+@cindex cross-referencing, goto-definition
+
+Navigating to @code{Author} field of the @code{Book} records and
+hitting @kbd{M-.} (@code{xref-goto-definition}) will jump the editor
+to the corresponding @code{Author} record.  The requirement is that
+the current field is a valid foreign key, i.e. the field is a record
+reference and the referred record exists in the current buffer.
+
+@subsection Finding record references
+@cindex cross-referencing, backreferences
+
+On the other hand, in the above example, navigating anywhere on an
+@code{Author} record, it is possible to list all the records referring
+@emph{that} record using @kbd{M-?} (@code{xref-find-references}).
+This works on any field of the record, since we foreign keys @emph{to}
+the record work on the record level.
+
+@subsection Commands for cross-referencing
+@cindex cross-referencing, keybindings
+
+@table @kbd
+@reccmd{M-., xref-goto-definition}
+
+Jump to the record referenced by this field, if possible. Use
+@kbd{M-.} and @kbd{C-M-,} to jump between the results.
+
+@reccmd{M-?, xref-find-references}
+
+List all the records that reference this record.  The record
+referenced must have a @code{%key} in its descriptor for this to work,
+and to get any results the referring records must have properly used
+foreign keys. 
+
+@end table
+
+For more keybindings, @xref{Looking Up Identifiers,,,emacs,Gnu Emacs
+Manual}. For more info about foreign keys in recutils, @xref{Foreign Keys,,,recutils,Recutils Manual}.
 
 @node Cross referencing by selection
 @section Cross referencing by selection

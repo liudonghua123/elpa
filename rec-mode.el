@@ -1610,8 +1610,14 @@ See `xref-go-forward'."
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql rec)))
   "Return a cross referencable identifier for the current record field at point."
-  (when-let ((field (rec-current-field)))
-    (rec-field-name field)))
+  (if-let ((desc (rec-current-record-descriptor))
+           (type (rec-record-descriptor-type desc)))
+      (if-let ((key (rec-record-descriptor-key desc))
+               (value (car-safe (rec-record-assoc key (rec-current-record)))))
+          (format "%s '%s'" type value)
+        type)
+    (when-let ((field (rec-current-field)))
+      (rec-field-name field))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql rec)))
   (if-let* ((descriptor (rec-current-record-descriptor))

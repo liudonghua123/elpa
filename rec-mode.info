@@ -1,17 +1,19 @@
-This is rec-mode.info, produced by makeinfo version 6.7 from
+This is rec-mode.info, produced by makeinfo version 4.8 from
 rec-mode.texi.
 
-This manual is for rec-mode for Emacs, which is part of the GNU
-recutils suite (version 1.8.90, 27 November 2020).
+   This manual is for rec-mode 1.9.0 for Emacs, which is part of the
+GNU recutils suite. This rec-mode manual has last been updated 19
+June 2022.
 
-   Copyright © 2012-2021 Free Software Foundation, Inc.
+   Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
      Version 1.3 or any later version published by the Free Software
-     Foundation; with no Invariant Sections, no Front-Cover Texts, and
-     no Back-Cover Texts.  A copy of the license is included in the
-     section entitled “GNU Free Documentation License”.
+     Foundation; with no Invariant Sections, no Front-Cover Texts,
+     and no Back-Cover Texts. A copy of the license is included in
+     the section entitled "GNU Free Documentation License".
+
 INFO-DIR-SECTION Emacs
 START-INFO-DIR-ENTRY
 * Rec Mode: (rec-mode). Emacs mode for editing recfiles.
@@ -23,19 +25,20 @@ File: rec-mode.info,  Node: Top,  Next: Introduction,  Up: (dir)
 rec-mode: an Emacs mode for editing recfiles
 ********************************************
 
-This manual documents version 1.8.0 of rec-mode.
+This manual documents version 1.9.0 of rec-mode.
 
-   This manual is for rec-mode for Emacs, which is part of the GNU
-recutils suite (version 1.8.90, 27 November 2020).
+   This manual is for rec-mode 1.9.0 for Emacs, which is part of the
+GNU recutils suite. This rec-mode manual has last been updated 19
+June 2022.
 
-   Copyright © 2012-2021 Free Software Foundation, Inc.
+   Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
      Version 1.3 or any later version published by the Free Software
-     Foundation; with no Invariant Sections, no Front-Cover Texts, and
-     no Back-Cover Texts.  A copy of the license is included in the
-     section entitled “GNU Free Documentation License”.
+     Foundation; with no Invariant Sections, no Front-Cover Texts,
+     and no Back-Cover Texts. A copy of the license is included in
+     the section entitled "GNU Free Documentation License".
 
 * Menu:
 
@@ -51,7 +54,7 @@ recutils suite (version 1.8.90, 27 November 2020).
 * Variable and Concept Index::  Variable and Concept Index
 * GNU Free Documentation License::  Distribution terms for this document
 
- — The Detailed Node Listing —
+ --- The Detailed Node Listing ---
 
 Introduction
 
@@ -77,13 +80,13 @@ Selecting records
 
 Cross referencing
 
-* Cross referencing by selection:: Cross reference matching selections.
+* Cross-referencing records using foreign keys:: Jump to records using foreign keys
+* Cross referencing by selection:: Navigate between records using selection expressions
 
 Configuration
 
 * Finding the recutils::        Specifying the location of the recutils.
 * Records appearance::          Setting the way records are displayed
-
 
 
 File: rec-mode.info,  Node: Introduction,  Next: Navigation mode,  Prev: Top,  Up: Top
@@ -108,7 +111,7 @@ programs.
 
    ---------- Footnotes ----------
 
-   (1) <http://www.gnu.org/software/recutils>
+   (1) `http://www.gnu.org/software/recutils'
 
 
 File: rec-mode.info,  Node: Installation,  Next: Activation,  Up: Introduction
@@ -117,27 +120,30 @@ File: rec-mode.info,  Node: Installation,  Next: Activation,  Up: Introduction
 ================
 
 rec-mode is implemented in a self-contained elisp file called
-‘rec-mode.el’.  It can be obtained in several ways:
+`rec-mode.el'.  It can be obtained in several ways:
 
-   − From GNU ELPA (https://elpa.gnu.org/packages/rec-mode.html) using
-     the built-in Emacs package manager.
-   − As part of the source tree cloned from the development git
-     repository of rec-mode.  ‘rec-mode.el’ can be found in the root
+   - From GNU ELPA (https://elpa.gnu.org/packages/rec-mode.html)
+     using the built-in Emacs package manager.
+
+   - As part of the source tree cloned from the development git
+     repository of rec-mode.  `rec-mode.el' can be found in the root
      directory of the recutils sources tree.
-   − As a single file downloaded form some other location in internet.
-   − It may be already installed as part of a binary package in some
+
+   - As a single file downloaded form some other location in internet.
+
+   - It may be already installed as part of a binary package in some
      distribution.
 
 In the second case you need to tell Emacs where to locate the
-‘rec-mode.el’ file and to load it.  Add the following to your ‘.emacs’
-file.
+`rec-mode.el' file and to load it.  Add the following to your
+`.emacs' file.
 
      (add-to-list 'load-path "~/path/to/recmode/")
      (require 'rec-mode)
 
-If ‘rec-mode.el’ was installed as part of a binary package in a
-distribution then you usually don’t have to touch the ‘load-path’
-variable.  Depending on the specific case you may have to ‘require’
+If `rec-mode.el' was installed as part of a binary package in a
+distribution then you usually don't have to touch the `load-path'
+variable.  Depending on the specific case you may have to `require'
 the package.
 
 
@@ -146,23 +152,23 @@ File: rec-mode.info,  Node: Activation,  Next: Feedback,  Prev: Installation,  U
 1.2 Activation
 ==============
 
-rec-mode should automatically activate when opening ‘.rec’ files.  To
-make sure files with extension ‘.rec’ use rec-mode, add the rec-mode
+rec-mode should automatically activate when opening `.rec' files.  To
+make sure files with extension `.rec' use rec-mode, add the rec-mode
 buffers need font-lock to be turned on - this is the default in
 Emacs(1).
 
-   If the file doesn’t end in ‘.rec’, make the first line of a recfile
-look like this:
+   If the file doesn't end in `.rec', make the first line of a
+recfile look like this:
 
      # -*- mode: rec -*-
 
-which will select rec-mode for this buffer no matter what the file’s
+which will select rec-mode for this buffer no matter what the file's
 name is.
 
    ---------- Footnotes ----------
 
-   (1) If you don’t use font-lock globally, turn it on in the rec
-buffer with ‘(add-hook 'rec-mode-hook 'turn-on-font-lock)’
+   (1) If you don't use font-lock globally, turn it on in the rec
+buffer with `(add-hook 'rec-mode-hook 'turn-on-font-lock)'
 
 
 File: rec-mode.info,  Node: Feedback,  Prev: Activation,  Up: Introduction
@@ -181,7 +187,7 @@ it(1).
    (1) Please consider subscribing to the mailing list, in order to
 minimize the work the mailing list moderators have to do.  The
 subscription can be done online at
-<http://lists.gnu.org/mailman/listinfo/bug-recutils>.
+`http://lists.gnu.org/mailman/listinfo/bug-recutils'.
 
 
 File: rec-mode.info,  Node: Navigation mode,  Next: Edition modes,  Prev: Introduction,  Up: Top
@@ -195,11 +201,11 @@ it is a valid recfile and, in that case, to extract information like
 the kind of records stored in the file.
 
    If the file does not contain valid rec data then the buffer is put
-in ‘fundamental-mode’ and a description of the syntax error, along its
-location, is notified in the echo area.
+in `fundamental-mode' and a description of the syntax error, along
+its location, is notified in the echo area.
 
    If the file contains valid rec data, the mode sets itself in what
-is known as “navigation mode”.  In this mode the buffer is made
+is known as "navigation mode".  In this mode the buffer is made
 read-only and it is narrowed to the first record present in the file.
 Also, the presentation of the record contents is slightly changed in
 order to improve the visualization of the data: continuation line
@@ -230,24 +236,28 @@ File: rec-mode.info,  Node: Record navigation,  Next: Field navigation,  Up: Nav
 
 The following commands jump to other records in the buffer.
 
-‘n’
-‘M-x rec-cmd-goto-next-rec’
+`n'
+`M-x rec-cmd-goto-next-rec'
      Display the next record of the same type in the buffer.
-     ‘C-u N n’ will move next N times.
-‘p’
-‘M-x rec-cmd-goto-previous-rec’
+     `C-u N n' will move next N times.
+
+`p'
+`M-x rec-cmd-goto-previous-rec'
      Display the previous record of the same type in the buffer.
-     ‘C-u N p’ will move backwards N times.
-‘d’
-‘M-x rec-cmd-show-descriptor’
+     `C-u N p' will move backwards N times.
+
+`d'
+`M-x rec-cmd-show-descriptor'
      Display the record descriptor applicable to the current record.
      If the current record is anonymous, i.e. there is not record
-     descriptor.  then this command does nothing.
-‘b’
-‘M-x rec-cmd-jump-back’
+     descriptor. then this command does nothing.
+
+`b'
+`M-x rec-cmd-jump-back'
      Display the record previously displayed in the buffer.
-‘C-c C-t’
-‘M-x rec-find-type’
+
+`C-c C-t'
+`M-x rec-find-type'
      Prompt the user for one of the record types present in the
      recfile and display the first record of the selected type.
 
@@ -260,17 +270,17 @@ File: rec-mode.info,  Node: Field navigation,  Next: Field folding,  Prev: Recor
 The following commands iterate through the fields in a record, and to
 get information about some of the properties of the fields.
 
-‘TAB’
-‘M-x rec-cmd-goto-next-field’
-     Move the cursor to the beginning of the name of the next field in
-     the current record.  If the cursor is currently located at the
-     last field of the record then move it to the beginning of the
-     first field.
+`TAB'
+`M-x rec-cmd-goto-next-field'
+     Move the cursor to the beginning of the name of the next field
+     in the current record.  If the cursor is currently located at
+     the last field of the record then move it to the beginning of
+     the first field.
 
-‘t’
-‘M-x rec-cmd-show-type’
-     Show information about the type of the field under the cursor, if
-     it is defined.
+`t'
+`M-x rec-cmd-show-type'
+     Show information about the type of the field under the cursor,
+     if it is defined.
 
 
 File: rec-mode.info,  Node: Field folding,  Next: Field edition,  Prev: Field navigation,  Up: Navigation mode
@@ -283,8 +293,8 @@ difficult to have an overview of the contents of the record.  The
 following commands fold and unfold the value of the field under the
 cursor.
 
-‘SPC’
-‘M-x rec-cmd-toggle-field-visibility’
+`SPC'
+`M-x rec-cmd-toggle-field-visibility'
      Toggle the visibility of the field under the cursor.  When a
      field is folded then three dots are displayed in the buffer
      instead of the value of the field.
@@ -301,32 +311,36 @@ File: rec-mode.info,  Node: Field edition,  Next: Searches,  Prev: Field folding
 
 The following commands change the value of the field under the cursor.
 
-‘e’
-‘M-x rec-cmd-edit-field’
+`e'
+`M-x rec-cmd-edit-field'
      Edit the value of the field under the cursor.  The specific
      action depends on the type of the field in the corresponding
      record descriptor:
-        − For date fields a calendar buffer is opened in another
+        - For date fields a calendar buffer is opened in another
           window and the focus is moved there.  The user can then
-          select a date by moving the cursor there and press ‘RET’ in
+          select a date by moving the cursor there and press `RET' in
           order to set that date as the value for the field.
-          Alternatively the user can press ‘t’ in order to set the
-          field to “now”, or ‘q’ to cancel the operation.  In the
+          Alternatively the user can press `t' in order to set the
+          field to "now", or `q' to cancel the operation.  In the
           later case the value of the field is left untouched.
-        − For enumerated and bool fields a fast-select buffer is
-          opened in another window, showing a list of labeled options.
-          The labels are single digits and letters.  The user can then
-          select ony of the options by pressing the corresponding
-          label, or cancel the operation by pressing ‘RET’.  In the
-          later case the value of the field is left untouched.
-        − For any other kind of fields an edition buffer is opened in
+
+        - For enumerated and bool fields a fast-select buffer is
+          opened in another window, showing a list of labeled
+          options.  The labels are single digits and letters.  The
+          user can then select ony of the options by pressing the
+          corresponding label, or cancel the operation by pressing
+          `RET'.  In the later case the value of the field is left
+          untouched.
+
+        - For any other kind of fields an edition buffer is opened in
           another window, showing the current contents of the field.
           The user can then edit the buffer as desired.  When she is
-          done, the user can then press ‘C-c C-c’ in order to set the
+          done, the user can then press `C-c C-c' in order to set the
           new value of the field, or just kill the buffer to cancel
           the operation.
-‘m’
-‘M-x rec-cmd-trim-field-value’
+
+`m'
+`M-x rec-cmd-trim-field-value'
      Trim the value of the field under the cursor, removing any
      sequence of leading and trailing blank characters.
 
@@ -339,17 +353,18 @@ File: rec-mode.info,  Node: Searches,  Next: Statistics,  Prev: Field edition,  
 The following commands jump to the first record in the buffer
 satisfying some criteria.
 
-‘s q’
-‘M-x rec-cmd-jump-to-fast’
+`s q'
+`M-x rec-cmd-jump-to-fast'
      Display the first record having a field whose value matches a
      given fixed pattern.  This is equivalent of using the command
-     line option ‘-q’ of ‘recsel’.  If a prefix argument is specified
+     line option `-q' of `recsel'.  If a prefix argument is specified
      then the search is case-insensitive.
-‘s s’
-‘M-x rec-cmd-jump-to-sex’
+
+`s s'
+`M-x rec-cmd-jump-to-sex'
      Display the first record in the buffer satisfying a given
      selection expression.  This is equivalent of using the command
-     line option ‘-e’ of ‘recsel’.  If a prefix argument is specified
+     line option `-e' of `recsel'.  If a prefix argument is specified
      then the search is case-insensitive.
 
 
@@ -361,22 +376,24 @@ File: rec-mode.info,  Node: Statistics,  Next: Data integrity,  Prev: Searches, 
 The following commands allow to count records in the current buffer
 based on some provided criteria.
 
-‘I’
-‘M-x rec-cmd-show-info’
+`I'
+`M-x rec-cmd-show-info'
      Show the number of records in the buffer categorized by type.
-‘#’
-‘M-x rec-cmd-count’
-     Count the number of records in the buffer having the same type as
-     the current record.  With a numeric prefix N, ask for a selection
-     expression and count the number of records in the buffer
-     satisfying the expression.
+
+`#'
+`M-x rec-cmd-count'
+     Count the number of records in the buffer having the same type
+     as the current record.  With a numeric prefix N, ask for a
+     selection expression and count the number of records in the
+     buffer satisfying the expression.
 
      Note that rec-mode tries to guess a reasonable default for the
      selection expression, depending on the type of the field and its
-     value.  If the user press ‘RET’ then the provided default
+     value.  If the user press `RET' then the provided default
      selection expression is used.
-‘%’
-‘M-x rec-cmd-statistics’
+
+`%'
+`M-x rec-cmd-statistics'
      If the field under the cursor contains an enumerated value, show
      the percentages of records in the current record set having
      fields with each of the possible values of the enumerated type.
@@ -390,12 +407,12 @@ File: rec-mode.info,  Node: Data integrity,  Prev: Statistics,  Up: Navigation m
 The integrity of the rec data stored in the file can be checked using
 the following commands.
 
-‘c’
-‘M-x rec-cmd-compile’
-     Compile the buffer with ‘recfix’ and open a compilation window
-     showing the result of the command.  In case some error or warning
-     is reported, the user can jump to the location triggering the
-     error by pressing ‘RET’ in the compilation window.
+`c'
+`M-x rec-cmd-compile'
+     Compile the buffer with `recfix' and open a compilation window
+     showing the result of the command.  In case some error or
+     warning is reported, the user can jump to the location
+     triggering the error by pressing `RET' in the compilation window.
 
 
 File: rec-mode.info,  Node: Edition modes,  Next: Summary mode,  Prev: Navigation mode,  Up: Top
@@ -408,38 +425,40 @@ for browsing recdata and doing changes at the record level: editing
 the contents of a field, adding or removing fields, etc.  In order to
 perform broader changes, such as adding/deleting record descriptors,
 records or comment blocks, the user must enter into one of the
-“edition modes”.
+"edition modes".
 
    There are three edition modes, covering different areas of the
 recfile: record, record type and buffer.  When an edition mode is
 entered the buffer is set in read/write mode, it is narrowed to the
 desired area and any embellishment used in navigation mode is
 removed(1).  As a general rule, the commands available in navigation
-mode are also available in the edition mode prefixed with ‘C-c’ and
-with a control sequence ‘C-’.  Thus, ‘n’, which in record navigation
-mode jumps to the next record, becomes ‘C-c C-n’ in the record edition
-modes.  The exceptions to this are the bindings ‘c’
-(‘rec-cmd-compile’) which becomes ‘C-c C-k’ and ‘h’
-(‘rec-cmd-show-summary’) which becomes ‘C-c M-h’.
+mode are also available in the edition mode prefixed with `C-c' and
+with a control sequence `C-'.  Thus, `n', which in record navigation
+mode jumps to the next record, becomes `C-c C-n' in the record
+edition modes.  The exceptions to this are the bindings `c'
+(`rec-cmd-compile') which becomes `C-c C-k' and `h'
+(`rec-cmd-show-summary') which becomes `C-c M-h'.
 
    The following commands are used to enter into one of the available
 edition modes from the navigation mode.
 
-‘R’
-‘M-x rec-edit-record’
+`R'
+`M-x rec-edit-record'
      Edit the record being navigated.
-‘T’
-‘M-x rec-edit-type’
+
+`T'
+`M-x rec-edit-type'
      Edit the record set being navigated.
-‘B’
-‘M-x rec-edit-buffer’
+
+`B'
+`M-x rec-edit-buffer'
      Edit the buffer.
 
 After doing modifications in the buffer, the user can go back to
 navigation mode by using the following command.
 
-‘C-c C-c’
-‘M-x rec-finish-editing’
+`C-c C-c'
+`M-x rec-finish-editing'
      Finish the current edition and return to navigation mode.  If a
      syntactic error was introduced in the edition activity then the
      error is reported in the echo area and navigation mode is not
@@ -456,19 +475,19 @@ File: rec-mode.info,  Node: Summary mode,  Next: Selecting records,  Prev: Editi
 **************
 
 Besides the standard viewing modes of buffers, there is also a third
-option called “summary mode”.  Summary mode is a tabulated list of the
-record in which each record is a row in the table.  The columns in the
-table are determined by user input, or alternatively, by special keys
-in the current file.
+option called "summary mode".  Summary mode is a tabulated list of
+the record in which each record is a row in the table.  The columns in
+the table are determined by user input, or alternatively, by special
+keys in the current file.
 
-‘h’
-‘M-x rec-cmd-show-summary’
+`h'
+`M-x rec-cmd-show-summary'
      Creates a summary buffer from the current type being viewed in
-     the recfile.  The columns are based on user input (prompted), or
-     if the record has either a ‘%summary’ or ‘%key’ in its
+     the recfile. The columns are based on user input (prompted), or
+     if the record has either a `%summary' or `%key' in its
      descriptor, those fields are used.
 
-   The input for the summary query is a “field expression”, a
+   The input for the summary query is a "field expression", a
 comma-separated list of column names.  Thus, if your recfile looks
 like the following:
 
@@ -481,28 +500,29 @@ like the following:
      Name: Matusalem
      Age: 969
 
-   Then calling ‘rec-cmd-show-summary’ and entering ‘Name,Age’ would
+   Then calling `rec-cmd-show-summary' and entering `Name,Age' would
 create a table of all records with those columns.  If your record
-descriptor contains a ‘%summary’ like below:
+descriptor contains a `%summary' like below:
 
      %summary: Age,Name
 
 then this is used as the field expression instead.  Similarly, if no
-‘%summary’ field is defined and a ‘%key’ field exists, then that field
-is used.
+`%summary' field is defined and a `%key' field exists, then that
+field is used.
 
-   Calling this command enters “record summary mode”, which a a major
-mode derived from “tabulated list mode” (*note (elisp)Tabulated List
-mode::).  In this mode, the following bindings are available:
+   Calling this command enters "record summary mode", which a a major
+mode derived from "tabulated list mode" (*note Tabulated List mode:
+(elisp)Tabulated List mode.). In this mode, the following bindings
+are available:
 
-‘n’
-‘M-x rec-summary-cmd-next’
+`n'
+`M-x rec-summary-cmd-next'
      Go to the next record in the summary.
 
 Navigation inside the summary buffer maintains the position of the
 associated recfile buffer, and vice versa.  The currently active
 record in the recfile is shown highlighted in the buffer.  As a
-result, the summary can be thought of as a useful “overview” overview
+result, the summary can be thought of as a useful "overview" overview
 for any recfile buffer.
 
 
@@ -517,11 +537,11 @@ using the searching facilities of recutils.
 
    Selection can be done using two mechanisms:
 
-   • selection expressions, which are expressions that can be applied
-     to a record.  These offer a powerful query language for records.
-     *Note (recutils)Selection Expressions::.
+   * selection expressions, which are expressions that can be applied
+     to a record. These offer a powerful query language for records.
+     *Note Selection Expressions: (recutils)Selection Expressions.
 
-   • fast string searches, which match records whose field values
+   * fast string searches, which match records whose field values
      match a string.
 
    For instance, you can create a new buffer out of the current
@@ -545,23 +565,24 @@ File: rec-mode.info,  Node: Buffer from selection,  Next: Selection mode,  Up: S
 =========================
 
 Creating new recfiles based on selections can be done by creating a
-wholly new buffer using the “buffer from selection” commands in
+wholly new buffer using the "buffer from selection" commands in
 rec-mode.
 
-‘x s’
-‘M-x rec-cmd-new-buffer-from-sex’
-     Creates a new buffer from a “selection expression”.  *Note
-     (recutils)Selection Expressions::.  Prompts the user for a
-     selection expression and then displays a new buffer containing
-     records that match the expression.
-‘x q’
-‘M-x rec-cmd-new-buffer-from-fast-string’
-     Creates a new buffer from a “fast string search”.  Prompts the
+`x s'
+`M-x rec-cmd-new-buffer-from-sex'
+     Creates a new buffer from a "selection expression". *Note
+     Selection Expressions: (recutils)Selection Expressions.  Prompts
+     the user for a selection expression and then displays a new
+     buffer containing records that match the expression.
+
+`x q'
+`M-x rec-cmd-new-buffer-from-fast-string'
+     Creates a new buffer from a "fast string search".  Prompts the
      user for a string and then displays a new buffer which contains
      all records whose any field contains this string.
 
-   In both of these commands, if the recfile has a “record
-descriptor”, it is copied as well.
+   In both of these commands, if the recfile has a "record
+descriptor", it is copied as well.
 
 
 File: rec-mode.info,  Node: Selection mode,  Prev: Buffer from selection,  Up: Selecting records
@@ -570,14 +591,14 @@ File: rec-mode.info,  Node: Selection mode,  Prev: Buffer from selection,  Up: S
 ==================
 
 In both navigation mode and the assorted edition modes,
-‘rec-cmd-goto-next-rec’ and ‘rec-cmd-goto-prev-rec’ navigate to the
+`rec-cmd-goto-next-rec' and `rec-cmd-goto-prev-rec' navigate to the
 next and previous record, respectively.  On large files, finding a
 particular record using these commands only can be quite tedious.  To
 this end, using selections, it is possible to jump to or restrict
 navigation to records matching selections.
 
-Restricting the navigation commands, typically bound to ‘n’ and ‘C-c
-C-n’ (mutatis mutandis for backward movement), to records that match
+Restricting the navigation commands, typically bound to `n' and `C-c
+C-n' (mutatis mutandis for backward movement), to records that match
 the current selection, can be done using what is called record
 selection mode.
 
@@ -586,27 +607,28 @@ commands for next and previous records as described above do not
 behave the usual way: they navigate records that only match the
 currently active selection.
 
+   When selection mode is entered, any associated summary buffer
+automatically updates its contents to match that of the current
+selection.  Once selection mode is turned off, the summary buffer
+reverts back to the previous selection.
+
    Record selection mode can be entered by the following commands:
 
-‘/ s’
-‘M-x rec-cmd-navigate-current-type-by-sex’
+`/ s'
+`M-x rec-cmd-navigate-current-type-by-sex'
      Prompts the user for a selection expression, runs a query on the
      current buffer and the current type, and then enters record
      selection mode.
-‘/ q’
-‘M-x rec-cmd-navigate-current-type-by-fast-string’
+
+`/ q'
+`M-x rec-cmd-navigate-current-type-by-fast-string'
      Same as above, but with a fast string search.
 
 In record selection mode, besides the standard navigation bindings,
 the following additional bindings are defined:
 
-‘/ h’
-‘M-x rec-cmd-show-summary-for-selection’
-     Creates a summary buffer (*note Summary mode::) with the contents
-     from the selection instead of the current buffer.
-
-‘/ /’
-‘M-x rec-cmd-exit-selection’
+`/ /'
+`M-x rec-cmd-exit-selection'
      Exits record selection mode and restores the normal navigation
      keybindings.
 
@@ -617,57 +639,128 @@ File: rec-mode.info,  Node: Cross referencing,  Next: Configuration,  Prev: Sele
 *******************
 
 Besides navigation, edition and selection, rec-mode provides another
-powerful feature for recfiles, known as “cross referencing”.  In
+powerful feature for recfiles, known as "cross referencing". In
 short, cross referencing is an Emacs term for listing various kinds of
-search results for certain keywords an identifiers.  For records, this
+search results for certain keywords an identifiers. For records, this
 could mean the following:
 
-  1. Finding the type definition of a field.
-  2. Finding the uses of a certain type, the inverse of above.
-  3. Finding the referred record of a foreign key.  If a field is a
+     Finding the referred record of a foreign key.  If a field is a
      key referring to another record, you can jump to that record.
-  4. Finding the referents of a record if it is a foreign key.
-  5. Finding records that match a certain selection expression or fast
+
+  1. Finding the referents of a record if it is a foreign key.
+
+  2. Finding records that match a certain selection expression or fast
      string search.
 
-Emacs provides a unified interface for this called Xref.  *Note
-(emacs)Find Identifier Referencs::.  Rec mode implements several
-backends for these purposes.
+Emacs provides a unified interface for this called Xref, see *Note
+Xref: (emacs)Xref.  rec-mode implements a custom xref backend for the
+purpose of easier navigating between records.
 
    Regardless of functionality, if there are more than one search
-result, Xref searches present their results in a special ‘XREF’
+result, Xref searches present their results in a special `XREF'
 buffer.  It is an ordered list of results, similar to compilation mode
-(*note (emacs)Compilation Mode::).  Xref makes it easy to navigate
-between search results, as it binds the ‘next-error’ functionality,
-letting you navigate the results even if you are outside the rec mode
-buffer.
-
-   As of version 1.8.0, Xref implements only the last functionality,
-cross referencing records by selection expressions or fast string
-searches.
+(*note Compilation Mode: (emacs)Compilation Mode.). Xref makes it
+easy to navigate between search results, as it binds the `next-error'
+functionality, letting you navigate the results even if you are
+outside the rec mode buffer.
 
 * Menu:
 
+* Cross-referencing records using foreign keys::
 * Cross referencing by selection::
 
 
-File: rec-mode.info,  Node: Cross referencing by selection,  Up: Cross referencing
+File: rec-mode.info,  Node: Cross-referencing records using foreign keys,  Next: Cross referencing by selection,  Up: Cross referencing
 
-6.1 Cross referencing by selection
+6.1 Cross-referencing records using foreign keys
+================================================
+
+When a record field is a reference to another record, it is possible
+to use navigate from the referring field to that record. Consider the
+following record:
+
+     %rec: Book
+     %type: Published int
+     %type: Author rec Author
+
+     Title: Cat's Cradle
+     Published: 1963
+     Author: KurtVonnegut
+
+     Title: Breakfast of Champions
+     Published: 1973
+     Author: KurtVonnegut
+
+     Title: The Left Hand of Darkness
+     Published: 1969
+     Author: UrsulaKLeGuin
+
+     %rec: Author
+     %key: Id
+
+     Id: UrsulaKLeGuin
+     Name: Ursula K. Le Guin
+
+     Id: KurtVonnegut
+     Name: Kurt Vonnegut, Jr.
+
+6.1.1 Navigating to referred records
+------------------------------------
+
+Navigating to `Author' field of the `Book' records and hitting `M-.'
+(`xref-goto-definition') will jump the editor to the corresponding
+`Author' record.  The requirement is that the current field is a
+valid foreign key, i.e. the field is a record reference and the
+referred record exists in the current buffer.
+
+6.1.2 Finding record references
+-------------------------------
+
+On the other hand, in the above example, navigating anywhere on an
+`Author' record, it is possible to list all the records referring
+_that_ record using `M-?' (`xref-find-references').  This works on
+any field of the record, since we foreign keys _to_ the record work
+on the record level.
+
+6.1.3 Commands for cross-referencing
+------------------------------------
+
+`M-.'
+`M-x xref-goto-definition'
+     Jump to the record referenced by this field, if possible. Use
+     `M-.' and `C-M-,' to jump between the results.
+
+`M-?'
+`M-x xref-find-references'
+     List all the records that reference this record.  The record
+     referenced must have a `%key' in its descriptor for this to work,
+     and to get any results the referring records must have properly
+     used foreign keys.
+
+
+   For more keybindings, *Note Looking Up Identifiers: (emacs)Looking
+Up Identifiers. For more info about foreign keys in recutils, *Note
+Foreign Keys: (recutils)Foreign Keys.
+
+
+File: rec-mode.info,  Node: Cross referencing by selection,  Prev: Cross-referencing records using foreign keys,  Up: Cross referencing
+
+6.2 Cross referencing by selection
 ==================================
 
 Cross referencing by selection lets you perform a query and then list
 the results using the Xref buffer.  Rec mode provides two such
 commands:
 
-‘X s’
-‘M-x rec-cmd-xref-sex’
+`X s'
+`M-x rec-cmd-xref-sex'
      Query the current recfile using a selection expression and the
      current type and then list the results using Xref.  Each results
      shows a small snippet of the matched record making it easier to
      identify which records matched the search.
-‘X q’
-‘M-x rec-cmd-xref-fast-string’
+
+`X q'
+`M-x rec-cmd-xref-fast-string'
      Like above, but using a fast string.  Instead of previewing the
      first three fields of a record, it shows each field where there
      was a match.
@@ -692,19 +785,19 @@ File: rec-mode.info,  Node: Finding the recutils,  Next: Records appearance,  Up
 7.1 Finding the recutils
 ========================
 
-‘rec-mode’ makes use of the several utilities which are part of the
+`rec-mode' makes use of the several utilities which are part of the
 recutils.  The following variables tell the mode where to find the
 utilities.  The default values of these variables must work if the
 recutils are installed system-wide in the system.
 
  -- Variable: rec-recsel
-     Name of the ‘recsel’ utility from the GNU recutil.
+     Name of the `recsel' utility from the GNU recutil.
 
  -- Variable: rec-recinf
-     Name of the ‘recinf’ utility from the GNU recutils.
+     Name of the `recinf' utility from the GNU recutils.
 
  -- Variable: rec-recfix
-     Name of the ‘recfix’ utility from the GNU recutils.
+     Name of the `recfix' utility from the GNU recutils.
 
 
 File: rec-mode.info,  Node: Records appearance,  Prev: Finding the recutils,  Up: Configuration
@@ -719,7 +812,7 @@ tweaking the value of the following variables.
      Values in fiels having more than the specified number of lines
      will be hidden by default in navigation mode.  When hidden, an
      ellipsis is shown instead of the value of the field.  Default is
-     ‘15’.
+     `15'.
 
 
 File: rec-mode.info,  Node: Command Index,  Next: Key Index,  Prev: Configuration,  Up: Top
@@ -731,40 +824,43 @@ Command and Function Index
 * Menu:
 
 * rec-cmd-compile:                       Data integrity.     (line 11)
-* rec-cmd-count:                         Statistics.         (line 14)
+* rec-cmd-count:                         Statistics.         (line 15)
 * rec-cmd-edit-field:                    Field edition.      (line 10)
-* rec-cmd-exit-selection:                Selection mode.     (line 44)
+* rec-cmd-exit-selection:                Selection mode.     (line 45)
 * rec-cmd-goto-next-field:               Field navigation.   (line 11)
 * rec-cmd-goto-next-rec:                 Record navigation.  (line 10)
-* rec-cmd-goto-previous-rec:             Record navigation.  (line 14)
-* rec-cmd-jump-back:                     Record navigation.  (line 23)
+* rec-cmd-goto-previous-rec:             Record navigation.  (line 15)
+* rec-cmd-jump-back:                     Record navigation.  (line 26)
 * rec-cmd-jump-to-fast:                  Searches.           (line 11)
-* rec-cmd-jump-to-sex:                   Searches.           (line 17)
+* rec-cmd-jump-to-sex:                   Searches.           (line 18)
 * rec-cmd-navigate-current-type-by-fast-string: Selection mode.
-                                                             (line 32)
-* rec-cmd-navigate-current-type-by-sex:  Selection mode.     (line 27)
+                                                             (line 38)
+* rec-cmd-navigate-current-type-by-sex:  Selection mode.     (line 32)
 * rec-cmd-new-buffer-from-fast-string:   Buffer from selection.
-                                                             (line 18)
+                                                             (line 19)
 * rec-cmd-new-buffer-from-sex:           Buffer from selection.
                                                              (line 12)
-* rec-cmd-show-descriptor:               Record navigation.  (line 18)
+* rec-cmd-show-descriptor:               Record navigation.  (line 20)
 * rec-cmd-show-info:                     Statistics.         (line 11)
 * rec-cmd-show-summary:                  Summary mode.       (line 14)
-* rec-cmd-show-summary-for-selection:    Selection mode.     (line 39)
 * rec-cmd-show-type:                     Field navigation.   (line 18)
-* rec-cmd-statistics:                    Statistics.         (line 25)
+* rec-cmd-statistics:                    Statistics.         (line 27)
 * rec-cmd-toggle-field-visibility:       Field folding.      (line 13)
-* rec-cmd-trim-field-value:              Field edition.      (line 34)
+* rec-cmd-trim-field-value:              Field edition.      (line 38)
 * rec-cmd-xref-fast-string:              Cross referencing by selection.
-                                                             (line 18)
+                                                             (line 19)
 * rec-cmd-xref-sex:                      Cross referencing by selection.
                                                              (line 12)
-* rec-edit-buffer:                       Edition modes.      (line 36)
+* rec-edit-buffer:                       Edition modes.      (line 38)
 * rec-edit-record:                       Edition modes.      (line 30)
-* rec-edit-type:                         Edition modes.      (line 33)
-* rec-find-type:                         Record navigation.  (line 26)
-* rec-finish-editing:                    Edition modes.      (line 43)
-* rec-summary-cmd-next:                  Summary mode.       (line 48)
+* rec-edit-type:                         Edition modes.      (line 34)
+* rec-find-type:                         Record navigation.  (line 30)
+* rec-finish-editing:                    Edition modes.      (line 45)
+* rec-summary-cmd-next:                  Summary mode.       (line 49)
+* xref-find-references:                  Cross-referencing records using foreign keys.
+                                                             (line 63)
+* xref-goto-definition:                  Cross-referencing records using foreign keys.
+                                                             (line 58)
 
 
 File: rec-mode.info,  Node: Key Index,  Next: Variable and Concept Index,  Prev: Command Index,  Up: Top
@@ -775,39 +871,42 @@ Key (Character) Index
  [index ]
 * Menu:
 
-* #:                                     Statistics.         (line 14)
-* %:                                     Statistics.         (line 25)
-* / /:                                   Selection mode.     (line 44)
-* / h:                                   Selection mode.     (line 39)
-* / q:                                   Selection mode.     (line 32)
-* / s:                                   Selection mode.     (line 27)
-* b:                                     Record navigation.  (line 23)
-* B:                                     Edition modes.      (line 36)
+* #:                                     Statistics.         (line 15)
+* %:                                     Statistics.         (line 27)
+* / /:                                   Selection mode.     (line 45)
+* / q:                                   Selection mode.     (line 38)
+* / s:                                   Selection mode.     (line 32)
+* B:                                     Edition modes.      (line 38)
+* b:                                     Record navigation.  (line 26)
 * c:                                     Data integrity.     (line 11)
-* C-c C-c:                               Edition modes.      (line 43)
-* C-c C-t:                               Record navigation.  (line 26)
-* d:                                     Record navigation.  (line 18)
+* C-c C-c:                               Edition modes.      (line 45)
+* C-c C-t:                               Record navigation.  (line 30)
+* d:                                     Record navigation.  (line 20)
 * e:                                     Field edition.      (line 10)
 * h:                                     Summary mode.       (line 14)
 * I:                                     Statistics.         (line 11)
-* m:                                     Field edition.      (line 34)
-* n:                                     Record navigation.  (line 10)
-* n <1>:                                 Summary mode.       (line 48)
-* p:                                     Record navigation.  (line 14)
+* m:                                     Field edition.      (line 38)
+* M-.:                                   Cross-referencing records using foreign keys.
+                                                             (line 58)
+* M-?:                                   Cross-referencing records using foreign keys.
+                                                             (line 63)
+* n <1>:                                 Record navigation.  (line 10)
+* n:                                     Summary mode.       (line 49)
+* p:                                     Record navigation.  (line 15)
 * R:                                     Edition modes.      (line 30)
 * s q:                                   Searches.           (line 11)
-* s s:                                   Searches.           (line 17)
+* s s:                                   Searches.           (line 18)
 * SPC:                                   Field folding.      (line 13)
+* T:                                     Edition modes.      (line 34)
 * t:                                     Field navigation.   (line 18)
-* T:                                     Edition modes.      (line 33)
 * TAB:                                   Field navigation.   (line 11)
 * x q:                                   Buffer from selection.
-                                                             (line 18)
+                                                             (line 19)
 * X q:                                   Cross referencing by selection.
-                                                             (line 18)
-* x s:                                   Buffer from selection.
-                                                             (line 12)
+                                                             (line 19)
 * X s:                                   Cross referencing by selection.
+                                                             (line 12)
+* x s:                                   Buffer from selection.
                                                              (line 12)
 
 
@@ -824,8 +923,16 @@ Variable and Concept Index
 * bug reports:                           Feedback.           (line  6)
 * counting:                              Statistics.         (line  6)
 * cross referencing:                     Cross referencing.  (line  6)
+* cross referencing, foreign keys:       Cross-referencing records using foreign keys.
+                                                             (line  6)
 * cross referencing, selection:          Cross referencing by selection.
                                                              (line  6)
+* cross-referencing, backreferences:     Cross-referencing records using foreign keys.
+                                                             (line 47)
+* cross-referencing, goto-definition:    Cross-referencing records using foreign keys.
+                                                             (line 38)
+* cross-referencing, keybindings:        Cross-referencing records using foreign keys.
+                                                             (line 56)
 * editing fields:                        Field edition.      (line  6)
 * edition modes:                         Edition modes.      (line  6)
 * edition, fields:                       Field edition.      (line  6)
@@ -840,19 +947,18 @@ Variable and Concept Index
 * modes, summary:                        Summary mode.       (line  6)
 * motion, between records:               Record navigation.  (line  6)
 * navigation mode:                       Navigation mode.    (line  6)
-* rec-max-lines-in-fields:               Records appearance. (line  9)
+* rec-max-lines-in-fields:               Records appearance. (line 10)
 * rec-recfix:                            Finding the recutils.
-                                                             (line 17)
+                                                             (line 18)
 * rec-recinf:                            Finding the recutils.
-                                                             (line 14)
+                                                             (line 15)
 * rec-recsel:                            Finding the recutils.
-                                                             (line 11)
+                                                             (line 12)
 * record navigation:                     Record navigation.  (line  6)
 * selection mode:                        Selection mode.     (line  6)
 * selection, buffer:                     Buffer from selection.
                                                              (line  6)
 * summary:                               Summary mode.       (line  6)
-* summary, selection:                    Selection mode.     (line 37)
 * xref:                                  Cross referencing.  (line  6)
 
 
@@ -863,9 +969,9 @@ Appendix A GNU Free Documentation License
 
                     Version 1.3, 3 November 2008
 
-     Copyright © 2000, 2001, 2002, 2007, 2008, 2020 Free Software
+     Copyright (C) 2000, 2001, 2002, 2007, 2008, 2020 Free Software
      Foundation, Inc.
-     <http://fsf.org/>
+     `http://fsf.org/'
 
      Everyone is permitted to copy and distribute verbatim copies
      of this license document, but changing it is not allowed.
@@ -873,7 +979,7 @@ Appendix A GNU Free Documentation License
   0. PREAMBLE
 
      The purpose of this License is to make a manual, textbook, or
-     other functional and useful document “free” in the sense of
+     other functional and useful document "free" in the sense of
      freedom: to assure everyone the effective freedom to copy and
      redistribute it, with or without modifying it, either
      commercially or noncommercially.  Secondarily, this License
@@ -881,19 +987,19 @@ Appendix A GNU Free Documentation License
      their work, while not being considered responsible for
      modifications made by others.
 
-     This License is a kind of “copyleft”, which means that derivative
+     This License is a kind of "copyleft", which means that derivative
      works of the document must themselves be free in the same sense.
      It complements the GNU General Public License, which is a
      copyleft license designed for free software.
 
      We have designed this License in order to use it for manuals for
      free software, because free software needs free documentation: a
-     free program should come with manuals providing the same freedoms
-     that the software does.  But this License is not limited to
-     software manuals; it can be used for any textual work, regardless
-     of subject matter or whether it is published as a printed book.
-     We recommend this License principally for works whose purpose is
-     instruction or reference.
+     free program should come with manuals providing the same
+     freedoms that the software does.  But this License is not
+     limited to software manuals; it can be used for any textual
+     work, regardless of subject matter or whether it is published as
+     a printed book.  We recommend this License principally for works
+     whose purpose is instruction or reference.
 
   1. APPLICABILITY AND DEFINITIONS
 
@@ -902,19 +1008,19 @@ Appendix A GNU Free Documentation License
      can be distributed under the terms of this License.  Such a
      notice grants a world-wide, royalty-free license, unlimited in
      duration, to use that work under the conditions stated herein.
-     The “Document”, below, refers to any such manual or work.  Any
-     member of the public is a licensee, and is addressed as “you”.
-     You accept the license if you copy, modify or distribute the work
-     in a way requiring permission under copyright law.
+     The "Document", below, refers to any such manual or work.  Any
+     member of the public is a licensee, and is addressed as "you".
+     You accept the license if you copy, modify or distribute the
+     work in a way requiring permission under copyright law.
 
-     A “Modified Version” of the Document means any work containing
+     A "Modified Version" of the Document means any work containing
      the Document or a portion of it, either copied verbatim, or with
      modifications and/or translated into another language.
 
-     A “Secondary Section” is a named appendix or a front-matter
+     A "Secondary Section" is a named appendix or a front-matter
      section of the Document that deals exclusively with the
      relationship of the publishers or authors of the Document to the
-     Document’s overall subject (or to related matters) and contains
+     Document's overall subject (or to related matters) and contains
      nothing that could fall directly within that overall subject.
      (Thus, if the Document is in part a textbook of mathematics, a
      Secondary Section may not explain any mathematics.)  The
@@ -922,7 +1028,7 @@ Appendix A GNU Free Documentation License
      subject or with related matters, or of legal, commercial,
      philosophical, ethical or political position regarding them.
 
-     The “Invariant Sections” are certain Secondary Sections whose
+     The "Invariant Sections" are certain Secondary Sections whose
      titles are designated, as being those of Invariant Sections, in
      the notice that says that the Document is released under this
      License.  If a section does not fit the above definition of
@@ -931,57 +1037,57 @@ Appendix A GNU Free Documentation License
      Document does not identify any Invariant Sections then there are
      none.
 
-     The “Cover Texts” are certain short passages of text that are
+     The "Cover Texts" are certain short passages of text that are
      listed, as Front-Cover Texts or Back-Cover Texts, in the notice
      that says that the Document is released under this License.  A
      Front-Cover Text may be at most 5 words, and a Back-Cover Text
      may be at most 25 words.
 
-     A “Transparent” copy of the Document means a machine-readable
-     copy, represented in a format whose specification is available to
-     the general public, that is suitable for revising the document
+     A "Transparent" copy of the Document means a machine-readable
+     copy, represented in a format whose specification is available
+     to the general public, that is suitable for revising the document
      straightforwardly with generic text editors or (for images
-     composed of pixels) generic paint programs or (for drawings) some
-     widely available drawing editor, and that is suitable for input
-     to text formatters or for automatic translation to a variety of
-     formats suitable for input to text formatters.  A copy made in an
-     otherwise Transparent file format whose markup, or absence of
-     markup, has been arranged to thwart or discourage subsequent
-     modification by readers is not Transparent.  An image format is
-     not Transparent if used for any substantial amount of text.  A
-     copy that is not “Transparent” is called “Opaque”.
+     composed of pixels) generic paint programs or (for drawings)
+     some widely available drawing editor, and that is suitable for
+     input to text formatters or for automatic translation to a
+     variety of formats suitable for input to text formatters.  A
+     copy made in an otherwise Transparent file format whose markup,
+     or absence of markup, has been arranged to thwart or discourage
+     subsequent modification by readers is not Transparent.  An image
+     format is not Transparent if used for any substantial amount of
+     text.  A copy that is not "Transparent" is called "Opaque".
 
      Examples of suitable formats for Transparent copies include plain
      ASCII without markup, Texinfo input format, LaTeX input format,
      SGML or XML using a publicly available DTD, and
      standard-conforming simple HTML, PostScript or PDF designed for
      human modification.  Examples of transparent image formats
-     include PNG, XCF and JPG. Opaque formats include proprietary
+     include PNG, XCF and JPG.  Opaque formats include proprietary
      formats that can be read and edited only by proprietary word
-     processors, SGML or XML for which the DTD and/or processing tools
-     are not generally available, and the machine-generated HTML,
-     PostScript or PDF produced by some word processors for output
-     purposes only.
+     processors, SGML or XML for which the DTD and/or processing
+     tools are not generally available, and the machine-generated
+     HTML, PostScript or PDF produced by some word processors for
+     output purposes only.
 
-     The “Title Page” means, for a printed book, the title page
-     itself, plus such following pages as are needed to hold, legibly,
-     the material this License requires to appear in the title page.
-     For works in formats which do not have any title page as such,
-     “Title Page” means the text near the most prominent appearance of
-     the work’s title, preceding the beginning of the body of the
-     text.
+     The "Title Page" means, for a printed book, the title page
+     itself, plus such following pages as are needed to hold,
+     legibly, the material this License requires to appear in the
+     title page.  For works in formats which do not have any title
+     page as such, "Title Page" means the text near the most
+     prominent appearance of the work's title, preceding the
+     beginning of the body of the text.
 
-     The “publisher” means any person or entity that distributes
+     The "publisher" means any person or entity that distributes
      copies of the Document to the public.
 
-     A section “Entitled XYZ” means a named subunit of the Document
+     A section "Entitled XYZ" means a named subunit of the Document
      whose title either is precisely XYZ or contains XYZ in
      parentheses following text that translates XYZ in another
-     language.  (Here XYZ stands for a specific section name mentioned
-     below, such as “Acknowledgements”, “Dedications”, “Endorsements”,
-     or “History”.)  To “Preserve the Title” of such a section when
-     you modify the Document means that it remains a section “Entitled
-     XYZ” according to this definition.
+     language.  (Here XYZ stands for a specific section name
+     mentioned below, such as "Acknowledgements", "Dedications",
+     "Endorsements", or "History".)  To "Preserve the Title" of such
+     a section when you modify the Document means that it remains a
+     section "Entitled XYZ" according to this definition.
 
      The Document may include Warranty Disclaimers next to the notice
      which states that this License applies to the Document.  These
@@ -999,28 +1105,28 @@ Appendix A GNU Free Documentation License
      you add no other conditions whatsoever to those of this License.
      You may not use technical measures to obstruct or control the
      reading or further copying of the copies you make or distribute.
-     However, you may accept compensation in exchange for copies.  If
-     you distribute a large enough number of copies you must also
+     However, you may accept compensation in exchange for copies.
+     If you distribute a large enough number of copies you must also
      follow the conditions in section 3.
 
-     You may also lend copies, under the same conditions stated above,
-     and you may publicly display copies.
+     You may also lend copies, under the same conditions stated
+     above, and you may publicly display copies.
 
   3. COPYING IN QUANTITY
 
      If you publish printed copies (or copies in media that commonly
      have printed covers) of the Document, numbering more than 100,
-     and the Document’s license notice requires Cover Texts, you must
-     enclose the copies in covers that carry, clearly and legibly, all
-     these Cover Texts: Front-Cover Texts on the front cover, and
+     and the Document's license notice requires Cover Texts, you must
+     enclose the copies in covers that carry, clearly and legibly,
+     all these Cover Texts: Front-Cover Texts on the front cover, and
      Back-Cover Texts on the back cover.  Both covers must also
      clearly and legibly identify you as the publisher of these
      copies.  The front cover must present the full title with all
      words of the title equally prominent and visible.  You may add
      other material on the covers in addition.  Copying with changes
      limited to the covers, as long as they preserve the title of the
-     Document and satisfy these conditions, can be treated as verbatim
-     copying in other respects.
+     Document and satisfy these conditions, can be treated as
+     verbatim copying in other respects.
 
      If the required texts for either cover are too voluminous to fit
      legibly, you should put the first ones listed (as many as fit
@@ -1029,17 +1135,17 @@ Appendix A GNU Free Documentation License
 
      If you publish or distribute Opaque copies of the Document
      numbering more than 100, you must either include a
-     machine-readable Transparent copy along with each Opaque copy, or
-     state in or with each Opaque copy a computer-network location
+     machine-readable Transparent copy along with each Opaque copy,
+     or state in or with each Opaque copy a computer-network location
      from which the general network-using public has access to
      download using public-standard network protocols a complete
-     Transparent copy of the Document, free of added material.  If you
-     use the latter option, you must take reasonably prudent steps,
-     when you begin distribution of Opaque copies in quantity, to
-     ensure that this Transparent copy will remain thus accessible at
-     the stated location until at least one year after the last time
-     you distribute an Opaque copy (directly or through your agents or
-     retailers) of that edition to the public.
+     Transparent copy of the Document, free of added material.  If
+     you use the latter option, you must take reasonably prudent
+     steps, when you begin distribution of Opaque copies in quantity,
+     to ensure that this Transparent copy will remain thus accessible
+     at the stated location until at least one year after the last
+     time you distribute an Opaque copy (directly or through your
+     agents or retailers) of that edition to the public.
 
      It is requested, but not required, that you contact the authors
      of the Document well before redistributing any large number of
@@ -1049,9 +1155,9 @@ Appendix A GNU Free Documentation License
   4. MODIFICATIONS
 
      You may copy and distribute a Modified Version of the Document
-     under the conditions of sections 2 and 3 above, provided that you
-     release the Modified Version under precisely this License, with
-     the Modified Version filling the role of the Document, thus
+     under the conditions of sections 2 and 3 above, provided that
+     you release the Modified Version under precisely this License,
+     with the Modified Version filling the role of the Document, thus
      licensing distribution and modification of the Modified Version
      to whoever possesses a copy of it.  In addition, you must do
      these things in the Modified Version:
@@ -1059,16 +1165,16 @@ Appendix A GNU Free Documentation License
        A. Use in the Title Page (and on the covers, if any) a title
           distinct from that of the Document, and from those of
           previous versions (which should, if there were any, be
-          listed in the History section of the Document).  You may use
-          the same title as a previous version if the original
+          listed in the History section of the Document).  You may
+          use the same title as a previous version if the original
           publisher of that version gives permission.
 
        B. List on the Title Page, as authors, one or more persons or
           entities responsible for authorship of the modifications in
           the Modified Version, together with at least five of the
           principal authors of the Document (all of its principal
-          authors, if it has fewer than five), unless they release you
-          from this requirement.
+          authors, if it has fewer than five), unless they release
+          you from this requirement.
 
        C. State on the Title page the name of the publisher of the
           Modified Version, as the publisher.
@@ -1084,45 +1190,45 @@ Appendix A GNU Free Documentation License
           in the Addendum below.
 
        G. Preserve in that license notice the full lists of Invariant
-          Sections and required Cover Texts given in the Document’s
+          Sections and required Cover Texts given in the Document's
           license notice.
 
        H. Include an unaltered copy of this License.
 
-       I. Preserve the section Entitled “History”, Preserve its Title,
-          and add to it an item stating at least the title, year, new
-          authors, and publisher of the Modified Version as given on
-          the Title Page.  If there is no section Entitled “History”
-          in the Document, create one stating the title, year,
-          authors, and publisher of the Document as given on its Title
-          Page, then add an item describing the Modified Version as
-          stated in the previous sentence.
+       I. Preserve the section Entitled "History", Preserve its
+          Title, and add to it an item stating at least the title,
+          year, new authors, and publisher of the Modified Version as
+          given on the Title Page.  If there is no section Entitled
+          "History" in the Document, create one stating the title,
+          year, authors, and publisher of the Document as given on
+          its Title Page, then add an item describing the Modified
+          Version as stated in the previous sentence.
 
-       J. Preserve the network location, if any, given in the Document
-          for public access to a Transparent copy of the Document, and
-          likewise the network locations given in the Document for
-          previous versions it was based on.  These may be placed in
-          the “History” section.  You may omit a network location for
-          a work that was published at least four years before the
-          Document itself, or if the original publisher of the version
-          it refers to gives permission.
+       J. Preserve the network location, if any, given in the
+          Document for public access to a Transparent copy of the
+          Document, and likewise the network locations given in the
+          Document for previous versions it was based on.  These may
+          be placed in the "History" section.  You may omit a network
+          location for a work that was published at least four years
+          before the Document itself, or if the original publisher of
+          the version it refers to gives permission.
 
-       K. For any section Entitled “Acknowledgements” or
-          “Dedications”, Preserve the Title of the section, and
+       K. For any section Entitled "Acknowledgements" or
+          "Dedications", Preserve the Title of the section, and
           preserve in the section all the substance and tone of each
-          of the contributor acknowledgements and/or dedications given
-          therein.
+          of the contributor acknowledgements and/or dedications
+          given therein.
 
        L. Preserve all the Invariant Sections of the Document,
           unaltered in their text and in their titles.  Section
           numbers or the equivalent are not considered part of the
           section titles.
 
-       M. Delete any section Entitled “Endorsements”.  Such a section
+       M. Delete any section Entitled "Endorsements".  Such a section
           may not be included in the Modified Version.
 
        N. Do not retitle any existing section to be Entitled
-          “Endorsements” or to conflict in title with any Invariant
+          "Endorsements" or to conflict in title with any Invariant
           Section.
 
        O. Preserve any Warranty Disclaimers.
@@ -1132,12 +1238,12 @@ Appendix A GNU Free Documentation License
      material copied from the Document, you may at your option
      designate some or all of these sections as invariant.  To do
      this, add their titles to the list of Invariant Sections in the
-     Modified Version’s license notice.  These titles must be distinct
-     from any other section titles.
+     Modified Version's license notice.  These titles must be
+     distinct from any other section titles.
 
-     You may add a section Entitled “Endorsements”, provided it
+     You may add a section Entitled "Endorsements", provided it
      contains nothing but endorsements of your Modified Version by
-     various parties—for example, statements of peer review or that
+     various parties--for example, statements of peer review or that
      the text has been approved by an organization as the
      authoritative definition of a standard.
 
@@ -1147,10 +1253,10 @@ Appendix A GNU Free Documentation License
      passage of Front-Cover Text and one of Back-Cover Text may be
      added by (or through arrangements made by) any one entity.  If
      the Document already includes a cover text for the same cover,
-     previously added by you or by arrangement made by the same entity
-     you are acting on behalf of, you may not add another; but you may
-     replace the old one, on explicit permission from the previous
-     publisher that added the old one.
+     previously added by you or by arrangement made by the same
+     entity you are acting on behalf of, you may not add another; but
+     you may replace the old one, on explicit permission from the
+     previous publisher that added the old one.
 
      The author(s) and publisher(s) of the Document do not by this
      License give permission to use their names for publicity for or
@@ -1177,19 +1283,19 @@ Appendix A GNU Free Documentation License
      notice of the combined work.
 
      In the combination, you must combine any sections Entitled
-     “History” in the various original documents, forming one section
-     Entitled “History”; likewise combine any sections Entitled
-     “Acknowledgements”, and any sections Entitled “Dedications”.  You
-     must delete all sections Entitled “Endorsements.”
+     "History" in the various original documents, forming one section
+     Entitled "History"; likewise combine any sections Entitled
+     "Acknowledgements", and any sections Entitled "Dedications".
+     You must delete all sections Entitled "Endorsements."
 
   6. COLLECTIONS OF DOCUMENTS
 
      You may make a collection consisting of the Document and other
-     documents released under this License, and replace the individual
-     copies of this License in the various documents with a single
-     copy that is included in the collection, provided that you follow
-     the rules of this License for verbatim copying of each of the
-     documents in all other respects.
+     documents released under this License, and replace the
+     individual copies of this License in the various documents with
+     a single copy that is included in the collection, provided that
+     you follow the rules of this License for verbatim copying of
+     each of the documents in all other respects.
 
      You may extract a single document from such a collection, and
      distribute it individually under this License, provided you
@@ -1200,18 +1306,18 @@ Appendix A GNU Free Documentation License
   7. AGGREGATION WITH INDEPENDENT WORKS
 
      A compilation of the Document or its derivatives with other
-     separate and independent documents or works, in or on a volume of
-     a storage or distribution medium, is called an “aggregate” if the
-     copyright resulting from the compilation is not used to limit the
-     legal rights of the compilation’s users beyond what the
-     individual works permit.  When the Document is included in an
-     aggregate, this License does not apply to the other works in the
-     aggregate which are not themselves derivative works of the
+     separate and independent documents or works, in or on a volume
+     of a storage or distribution medium, is called an "aggregate" if
+     the copyright resulting from the compilation is not used to
+     limit the legal rights of the compilation's users beyond what
+     the individual works permit.  When the Document is included in
+     an aggregate, this License does not apply to the other works in
+     the aggregate which are not themselves derivative works of the
      Document.
 
      If the Cover Text requirement of section 3 is applicable to these
      copies of the Document, then if the Document is less than one
-     half of the entire aggregate, the Document’s Cover Texts may be
+     half of the entire aggregate, the Document's Cover Texts may be
      placed on covers that bracket the Document within the aggregate,
      or the electronic equivalent of covers if the Document is in
      electronic form.  Otherwise they must appear on printed covers
@@ -1222,19 +1328,19 @@ Appendix A GNU Free Documentation License
      Translation is considered a kind of modification, so you may
      distribute translations of the Document under the terms of
      section 4.  Replacing Invariant Sections with translations
-     requires special permission from their copyright holders, but you
-     may include translations of some or all Invariant Sections in
-     addition to the original versions of these Invariant Sections.
-     You may include a translation of this License, and all the
-     license notices in the Document, and any Warranty Disclaimers,
-     provided that you also include the original English version of
-     this License and the original versions of those notices and
-     disclaimers.  In case of a disagreement between the translation
-     and the original version of this License or a notice or
-     disclaimer, the original version will prevail.
+     requires special permission from their copyright holders, but
+     you may include translations of some or all Invariant Sections
+     in addition to the original versions of these Invariant
+     Sections.  You may include a translation of this License, and
+     all the license notices in the Document, and any Warranty
+     Disclaimers, provided that you also include the original English
+     version of this License and the original versions of those
+     notices and disclaimers.  In case of a disagreement between the
+     translation and the original version of this License or a notice
+     or disclaimer, the original version will prevail.
 
-     If a section in the Document is Entitled “Acknowledgements”,
-     “Dedications”, or “History”, the requirement (section 4) to
+     If a section in the Document is Entitled "Acknowledgements",
+     "Dedications", or "History", the requirement (section 4) to
      Preserve its Title (section 1) will typically require changing
      the actual title.
 
@@ -1265,57 +1371,58 @@ Appendix A GNU Free Documentation License
      not permanently reinstated, receipt of a copy of some or all of
      the same material does not give you any rights to use it.
 
-  10. FUTURE REVISIONS OF THIS LICENSE
+ 10. FUTURE REVISIONS OF THIS LICENSE
 
-     The Free Software Foundation may publish new, revised versions of
-     the GNU Free Documentation License from time to time.  Such new
-     versions will be similar in spirit to the present version, but
-     may differ in detail to address new problems or concerns.  See
-     <http://www.gnu.org/copyleft/>.
+     The Free Software Foundation may publish new, revised versions
+     of the GNU Free Documentation License from time to time.  Such
+     new versions will be similar in spirit to the present version,
+     but may differ in detail to address new problems or concerns.
+     See `http://www.gnu.org/copyleft/'.
 
      Each version of the License is given a distinguishing version
      number.  If the Document specifies that a particular numbered
-     version of this License “or any later version” applies to it, you
-     have the option of following the terms and conditions either of
-     that specified version or of any later version that has been
+     version of this License "or any later version" applies to it,
+     you have the option of following the terms and conditions either
+     of that specified version or of any later version that has been
      published (not as a draft) by the Free Software Foundation.  If
      the Document does not specify a version number of this License,
-     you may choose any version ever published (not as a draft) by the
-     Free Software Foundation.  If the Document specifies that a proxy
-     can decide which future versions of this License can be used,
-     that proxy’s public statement of acceptance of a version
+     you may choose any version ever published (not as a draft) by
+     the Free Software Foundation.  If the Document specifies that a
+     proxy can decide which future versions of this License can be
+     used, that proxy's public statement of acceptance of a version
      permanently authorizes you to choose that version for the
      Document.
 
-  11. RELICENSING
+ 11. RELICENSING
 
-     “Massive Multiauthor Collaboration Site” (or “MMC Site”) means
+     "Massive Multiauthor Collaboration Site" (or "MMC Site") means
      any World Wide Web server that publishes copyrightable works and
      also provides prominent facilities for anybody to edit those
-     works.  A public wiki that anybody can edit is an example of such
-     a server.  A “Massive Multiauthor Collaboration” (or “MMC”)
+     works.  A public wiki that anybody can edit is an example of
+     such a server.  A "Massive Multiauthor Collaboration" (or "MMC")
      contained in the site means any set of copyrightable works thus
      published on the MMC site.
 
-     “CC-BY-SA” means the Creative Commons Attribution-Share Alike 3.0
+     "CC-BY-SA" means the Creative Commons Attribution-Share Alike 3.0
      license published by Creative Commons Corporation, a
      not-for-profit corporation with a principal place of business in
-     San Francisco, California, as well as future copyleft versions of
-     that license published by that same organization.
+     San Francisco, California, as well as future copyleft versions
+     of that license published by that same organization.
 
-     “Incorporate” means to publish or republish a Document, in whole
+     "Incorporate" means to publish or republish a Document, in whole
      or in part, as part of another Document.
 
-     An MMC is “eligible for relicensing” if it is licensed under this
+     An MMC is "eligible for relicensing" if it is licensed under this
      License, and if all works that were first published under this
      License somewhere other than this MMC, and subsequently
      incorporated in whole or in part into the MMC, (1) had no cover
-     texts or invariant sections, and (2) were thus incorporated prior
-     to November 1, 2008.
+     texts or invariant sections, and (2) were thus incorporated
+     prior to November 1, 2008.
 
-     The operator of an MMC Site may republish an MMC contained in the
-     site under CC-BY-SA on the same site at any time before August 1,
-     2009, provided the MMC is eligible for relicensing.
+     The operator of an MMC Site may republish an MMC contained in
+     the site under CC-BY-SA on the same site at any time before
+     August 1, 2009, provided the MMC is eligible for relicensing.
+
 
 ADDENDUM: How to use this License for your documents
 ====================================================
@@ -1333,7 +1440,7 @@ license notices just after the title page:
        Free Documentation License''.
 
    If you have Invariant Sections, Front-Cover Texts and Back-Cover
-Texts, replace the “with...Texts.” line with this:
+Texts, replace the "with...Texts." line with this:
 
          with the Invariant Sections being LIST THEIR TITLES, with
          the Front-Cover Texts being LIST, and with the Back-Cover Texts
@@ -1351,41 +1458,37 @@ permit their use in free software.
 
 
 Tag Table:
-Node: Top775
-Node: Introduction3395
-Ref: Introduction-Footnote-14146
-Node: Installation4193
-Node: Activation5342
-Ref: Activation-Footnote-15931
-Node: Feedback6063
-Ref: Feedback-Footnote-16481
-Node: Navigation mode6702
-Node: Record navigation8447
-Node: Field navigation9440
-Node: Field folding10129
-Node: Field edition10880
-Node: Searches12714
-Node: Statistics13520
-Node: Data integrity14611
-Node: Edition modes15137
-Ref: Edition modes-Footnote-117094
-Node: Summary mode17125
-Node: Selecting records19084
-Node: Buffer from selection20327
-Node: Selection mode21267
-Node: Cross referencing23062
-Node: Cross referencing by selection24688
-Node: Configuration25483
-Node: Finding the recutils25845
-Node: Records appearance26512
-Node: Command Index27036
-Node: Key Index29676
-Node: Variable and Concept Index32255
-Node: GNU Free Documentation License34913
+Node: Top803
+Node: Introduction3546
+Ref: Introduction-Footnote-14297
+Node: Installation4344
+Node: Activation5458
+Ref: Activation-Footnote-16031
+Node: Feedback6157
+Ref: Feedback-Footnote-16575
+Node: Navigation mode6796
+Node: Record navigation8533
+Node: Field navigation9481
+Node: Field folding10154
+Node: Field edition10897
+Node: Searches12699
+Node: Statistics13474
+Node: Data integrity14539
+Node: Edition modes15049
+Ref: Edition modes-Footnote-116932
+Node: Summary mode16963
+Node: Selecting records18876
+Node: Buffer from selection20135
+Node: Selection mode21064
+Node: Cross referencing22874
+Node: Cross-referencing records using foreign keys24324
+Node: Cross referencing by selection26587
+Node: Configuration27420
+Node: Finding the recutils27782
+Node: Records appearance28433
+Node: Command Index28953
+Node: Key Index31838
+Node: Variable and Concept Index34662
+Node: GNU Free Documentation License37881
 
 End Tag Table
-
-
-Local Variables:
-coding: utf-8
-End:
