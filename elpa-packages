@@ -183,6 +183,11 @@
  ("debbugs"		:url nil :doc ("debbugs.texi" "debbugs-ug.texi"))
  ("delight"		:url "https://git.savannah.gnu.org/r/delight.git"
   :auto-sync t)
+ ("denote"
+  :url "https://git.sr.ht/~protesilaos/denote"
+  :auto-sync t
+  :doc "README.org"
+  :ignored-files ("COPYING" "doclicense.texi"))
  ("detached"		:url "https://git.sr.ht/~niklaseklund/detached.el"
   :news "CHANGELOG.org"
   :readme "README.md"
