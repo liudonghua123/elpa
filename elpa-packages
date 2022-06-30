@@ -68,7 +68,8 @@
  ("bbdb"		:url "git://git.savannah.nongnu.org/bbdb.git"
   :lisp-dir "lisp"
   :doc "doc/bbdb.texi")
- ("beacon"		:url "https://github.com/Malabarba/beacon")
+ ("beacon"		:url "https://github.com/Malabarba/beacon"
+  :auto-sync t)
  ("blist"		:url "https://gitlab.com/mmemmew/blist"
   :doc "blist.texinfo"
   :readme "README.org"
