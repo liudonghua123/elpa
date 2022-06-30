@@ -187,6 +187,7 @@
   :url "https://git.sr.ht/~protesilaos/denote"
   :auto-sync t
   :doc "README.org"
+  :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  ("detached"		:url "https://git.sr.ht/~niklaseklund/detached.el"
   :news "CHANGELOG.org"
