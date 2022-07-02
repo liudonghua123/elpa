@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: xml relaxng
-;; Version: 0.2
+;; Version: 0.3
 
 ;; This file is part of GNU Emacs.
 
