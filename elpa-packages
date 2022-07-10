@@ -37,7 +37,10 @@
   :auto-sync t)
  ("ack"			:url "https://github.com/leoliu/ack-el"
   :auto-sync t)
- ("ada-mode"		:url nil :doc ("ada-mode.texi" "gpr-mode.texi"))
+ ("ada-mode"		:url nil
+  :doc ("ada-mode.texi" "gpr-mode.texi")
+  :branch "ada-mode"
+  :release-branch "ada-mode.release")
  ("ada-ref-man"		:url nil)
  ("adaptive-wrap"	:url nil)
  ("aircon-theme"        :url "https://git.sr.ht/~chambln/aircon-theme.el"
@@ -731,7 +734,10 @@
  ("websocket"		:url "https://github.com/ahyatt/emacs-websocket.git")
  ("windower"		:url "https://gitlab.com/ambrevar/emacs-windower")
  ("windresize"		:url nil)
- ("wisi"		:url nil :doc ("wisi.texi" "wisitoken-user_guide.texinfo"))
+ ("wisi"		:url nil
+  :doc ("wisi.texi" "wisitoken-user_guide.texinfo")
+  :branch "wisi"
+  :release-branch "wisi.release")
  ("wisitoken-grammar-mode" :url nil)
  ("which-key"           :url "https://github.com/justbur/emacs-which-key"
   :auto-sync t)
