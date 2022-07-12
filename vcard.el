@@ -7,7 +7,7 @@
 ;; Keywords: vcard, mail, news
 ;; Created: 1997-09-27
 
-;; Version: 0.2.1
+;; Version: 0.2.2
 ;; Package-Requires: ((emacs "27.1"))
 
 ;; $Id: vcard.el,v 1.11 2000/06/29 17:07:55 friedman Exp $
@@ -210,6 +210,7 @@ would be returned."
         (buf (generate-new-buffer " *vcard parser work*")))
     (unwind-protect
         (with-current-buffer buf
+          (set-buffer-multibyte nil)
           ;; Make sure last line is newline-terminated.
           ;; An extra trailing newline is harmless.
           (insert raw "\n")
@@ -299,7 +300,10 @@ Note: this function modifies the buffer!"
                         (set-marker match-beg (point-max))
                         (set-marker match-end (point-max))))
                  (funcall decoder pos match-beg)
-                 (setq result (cons (buffer-substring pos match-beg) result))
+                 (setq result (cons (decode-coding-string
+                                     (buffer-substring pos match-beg)
+                                     'utf-8)
+                                    result))
                  (set-marker pos (marker-position match-end))))
              (setq result (nreverse result))
              (vcard-set-property proplist "encoding" nil))
