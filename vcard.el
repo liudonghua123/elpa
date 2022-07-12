@@ -1,17 +1,20 @@
-;;; vcard.el --- vcard parsing and display routines
+;;; vcard.el --- Package for handling vCard files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 1999, 2000 Noah S. Friedman
+;; Copyright (C) 1997-2022  Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
-;; Maintainer: friedman@splode.com
+;; Maintainer: Noah Friedman <friedman@splode.com>, Eric Abrahamsen <eric@ericabrahamsen.net>
 ;; Keywords: vcard, mail, news
 ;; Created: 1997-09-27
+
+;; Version: 0.2.1
+;; Package-Requires: ((emacs "27.1"))
 
 ;; $Id: vcard.el,v 1.11 2000/06/29 17:07:55 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -20,9 +23,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, you can either send email to this
-;; program's maintainer or write to: The Free Software Foundation,
-;; Inc.; 59 Temple Place, Suite 330; Boston, MA 02111-1307, USA.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -70,14 +71,22 @@
 ;; exist for an attribute is considered to have a nil parameter.
 
 ;; TODO:
+;;   * Consolidate the functionality duplicated between `vcard.el' and
+;;     `vcard-parse.el'.
 ;;   * Finish supporting the 3.0 extensions.
-;;     Currently, only the 2.1 standard is supported.
+;;     Currently, only the 2.1 standard is supported by `vcard.el'
+;;     But newer 4.0 is supported by `vcard-parse.el'.
 ;;   * Handle nested vcards and grouped attributes?
 ;;     (I've never actually seen one of these in use.)
 ;;   * Handle multibyte charsets.
 ;;   * Inverse of vcard-parse-string: write .VCF files from alist
 ;;   * Implement a vcard address book?  Or is using BBDB preferable?
 ;;   * Improve the sample formatter.
+
+;; News:
+
+;; Since 0.2.1:
+;; - Incorporated the code from Noah Friedman's vcard.el
 
 ;;; Code:
 
@@ -88,23 +97,21 @@
   :group 'news)
 
 ;;;###autoload
-(defcustom vcard-pretty-print-function 'vcard-format-sample-box
+(defcustom vcard-pretty-print-function #'vcard-format-sample-box
   "*Formatting function used by `vcard-pretty-print'."
-  :type 'function
-  :group 'vcard)
+  :type 'function)
 
 ;;;###autoload
 (defcustom vcard-standard-filters
-  '(vcard-filter-html
-    vcard-filter-adr-newlines
-    vcard-filter-tel-normalize
-    vcard-filter-textprop-cr)
+  (list #'vcard-filter-html
+        #'vcard-filter-adr-newlines
+        #'vcard-filter-tel-normalize
+        #'vcard-filter-textprop-cr)
   "*Standard list of filters to apply to parsed vcard data.
 These filters are applied sequentially to vcard attributes when
 the function `vcard-standard-filter' is supplied as the second argument to
 `vcard-parse'."
-  :type 'hook
-  :group 'vcard)
+  :type 'hook)
 
 
 ;;; No user-settable options below.
@@ -112,7 +119,7 @@ the function `vcard-standard-filter' is supplied as the second argument to
 ;; XEmacs 21 ints and chars are disjoint types.
 ;; For all else, treat them as the same.
 (defalias 'vcard-char-to-int
-  (if (fboundp 'char-to-int) 'char-to-int 'identity))
+  (if (fboundp 'char-to-int) 'char-to-int #'identity))
 
 ;; This is just the version number for this package; it does not refer to
 ;; the vcard format specification.  Currently, this package does not yet
@@ -139,6 +146,7 @@ the function `vcard-standard-filter' is supplied as the second argument to
 
 ;; This is used by vcard-region-decode-base64
 (defvar vcard-region-decode-base64-table
+  ;; FIXME: Use `base64-decode-region'.
   (let* ((a "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
          (len (length a))
          (tbl (make-vector 123 nil))
@@ -149,8 +157,8 @@ the function `vcard-standard-filter' is supplied as the second argument to
     tbl))
 
 
-;;; This function can be used generically by applications to obtain
-;;; a printable representation of a vcard.
+;; This function can be used generically by applications to obtain
+;; a printable representation of a vcard.
 
 ;;;###autoload
 (defun vcard-pretty-print (vcard)
@@ -190,19 +198,18 @@ Vcard data is normally in the form
     prop3a;prop3b:                value3a;value3b;value3c
     end:                          vcard
 
-\(Whitespace around the `:' separating properties and values is optional.\)
+\(Whitespace around the `:' separating properties and values is optional.)
 If supplied to this function an alist of the form
 
-    \(\(\(\"prop1a\"\) \"value1a\"\)
-     \(\(\"prop2a\" \"prop2b\" \(\"prop2c\" . \"param2c\"\)\) \"value2a\"\)
-     \(\(\"prop3a\" \"prop3b\"\) \"value3a\" \"value3b\" \"value3c\"\)\)
+    (((\"prop1a\") \"value1a\")
+     ((\"prop2a\" \"prop2b\" (\"prop2c\" . \"param2c\")) \"value2a\")
+     ((\"prop3a\" \"prop3b\") \"value3a\" \"value3b\" \"value3c\"))
 
 would be returned."
   (let ((vcard nil)
         (buf (generate-new-buffer " *vcard parser work*")))
     (unwind-protect
-        (save-excursion
-          (set-buffer buf)
+        (with-current-buffer buf
           ;; Make sure last line is newline-terminated.
           ;; An extra trailing newline is harmless.
           (insert raw "\n")
@@ -302,14 +309,13 @@ Note: this function modifies the buffer!"
     result))
 
 
-;;; Functions for retrieving property or value information from parsed
-;;; vcard attributes.
+;;; Retrieving property or value information from parsed vcard attributes.
 
 (defun vcard-values (vcard have-props &optional non-props limit)
   "Return the values in VCARD.
 This function is like `vcard-ref' and takes the same arguments, but return
 only the values, not the associated property lists."
-  (mapcar 'cdr (vcard-ref vcard have-props non-props limit)))
+  (mapcar #'cdr (vcard-ref vcard have-props non-props limit)))
 
 (defun vcard-ref (vcard have-props &optional non-props limit)
   "Return the attributes in VCARD with HAVE-PROPS properties.
@@ -395,12 +401,12 @@ that element should never be deleted since it is the primary key."
 
 
 ;;; Vcard data filters.
-;;;
-;;; Filters receive both the property list and value list and may modify
-;;; either in-place.  The return value from the filters are ignored.
-;;;
-;;; These filters can be used for purposes such as removing HTML tags or
-;;; normalizing phone numbers into a standard form.
+;;
+;; Filters receive both the property list and value list and may modify
+;; either in-place.  The return value from the filters are ignored.
+;;
+;; These filters can be used for purposes such as removing HTML tags or
+;; normalizing phone numbers into a standard form.
 
 (defun vcard-standard-filter (proplist values)
   "Apply filters in `vcard-standard-filters' to attributes."
@@ -422,7 +428,7 @@ that element should never be deleted since it is the primary key."
 ;; useless for interoperability between MUAs.
 ;;
 ;; This filter does a very rudimentary job.
-(defun vcard-filter-html (proplist values)
+(defun vcard-filter-html (_proplist values)
   "Remove HTML tags from attribute values."
   (save-match-data
     (while values
@@ -474,6 +480,7 @@ US domestic telephone numbers are replaced with international format."
     `(format "%c" (string-to-number ,s 16))))
 
 (defun vcard-region-decode-quoted-printable (&optional beg end)
+  ;; FIXME: Use `quoted-printable-decode-region'.
   (save-excursion
     (save-restriction
       (save-match-data
@@ -525,7 +532,7 @@ Optional argument SEPARATOR can be any regexp, but anything matching the
  separator will never appear in any of the returned substrings.
  If not specified, SEPARATOR defaults to \"[ \\f\\t\\n\\r\\v]+\".
 If optional arg LIMIT is specified, split into no more than that many
- fields \(though it may split into fewer\)."
+ fields (though it may split into fewer)."
   (or separator (setq separator "[ \f\t\n\r\v]+"))
   (let ((string-list nil)
         (len (length string))
@@ -558,7 +565,7 @@ If optional arg LIMIT is specified, split into no more than that many
 
 (defun vcard-flatten (l)
   (if (consp l)
-      (apply 'nconc (mapcar 'vcard-flatten l))
+      (apply #'nconc (mapcar #'vcard-flatten l))
     (list l)))
 
 
@@ -581,7 +588,7 @@ If optional arg LIMIT is specified, split into no more than that many
 VCARD should be a parsed vcard alist.  The result is a string
 with formatted vcard information which can be inserted into a mime
 presentation buffer."
-  (mapconcat 'identity (vcard-format-sample-lines vcard) "\n"))
+  (mapconcat #'identity (vcard-format-sample-lines vcard) "\n"))
 
 (defun vcard-format-sample-lines (vcard)
   (let* ((name  (vcard-format-sample-get-name vcard))
@@ -609,7 +616,8 @@ presentation buffer."
         (email (car (vcard-format-sample-values
                      vcard '((("email" "pref"))
                              (("email" "internet"))
-                             (("email"))) 1))))
+                             (("email")))
+                     1))))
     (cond ((and name email)
            (format "%s <%s>" name email))
           (email)
@@ -649,14 +657,15 @@ presentation buffer."
   (let* ((addr (vcard-format-sample-values vcard '((("adr" "pref" "work"))
                                                    (("adr" "pref"))
                                                    (("adr" "work"))
-                                                   (("adr"))) 1))
+                                                   (("adr")))
+                                           1))
          (street (delete "" (list (nth 0 addr) (nth 1 addr) (nth 2 addr))))
          (city-list (delete "" (nthcdr 3 addr)))
          (city (cond ((null (car city-list)) nil)
                      ((cdr city-list)
                       (format "%s, %s"
                               (car city-list)
-                              (mapconcat 'identity (cdr city-list) " ")))
+                              (mapconcat #'identity (cdr city-list) " ")))
                      (t (car city-list)))))
     (delete nil (if city
                     (append street (list city))
@@ -664,13 +673,13 @@ presentation buffer."
 
 (defun vcard-format-sample-values-concat (vcard have-props limit sep)
   (let ((l (car (vcard-values vcard have-props nil limit))))
-    (and l (mapconcat 'identity (delete "" (vcard-copy-tree l)) sep))))
+    (and l (mapconcat #'identity (delete "" (vcard-copy-tree l)) sep))))
 
 (defun vcard-format-sample-values (vcard proplists &optional limit)
   (let ((result (vcard-format-sample-ref vcard proplists limit)))
     (if (equal limit 1)
         (cdr result)
-      (mapcar 'cdr result))))
+      (mapcar #'cdr result))))
 
 (defun vcard-format-sample-ref (vcard proplists &optional limit)
   (let ((result nil))
@@ -700,5 +709,4 @@ presentation buffer."
     maxlen))
 
 (provide 'vcard)
-
 ;;; vcard.el ends here.

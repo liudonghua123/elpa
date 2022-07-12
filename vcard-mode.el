@@ -5,9 +5,6 @@
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 ;; Maintainer: Eric Abrahamsen <eric@ericabrahamsen.net>
 
-;; Version: 0.2.1
-;; Package-Requires: ((emacs "27.1"))
-
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -60,5 +57,5 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.[Vv][Cc][Ff]\\'" . vcard-mode))
 
-(provide 'vcard)
+(provide 'vcard-mode)
 ;;; vcard-mode.el ends here
