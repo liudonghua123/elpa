@@ -93,7 +93,8 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'iso8601)
+;; This library is unavailable pre Emacs 27.
+(require 'iso8601 nil t)
 
 (defvar vcard-parse-select-fields nil
   "A list of field types to select.
@@ -315,13 +316,15 @@ properties -- and returning a card/contact object."
 			      ((and (stringp val-type)
 				    (string-equal val-type "timestamp"))
 			       (parse-time-string v))
-			      (t
-			       (condition-case nil
+                              ((fboundp 'iso8601-parse)
+                               (condition-case nil
 				   (iso8601-parse v)
 				 (error
 				  (lwarn
 				   '(vcard) :error
-				   "Unable to parse date value: \"%s\"" v))))))
+				   "Unable to parse date value: \"%s\"" v))))
+			      (t
+			       v)))
 			 v))
 		      ((string-match-p "\\`[[:digit:].]+\\'" v)
 		       (string-to-number v))
