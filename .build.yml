@@ -1,0 +1,9 @@
+image: guix
+packages:
+- emacs-minimal
+environment:
+  project: zuul.el
+tasks:
+- guix: |
+    cd $project
+    ./build-package

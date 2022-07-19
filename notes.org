@@ -1,0 +1,107 @@
+* REST API
+
+This section contains requests to the [[https://zuul-ci.org/docs/zuul/latest/rest-api.html][Zuul REST API]] using the function =zuul--rest-request=.
+
+** Queries
+
+*** Tenants
+
+List all tenants.
+
+#+begin_src elisp :results none
+  (zuul--rest-request
+   "/api/tenants"
+   :parser #'zuul--request-debug-parser)
+#+end_src
+
+*** Tenant status
+
+List status of a tenant.
+
+#+begin_src elisp :results none
+  (zuul--rest-request
+   (format "/api/tenant/%s/status" zuul-tenant)
+   :parser #'zuul--request-debug-parser)
+#+end_src
+
+*** Buildsets
+
+List all buildsets for a tenant.
+
+#+begin_src elisp :results none
+  (zuul--rest-request
+   (format "/api/tenant/%s/buildsets" zuul-tenant)
+   :params `(("limit" "200"))
+   :parser #'zuul--request-debug-parser)
+#+end_src
+
+*** Buildset
+
+List a specific buildset.
+
+#+begin_src elisp :results none
+  (zuul--rest-request
+   (format "/api/tenant/%s/buildsets" zuul-tenant)
+   :params `(("change" "300203"))
+   :parser #'zuul--request-debug-parser)
+#+end_src
+
+*** Builds
+
+List all builds for a tenant.
+
+#+begin_src elisp :results none
+  (zuul--rest-request
+   (format "/api/tenant/%s/builds" zuul-tenant)
+   :params `(("limit" "100"))
+   :parser #'zuul--request-debug-parser)
+#+end_src
+
+*** Build
+
+List a specific build.
+
+#+begin_src elisp :results none
+  (zuul--rest-request
+   (format "/api/tenant/%s/builds" zuul-tenant)
+   :params '(("uuid" "0646db9be9a0450c87a37d7d7386b17a"))
+   :parser #'zuul--request-debug-parser)
+#+end_src
+
+* Use zuul.el
+
+** Retrieve builds
+
+Retrieve builds using =zuul-get-builds=.
+
+#+begin_src elisp
+  (zuul-get-builds
+   :change "300203")
+#+end_src
+** Retrieve buildset
+
+Retrieve builds using =zuul-get-buildsets=.
+
+#+begin_src elisp :results none
+  (zuul-get-buildsets
+   :change "300203")
+#+end_src
+** Open a build log
+
+Select and open a build retrieved with =zuul-get-builds=.
+
+#+begin_src elisp :results none
+  (let ((zuul-build-display-buffer-action 'display-buffer-pop-up-window))
+    (zuul-open-build-log
+     (zuul-get-builds
+      :change "300203")))
+#+end_src
+
+Select and open a build retrieved with =zuul-get-buildsets=.
+
+#+begin_src elisp :results none
+  (let ((zuul-build-display-buffer-action 'display-buffer-pop-up-window))
+    (zuul-open-build-log
+     (zuul-get-buildsets
+      :change "300203")))
+#+end_src
