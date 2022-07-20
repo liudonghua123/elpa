@@ -1069,7 +1069,7 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
 
 (let ((map zuul-log-mode-map))
   (define-key map (kbd "C-c C-b") #'zuul-switch-build)
-  (define-key map (kbd "C-c C-h") #'eldoc-mode)
+  (define-key map (kbd "C-c C-.") #'eldoc-mode)
   (define-key map (kbd "C-c C-n") #'zuul-next-build)
   (define-key map (kbd "C-c C-o") #'zuul-open-build-in-browser)
   (define-key map (kbd "C-c C-p") #'zuul-previous-build)
