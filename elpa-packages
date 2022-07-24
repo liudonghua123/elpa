@@ -43,30 +43,30 @@
   :release-branch "ada-mode.release")
  ("ada-ref-man"		:url nil)
  ("adaptive-wrap"	:url nil)
- ("aircon-theme"        :url "https://git.sr.ht/~chambln/aircon-theme.el"
-  :ignored-files ("README" "COPYING")
-  :readme ignore
-  :auto-sync t)
  ("adjust-parens"	:url nil)
  ("advice-patch"	:url nil)
  ("aggressive-completion" :url nil)
  ("aggressive-indent"	:url "https://github.com/Malabarba/aggressive-indent-mode")
  ("ahungry-theme"	:url "https://github.com/ahungry/color-theme-ahungry")
+ ("aircon-theme"        :url "https://git.sr.ht/~chambln/aircon-theme.el"
+  :ignored-files ("README" "COPYING")
+  :readme ignore
+  :auto-sync t)
  ("all"			:url nil)
  ("ampc"		:url nil)
  ("arbitools"		:url nil)
  ("ascii-art-to-unicode" :url nil)
- ("async"		:url "https://github.com/jwiegley/emacs-async"
-  :auto-sync t)
  ("assess"		:url "https://github.com/phillord/assess"
   :doc "assess-doc.org"
+  :auto-sync t)
+ ("async"		:url "https://github.com/jwiegley/emacs-async"
   :auto-sync t)
  ;; AUCTeX is currently sync'd manually and elpa.git isn't quite a mirror :-(
  ("auctex"		:url "git://git.sv.gnu.org/auctex.git")
  ("aumix-mode"		:url nil)
+ ("auto-correct"	:url nil)
  ("auto-overlays"	:url "http://www.dr-qubit.org/git/predictive.git"
   :doc "docs/auto-overlay-manual.texinfo")
- ("auto-correct"	:url nil)
  ;; FIXME: Avy diverged https://github.com/abo-abo/avy/issues/344
  ("avy"			:url "https://github.com/abo-abo/avy")
  ("bbdb"		:url "git://git.savannah.nongnu.org/bbdb.git"
@@ -128,11 +128,11 @@
  ("code-cells"		:url "https://github.com/astoff/code-cells.el"
   :ignored-files ("LICENSE")
   :auto-sync t)
+ ("comint-mime"		:url "https://github.com/astoff/comint-mime"
+  :auto-sync t)
  ;; FIXME: The upstream has incompatible copyrights, so we moved it to NonGNU.
  ;; ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
  ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings"
-  :auto-sync t)
- ("comint-mime"		:url "https://github.com/astoff/comint-mime"
   :auto-sync t)
  ("company"
   :url "https://github.com/company-mode/company-mode.git"
@@ -166,9 +166,9 @@
  ("cpio-mode"		:url "https://github.com/dlewan/cpio-mode")
  ("cpupower"		:url "https://gitlab.com/steve-emacs-stuff/cpupower-el"
   :auto-sync t)
- ("crisp"		:url nil)
  ("crdt"		:url "https://code.librehq.com/qhong/crdt.el"
   :auto-sync t)
+ ("crisp"		:url nil)
  ;; ("crossword"		:url "https://github.com/Boruch-Baum/emacs-crossword")
  ("csharp-mode"		:url "https://github.com/emacs-csharp/csharp-mode"
   :readme "README.org"
@@ -204,10 +204,10 @@
  ("devdocs"		:url "https://github.com/astoff/devdocs.el"
   :auto-sync t)
  ("dict-tree"		:url "http://www.dr-qubit.org/git/predictive.git")
- ("diffview"            :url "https://github.com/mgalgs/diffview-mode.git")
  ("diff-hl"
   :url "https://github.com/dgutov/diff-hl.git"
   :auto-sync t)
+ ("diffview"            :url "https://github.com/mgalgs/diffview-mode.git")
  ("diminish"            :url "https://github.com/myrjola/diminish.el.git"
   :ignored-files ("LICENSE")
   :auto-sync t)
@@ -459,8 +459,8 @@
                                "doc/misc/modus-themes.org"
                                "doc/misc/doclicense.texi")
   :doc "modus-themes.org")
- ("multishell"		:url "https://github.com/kenmanheimer/EmacsMultishell")
  ("multi-mode"		:url nil)
+ ("multishell"		:url "https://github.com/kenmanheimer/EmacsMultishell")
  ("muse"		:url "https://github.com/alexott/muse") ;FIXME: Not nearly in-sync
  ("myers"		:url nil)
  ("nadvice"		:url nil)
@@ -496,6 +496,7 @@
   :shell-command "make autoloads info; mv doc/org.info org.info; mv doc/orgguide.info orgguide.info"
   :doc ("org.info" "orgguide.info")
   :auto-sync t)
+ ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
  ;; FIXME: Waiting for copyright paperwork from Michael Strey <mstrey@strey.biz>
  ;;("org-contacts"	:url "https://github.com/stardiviner/org-contacts.el"
  ;; :auto-sync t)
@@ -522,15 +523,14 @@
   :auto-sync t)
  ("org-translate"	:url nil)
  ("orgalist"            :url nil)
- ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
  ("osc"			:url nil)
  ("osm"			:url "https://github.com/minad/osm"
   :doc "README.org"
   :auto-sync t
   :ignored-files ("LICENSE"))
  ("other-frame-window"	:url nil)
- ("paced"		:url "bzr::bzr://bzr.savannah.nongnu.org/paced-el/trunk")
  ("pabbrev"             :url "https://github.com/phillord/pabbrev.git")
+ ("paced"		:url "bzr::bzr://bzr.savannah.nongnu.org/paced-el/trunk")
  ("package-fixes"	:url nil)
  ("parsec"              :url "https://github.com/cute-jumper/parsec.el.git")
  ("parser-generator"	:url "https://github.com/cjohansson/emacs-parser-generator"
@@ -668,6 +668,7 @@
  ("system-packages"	:url "https://gitlab.com/jabranham/system-packages"
   :auto-sync t)
  ("systemd"		:url nil)
+ ("tNFA"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("taxy"                :url "https://github.com/alphapapa/taxy.el.git"
   :doc "taxy.info"
   :ignored-files ("images")
@@ -690,7 +691,6 @@
   :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi" "Makefile"))
- ("tNFA"		:url "http://www.dr-qubit.org/git/predictive.git")
  ("tomelr"		:url "https://github.com/kaushalmodi/tomelr"
   :ignored-files ("LICENSE")
   :news "CHANGELOG.org"
@@ -725,21 +725,17 @@
  ("url-http-ntlm" 	:url nil)
  ("validate"		:url "https://github.com/Malabarba/validate.el")
  ("valign"		:url "https://github.com/casouri/valign")
+ ("vc-backup"		:url "https://git.sr.ht/~pkal/vc-backup"
+  :auto-sync t)
  ("vc-got"		:url "https://git.omarpolo.com/vc-got.git"
   ;; Mirror: https://github.com/omar-polo/vc-got/
   :ignored-files ("targets" "LICENSE")
   :auto-sync t)
  ("vc-hgcmd"		:url "https://github.com/muffinmad/emacs-vc-hgcmd"
   :auto-sync t)
- ("vc-backup"		:url "https://git.sr.ht/~pkal/vc-backup"
-  :auto-sync t)
  ("vcard"		:url nil)
- ("vdiff"               :url "https://github.com/justbur/emacs-vdiff")
  ("vcl-mode"	        :url "git://git.gnu.org.ua/vcl-mode")
- ("vigenere" 		:url nil)
- ("visual-filename-abbrev" :url nil)
- ("visual-fill"		:url nil)
- ("vlf"			:url "https://github.com/m00natic/vlfi")
+ ("vdiff"               :url "https://github.com/justbur/emacs-vdiff")
  ("verilog-mode"        :core "lisp/progmodes/verilog-mode.el")
  ("vertico"		:url "https://github.com/minad/vertico"
   :doc "README.org"
@@ -749,6 +745,10 @@
  ("vertico-posframe"
   :url "https://github.com/tumashu/vertico-posframe"
   :auto-sync t)
+ ("vigenere" 		:url nil)
+ ("visual-filename-abbrev" :url nil)
+ ("visual-fill"		:url nil)
+ ("vlf"			:url "https://github.com/m00natic/vlfi")
  ("vundo"
   :url "https://github.com/casouri/vundo"
   :ignored-files ("test")
@@ -759,6 +759,8 @@
  ("web-server"		:url "https://github.com/eschulte/emacs-web-server.git")
  ("webfeeder"		:url "https://gitlab.com/ambrevar/emacs-webfeeder.git")
  ("websocket"		:url "https://github.com/ahyatt/emacs-websocket.git")
+ ("which-key"           :url "https://github.com/justbur/emacs-which-key"
+  :auto-sync t)
  ("windower"		:url "https://gitlab.com/ambrevar/emacs-windower")
  ("windresize"		:url nil)
  ("wisi"		:url nil
@@ -766,8 +768,6 @@
   :branch "wisi"
   :release-branch "wisi.release")
  ("wisitoken-grammar-mode" :url nil)
- ("which-key"           :url "https://github.com/justbur/emacs-which-key"
-  :auto-sync t)
  ("wpuzzle"		:url nil)
  ("xclip"		:url nil)
  ("xelb"		:url "https://github.com/ch11ng/xelb.git")
