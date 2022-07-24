@@ -69,11 +69,12 @@
  ("auto-correct"	:url nil)
  ;; FIXME: Avy diverged https://github.com/abo-abo/avy/issues/344
  ("avy"			:url "https://github.com/abo-abo/avy")
- ;; The BBDB branch in elpa.git is managed directly by hand, with
- ;; a "parallel" history to that of the upstream.
  ("bbdb"		:url "git://git.savannah.nongnu.org/bbdb.git"
   :lisp-dir "lisp"
-  :doc "doc/bbdb.texi")
+  :doc "doc/bbdb.texi"
+  ;; The BBDB branch in elpa.git is managed directly by hand, with
+  ;; a "parallel" history to that of the upstream.
+  :auto-sync nil)
  ("beacon"		:url "https://github.com/Malabarba/beacon"
   :auto-sync t)
  ("blist"		:url "https://gitlab.com/mmemmew/blist"
@@ -507,6 +508,9 @@
  ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
   :auto-sync t
   :ignored-files ("LICENSE"))
+ ;; FIXME: Waiting for confirmation from the maintainer.
+ ;; ("org-notify"		:url "https://github.com/p-m/org-notify"
+ ;;  :auto-sync t)
  ("org-remark"	:url "https://github.com/nobiot/org-remark"
   :readme "README.org"
   :doc "docs/org-remark.org"
@@ -608,6 +612,9 @@
   :auto-sync t)
  ("repology"		:url nil)
  ("rich-minority"	:url "https://github.com/Malabarba/rich-minority")
+ ;; FIXME: Missing some paperwork, maybe we should add it to NonGNU.
+ ;; ("rmsbolt"		:url "https://gitlab.com/jgkamat/rmsbolt"
+ ;;  :auto-sync t)
  ("rnc-mode"		:url nil)
  ("rt-liberation"	:url "https://git.savannah.nongnu.org/git/rtliber"
   :auto-sync t)
