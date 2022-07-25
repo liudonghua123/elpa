@@ -509,9 +509,8 @@
  ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
   :auto-sync t
   :ignored-files ("LICENSE"))
- ;; FIXME: Waiting for confirmation from the maintainer.
- ;; ("org-notify"		:url "https://github.com/p-m/org-notify"
- ;;  :auto-sync t)
+ ("org-notify"		:url "https://github.com/p-m/org-notify"
+  :auto-sync t)
  ("org-remark"	:url "https://github.com/nobiot/org-remark"
   :readme "README.org"
   :doc "docs/org-remark.org"
