@@ -877,12 +877,10 @@ nested in methods are not included, see
                  scopes))))
 
 (defun javaimp-imenu--function (_index-name index-position _scope)
-  ;; TODO use scope open-brace as arg?
-  (let ((decl-beg (javaimp--beg-of-defun-decl index-position)))
-    (if decl-beg
-        (goto-char decl-beg)
-      (goto-char index-position)
-      (back-to-indentation))))
+  (if-let ((decl-beg (javaimp--beg-of-defun-decl index-position)))
+      (goto-char decl-beg)
+    (goto-char index-position)
+    (back-to-indentation)))
 
 
 
@@ -1168,33 +1166,7 @@ PREV-INDEX gives the index of the method itself."
                (lambda (s)
                  (and (funcall defun-pred s)
                       (funcall sibling-pred s)))))
-             ;; Note: when looking for prev/next sibling, it might be
-             ;; tempting to directly look at prev/next property
-             ;; change, but this would be correct only by accident -
-             ;; there might be any scopes in different nests in
-             ;; between.
-             (prev
-              (if (and enc (eq (javaimp-scope-type enc) 'method))
-                  enc
-                (if-let* ((next (seq-find
-                                 (lambda (s)
-                                   (>= (javaimp-scope-open-brace s) pos))
-                                 siblings))
-                          (next-beg-decl
-                           (javaimp--beg-of-defun-decl
-                            (javaimp-scope-start next) parent-beg))
-                          (beg-decl
-                           ;; TODO move out of possible arglist
-                           (javaimp--beg-of-defun-decl pos parent-beg))
-                          ((= next-beg-decl beg-decl)))
-                    ;; If we're inside next's declaration - behave as
-                    ;; if we were inside its body, so it becomes our
-                    ;; prev
-                    next
-                  ;; Just find previous defun
-                  (seq-find (lambda (s)
-                              (< (javaimp-scope-open-brace s) pos))
-                            (reverse siblings))))))
+             (prev (javaimp--get-prev-scope pos enc parent-beg siblings)))
         (nconc
          (list
           (and parent (javaimp-scope-open-brace parent))
@@ -1205,6 +1177,42 @@ PREV-INDEX gives the index of the method itself."
                                       (javaimp-scope-open-brace s2)))))
               -1))
          siblings)))))
+
+(defun javaimp--get-prev-scope (pos enc parent-beg siblings)
+  "Subroutine of `javaimp--get-sibling-context'."
+  ;; Note: when looking for prev/next sibling, it might be tempting to
+  ;; directly look at prev/next property change, but this would be
+  ;; correct only by accident - there might be any scopes in different
+  ;; nests in between.
+  (if (and enc (eq (javaimp-scope-type enc) 'method))
+      enc
+    (if-let* ((next (seq-find
+                     (lambda (s)
+                       (>= (javaimp-scope-open-brace s) pos))
+                     siblings))
+              (next-beg-decl
+               (javaimp--beg-of-defun-decl
+                (javaimp-scope-start next) parent-beg))
+              (beg-decl
+               (let ((tmp pos))
+                 ;; pos may be inside arg list or some other nested
+                 ;; construct, move out
+                 (while (and tmp
+                             ;; Note that case when both are nil is
+                             ;; also correct: there's no parent and
+                             ;; we're outside of any scope.
+                             (not (eql parent-beg (nth 1 (syntax-ppss tmp)))))
+                   (setq tmp (nth 1 (syntax-ppss tmp))))
+                 (when tmp
+                   (javaimp--beg-of-defun-decl tmp parent-beg))))
+              ((= next-beg-decl beg-decl)))
+        ;; If we're inside next's declaration - behave as if we were
+        ;; inside its body, so it becomes our prev
+        next
+      ;; Just find previous defun
+      (seq-find (lambda (s)
+                  (< (javaimp-scope-open-brace s) pos))
+                (reverse siblings)))))
 
 (defun javaimp-jump-to-enclosing-scope ()
   "Jump to enclosing scope at point."
