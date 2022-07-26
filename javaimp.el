@@ -1083,10 +1083,10 @@ buffer."
       (cond ((and (>= target-idx 0)
                   (< target-idx (length siblings)))
              ;; Move to target sibling
-             (let ((scope (nth target-idx siblings)))
-               (goto-char (or (javaimp--beg-of-defun-decl
-                               (javaimp-scope-open-brace scope) parent-start)
-                              (javaimp-scope-open-brace scope)))))
+             (let* ((scope (nth target-idx siblings))
+                    (pos (javaimp-scope-open-brace scope)))
+               (goto-char (or (javaimp--beg-of-defun-decl pos parent-start)
+                              pos))))
             (siblings
              ;; Move to start of first/last sibling
              (let* ((scope (car (if (< target-idx 0)
@@ -1096,15 +1096,16 @@ buffer."
                (goto-char (or (javaimp--beg-of-defun-decl pos) pos))))
             (parent-start
              (goto-char parent-start)
-             ;; Move forward one line unless closing brace is on the
-             ;; same line
              (let ((parent-end (ignore-errors
                                  (scan-lists parent-start 1 0))))
-               (unless (and parent-end
-                            (= (line-number-at-pos parent-start)
-                               (line-number-at-pos parent-end)))
+               (if (and parent-end
+                        (= (line-number-at-pos parent-start)
+                           (line-number-at-pos parent-end)))
+                   ;; open / close braces are on the same line
+                   (forward-char)
                  (forward-line))))
             (t
+             ;; There're no siblings and no parent
              (goto-char (if (< target-idx 0)
                             (point-min) (point-max))))))))
 
@@ -1119,11 +1120,18 @@ than BOUND.  POS should not be in arglist or similar list."
 
 (defun javaimp-end-of-defun ()
   "Function to be used as `end-of-defun-function'."
-  ;; Called after beginning-of-defun-raw, so we can safely inspect
-  ;; properties
+  ;; This function is called after javaimp-beginning-of-defun, which
+  ;; in the normal course will position the point before the
+  ;; open-brace, so we can inspect property.
   (when-let* ((brace-pos
                (next-single-property-change (point) 'javaimp-parse-scope))
-              ((get-text-property brace-pos 'javaimp-parse-scope)))
+              ((get-text-property brace-pos 'javaimp-parse-scope))
+              ;; When there're no siblings, javaimp-beginning-of-defun
+              ;; moves to the parent start.  In this case we should
+              ;; stay inside the parent.
+              ((eql (nth 1 (syntax-ppss))
+                    (save-excursion
+                      (nth 1 (syntax-ppss brace-pos))))))
     (ignore-errors
       (goto-char
        (scan-lists brace-pos 1 0)))))
