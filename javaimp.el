@@ -4,7 +4,7 @@
 
 ;; Author: Filipp Gunbin <fgunbin@fastmail.fm>
 ;; Maintainer: Filipp Gunbin <fgunbin@fastmail.fm>
-;; Version: 0.8
+;; Version: 0.9
 ;; Keywords: java, maven, gradle, programming
 
 ;; This program is free software; you can redistribute it and/or modify
