@@ -58,7 +58,10 @@
 ;; as specified in `shell-command+-substitute-alist'.
 ;;
 ;; See `shell-command+'s docstring for more details on how it's input
-;; is interpreted..
+;; is interpreted.
+;;
+;; `shell-command+' was originally based on the command `bang' by Leah
+;; Neukirchen (https://leahneukirchen.org/dotfiles/.emacs).
 
 ;;; News:
 
