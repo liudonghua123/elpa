@@ -271,37 +271,46 @@ proper upwards directory pointers.  This means that '....' becomes
     path)))
 
 (defun shell-command+-parse (command)
-  "Return parsed representation of COMMAND."
+  "Return parsed representation of COMMAND.
+The resulting list has the form (DIRECTORY INDIRECTION EXECUTABLE
+COMMAND), where DIRECTORY is the directory the command should be
+executed in, if non-nil, indirection is one of `input', `output',
+`pipe', `literal' or nil depending on the indirection-prefix,
+executable is the name of the executable, and command is the
+entire command."
   (save-match-data
     (unless (string-match shell-command+--command-regexp command)
       (error "Invalid command"))
-    (list (match-string-no-properties 1 command)
-          (cond ((string= (match-string-no-properties 2 command) "<")
-                 (if shell-command+-flip-redirection
-                     'output 'input))
-                ((string= (match-string-no-properties 2 command) ">")
-                 (if shell-command+-flip-redirection
-                     'input 'output))
-                ((string= (match-string-no-properties 2 command) "|")
-                 'pipe)
-                ((or (string= (match-string-no-properties 2 command) "!")
-                     ;; Check if the output of the command is being
-                     ;; piped into some other command. In that case,
-                     ;; interpret the command literally.
-                     (let ((args (match-string-no-properties 5 command)))
-                       (save-match-data
-                         (member "|" (shell-command+-tokenize args)))))
-                 'literal))
-          (match-string-no-properties 4 command)
-          (condition-case nil
-              (if shell-command+-enable-file-substitution
-                  (replace-regexp-in-string
-                   (rx (* ?\\ ?\\) (or ?\\ (group "%")))
-                   buffer-file-name
-                   (match-string-no-properties 3 command)
-                   nil nil 1)
-                (match-string-no-properties 3 command))
-            (error (match-string-no-properties 3 command))))))
+    (let ((dir (match-string-no-properties 1 command))
+          (ind (cond ((string= (match-string-no-properties 2 command) "<")
+                      (if shell-command+-flip-redirection
+                          'output 'input))
+                     ((string= (match-string-no-properties 2 command) ">")
+                      (if shell-command+-flip-redirection
+                          'input 'output))
+                     ((string= (match-string-no-properties 2 command) "|")
+                      'pipe)
+                     ((or (string= (match-string-no-properties 2 command) "!")
+                          ;; Check if the output of the command is being
+                          ;; piped into some other command. In that case,
+                          ;; interpret the command literally.
+                          (let ((args (match-string-no-properties 5 command)))
+                            (save-match-data
+                              (member "|" (shell-command+-tokenize args)))))
+                      'literal)))
+          (cmd (match-string-no-properties 4 command))
+          (all (condition-case nil
+                   (if shell-command+-enable-file-substitution
+                       (replace-regexp-in-string
+                        (rx (* ?\\ ?\\) (or ?\\ (group "%")))
+                        buffer-file-name
+                        (match-string-no-properties 3 command)
+                        nil nil 1)
+                     (match-string-no-properties 3 command))
+                 (error (match-string-no-properties 3 command)))))
+      (if (or (null dir) (file-directory-p dir))
+          (list dir ind cmd all)
+        (list nil ind dir (format "%s %s" dir all))))))
 
 ;;;###autoload
 (defun shell-command+ (command &optional beg end)
