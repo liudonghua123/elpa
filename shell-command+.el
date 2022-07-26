@@ -86,17 +86,6 @@
   :group 'external
   :prefix "shell-command+-")
 
-(defcustom shell-command+-use-eshell nil
-  "Check for eshell handlers.
-If t, always invoke eshell handlers.  If a list, only invoke
-handlers if the symbol (e.g. `man') is contained in the list."
-  :type '(choice (boolean :tag "Always active?")
-                 (repeat :tag "Selected commands" symbol)))
-
-(make-obsolete-variable 'shell-command+-use-eshell
-                        'shell-command+-substitute-alist
-                        "2.2.0")
-
 (defcustom shell-command+-prompt "Shell command: "
   "Prompt to use when invoking `shell-command+'."
   :type 'string)
@@ -110,45 +99,19 @@ handlers if the symbol (e.g. `man') is contained in the list."
   :type 'boolean)
 
 (defcustom shell-command+-substitute-alist
-  (cond ((eq shell-command+-use-eshell t)
-         (require 'eshell)
-         (require 'em-unix)
-         (let (alist)
-           (mapatoms
-            (lambda (sym)
-              (when (string-match (rx bos "eshell/" (group (+ alnum)) eos)
-                                  (symbol-name sym))
-                (push (cons (match-string 1 (symbol-name sym))
-                            #'eshell-command)
-                      alist))))
-           alist))
-        ((consp shell-command+-use-eshell) ;non-empty list
-         (require 'eshell)
-         (require 'em-unix)
-         (let (alist)
-           (mapatoms
-            (lambda (sym)
-              (when (and (string-match (rx bos "eshell/" (group (+ alnum)) eos)
-                                       (symbol-name sym))
-                         (member (intern (match-string 1 (symbol-name sym)))
-                                 shell-command+-use-eshell))
-                (push (cons (match-string 1 (symbol-name sym))
-                            #'eshell-command)
-                      alist))))
-           alist))
-        (t '(("grep" . shell-command+-cmd-grep)
-             ("fgrep" . shell-command+-cmd-grep)
-             ("agrep" . shell-command+-cmd-grep)
-             ("egrep" . shell-command+-cmd-grep)
-             ("rgrep" . shell-command+-cmd-grep)
-             ("find" . shell-command+-cmd-find)
-             ("locate" . shell-command+-cmd-locate)
-             ("man" . shell-command+-cmd-man)
-             ("info" . shell-command+-cmd-info)
-             ("diff" . shell-command+-cmd-diff)
-             ("make" . compile)
-             ("sudo" . shell-command+-cmd-sudo)
-             ("cd" . shell-command+-cmd-cd))))
+  '(("grep" . shell-command+-cmd-grep)
+    ("fgrep" . shell-command+-cmd-grep)
+    ("agrep" . shell-command+-cmd-grep)
+    ("egrep" . shell-command+-cmd-grep)
+    ("rgrep" . shell-command+-cmd-grep)
+    ("find" . shell-command+-cmd-find)
+    ("locate" . shell-command+-cmd-locate)
+    ("man" . shell-command+-cmd-man)
+    ("info" . shell-command+-cmd-info)
+    ("diff" . shell-command+-cmd-diff)
+    ("make" . compile)
+    ("sudo" . shell-command+-cmd-sudo)
+    ("cd" . shell-command+-cmd-cd))
   "Association of command substitutes in Elisp.
 Each entry has the form (COMMAND . FUNC), where FUNC is passed
 the command string.  To disable all command substitutions, set
