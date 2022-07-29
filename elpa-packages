@@ -144,8 +144,7 @@
  ("company-math"	:url "https://github.com/vspinu/company-math.git")
  ("company-statistics"	:url "https://github.com/company-mode/company-statistics")
  ("compat"		:url "https://git.sr.ht/~pkal/compat"
-  :make "compat.info"
-  :doc "compat.info"
+  :doc "compat.texi"
   :auto-sync t)
  ("consult"		:url "https://github.com/minad/consult"
   :doc "README.org"
