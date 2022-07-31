@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022  Philip Kaludercic
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.17 2022/06/13 19:22:42 oj14ozun Exp oj14ozun $
+;; Version: $Id: auto-header.el,v 1.18 2022/06/13 19:48:18 oj14ozun Exp oj14ozun $
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/auto-header.el
 ;; Package-Version: 1
 ;; Keywords: c
@@ -167,7 +167,8 @@ NAME."
     "typedef" "union" "unsigned" "void" "volatile" "while"
     "_Alignas" "_Alignof" "_Atomic" "_Bool" "_Complex"
     "_Decimal128" "_Decimal32" "_Decimal64" "_Generic"
-    "_Imaginary" "_Noreturn" "_Static_assert" "_Thread_local")
+    "_Imaginary" "_Noreturn" "_Static_assert" "_Thread_local"
+    "bool" "true" "false")
   "List of keywords to not treat as functions.")
 
 ;;;###autoload
