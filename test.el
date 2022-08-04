@@ -99,4 +99,15 @@ caret (‘^’).  For example:
   (num3-mode-test "6.28 6.2831 6.28318 23456.28318 .12345"
                   "6.28 6.2831 6.___^^ ^^___.___^^ .___^^"))
 
+(ert-deftest num3-mode-hexadecimal-fractions ()
+  (num3-mode-test
+   "0x6a.2a8p5 0x6a.2b1p5 0x6a.2abc8p5 0x23456.28318p5 0x.12345p5"
+   "0x6a.2a8p5 0x6a.2b1p5 0x6a.____^p5 0x^____.____^p5 0x.____^p5")
+  (num3-mode-test "0x.12345p+5 0x.12345p-5 0x.12345p+12345"
+                  "0x.____^p+5 0x.____^p-5 0x.____^p+^^___")
+  ;; Exponent is required in the notation.  Without it those are two
+  ;; literals: a hexadecimal integer, a dot token and decimal integer.
+  (num3-mode-test "0x6a.12345 0x23456.28318"
+                  "0x6a.___^^ 0x^____.___^^"))
+
 ;;; test.el ends here
