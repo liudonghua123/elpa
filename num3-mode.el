@@ -92,7 +92,7 @@ Groups are highlighted alternately using `num3-face-odd' and
 default) is the one used for the group closest to the decimal
 point, i.e. groups are counted starting with one outwards from
 the (place where) decimal point (would be) is."
-  nil " num3" nil
+  :lighter " num3"
   (if num3-mode
       (unless (assoc 'num3--matcher font-lock-keywords)
         (font-lock-add-keywords nil '(num3--matcher) 'append))
