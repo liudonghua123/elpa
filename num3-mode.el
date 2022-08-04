@@ -1,6 +1,6 @@
 ;;; num3-mode.el --- highlight groups of digits in long numbers  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; Author: Felix Lee <felix8a@gmail.com>, Michal Nazarewicz <mina86@mina86.com>
 ;; Maintainer: Michal Nazarewicz <mina86@mina86.com>
@@ -108,12 +108,14 @@ the (place where) decimal point (would be) is."
   ;; group them both in four-digit groups.  There’s no explicit support for
   ;; octal numbers because we just use logic for a decimal number, i.e. the same
   ;; grouping.
-  (concat "[0#][xX]\\([[:xdigit:]]+\\)"       ; 1 = hexadecimal
-       "\\|[0#][bB]\\(?1:[01]+\\)"            ; 1 = binary
-       "\\|\\(?1:\\b\\(?:[0-9]+[a-fA-F]\\|"   ; 1 = hexadecimal w/o prefix
-                 "[a-fA-F]+[0-9]\\)[[:xdigit:]]*\\b\\)"
-       "\\|\\([0-9]+\\)"                      ; 2 = decimal
-       "\\|\\.\\([0-9]+\\)"))                 ; 3 = fraction
+  (eval-when-compile
+    (concat
+        "[0#][xX]\\([[:xdigit:]]+\\)"       ; 1 = hexadecimal
+     "\\|[0#][bB]\\(?1:[01]+\\)"            ; 1 = binary
+     "\\|\\(?1:\\b\\(?:[0-9]+[a-fA-F]\\|"   ; 1 = hexadecimal w/o prefix
+               "[a-fA-F]+[0-9]\\)[[:xdigit:]]*\\b\\)"
+     "\\|\\([0-9]+\\)"                      ; 2 = decimal
+     "\\|\\.\\([0-9]+\\)")))                ; 3 = fraction
 
 (defun num3--matcher (lim)
   "Function used as a font-lock-keywoard handler used in `num3-mode'.
