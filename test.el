@@ -31,24 +31,18 @@ caret (‘^’).  For example:
 
     (num3-mode-test \"6.2831853071\"
                     \"6.^^^___^^^_\")"
-  (with-temp-buffer
-    (insert text)
-    (setq text (copy-sequence text))
-    (goto-char (point-min))
-    (cl-letf ((num3-group-size 3)
-              (num3-threshold 5)
-              ((symbol-function 'font-lock-append-text-property)
-               (lambda (lo hi prop face)
-                 (should (<= (point-min) lo hi (point-max)))
-                 (should (< lo hi))
-                 (should (eq 'face prop))
-                 (should (memq face '(num3-face-even num3-face-odd)))
-                 (let ((start (- lo (point-min)))
-                       (char (if (eq face 'num3-face-even) ?^ ?_)))
-                   (dotimes (offset (- hi lo))
-                     (aset text (+ start offset) char))))))
-      (num3--matcher (point-max))))
-  (should (equal want text)))
+  (let ((got (with-temp-buffer
+               (insert text)
+               (goto-char (point-min))
+               (let ((num3-group-size 3) (num3-threshold 5))
+                 (num3--matcher (point-max)))
+               (buffer-string))))
+    (dotimes (idx (length got))
+      (when-let ((face (get-text-property idx 'face got)))
+        (aset got idx (cond ((equal face '(num3-face-even)) ?^)
+                            ((equal face '(num3-face-odd )) ?_)
+                            (??)))))
+  (should (equal want got))))
 
 (ert-deftest num3-mode-decimal-integers ()
   ;; Won’t fontify unless at least five digits.
