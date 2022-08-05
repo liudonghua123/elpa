@@ -5,7 +5,7 @@
 ;; Author: Felix Lee <felix8a@gmail.com>, Michal Nazarewicz <mina86@mina86.com>
 ;; Maintainer: Michal Nazarewicz <mina86@mina86.com>
 ;; Keywords: faces, minor-mode
-;; Version: 1.4
+;; Version: 1.5
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,10 +22,28 @@
 
 ;;; Commentary:
 
-;; Num3 is a minor mode that makes long numbers more readable by
-;; highlighting groups of 3 (customisable) decimal digits or 4 hex
-;; digits when font-lock is on.  Highlighting alternates between two
-;; faces that can be customised.
+;; Num3 is a minor mode that makes long numbers and other numeric data
+;; more readable by highlighting groups of digits in a string when
+;; font-lock is on.
+;;
+;; For example, an integer ‘28318530’ would be split into 3-digit-long
+;; groups as ‘(28)(318)(530)’ and then each group highlighted using
+;; alternating face.  This improves readability of the number by clearly
+;; denoting millions, thousands and ones.  Besides integers and real
+;; numbers, the mode also supports dates in ‘20151021T0728’ format.
+;;
+;; The mode supports:
+;; - decimal numbers, e.g. 1234567 or 6.2831853,
+;; - hexadecimal integers, e.g. 0x1921FB5, #x1921FB5 or unprefixed 1921FB5,
+;; - octal integers, e.g. 0o1444176 or #o1444176,
+;; - binary integers, e.g. 0b1100100100 or #b1100100100,
+;; - hexadecimal floating point numbers, e.g. 0x1.921FB54p+2,
+;; - timestamps, e.g. 20151021T0728
+;;
+;; Decimal and octal numbers are split into 3-digit-long groups (the
+;; length is customisable); hexadecimal and binary numbers are split
+;; into 4-digit-long groups; timestamps are split based on the part of
+;; the date or time.
 
 ;;; Usage:
 
@@ -68,31 +86,31 @@ addition to any other font-lock highlighting."
 ;;;###autoload
 (define-minor-mode num3-mode
   "Toggle num3 minor mode in the current buffer.
-Num3 minor mode makes long numbers more readable by highlighting
-groups of digits when font-lock mode is enabled.
+Num3 minor mode makes long numbers and timestamps more readable
+by highlighting groups of digits when font-lock mode is enabled.
 
 If a number is longer than `num3-threshold', the mode will split
 it into a group of `num3-group-size' (if number is decimal) or
-four (if number is hexadecimal or binary) digits.
+four (if number is hexadecimal or binary) digits and highlight
+alternating groups using `num3-face-odd' and ‘num3-face-even’
+faces.
 
-Hexadecimal numbers are recognised by \"0x\" or \"#x\"
-prefix (case insensitive) and binary numbers by \"0b\" or \"#b\"
-prefix.  (There is no special handling for octal numbers –
-starting with \"0o\" or \"#o\" – and instead they are handled
-like decimal numbers).
+Hexadecimal integers are recognised by \"0x\" or \"#x\" prefix
+and binary numbers by \"0b\" or \"#b\" prefix.  There is no
+special handling for octal numbers – starting with \"0o\" or
+\"#o\" – and instead they are handled like decimal numbers.
 
-Decimal fractions are recognised as well and grouped from the
-beginning rathar then the end.  For instance, with group size of
-three, a number \"12345.12345\" will be split into groups as
-follows: \"12|345.123|45\".  Fractions without integer part are
-also recognised, eg. \".12345\".
+Decimal and hexadecimal floating-point numbers are recognised as
+well.  Their fractional part is grouped from the beginning rather
+then the end.  For instance \"12345.12345\" will be split into
+groups as follows: \"12|345.123|45\".  Hexadecimal floating-point
+numbers must start with \"0x\" prefix and include the exponent,
+e.g. \"0x1d.2e5p3\" (which equals 29 + 741/4096 * 2⁵)
 
-Groups are highlighted alternately using `num3-face-odd' and
-`num3-face-even' faces.  `num3-face-odd' face (which is empty by
-default) is the one used for the group closest to the decimal
-point, i.e. groups are counted starting with one outwards from
-the (place where) decimal point (would be) is."
-  :lighter " num3"
+Timestamps are recognised if they match basic ISO 8061 form (for
+example \"20220805T1258\") and can include seconds, fractions of
+seconds and timezone offset."
+  :lighter    " num3"
   (if num3-mode
       (unless (assoc 'num3--matcher font-lock-keywords)
         (font-lock-add-keywords nil '(num3--matcher) 'append))
@@ -110,6 +128,20 @@ the (place where) decimal point (would be) is."
   ;; grouping.
   (rx
    (or
+    ;; ISO 8601 basic form, e.g. ‘20210203T0405’.  Note that this needs to be
+    ;; placed before other cases because we want it to match before the regex
+    ;; engine matches plain decimal numbers.
+    (submatch-n
+     5                                             ; 5 - date-time
+     (= 8 num)
+     ?T
+     (submatch-n
+      6                                            ; 6 - time
+      (= 2 num)
+      (? (= 2 num)
+         (? (= 2 num)
+            (? ?. (submatch-n 3 (+ num))))))       ; 3 - decimal fraction
+     (? (in "-+") (submatch-n 7 (+ num))))         ; 7 - offset
     ;; ‘#x1234’
     (seq ?# (in "xX") (submatch-n 1 (+ hex)))      ; 1 - hexadecimal integer
     ;; ‘0x1234’ or ‘0x1234.5678p±9’.  Hexadecimal floating point numbers
@@ -154,7 +186,21 @@ Performs fontification of numbers from point to LIM."
       (num3--int  (match-beginning 1) (match-end 1) 4)
       (num3--frac (match-beginning 4) (match-end 4) 4)
       (num3--int  (match-beginning 2) (match-end 2) num3-group-size)
-      (num3--frac (match-beginning 3) (match-end 3) num3-group-size) ))
+      (num3--frac (match-beginning 3) (match-end 3) num3-group-size)
+
+      ;; date-time
+      (when-let ((lo (match-beginning 5)))
+        (num3--put t      lo     (+ lo  4))               ; year
+        (num3--put nil (+ lo  4) (+ lo  6))               ; month
+        (num3--put t   (+ lo  6) (+ lo  8))               ; day
+        (let ((lo (match-beginning 6)) (hi (match-end 6)))
+          (num3--frac lo (min hi (+ 6 lo)) 2 0 t))        ; hhmmss
+        ;; hhmm of the timezone offset, but check length in case it’s too long
+        ;; to be an offset and then treat it like a number.
+        (when-let ((lo (match-beginning 7)) (hi (match-end 7)))
+          (if (<= (- hi lo) 4)
+              (num3--frac lo hi 2 0 t)
+            (num3--int lo hi num3-group-size))))))
   nil)
 
 (defun num3--int (lo hi n)
@@ -170,18 +216,20 @@ faces.  Grouping is done from the end, eg. (12)(345)."
         (num3--put even (max lo (- hi n)) hi)
         (setq hi (- hi n) even (not even))))))
 
-(defun num3--frac (lo hi n)
+(defun num3--frac (lo hi n &optional threshold even)
   "Highlight groups of digits in a long number.
 LO and HI arguments specify the range where the number is
-located.  If the length of that region exceeds `num3-threshold',
-the function will split it into groups of N digits and fontify
-tham alternately using `num3-face-odd' and `num3-face-even'
-faces.  Grouping is done from the beginning, eg. (123)(45)."
-  (when (and lo (>= (- hi lo) num3-threshold))
-    (let (even)
-      (while (< lo hi)
-        (num3--put even lo (min hi (+ lo n)))
-        (setq lo (+ lo n) even (not even))))))
+located.  If the length of that region exceeds THRESHOLD (or
+`num3-threshold' if that argument is nil), the function will
+split it into groups of N digits and fontify tham alternately
+using `num3-face-odd' and `num3-face-even' faces.  Grouping is
+done from the beginning, eg. (123)(45).  EVEN argument specify
+whether the first group should be highlighted using even or odd
+face."
+  (when (and lo (>= (- hi lo) (or threshold num3-threshold)))
+    (while (< lo hi)
+      (num3--put even lo (min hi (+ lo n)))
+      (setq lo (+ lo n) even (not even)))))
 
 (defun num3--put (even lo hi)
   "Add font lock text property to highlight a single group of digit.
