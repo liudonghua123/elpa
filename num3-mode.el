@@ -108,17 +108,43 @@ the (place where) decimal point (would be) is."
   ;; group them both in four-digit groups.  There’s no explicit support for
   ;; octal numbers because we just use logic for a decimal number, i.e. the same
   ;; grouping.
-  (eval-when-compile
-    (concat
-         "#[xX]\\(?1:[[:xdigit:]]+\\)"       ; 1 = hexadecimal
-      "\\|0[xX]\\(?1:[[:xdigit:]]+\\)?"      ; 1 - hexadecimal
-              "\\(?:\\.\\(?4:[[:xdigit:]]+\\)" ; 4 - hex fraction
-                "[pP][-+]?\\(?2:[0-9]+\\)\\)?" ; 2 - decimal (power)
-      "\\|[0#][bB]\\(?1:[01]+\\)"            ; 1 = binary
-      "\\|\\(?1:\\b\\(?:[0-9]+[a-fA-F]\\|"   ; 1 = hexadecimal w/o prefix
-                "[a-fA-F]+[0-9]\\)[[:xdigit:]]*\\b\\)"
-      "\\|\\(?2:[0-9]+\\)"                   ; 2 = decimal
-      "\\|\\.\\(?3:[0-9]+\\)")))             ; 3 = fraction
+  (rx
+   (or
+    ;; ‘#x1234’
+    (seq ?# (in "xX") (submatch-n 1 (+ (in hex)))) ; 1 - hexadecimal integer
+    ;; ‘0x1234’ or ‘0x1234.5678p±9’.  Hexadecimal floating point numbers
+    ;; require exponent to be present.  ‘0x1234.5678’ are two separate
+    ;; numbers with a dot between them.
+    (seq ?0 (in "xX") (submatch-n 1 (* (in hex)))  ; 1 - hexadecimal integer
+         (? ?. (submatch-n 4 (+ (in hex)))         ; 4 - hexadecimal fraction
+            (in "pP") (? (in "-+"))
+            (submatch-n 2 (+ (in num)))))          ; 2 - decimal int (power)
+    ;; ‘0b1010’ or ‘#b1010’.  Binary numbers use the same group as hexadecimal
+    ;; numbers as they also use grouping of four when highlighted.  Note that
+    ;; this group must be before we match unprefixed hexadecimal numbers.
+    (seq (in "0#") (in "bB")
+         (submatch-n 1 (+ (in "01"))))             ; 1 - binary integer
+    ;; ‘1234abcd’, i.e. hexadecimal number w/o prefix.  There are a few things
+    ;; we want to watch out for:
+    ;; - the match must not be part of a word since we don’t want to match leet
+    ;;   speak or parts of usernames,
+    ;; - the match must contain at least one decimal digits since we don’t want
+    ;;   to match words which happen to match [a-f]*,
+    ;; - the match must contain at least on of non-decimal hexadecimal digits or
+    ;;   else it’s just a decimal integer and
+    ;; - the match must not start with ‘0b’ and contain only ones and zeros
+    ;;   since that’s binary number.  Note that we actually do nothing to
+    ;;   prevent binary numbers from matching.  Instead we rely upon those cases
+    ;;   being caught by previous cases.
+    (submatch-n 1                                  ; 1 - hexadecimal integer
+                word-boundary
+                (or (seq (+ (in num)) (in "a-fA-F"))
+                    (seq (+ (in "a-fA-F")) (in num)))
+                (* (in hex))
+                word-boundary)
+    ;; ‘1234’
+    (submatch-n 2 (+ (in num)))                    ; 2 - decimal integer
+    (seq ?. (submatch-n 3 (+ (in num)))))))        ; 3 - decimal fraction
 
 (defun num3--matcher (lim)
   "Function used as a font-lock-keywoard handler used in `num3-mode'.
