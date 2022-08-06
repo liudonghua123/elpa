@@ -150,6 +150,10 @@
   :doc "README.org"
   :ignored-files ("images")
   :auto-sync t)
+ ("consult-recoll"	:url "https://codeberg.org/jao/consult-recoll"
+  :ignored-files ("license")
+  :readme "readme.org"
+  :auto-sync t)
  ;; FIXME: https://github.com/jacksonrayhamilton/context-coloring/issues/9
  ("context-coloring"	:url "https://github.com/jacksonrayhamilton/context-coloring.git")
  ("corfu"		:url "https://github.com/minad/corfu"
@@ -447,6 +451,9 @@
  ("metar"		:url nil)
  ("midi-kbd"		:url nil)
  ("mines"		:url "https://github.com/calancha/Minesweeper")
+ ("minibuffer-header"	:url "https://github.com/rougier/minibuffer-header"
+  :ignored-files ("LICENSE.txt")
+  :auto-sync t)
  ("minibuffer-line"	:url nil)
  ("minimap"		:url nil)
  ("mmm-mode"
@@ -505,11 +512,11 @@
  ("org-modern"		:url "https://github.com/minad/org-modern"
   :doc "README.org"
   :auto-sync t)
+ ("org-notify"		:url "https://github.com/p-m/org-notify"
+  :auto-sync t)
  ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
   :auto-sync t
   :ignored-files ("LICENSE"))
- ("org-notify"		:url "https://github.com/p-m/org-notify"
-  :auto-sync t)
  ("org-remark"	:url "https://github.com/nobiot/org-remark"
   :readme "README.org"
   :doc "docs/org-remark.org"
@@ -535,6 +542,9 @@
   :auto-sync t)
  ("path-iterator"	:url nil)
  ("peg"			:url) ;Was in "https://github.com/ellerh/peg.el"
+ ("perl-doc"		:url "https://github.com/HaraldJoerg/emacs-perl-doc"
+  :ignored-files ("LICENSE")
+  :auto-sync t)
  ("persist"             :url "https://gitlab.com/phillord/persist"
   :auto-sync t)
  ;; FIXME: Waiting for copyright paperwork.
