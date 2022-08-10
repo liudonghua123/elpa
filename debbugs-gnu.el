@@ -574,7 +574,10 @@ depend on PHRASE being a string, or nil.  See Info node
 	    (completing-read
 	     (format "Enter status%s: "
 		     (if (null phrase) "" " (client-side filter)"))
-	     '("open" "forwarded" "done") nil t))
+             (if (null phrase)
+	         '("open" "forwarded" "done")
+               '("pending" "forwarded" "fixed" "done"))
+             nil t))
 	   (when (not (zerop (length val1)))
 	     (push (cons (if (null phrase) (intern key) 'pending) val1) query)))
 
@@ -640,7 +643,8 @@ depend on PHRASE being a string, or nil.  See Info node
 
   ;; Set phrase, query and filter.
   (when phrase
-    (setq debbugs-gnu-current-query (list (cons 'phrase phrase))))
+    (setq archivedp nil
+          debbugs-gnu-current-query (list (cons 'phrase phrase))))
   (dolist (elt query)
     (add-to-list
      (if (memq

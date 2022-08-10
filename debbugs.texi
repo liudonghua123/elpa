@@ -344,6 +344,7 @@ bug numbers}).
 @item pending
 The string @code{"pending"}, @code{"forwarded"}, @code{"fixed"} or
 @code{"done"}.
+@c Also the strings "pending-fixed" and "absent" exist, we don't use them.
 
 @item subject
 Subject/Title of the bugreport.

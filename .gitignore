@@ -2,3 +2,5 @@
 /debbugs-autoloads.el
 *.elc
 *.info
+*~
+ChangeLog
