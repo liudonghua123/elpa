@@ -254,7 +254,7 @@ If EXPAND is non-nil, expand wildcards."
        (group (+ (not space)))
        ;; Parse arguments
        (*? space)
-       (group (*? not-newline)))
+       (group (*? anything)))
       ;; Ignore all trailing whitespace
       (* space)
       eos)
