@@ -4,7 +4,7 @@
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
-;; Version: 2.3.2
+;; Version: 3.0.0pre
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.1") (compat "28.1.2.0"))
 ;; URL: https://git.sr.ht/~pkal/shell-command-plus
@@ -64,6 +64,15 @@
 ;; Neukirchen (https://leahneukirchen.org/dotfiles/.emacs).
 
 ;;; News:
+
+;;;; Version 3.0.0 (???)
+
+;; - Allow adding or removing features using
+;;   `shell-command+-features'.
+;; - Add `shell-command+-default-region' user option.
+;; - Remove `shell-command+-use-eshell'.
+;; - Deprecate `shell-command+-enable-file-substitution'.
+;; - Minor bug fixes and stability improvements.
 
 ;;;; Version 2.3.0 (15Oct21)
 
