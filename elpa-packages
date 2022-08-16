@@ -237,6 +237,12 @@
  ("ediprolog"		:url nil)
  ("eev"			:url "https://github.com/edrx/eev.git"
   :branch "UTF-8" :auto-sync t)
+ ("ef-themes"
+  :url "https://git.sr.ht/~protesilaos/ef-themes"
+  :auto-sync t
+  :doc "README.org"
+  :readme "README.md"
+  :ignored-files ("COPYING" "doclicense.texi" "contrast-ratios.org"))
  ("eglot"               :url "https://github.com/joaotavora/eglot.git"
   :news "NEWS.md"
   :ignored-files (".github" "LICENSE" "gif-examples")
