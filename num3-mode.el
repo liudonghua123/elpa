@@ -111,14 +111,14 @@ the (place where) decimal point (would be) is."
   (rx
    (or
     ;; ‘#x1234’
-    (seq ?# (in "xX") (submatch-n 1 (+ (in hex)))) ; 1 - hexadecimal integer
+    (seq ?# (in "xX") (submatch-n 1 (+ hex)))      ; 1 - hexadecimal integer
     ;; ‘0x1234’ or ‘0x1234.5678p±9’.  Hexadecimal floating point numbers
     ;; require exponent to be present.  ‘0x1234.5678’ are two separate
     ;; numbers with a dot between them.
-    (seq ?0 (in "xX") (submatch-n 1 (* (in hex)))  ; 1 - hexadecimal integer
-         (? ?. (submatch-n 4 (+ (in hex)))         ; 4 - hexadecimal fraction
+    (seq ?0 (in "xX") (submatch-n 1 (* hex))       ; 1 - hexadecimal integer
+         (? ?. (submatch-n 4 (+ hex))              ; 4 - hexadecimal fraction
             (in "pP") (? (in "-+"))
-            (submatch-n 2 (+ (in num)))))          ; 2 - decimal int (power)
+            (submatch-n 2 (+ num))))               ; 2 - decimal int (power)
     ;; ‘0b1010’ or ‘#b1010’.  Binary numbers use the same group as hexadecimal
     ;; numbers as they also use grouping of four when highlighted.  Note that
     ;; this group must be before we match unprefixed hexadecimal numbers.
@@ -138,13 +138,13 @@ the (place where) decimal point (would be) is."
     ;;   being caught by previous cases.
     (submatch-n 1                                  ; 1 - hexadecimal integer
                 word-boundary
-                (or (seq (+ (in num)) (in "a-fA-F"))
-                    (seq (+ (in "a-fA-F")) (in num)))
-                (* (in hex))
+                (or (seq (+ num) (in "a-fA-F"))
+                    (seq (+ (in "a-fA-F")) num))
+                (* hex)
                 word-boundary)
     ;; ‘1234’
-    (submatch-n 2 (+ (in num)))                    ; 2 - decimal integer
-    (seq ?. (submatch-n 3 (+ (in num)))))))        ; 3 - decimal fraction
+    (submatch-n 2 (+ num))                         ; 2 - decimal integer
+    (seq ?. (submatch-n 3 (+ num))))))             ; 3 - decimal fraction
 
 (defun num3--matcher (lim)
   "Function used as a font-lock-keywoard handler used in `num3-mode'.
