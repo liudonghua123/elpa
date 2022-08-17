@@ -114,10 +114,10 @@ is specified."
 (defvar shell-command+-region nil
   "Cons-cell defining the region to operate on.")
 
-(defvar shell-command+--context-hole (make-symbol "context-hole")
+(defconst shell-command+--context-hole (make-symbol "context-hole")
   "Symbol to be replaced by the form in the context.")
 
-(defvar shell-command+--command-hole (make-symbol "command-hole")
+(defconst shell-command+--command-hole (make-symbol "command-hole")
   "Symbol to be replaced by the command string.")
 
 
