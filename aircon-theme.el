@@ -194,6 +194,8 @@
  '(diff-refine-removed    ((t (:background "#ef9d9d" :foreground "#3a0a0a "))))
  '(diff-error             ((t (:inherit (error)))))
 
+ '(diary                  ((t (:inherit (aircon-header)))))
+
  '(change-log-date           ((t (:inherit (aircon-scorpion)))))
  '(change-log-list           ((t (:inherit (aircon-eden)))))
  '(change-log-name           ((t (:inherit (aircon-lilac)))))
