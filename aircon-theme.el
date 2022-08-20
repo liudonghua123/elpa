@@ -192,6 +192,7 @@
  '(diff-removed           ((t (:background "#ffcccc" :foreground "#4b1313"))))
  '(diff-indicator-removed ((t (:inherit (diff-removed bold)))))
  '(diff-refine-removed    ((t (:background "#ef9d9d" :foreground "#3a0a0a "))))
+ '(diff-error             ((t (:inherit (error)))))
 
  '(change-log-date           ((t (:inherit (aircon-scorpion)))))
  '(change-log-list           ((t (:inherit (aircon-eden)))))
