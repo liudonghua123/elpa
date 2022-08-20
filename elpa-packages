@@ -242,6 +242,7 @@
   :auto-sync t
   :doc "README.org"
   :readme "README.md"
+  :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi" "contrast-ratios.org"))
  ("eglot"               :url "https://github.com/joaotavora/eglot.git"
   :news "NEWS.md"
