@@ -45,4 +45,3 @@ Copying
 [setup]: http://elpa.gnu.org/packages/setup.html
 [ca]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Copyright-Assignment.html#Copyright-Assignment
 [gpl3]: https://www.gnu.org/licenses/gpl-3.0.en.html
-
