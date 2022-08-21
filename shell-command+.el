@@ -120,6 +120,7 @@ is specified."
 
 ;;; Modular feature support
 
+;;;###autoload
 (defcustom shell-command+-features
   (list #'shell-command+-expand-%
         #'shell-command+-command-substitution
