@@ -151,10 +151,10 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
     (list parse
           (cond ((if shell-command+-flip-redirection
                      (eq mode 'output) (eq mode 'input))
+                 (exchange-point-and-mark)
                  `(progn
                     (delete-region ,beg ,end)
-                    (shell-command ,shell-command+--command-hole t shell-command-default-error-buffer))
-                 (exchange-point-and-mark))
+                    (shell-command ,shell-command+--command-hole t shell-command-default-error-buffer)))
                 ((if shell-command+-flip-redirection
                      (eq mode 'input) (eq mode 'output))
                  `(shell-command-on-region
