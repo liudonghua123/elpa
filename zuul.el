@@ -298,11 +298,27 @@ Each entry in the list is a property list with the following properties:
                 (erase-buffer)
                 (insert build-output)
                 (zuul-log-mode)
+                (zuul--highlight-cmd)
                 (setq zuul--current-build zuul--build)
                 (setq zuul--current-builds zuul--builds)
                 (goto-char (point-max))
                 (select-window
                  (display-buffer buffer zuul-build-display-buffer-action))))))))))
+
+
+(defun zuul--highlight-cmd ()
+  "Highlight commands in build log."
+  (let ((property))
+    (save-excursion
+      (goto-char (point-min))
+      (while (setq property (text-property-search-forward 'zuul-task))
+        (save-excursion
+          (goto-char (prop-match-beginning property))
+          (search-forward "$")
+          (let* ((ov-prompt (make-overlay (prop-match-beginning property) (point)))
+                 (ov-input (make-overlay (point) (progn (end-of-line) (point)))))
+            (overlay-put ov-prompt 'face 'comint-highlight-prompt)
+            (overlay-put ov-input 'face 'comint-highlight-input)))))))
 
 (cl-defun zuul-get-builds (&key
                            change
@@ -765,19 +781,22 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
 
 (defun zuul--build-host-output (host)
   "Return the command and its output from the HOST."
-  (pcase-let* ((`(,_hostname . ,data) host)
+  (pcase-let* ((`(,hostname . ,data) host)
                (cmd (let-alist data .cmd))
                (output (let-alist data .stdout))
                (host-id (let-alist data .zuul_log_id))
                (zuul--build-data `(,@zuul--build-data :host ,host)))
     (when-let ((cmd-str
                 (when cmd
-                  (if (stringp cmd)
-                      cmd
-                    (mapconcat #'identity cmd " ")))))
+                  (format "zuul@%s$ %s"
+                          hostname
+                          (if (stringp cmd)
+                              cmd
+                            (mapconcat #'identity cmd " "))))))
+      (zuul--propertize-face cmd-str 'bold-italic)
       (if (or (null output) (string-empty-p output))
-          (setq output (concat "$ " cmd-str "\n"))
-        (setq output (concat "$ " cmd-str "\n" output "\n")))
+          (setq output (concat cmd-str "\n"))
+        (setq output (concat cmd-str "\n" output "\n")))
       (put-text-property 0 (length output) 'zuul-playbook zuul--build-playbook-id output)
       (put-text-property 0 (length output) 'zuul-play zuul--build-play-id output)
       (put-text-property 0 (length output) 'zuul-task zuul--build-task-id output)
