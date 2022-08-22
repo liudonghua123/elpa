@@ -298,27 +298,11 @@ Each entry in the list is a property list with the following properties:
                 (erase-buffer)
                 (insert build-output)
                 (zuul-log-mode)
-                (zuul--highlight-cmd)
                 (setq zuul--current-build zuul--build)
                 (setq zuul--current-builds zuul--builds)
                 (goto-char (point-max))
                 (select-window
                  (display-buffer buffer zuul-build-display-buffer-action))))))))))
-
-
-(defun zuul--highlight-cmd ()
-  "Highlight commands in build log."
-  (let ((property))
-    (save-excursion
-      (goto-char (point-min))
-      (while (setq property (text-property-search-forward 'zuul-task))
-        (save-excursion
-          (goto-char (prop-match-beginning property))
-          (search-forward "$")
-          (let* ((ov-prompt (make-overlay (prop-match-beginning property) (point)))
-                 (ov-input (make-overlay (point) (progn (end-of-line) (point)))))
-            (overlay-put ov-prompt 'face 'comint-highlight-prompt)
-            (overlay-put ov-input 'face 'comint-highlight-input)))))))
 
 (cl-defun zuul-get-builds (&key
                            change
@@ -1079,6 +1063,22 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
                (zuul--current-builds-with-index)))
           (length (zuul--current-builds-with-index))))
 
+;;;;; Other
+
+(defun zuul--highlight-cmd ()
+  "Highlight commands in build log."
+  (let ((property))
+    (save-excursion
+      (goto-char (point-min))
+      (while (setq property (text-property-search-forward 'zuul-task))
+        (save-excursion
+          (goto-char (prop-match-beginning property))
+          (search-forward "$")
+          (let* ((ov-prompt (make-overlay (prop-match-beginning property) (point)))
+                 (ov-input (make-overlay (point) (progn (end-of-line) (point)))))
+            (overlay-put ov-prompt 'face 'comint-highlight-prompt)
+            (overlay-put ov-input 'face 'comint-highlight-input)))))))
+
 ;;;; Major mode
 
 (define-derived-mode zuul-log-mode fundamental-mode "Zuul Log"
@@ -1092,7 +1092,8 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
   (setq-local font-lock-defaults '(compilation-mode-font-lock-keywords t))
   (add-hook 'eldoc-documentation-functions #'zuul--eldoc-function nil t)
   (read-only-mode)
-  (font-lock-mode))
+  (font-lock-mode)
+  (zuul--highlight-cmd))
 
 (let ((map zuul-log-mode-map))
   (define-key map (kbd "C-c C-b") #'zuul-switch-build)
