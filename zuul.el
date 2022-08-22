@@ -764,12 +764,20 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
                    (seq-remove #'null)))))
 
 (defun zuul--build-host-output (host)
-  "Return the output from the HOST."
+  "Return the command and its output from the HOST."
   (pcase-let* ((`(,_hostname . ,data) host)
+               (cmd (let-alist data .cmd))
                (output (let-alist data .stdout))
                (host-id (let-alist data .zuul_log_id))
                (zuul--build-data `(,@zuul--build-data :host ,host)))
-    (when (and output (not (string-empty-p output)))
+    (when-let ((cmd-str
+                (when cmd
+                  (if (stringp cmd)
+                      cmd
+                    (mapconcat #'identity cmd " ")))))
+      (if (or (null output) (string-empty-p output))
+          (setq output (concat "$ " cmd-str "\n"))
+        (setq output (concat "$ " cmd-str "\n" output "\n")))
       (put-text-property 0 (length output) 'zuul-playbook zuul--build-playbook-id output)
       (put-text-property 0 (length output) 'zuul-play zuul--build-play-id output)
       (put-text-property 0 (length output) 'zuul-task zuul--build-task-id output)
