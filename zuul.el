@@ -437,6 +437,24 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
                                     .change)))))
                  (seq-do #'kill-buffer))))
 
+;;;###autoload
+(defun zuul-previous-command ()
+  "Navigate to previous command."
+  (interactive)
+  (let ((re-prompt (rx "zuul@" (regexp ".*") "$ ")))
+    (beginning-of-line)
+    (when (re-search-backward re-prompt nil t)
+      (goto-char (match-end 0)))))
+
+;;;###autoload
+(defun zuul-next-command ()
+  "Navigate to next command."
+  (interactive)
+  (let ((re-prompt (rx "zuul@" (regexp ".*") "$ ")))
+    (end-of-line)
+    (when (re-search-forward re-prompt nil t)
+      (goto-char (match-end 0)))))
+
 ;;;; Support functions
 
 (defun zuul--tenant-config ()
@@ -1098,9 +1116,11 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
 (let ((map zuul-log-mode-map))
   (define-key map (kbd "C-c C-b") #'zuul-switch-build)
   (define-key map (kbd "C-c C-.") #'eldoc-mode)
-  (define-key map (kbd "C-c C-n") #'zuul-next-build)
+  (define-key map (kbd "C-c C-]") #'zuul-next-build)
   (define-key map (kbd "C-c C-o") #'zuul-open-build-in-browser)
-  (define-key map (kbd "C-c C-p") #'zuul-previous-build)
+  (define-key map (kbd "C-c C-[") #'zuul-previous-build)
+  (define-key map (kbd "C-c C-p") #'zuul-previous-command)
+  (define-key map (kbd "C-c C-n") #'zuul-next-command)
   (define-key map (kbd "C-c C-q") #'zuul-quit-build)
   (define-key map (kbd "C-c C-s") #'zuul-switch-buildset)
   (define-key map (kbd "C-c C-r") #'zuul-run-build-command))
