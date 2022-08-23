@@ -38,18 +38,19 @@ The functions `zuul-get-builds` and `zuul-get-buildsets` needs to be called to r
 (zuul-get-builds :change "300203")
 ```
 
-A list of builds, or buildsets, can be passed as input to the `zuul-open-build-log` in order to view a specific build log.
+A query to retrieve builds or buildsets can be provided as input to the `zuul-open-build-log` in order to view a specific build log.
 
 ``` emacs-lisp
-;; For buildsets
+;; Query provided as a list
 (zuul-open-build-log
-   (zuul-get-buildsets
-    :change "300203"))
+ '(zuul-get-buildsets
+   :change "300203"))
 
-;; For builds
+;; Query provided as a function
 (zuul-open-build-log
-   (zuul-get-builds
-    :change "300203"))
+ (lambda ()
+   '(zuul-get-builds
+     :change "300203")))
 ```
 
 # Zuul log mode

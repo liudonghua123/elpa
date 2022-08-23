@@ -274,7 +274,21 @@ Each entry in the list is a property list with the following properties:
   "Return BUILD's data."
   (zuul--build-data build))
 
-(defun zuul-open-build-log (builds-or-buildsets)
+(defun zuul-open-build-log (query)
+  "Open a build log based on QUERY.
+
+Query which can either be a list or a function returning a list.
+The content of the list should be the query function to use as well as
+the parameter to pass to it.  Examples of query functions are:
+- `zuul-get-buildsets'
+- `zuul-get-builds'"
+  (when-let ((builds-or-buildsets
+              (apply (if (functionp query)
+                         (funcall query)
+                       query))))
+    (zuul--open-build-log builds-or-buildsets)))
+
+(defun zuul--open-build-log (builds-or-buildsets)
   "Open a build log from an item in list BUILDS-OR-BUILDSETS."
   (when (or (and (listp builds-or-buildsets)
                  (or (zuul-buildset-p (seq-first builds-or-buildsets))
@@ -354,7 +368,7 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
   "Switch to another build."
   (interactive)
   (let ((zuul--builds zuul--current-builds))
-    (zuul-open-build-log
+    (zuul--open-build-log
      (zuul--builds zuul--current-build))))
 
 ;;;###autoload
@@ -362,7 +376,7 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
   "Switch to a build from a specific buildset."
   (interactive)
   (let ((zuul--builds zuul--current-builds))
-    (zuul-open-build-log
+    (zuul--open-build-log
      (zuul--buildsets zuul--current-build))))
 
 ;;;###autoload
@@ -398,7 +412,7 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
            (length builds-with-index)))
          (next-build
           (cdr (assoc next-index builds-with-index))))
-    (zuul-open-build-log next-build)))
+    (zuul--open-build-log next-build)))
 
 ;;;###autoload
 (defun zuul-previous-build ()
@@ -414,7 +428,7 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
            (length builds-with-index)))
          (previous-build
           (cdr (assoc previous-index builds-with-index))))
-    (zuul-open-build-log previous-build)))
+    (zuul--open-build-log previous-build)))
 
 ;;;###autoload
 (defun zuul-quit-build ()

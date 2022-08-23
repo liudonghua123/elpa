@@ -92,7 +92,7 @@ Select and open a build retrieved with =zuul-get-builds=.
 
 #+begin_src elisp :results none
   (let ((zuul-build-display-buffer-action 'display-buffer-pop-up-window))
-    (zuul-open-build-log
+    (zuul--open-build-log
      (zuul-get-builds
       :change "300203")))
 #+end_src
@@ -101,7 +101,7 @@ Select and open a build retrieved with =zuul-get-buildsets=.
 
 #+begin_src elisp :results none
   (let ((zuul-build-display-buffer-action 'display-buffer-pop-up-window))
-    (zuul-open-build-log
+    (zuul--open-build-log
      (zuul-get-buildsets
       :change "300203")))
 #+end_src
