@@ -710,6 +710,10 @@
   :ignored-files ("LICENSE")
   :news "CHANGELOG.org"
   :auto-sync t)
+ ("topspace"		:url "https://github.com/trevorpogue/topspace"
+  :ignored-files ("LICENSE")
+  :news "NEWS.md"
+  :auto-sync t)
  ("tramp"		:url "git://git.sv.gnu.org/tramp.git"
   :branch "externals/tramp"
   :main-file "trampver.el"
