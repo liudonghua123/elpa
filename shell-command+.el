@@ -177,10 +177,11 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
 (defun shell-command+-expand-% (parse form context)
   "Replace occurrences of \"%\" in the command.
 For PARSE, FORM and CONTEXT see `shell-command+-features'."
-  (setf (nth 3 parse)
-        (replace-regexp-in-string
-         (rx (* ?\\ ?\\) (or ?\\ (group "%")))
-         buffer-file-name (nth 3 parse)))
+  (when buffer-file-name
+    (setf (nth 3 parse)
+          (replace-regexp-in-string
+           (rx (* ?\\ ?\\) (or ?\\ (group "%")))
+           buffer-file-name (nth 3 parse))))
   (list parse form context))
 
 
