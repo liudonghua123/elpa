@@ -307,6 +307,9 @@ PARSE, FORM and CONTEXT see `shell-command+-features'."
   (pcase-let ((`(,_ ,mode ,name ,_) parse))
     (list parse
           (let ((fn (assoc name shell-command+-substitute-alist)))
+            ;; FIXME: It might be that `name' is modified in such a
+            ;; way that this check fails and.  Currently no function
+            ;; in `shell-command+-features' does this.
             (if (and fn (not (eq mode 'literal)))
                 (lambda (command _beg _end)
                   (funcall (cdr fn) command))
