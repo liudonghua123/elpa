@@ -6,7 +6,7 @@
 ;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
 ;; Version: 3.0.0pre
 ;; Keywords: unix, processes, convenience
-;; Package-Requires: ((emacs "24.1"))
+;; Package-Requires: ((emacs "24.3"))
 ;; URL: https://git.sr.ht/~pkal/shell-command-plus
 
 ;; This program is free software; you can redistribute it and/or modify
