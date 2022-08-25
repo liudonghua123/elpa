@@ -86,8 +86,6 @@
 
 (eval-when-compile (require 'rx))
 (eval-when-compile (require 'pcase))
-(require 'diff)
-(require 'info)
 (require 'thingatpt)
 
 (defgroup shell-command+ nil
@@ -244,15 +242,19 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
   (pcase-let ((`(,_ . ,args) (shell-command+-tokenize command)))
     (man (mapconcat #'identity args " "))))
 
+(declare-function Info-menu "info" (menu-item &optional fork))
 (defun shell-command+-cmd-info (command)
   "Convert COMMAND into a `info' call."
+  (require 'info)
   (pcase-let ((`(,_ . ,args) (shell-command+-tokenize command)))
     (Info-directory)
     (dolist (menu args)
       (Info-menu menu))))
 
+(declare-function diff-no-select "diff" (old new &optional switches no-async buf))
 (defun shell-command+-cmd-diff (command)
   "Convert COMMAND into `diff' call."
+  (require 'diff)
   (pcase-let ((`(,_ . ,args) (shell-command+-tokenize command t)))
     (let (files flags)
       (dolist (arg args)
