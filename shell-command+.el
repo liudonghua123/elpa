@@ -308,7 +308,8 @@ PARSE, FORM and CONTEXT see `shell-command+-features'."
     (list parse
           (let ((fn (assoc name shell-command+-substitute-alist)))
             (if (and fn (not (eq mode 'literal)))
-                (apply-partially fn)
+                (lambda (command _beg _end)
+                  (funcall (cdr fn) command))
               form))
           context)))
 
