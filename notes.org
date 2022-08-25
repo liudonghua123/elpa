@@ -142,12 +142,20 @@ Add functions used to =anonymize= data.
         (insert command)
         (unpackaged/lorem-ipsum-overlay t)
         (buffer-string))))
+
+  (defun zuul-anonymize-playbook-name (data)
+    (with-temp-buffer
+      (insert (let-alist (plist-get data ':playbook)
+                .playbook))
+      (unpackaged/lorem-ipsum-overlay t)
+      (buffer-string)))
 #+end_src
 
 Add =advices= around functions that could be sensitive.
 
 #+begin_src elisp :results none
   (advice-add 'zuul--data-host-cmd-str :override #'zuul-anonymize-task-command)
+  (advice-add 'zuul--data-playbook-name-str :override #'zuul-anonymize-playbook-name)
   (advice-add 'url-insert-file-contents :around #'zuul-anonymize-silence-messages)
   (advice-add 'compile-goto-error :around #'zuul-anonymize-silence-messages)
   (advice-add 'compile-goto-error :after #'zuul-anonymize-buffer)
@@ -160,6 +168,7 @@ Remove advices and settings to restore original behavior.
 
 #+begin_src elisp :results none
   (advice-remove 'zuul--data-host-cmd-str #'zuul-anonymize-task-command)
+  (advice-remove 'zuul--data-playbook-name-str #'zuul-anonymize-playbook-name)
   (advice-remove 'url-insert-file-contents #'zuul-anonymize-silence-messages)
   (advice-remove 'compile-goto-error #'zuul-anonymize-silence-messages)
   (advice-remove 'compile-goto-error #'zuul-anonymize-buffer)
