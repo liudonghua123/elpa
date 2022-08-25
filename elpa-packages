@@ -45,8 +45,10 @@
  ("adaptive-wrap"	:url nil)
  ("adjust-parens"	:url nil)
  ("advice-patch"	:url nil)
- ("aggressive-completion" :url nil)
- ("aggressive-indent"	:url "https://github.com/Malabarba/aggressive-indent-mode")
+ ("aggressive-completion" :url nil
+  :auto-sync t)
+ ("aggressive-indent"	:url "https://github.com/Malabarba/aggressive-indent-mode"
+  :auto-sync t)
  ("ahungry-theme"	:url "https://github.com/ahungry/color-theme-ahungry")
  ("aircon-theme"        :url "https://git.sr.ht/~chambln/aircon-theme.el"
   :ignored-files ("README" "COPYING")
