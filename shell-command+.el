@@ -466,6 +466,7 @@ entire command."
 
 ;;; Main entry point
 
+;;;###autoload
 (defun shell-command+--make-docstring ()
   "Return a docstring for `shell-command+'."
   (with-temp-buffer
