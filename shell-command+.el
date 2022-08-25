@@ -119,9 +119,14 @@ is specified."
         #'shell-command+-implicit-cd)
   "List of features to use by `shell-command+'.
 Each element of the list is a symbol designating a function to
-call in order.  Each is passed the parsed shell command and an
-form, and a context to evaluate the form in using `eval', and
-returns the modified command, form and context in a list."
+call in order.  Each is passed the parsed shell command (see
+`shell-command+-parse'), and two functions implementing the
+\"main functionality\" and a context.  The former is invoked with
+three arguments, the final command string, and two points
+designating the beginning and ending of the implicit region.  The
+context function is invoked with the previous function passed as
+a function object and the same argument as the function,
+totalling to four arguments."
   :type '(repeat function))
 
 
