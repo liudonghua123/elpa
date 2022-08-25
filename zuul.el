@@ -4,7 +4,7 @@
 
 ;; Author: Niklas Eklund <niklas.eklund@posteo.net>
 ;; URL: https://git.sr.ht/~niklaseklund/zuul.el
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: convenience tools
 
