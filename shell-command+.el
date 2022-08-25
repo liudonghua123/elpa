@@ -150,7 +150,8 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
                      (eq mode 'output) (eq mode 'input))
                  (lambda (input beg end)
                    (delete-region beg end)
-                   (shell-command input t shell-command-default-error-buffer)))
+                   (shell-command input t shell-command-default-error-buffer)
+                   (exchange-point-and-mark)))
                 ((if shell-command+-flip-redirection
                      (eq mode 'input) (eq mode 'output))
                  (lambda (input beg end)
@@ -161,7 +162,8 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
                  (lambda (input beg end)
                    (shell-command-on-region
                     beg end input t t
-                    shell-command-default-error-buffer t)))
+                    shell-command-default-error-buffer t)
+                   (exchange-point-and-mark)))
                 (t form))
           context)))
 
@@ -528,10 +530,9 @@ can be combined but will be processed in the following order:"
         (setq parse (nth 0 step)
               form (nth 1 step)
               context (nth 2 step))))
-    (save-excursion
-      (funcall context form (nth 3 parse)
-               (or beg (point-min))
-               (or end (point-max))))))
+    (funcall context form (nth 3 parse)
+             (or beg (point-min))
+             (or end (point-max)))))
 
 (provide 'shell-command+)
 
