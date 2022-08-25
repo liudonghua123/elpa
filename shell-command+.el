@@ -70,6 +70,13 @@
 ;; - Remove `shell-command+-use-eshell'.
 ;; - Deprecate `shell-command+-enable-file-substitution'.
 ;; - Minor bug fixes and stability improvements.
+;;
+;; Thanks to Visuwesh for many productive discussions on the mailing
+;; list:
+;;
+;; - https://lists.sr.ht/~pkal/public-inbox/%3C87czduxwt4.fsf%40gmail.com%3E
+;; - https://lists.sr.ht/~pkal/public-inbox/%3C878roixwds.fsf%40gmail.com%3E
+;; - https://lists.sr.ht/~pkal/public-inbox/%3C87edxmakqq.fsf%40gmail.com%3E
 
 ;;;; Version 2.3.0 (15Oct21)
 
