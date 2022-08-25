@@ -105,3 +105,65 @@ Select and open a build retrieved with =zuul-get-buildsets=.
      (zuul-get-buildsets
       :change "300203")))
 #+end_src
+
+* Screenshots
+
+** Anonymize
+
+Add functions used to =anonymize= data.
+
+#+begin_src elisp :results none
+  (defun zuul-anonymize-build-name (build)
+    (with-temp-buffer
+      (insert (let-alist (zuul-data build) .job_name))
+      (unpackaged/lorem-ipsum-overlay t)
+      (buffer-string)))
+
+  (defun zuul-anonymize-buffer-with-overlay (&rest args)
+    (unpackaged/lorem-ipsum-overlay)
+    (setq mode-line-format nil))
+
+  (defun zuul-anonymize-buffer (&rest args)
+    (unpackaged/lorem-ipsum-overlay)
+    (setq mode-line-format nil))
+
+  (defun zuul-anonymize-silence-messages (orig-fun &rest args)
+    (let ((inhibit-message t))
+      (apply orig-fun args)))
+
+  (defun zuul-anonymize-task-command (data)
+    (let ((command
+           (pcase-let* ((`(,_hostname . ,data) (plist-get data ':host))
+                        (cmd-str (let-alist data .cmd)))
+             (if (stringp cmd-str)
+                 cmd-str
+               (mapconcat #'identity cmd-str " ")))))
+      (with-temp-buffer
+        (insert command)
+        (unpackaged/lorem-ipsum-overlay t)
+        (buffer-string))))
+#+end_src
+
+Add =advices= around functions that could be sensitive.
+
+#+begin_src elisp :results none
+  (advice-add 'zuul--data-host-cmd-str :override #'zuul-anonymize-task-command)
+  (advice-add 'url-insert-file-contents :around #'zuul-anonymize-silence-messages)
+  (advice-add 'compile-goto-error :around #'zuul-anonymize-silence-messages)
+  (advice-add 'compile-goto-error :after #'zuul-anonymize-buffer)
+  (advice-add 'zuul-log-mode :after #'zuul-anonymize-buffer-with-overlay)
+  (advice-add 'zuul--build-name-str :override #'zuul-anonymize-build-name)
+  (toggle-frame-tab-bar)
+#+end_src
+
+Remove advices and settings to restore original behavior.
+
+#+begin_src elisp :results none
+  (advice-remove 'zuul--data-host-cmd-str #'zuul-anonymize-task-command)
+  (advice-remove 'url-insert-file-contents #'zuul-anonymize-silence-messages)
+  (advice-remove 'compile-goto-error #'zuul-anonymize-silence-messages)
+  (advice-remove 'compile-goto-error #'zuul-anonymize-buffer)
+  (advice-remove 'zuul-log-mode #'zuul-anonymize-buffer-with-overlay)
+  (advice-remove 'zuul--build-name-str #'zuul-anonymize-build-name)
+  (toggle-frame-tab-bar)
+#+end_src
