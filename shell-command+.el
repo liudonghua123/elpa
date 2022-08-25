@@ -463,7 +463,7 @@ between BEG and END.  Otherwise the whole buffer is processed."
     (when shell-command-buffer
       (with-current-buffer shell-command-buffer
         (cd def-dir))))
-  (let ((shell-command+-features shell-command+-features)
+  (let ((shell-command+-features shell-command+-features) ;copy binding
         (form (lambda (input _beg _end)
                 (shell-command
                  input
