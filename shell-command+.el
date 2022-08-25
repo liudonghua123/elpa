@@ -415,7 +415,7 @@ entire command."
                       'literal)))
           (cmd (match-string-no-properties 4 command))
           (all (match-string-no-properties 3 command)))
-      (if (or (null dir) (file-directory-p (shell-command+-expand-path' dir)))
+      (if (or (null dir) (file-directory-p (shell-command+-expand-path dir)))
           ;; FIXME: Avoid hard-coding the `shell-command+-expand-path'
           ;; check into the parsing function.
           (list dir ind cmd all)
