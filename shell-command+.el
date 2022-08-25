@@ -158,6 +158,14 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
                 (t form))
           context)))
 
+(put 'shell-command+-redirect-output
+     'shell-command+-docstring
+     "When COMMAND starts with...
+  <  the output of COMMAND replaces the current selection
+  >  COMMAND is run with the current selection as input
+  |  the current selection is filtered through COMMAND
+  !  COMMAND is simply executed (same as without any prefix)")
+
 
 ;;;; % (file name) expansion
 
@@ -187,6 +195,11 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
            buffer-file-name (nth 3 parse))))
   (list parse form context))
 
+(put 'shell-command+-expand-%
+     'shell-command+-docstring
+     "Inside COMMAND, % is replaced with the current file name.  To
+insert a literal % quote it using a backslash.")
+
 
 ;;;; Implicit cd
 
@@ -213,6 +226,16 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
                 (let ((default-directory (shell-command+-expand-path dir)))
                   (funcall fn input beg end)))
             context))))
+
+(put 'shell-command+-implicit-cd
+     'shell-command+-docstring
+     "If COMMAND is prefixed with an absolute or relative path, the
+created process will the executed in the specified path.
+
+This path can also consist pseudo-directories consisting of more
+than one \".\".  E.g. if you want to execute a command four
+directories above the current `default-directory', you can either
+prefix the command with \"../../../../\" or \"....\".")
 
 
 ;;;; Command substitution
@@ -317,6 +340,14 @@ PARSE, FORM and CONTEXT see `shell-command+-features'."
                   (funcall (cdr fn) command))
               form))
           context)))
+
+(put 'shell-command+-command-substitution
+     'shell-command+-docstring
+     "If the first word in COMMAND, matches an entry in the alist
+`shell-command+-substitute-alist', the respective function is
+used to execute the command instead of passing it to a shell
+process.  This behaviour can be inhibited by prefixing COMMAND
+with !.")
 
 
 ;;; Command tokenization
@@ -426,32 +457,36 @@ entire command."
 
 ;;; Main entry point
 
+(defun shell-command+--make-docstring ()
+  "Return a docstring for `shell-command+'."
+  (with-temp-buffer
+    (insert (documentation (symbol-function 'shell-command+) 'raw))
+    (dolist (feature shell-command+-features)
+      (if (fboundp 'make-separator-line)
+          (insert "\n" (make-separator-line) "\n")
+        (newline 2))
+      (insert
+       (let ((doc (get feature 'shell-command+-docstring)))
+         (or doc (documentation feature)
+             (format "`%S' is not explicitly documented." feature)))))
+    (buffer-string)))
+
+;;;###autoload
+(put 'shell-command+ 'function-documentation
+     '(shell-command+--make-docstring))
+
 ;;;###autoload
 (defun shell-command+ (command &optional beg end)
-  "Intelligently execute string COMMAND in inferior shell.
+  "An extended alternative to `shell-command'.
 
-If COMMAND is prefixed with an absolute or relative path, the
-created process will the executed in the specified path.
+COMMAND may be parsed and modified based on the comments of
+`shell-command+-features'.  If the command modifies the current
+buffer contents, it will do so between BEG and END.  If BEG or
+END are not passed, the beginning or end of the buffer will
+respectively be assumed as a fallback.
 
-When COMMAND starts with...
-  <  the output of COMMAND replaces the current selection
-  >  COMMAND is run with the current selection as input
-  |  the current selection is filtered through COMMAND
-  !  COMMAND is simply executed (same as without any prefix)
-
-If the first word in COMMAND, matches an entry in the alist
-`shell-command+-substitute-alist', the respective function is
-used to execute the command instead of passing it to a shell
-process.  This behaviour can be inhibited by prefixing COMMAND
-with !.
-
-Inside COMMAND, % is replaced with the current file name.  To
-insert a literal % quote it using a backslash.
-
-These extentions can all be combined with one-another.
-
-In case a region is active, `shell-command+' will only work with the region
-between BEG and END.  Otherwise the whole buffer is processed."
+The current configuration adds the following functionality, that
+can be combined but will be processed in the following order:"
   (interactive (let ((bounds (and shell-command+-default-region
                                   (bounds-of-thing-at-point
                                    shell-command+-default-region))))
