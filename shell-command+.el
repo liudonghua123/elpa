@@ -461,11 +461,9 @@ between BEG and END.  Otherwise the whole buffer is processed."
                                     (abbreviate-file-name default-directory))
                           shell-command+-prompt))
                        (cond ((use-region-p) (region-beginning))
-                             (bounds (car bounds))
-                             ((point-min)))
+                             (bounds (car bounds)))
                        (cond ((use-region-p) (region-end))
-                             (bounds (cdr bounds))
-                             ((point-max))))))
+                             (bounds (cdr bounds))))))
   ;; Make sure in case there is a previous output buffer, that it has
   ;; the same `default-directory' as the `default-directory' caller.
   (let ((shell-command-buffer (get-buffer (or (bound-and-true-p shell-command-buffer-name)
@@ -489,7 +487,9 @@ between BEG and END.  Otherwise the whole buffer is processed."
               form (nth 1 step)
               context (nth 2 step))))
     (save-excursion
-      (funcall context form (nth 3 parse) beg end))))
+      (funcall context form (nth 3 parse)
+               (or beg (point-min))
+               (or end (point-max))))))
 
 (provide 'shell-command+)
 
