@@ -229,6 +229,14 @@ Each entry in the list is a property list with the following properties:
   '((t :inherit font-lock-function-name-face))
   "Face used to highlight build command in `zuul'.")
 
+(defface zuul-command-prompt-face
+  '((t :inherit comint-highlight-prompt))
+  "Face used to highlight command prompt in `zuul'.")
+
+(defface zuul-prompt-input-face
+  '((t :inherit comint-highlight-input))
+  "Face used to highlight prompt input in `zuul'.")
+
 ;;;; Data structures
 
 (cl-defstruct (zuul-buildset
@@ -1108,8 +1116,8 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
           (search-forward "$")
           (let* ((ov-prompt (make-overlay (prop-match-beginning property) (point)))
                  (ov-input (make-overlay (point) (progn (end-of-line) (point)))))
-            (overlay-put ov-prompt 'face 'comint-highlight-prompt)
-            (overlay-put ov-input 'face 'comint-highlight-input)))))))
+            (overlay-put ov-prompt 'face 'zuul-command-prompt-face)
+            (overlay-put ov-input 'face 'zuul-prompt-input-face)))))))
 
 ;;;; Major mode
 
