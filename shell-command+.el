@@ -478,8 +478,6 @@ between BEG and END.  Otherwise the whole buffer is processed."
               form (nth 1 step)
               context (nth 2 step))))
     (save-excursion
-      ;; CHANGEME: Have the functions generate functions that are
-      ;; funcalled instead of a lisp term that is evaluated?
       (funcall context form (nth 3 parse) beg end))))
 
 (provide 'shell-command+)
