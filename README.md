@@ -62,9 +62,12 @@ The major mode `zuul-log-mode` provides the following commands.
 | zuul-switch-build          | C-c C-b | Switch to another build                    |
 | zuul-switch-buildset       | C-c C-s | Switch to a build from a specific buildset |
 | zuul-run-build-command     | C-c C-r | Run build command from build log           |
-| zuul-previous-build        | C-c C-p | Switch to previous build                   |
-| zuul-next-build            | C-c C-n | Switch to next build                       |
+| zuul-previous-command      | C-c C-p | Go to previous command in build log        |
+| zuul-next-command          | C-c C-n | Go to next command in build log            |
 | zuul-open-build-in-browser | C-c C-o | Open build in browser                      |
+| zuul-previous-build        | C-c C-[ | Switch to previous build                   |
+| zuul-next-build            | C-c C-] | Switch to next build                       |
+| zuul-quit-build            | C-c C-q | Quit and delete build log buffers          |
 
 It also integrates with the following built in features:
 - `imenu`: navigate to beginning of tasks in the build log
