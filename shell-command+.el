@@ -4,7 +4,7 @@
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
-;; Version: 3.0.0pre
+;; Version: 2.4.0pre
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.3"))
 ;; URL: https://git.sr.ht/~pkal/shell-command-plus
@@ -62,7 +62,7 @@
 
 ;;; News:
 
-;;;; Version 3.0.0 (???)
+;;;; Version 2.4.0 (???)
 
 ;; - Allow adding or removing features using
 ;;   `shell-command+-features'.
@@ -181,7 +181,7 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
   :type 'boolean)
 (make-obsolete-variable 'shell-command+-enable-file-substitution
                         'shell-command+-features
-                        "3.0.0")
+                        "2.4.0")
 
 (defun shell-command+-expand-% (parse form context)
   "Replace occurrences of \"%\" in the command.
