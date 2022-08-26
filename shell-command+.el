@@ -78,17 +78,6 @@
 ;; - https://lists.sr.ht/~pkal/public-inbox/%3C878roixwds.fsf%40gmail.com%3E
 ;; - https://lists.sr.ht/~pkal/public-inbox/%3C87edxmakqq.fsf%40gmail.com%3E
 
-;;;; Version 2.3.0 (15Oct21)
-
-;; - Add rgrep to shell-command+-substitute-alist
-;; - Fix shell-command+-substitute-alist customization type
-;; - Skip environmental variables when parsing a command
-;; - Check if command is being piped, in which case command
-;;   substitution is avoided.
-;; - Fix persistent sudo bug, where any command after a sudo
-;;   substitute would try to run as root
-;; - Improve command tokenization performance slightly.
-
 ;;; Code:
 
 (eval-when-compile (require 'rx))
