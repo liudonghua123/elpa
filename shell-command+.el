@@ -157,7 +157,7 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
                 (t form))
           context)))
 
-(put 'shell-command+-redirect-output
+(put #'shell-command+-redirect-output
      'shell-command+-docstring
      "When COMMAND starts with...
   <  the output of COMMAND replaces the current selection
@@ -194,7 +194,7 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
            buffer-file-name (nth 3 parse))))
   (list parse form context))
 
-(put 'shell-command+-expand-%
+(put #'shell-command+-expand-%
      'shell-command+-docstring
      "Inside COMMAND, % is replaced with the current file name.  To
 insert a literal % quote it using a backslash.")
@@ -220,7 +220,7 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
          (shell-command+-expand-%-fmt-spec)))
   (list parse form context))
 
-(put 'shell-command+-expand-%-fmt
+(put #'shell-command+-expand-%-fmt
      'shell-command+-docstring
      "Inside COMMAND, replace the following %-sequences:
 
@@ -259,7 +259,7 @@ For PARSE, FORM and CONTEXT see `shell-command+-features'."
                   (funcall fn input beg end)))
             context))))
 
-(put 'shell-command+-implicit-cd
+(put #'shell-command+-implicit-cd
      'shell-command+-docstring
      "If COMMAND is prefixed with an absolute or relative path, the
 created process will the executed in the specified path.
@@ -373,7 +373,7 @@ PARSE, FORM and CONTEXT see `shell-command+-features'."
               form))
           context)))
 
-(put 'shell-command+-command-substitution
+(put #'shell-command+-command-substitution
      'shell-command+-docstring
      "If the first word in COMMAND, matches an entry in the alist
 `shell-command+-substitute-alist', the respective function is
@@ -505,7 +505,7 @@ entire command."
     (buffer-string)))
 
 ;;;###autoload
-(put 'shell-command+ 'function-documentation
+(put #'shell-command+ 'function-documentation
      '(shell-command+--make-docstring))
 
 ;;;###autoload
