@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2022  Free Software Foundation, Inc.
 
-;; Version: 0.0.5
+;; Version: 0.0.6
 ;; Author: Gregory Chamberlain <greg@cosine.blue>
 ;; Maintainer: Gregory Chamberlain <~chambln/public-inbox@lists.sr.ht>
 ;; URL: https://git.sr.ht/~chambln/aircon-theme.el
