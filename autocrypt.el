@@ -32,7 +32,7 @@
 (require 'ietf-drums)
 
 
-;;; CUSTOMIZABLES
+;;;; Customizables
 
 (defgroup autocrypt nil
   "Autocrypt protocol implementation for Emacs MUAs."
@@ -78,7 +78,7 @@ process \"Autocrypt-Gossip\" headers when received."
   :type '(file :must-match t))
 
 
-;;; DATA STRUCTURES
+;;;; Data Structures
 
 ;; https://autocrypt.org/level1.html#communication-peers
 (cl-defstruct autocrypt-peer
@@ -91,7 +91,7 @@ process \"Autocrypt-Gossip\" headers when received."
   deactivated)
 
 
-;;; INTERNAL STATE
+;;; Internal State
 
 (defvar autocrypt-peers nil
   "List of known autocrypt peers.
@@ -106,7 +106,7 @@ Every member of this list has to be an instance of the
 (defvar autocrypt-loaded-version)       ;used by `autocrypt-load-data'
 
 
-;;; MUA TRANSLATION LAYER
+;;;; Mua Translation Layer
 
 (defvar autocrypt-backends
   (list (lambda () (and (derived-mode-p 'mu4e-main-mode 'mu4e-view-mode) 'mu4e))
@@ -218,7 +218,7 @@ the buffer it is being invoked in.  See `autocrypt-backends' and
 `autocrypt-make-function' for more details.")
 
 
-;;; INTERNAL FUNCTIONS
+;;;; Internal Functions
 
 ;; https://autocrypt.org/level1.html#e-mail-address-canonicalization
 (defsubst autocrypt-canonicalise (addr)
@@ -325,7 +325,7 @@ well-formed, otherwise returns just nil."
         (setq recipients (nconc (mapcar #'cadr r) recipients))))
     (delete-dups recipients)))
 
-;;; https://autocrypt.org/level1.html#updating-autocrypt-peer-state-from-key-gossip
+;; https://autocrypt.org/level1.html#updating-autocrypt-peer-state-from-key-gossip
 (defun autocrypt-process-gossip (date)
   "Update internal autocrypt gossip state.
 
@@ -568,7 +568,7 @@ Will handle and remove \"Do-(Discourage-)Autocrypt\" if found."
              email)))
 
 
-;;; MINOR MODES
+;;;; Minor Modes
 
 ;;;###autoload
 (define-minor-mode autocrypt-mode
