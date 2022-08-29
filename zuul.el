@@ -64,7 +64,7 @@
 
 Each configuration is a property list with the following properties:
 NAME: Name of the tenant
-PROJECT-ROOTS: An alist of (project-name . project-root)"
+PROJECT-ROOTS: An alist of (name . root)"
   :group 'zuul
   :type 'list)
 
