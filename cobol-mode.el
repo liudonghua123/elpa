@@ -24,32 +24,18 @@
 
 ;;; Commentary:
 
+;; This COBOL mode features syntax highlighting for most modern COBOL dialects,
+;; indentation, code skeletons, rulers, and basic formatting functions.
+;; Highlighting changes with the code format, which can be specified using the
+;; M-x customize menu.
+
 ;; This file should not be confused with Rick Bielawski's cobol-mode.el
 ;; (http://www.emacswiki.org/emacs/cobol-mode.el), which this mode attempts to
 ;; supersede.
 
-;; This COBOL mode features syntax highlighting for most modern COBOL dialects,
-;; indentation, code skeletons, rulers and basic formatting functions.
-;; Highlighting changes with the code format, which can be specified using the
-;; M-x customize menu.
-
-;;;; Installation:
-
-;; To install cobol-mode.el, save it to your .emacs.d/ directory and add the
-;; following to your .emacs:
-;; (autoload 'cobol-mode "cobol-mode" "Major mode for highlighting COBOL files." t nil)
-
-;; To automatically load cobol-mode.el upon opening COBOL files, add this:
-;; (setq auto-mode-alist
-;;       (append
-;;        '(("\\.cob\\'" . cobol-mode)
-;;          ("\\.cbl\\'" . cobol-mode)
-;;          ("\\.cpy\\'" . cobol-mode))
-;;        auto-mode-alist))
-
-;; Finally, I strongly suggest installing auto-complete-mode, which makes typing
-;; long keywords and variable names a thing of the past.  See
-;; https://github.com/auto-complete/auto-complete.
+;; Finally, I suggest installing auto-complete-mode, which makes typing
+;; long keywords and variable names a thing of the past.
+;; See https://github.com/auto-complete/auto-complete.
 
 ;;;; Known bugs:
 
@@ -3130,6 +3116,10 @@ start of area A, if fixed-format)."
   ;; Auto complete mode
   (set (make-local-variable 'ac-ignore-case) t)
   )
+
+;;;###autoload
+(add-to-list 'auto-mode-alist
+             '("\\.c\\(ob\\|bl\\|py\\)\\'" . cobol-mode))
 
 (provide 'cobol-mode)
 
