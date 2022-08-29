@@ -37,6 +37,9 @@
   :auto-sync t)
  ("ack"			:url "https://github.com/leoliu/ack-el"
   :auto-sync t)
+ ("polymode"		:url "https://github.com/polymode/polymode"
+  :ignore-files ("targets" "template" "tests")
+  :auto-sync t)
  ("ada-mode"		:url nil
   :doc ("ada-mode.texi" "gpr-mode.texi")
   :branch "ada-mode"
@@ -143,7 +146,8 @@
   :ignored-files ("doc")
   :auto-sync t)
  ("company-ebdb"	:url nil)
- ("company-math"	:url "https://github.com/vspinu/company-math.git")
+ ("company-math"	:url "https://github.com/vspinu/company-math.git"
+  :auto-sync t)
  ("company-statistics"	:url "https://github.com/company-mode/company-statistics")
  ("compat"		:url "https://git.sr.ht/~pkal/compat"
   :doc "compat.texi"
@@ -255,8 +259,11 @@
  ("eldoc-eval"		:url "https://github.com/thierryvolpiatto/eldoc-eval.git")
  ("electric-spacing"	:url nil)
  ("elisp-benchmarks"	:url nil)
- ;; ("emacspeak"		:url nil
- ;;  :lisp-dir "lisp")
+ ;; FIXME: Waiting for fmdkdd's copyright paperwork.
+ ;;("elsa"		:url "https://github.com/emacs-elsa/Elsa"
+ ;; :auto-sync t)
+ ;;("emacspeak"		:url nil
+ ;; :lisp-dir "lisp")
  ("embark"
   :url "https://github.com/oantolin/embark"
   :doc "embark.texi"
@@ -452,7 +459,8 @@
   :doc "README.org"
   :auto-sync t)
  ("markchars"		:url nil)
- ("math-symbol-lists" 	:url "https://github.com/vspinu/math-symbol-lists.git")
+ ("math-symbol-lists" 	:url "https://github.com/vspinu/math-symbol-lists.git"
+  :auto-sync t)
  ("mct"			:url "https://gitlab.com/protesilaos/mct"
   :doc "README.org"
   :auto-sync t)
@@ -512,12 +520,12 @@
   :doc ("org.info" "orgguide.info")
   :auto-sync t)
  ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
- ;; FIXME: Waiting for copyright paperwork from Michael Strey <mstrey@strey.biz>
- ;;("org-contacts"	:url "https://github.com/stardiviner/org-contacts.el"
+ ;; FIXME: Waiting for confirmation (and fixup of copyright headers).
+ ;;("org-contacts"	:url "https://repo.or.cz/org-contacts.git"
  ;; :auto-sync t)
- ;; FIXME: Not ready yet.
- ;; ("org-drill"		:url "https://gitlab.com/phillord/org-drill"
- ;;  :auto-sync t)
+ ;; FIXME: Waiting for copyright paperwork from Brandon Webster.
+ ;;("org-drill"		:url "https://gitlab.com/phillord/org-drill"
+ ;; :auto-sync t)
  ("org-modern"		:url "https://github.com/minad/org-modern"
   :doc "README.org"
   :auto-sync t)
