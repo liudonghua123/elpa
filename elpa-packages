@@ -129,7 +129,7 @@
  ;; The `cl-print' code doesn't try to work outside of Emacs any more.
  ;;("cl-print"		:core "lisp/emacs-lisp/cl-print.el")
  ("clipboard-collector" :url "https://github.com/clemera/clipboard-collector")
- ("cobol-mode"          :url "https://gist.github.com/Edward-H/6768e7dc53ea3dd2adca"
+ ("cobol-mode"          :url nil ;; Was "https://gist.github.com/Edward-H/6768e7dc53ea3dd2adca"
   :auto-sync t)
  ("code-cells"		:url "https://github.com/astoff/code-cells.el"
   :ignored-files ("LICENSE")
