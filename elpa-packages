@@ -39,6 +39,7 @@
   :auto-sync t)
  ("polymode"		:url "https://github.com/polymode/polymode"
   :ignore-files ("targets" "template" "tests")
+  :readme "readme.md"
   :auto-sync t)
  ("ada-mode"		:url nil
   :doc ("ada-mode.texi" "gpr-mode.texi")
