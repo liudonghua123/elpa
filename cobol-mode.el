@@ -4,7 +4,7 @@
 
 ;; Author: Edward Hart <edward.dan.hart@gmail.com>
 ;; Maintainer: Edward Hart <edward.dan.hart@gmail.com>
-;; Version: 1.0.0
+;; Version: 1.1
 ;; Created: 9 November 2013
 ;; Keywords: languages
 ;; Package-Requires: ((cl-lib "0.5"))
@@ -70,6 +70,12 @@
 ;; * String continuation (see above).
 ;; * Allow users to modify start of program-name area.
 
+;;; News:
+
+;; - A new submenu for skeletons.
+;; - cobol-mode is now orphaned :-(
+;;   We're looking for a generous soul willing to give it loving care.
+
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
@@ -92,7 +98,7 @@
 (defcustom cobol-declaration-clause-indent 40
   "Column to indent data division declaration clauses to."
   :type 'integer
-  :safe 'integerp)
+  :safe #'integerp)
 
 (eval-and-compile
 (defconst cobol-formats
@@ -111,13 +117,13 @@
   "----+-*A-1-B--+----2----+----3----+----4----+----5----+----6----+----7--|-+----\n"
   "Ruler for COBOL-85-style fixed format code."
   :type  'string
-  :safe  'stringp)
+  :safe  #'stringp)
 
 (defcustom cobol-fixed-2002-ruler
   "----+-*--1----+----2----+----3----+----4----+----5----+----6----+----7----+----\n"
   "Ruler for COBOL-2002-style fixed format code."
   :type  'string
-  :safe  'stringp)
+  :safe  #'stringp)
 
 (defcustom cobol-free-ruler
   "----+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----\n"
@@ -2066,7 +2072,7 @@ lines.")
 
 (defconst cobol--descriptor-level-re
   "[FRS]D"
-  "Regexp matching file/report/sort descriptor 'level numbers'.")
+  "Regexp matching file/report/sort descriptor \"level numbers\".")
 
 (defconst cobol--record-descriptor-re
   (cobol--with-opt-whitespace-line cobol--descriptor-level-re cobol--identifier-re)
@@ -2440,7 +2446,34 @@ and ignored areas) between points BEG and END."
 
 ;;; Skeletons
 
-(define-skeleton cobol-skeleton-if-else
+(defvar cobol-skeleton-alist nil
+  "Alist of code templates.
+You can extend this alist to your heart's content.  For each additional
+template NAME in the list, declare a keyboard macro or function (or
+interactive command) called `cobol-skeleton-NAME'.
+If `cobol-skeleton-NAME' is a function it takes no arguments and should
+insert the template at point; if this is a command it may accept any
+sensible interactive call arguments; keyboard macros can't take
+arguments at all.")
+
+
+(defmacro cobol--def-skeleton (name doc interactor &rest elements)
+  (declare (indent 1) (doc-string 2))
+  (let ((fsym (intern (concat "cobol-skeleton-" name)))
+        (printname (replace-regexp-in-string "-" " " (upcase name))))
+    `(progn
+       (add-to-list 'cobol-skeleton-alist ',(cons printname fsym))
+       ;; (define-abbrev sml-skel-abbrev-table ,name "" ',fsym :system t)
+       (define-skeleton ,fsym
+         ,doc
+         ,interactor
+         ,@elements))))
+
+(defun cobol-skeleton--menu (_menu)
+  (mapcar (lambda (x) (vector (car x) (cdr x) t))
+	  cobol-skeleton-alist))
+
+(cobol--def-skeleton "if-else"
   "Insert an IF - ELSE - END-IF block." nil
   > "IF " (skeleton-read "Condition: ") > \n
   > _ \n
@@ -2448,19 +2481,19 @@ and ignored areas) between points BEG and END."
   > \n
   "END-IF" > \n)
 
-(define-skeleton cobol-skeleton-if
+(cobol--def-skeleton "if"
   "Insert an IF - END-IF block." nil
   > "IF " (skeleton-read "Condition: ") > \n
   > _ \n
   "END-IF" > \n)
 
-(define-skeleton cobol-skeleton-perform-times
+(cobol--def-skeleton "perform-times"
   "Insert a PERFORM - TIMES - END-PERFORM block." nil
   > "PERFORM " (skeleton-read "Number: ") " TIMES" > \n
   > _ \n
   "END-PERFORM" > \n)
 
-(define-skeleton cobol-skeleton-perform-varying
+(cobol--def-skeleton "perform-varying"
   "Insert a PERFORM VARYING - FROM - BY - UNTIL - END-PERFORM block."
   nil
   > "PERFORM VARYING "
@@ -2485,7 +2518,7 @@ and ignored areas) between points BEG and END."
 
 (defvar cobol--num-conds)
 
-(define-skeleton cobol-skeleton-evaluate
+(cobol--def-skeleton "evaluate"
   "Insert an EVALUATE - END-EVALUATE block."
   "Variable/TRUE: "
   ;; This is set like so because cobol--num-conds is incremented even when no str is supplied.
@@ -2497,7 +2530,7 @@ and ignored areas) between points BEG and END."
   (cobol-when-with-also "Value/Condition: " cobol--num-conds)
   "END-EVALUATE")
 
-(define-skeleton cobol-skeleton-program
+(cobol--def-skeleton "program"
   "Insert an empty PROGRAM."
   "Program name: "
   > "IDENTIFICATION DIVISION." > \n
@@ -2510,7 +2543,7 @@ and ignored areas) between points BEG and END."
   > \n
   "END PROGRAM " str "." > \n)
 
-(define-skeleton cobol-skeleton-function
+(cobol--def-skeleton "function"
   "Insert an empty FUNCTION."
   "Function name: "
   > "IDENTIFICATION DIVISION." > \n
@@ -2525,7 +2558,7 @@ and ignored areas) between points BEG and END."
   > \n
   "END FUNCTION " str "." > \n)
 
-(define-skeleton cobol-skeleton-method
+(cobol--def-skeleton "method"
   "Insert an empty METHOD."
   "Method name: "
   > "IDENTIFICATION DIVISION." > \n
@@ -2538,7 +2571,7 @@ and ignored areas) between points BEG and END."
   > \n
   "END METHOD " str "." > \n)
 
-(define-skeleton cobol-skeleton-class
+(cobol--def-skeleton "class"
   "Insert an empty CLASS."
   "Class name: "
   > "IDENTIFICATION DIVISION." > \n
@@ -2551,7 +2584,7 @@ and ignored areas) between points BEG and END."
   "END OBJECT." > \n
   "END CLASS " str "." > \n)
 
-(define-skeleton cobol-skeleton-interface
+(cobol--def-skeleton "interface"
   "Insert an empty INTERFACE."
   "Interface name: "
   > "IDENTIFICATION DIVISION." > \n
@@ -2640,8 +2673,8 @@ and ignored areas) between points BEG and END."
       (string-rectangle top-left bottom-right (format "%-6s" text)))))
 
 ;;; Indentation
-;;; Derived (a long time ago) from the wonderful Emacs Mode Tutorial at
-;;; <http://www.emacswiki.org/emacs/ModeTutorial>.
+;; Derived (a long time ago) from the wonderful Emacs Mode Tutorial at
+;; <http://www.emacswiki.org/emacs/ModeTutorial>.
 
 (defun cobol--code-start ()
   "Return the first column code can go in."
@@ -3050,6 +3083,12 @@ start of area A, if fixed-format)."
     (define-key map [remap back-to-indentation] #'cobol-back-to-indentation)
     ;;(define-key map (kbd "RET") #'newline-and-indent)
     map))
+
+(easy-menu-define cobol-mode-menu cobol-mode-map "Menu used for `cobol-mode'."
+  '("COBOL"
+    ("Insert" :filter cobol-skeleton--menu)
+    ;; FIXME: This menu should likely grow a few more entries.
+    ))
 
 (defvar cobol-mode-syntax-table
   (let ((st (make-syntax-table)))
