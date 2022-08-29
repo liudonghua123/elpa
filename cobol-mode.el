@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013-2022  Free Software Foundation, Inc.
 
 ;; Author: Edward Hart <edward.dan.hart@gmail.com>
-;; Maintainer: Edward Hart <edward.dan.hart@gmail.com>
+;; Maintainer: emacs-devel@gnu.org
 ;; Version: 1.1
 ;; Created: 9 November 2013
 ;; Keywords: languages
