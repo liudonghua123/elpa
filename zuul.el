@@ -1,6 +1,6 @@
 ;;; zuul.el --- Interface to Zuul -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Niklas Eklund
+;; Copyright (C) 2022  Free Software Foundation, Inc.
 
 ;; Author: Niklas Eklund <niklas.eklund@posteo.net>
 ;; URL: https://git.sr.ht/~niklaseklund/zuul.el
@@ -371,7 +371,6 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
 
 ;;;; Commands
 
-;;;###autoload
 (defun zuul-switch-build ()
   "Switch to another build."
   (interactive)
@@ -379,7 +378,6 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
     (zuul--open-build-log
      (zuul--builds zuul--current-build))))
 
-;;;###autoload
 (defun zuul-switch-buildset ()
   "Switch to a build from a specific buildset."
   (interactive)
@@ -387,7 +385,6 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
     (zuul--open-build-log
      (zuul--buildsets zuul--current-build))))
 
-;;;###autoload
 (defun zuul-open-build-in-browser ()
   "Open build in browser."
   (interactive)
@@ -397,7 +394,6 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
              "/t/" zuul-tenant
              "/build/" .uuid "/console"))))
 
-;;;###autoload
 (defun zuul-run-build-command ()
   "Run build command from build log."
   (interactive)
@@ -406,7 +402,6 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
         (detached-compile command)
       (compile command))))
 
-;;;###autoload
 (defun zuul-next-build ()
   "Switch to next build."
   (interactive)
@@ -422,7 +417,6 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
           (cdr (assoc next-index builds-with-index))))
     (zuul--open-build-log next-build)))
 
-;;;###autoload
 (defun zuul-previous-build ()
   "Switch to previous build."
   (interactive)
@@ -438,7 +432,6 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
           (cdr (assoc previous-index builds-with-index))))
     (zuul--open-build-log previous-build)))
 
-;;;###autoload
 (defun zuul-quit-build ()
   "Kill buffers associated with build."
   (interactive)
@@ -459,7 +452,6 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
                                     .change)))))
                  (seq-do #'kill-buffer))))
 
-;;;###autoload
 (defun zuul-previous-command ()
   "Navigate to previous command."
   (interactive)
@@ -468,7 +460,6 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
     (when (re-search-backward re-prompt nil t)
       (goto-char (match-end 0)))))
 
-;;;###autoload
 (defun zuul-next-command ()
   "Navigate to next command."
   (interactive)
@@ -484,7 +475,7 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
   (with-connection-local-variables
    (seq-find
     (lambda (it)
-      (string= (plist-get it ':name) zuul-tenant))
+      (string= (plist-get it :name) zuul-tenant))
     zuul-tenant-configs)))
 
 (defun zuul--project-root (project)
@@ -492,7 +483,7 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
   (if-let ((tenant-config (zuul--tenant-config))
            (project-root (cdr
                           (assoc project
-                                 (plist-get tenant-config ':project-roots)))))
+                                 (plist-get tenant-config :project-roots)))))
       (concat (file-remote-p default-directory) project-root)
     (message "Project root for %s wasn't found, falling back to `default-directory'" project)
     default-directory))
@@ -854,13 +845,13 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
   (let* ((annotations
           (seq-map (lambda (candidate)
                      (cl-loop for config in annotation-config
-                              collect `(,(plist-get config ':name) .
-                                        ,(funcall (plist-get config ':function) candidate))))
+                              collect `(,(plist-get config :name) .
+                                        ,(funcall (plist-get config :function) candidate))))
                    candidates))
          (annotation-widths
           (cl-loop for config in annotation-config
                    collect
-                   `(,(plist-get config ':name) .
+                   `(,(plist-get config :name) .
                      ,(thread-last annotations
                                    (seq-map (lambda (it) (length (alist-get (plist-get config :name) it))))
                                    (funcall (lambda (it)
@@ -871,17 +862,17 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
                  `(,(cl-loop for config in annotation-config
                              concat
                              (let* ((padding 3)
-                                    (str (alist-get (plist-get config ':name) annotation))
-                                    (width (alist-get (plist-get config ':name) annotation-widths))
+                                    (str (alist-get (plist-get config :name) annotation))
+                                    (width (alist-get (plist-get config :name) annotation-widths))
                                     (new-str
-                                     (if-let* ((align (plist-get config ':align))
+                                     (if-let* ((align (plist-get config :align))
                                                (align-right (eq 'right align)))
                                          (concat (make-string (- width (length str)) ?\s)
                                                  str (make-string padding ?\s))
                                        (concat
                                         (truncate-string-to-width str width 0 ?\s)
                                         (make-string padding ?\s)))))
-                               (if-let ((face (plist-get config ':face)))
+                               (if-let ((face (plist-get config :face)))
                                    (zuul--propertize-face new-str face)
                                  new-str)))
                    . ,candidate))
@@ -1019,33 +1010,33 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
 
 (defun zuul--data-playbook-name-str (data)
   "Return name of playbook in DATA."
-  (let-alist (plist-get data ':playbook)
+  (let-alist (plist-get data :playbook)
     .playbook))
 
 (defun zuul--data-playbook-phase-str (data)
   "Return the phase of playbook in DATA."
-  (let-alist (plist-get data ':playbook)
+  (let-alist (plist-get data :playbook)
     (concat (upcase (substring .phase 0 1))
             (substring .phase 1))))
 
 (defun zuul--data-play-name-str (data)
   "Return the name of play in DATA."
-  (let-alist (plist-get data ':play)
+  (let-alist (plist-get data :play)
     .play.name))
 
 (defun zuul--data-task-name-str (data)
   "Return the name of task in DATA."
-  (let-alist (plist-get data ':task)
+  (let-alist (plist-get data :task)
     .task.name))
 
 (defun zuul--data-task-role-str (data)
   "Return the role of task in DATA."
-  (let-alist (plist-get data ':task)
+  (let-alist (plist-get data :task)
     (or .role.name "")))
 
 (defun zuul--data-task-duration-str (data)
   "Return the duration of task in DATA."
-  (let-alist (plist-get data ':task)
+  (let-alist (plist-get data :task)
     (let ((duration
            (float-time
             (time-subtract
@@ -1055,12 +1046,12 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
 
 (defun zuul--data-host-name-str (data)
   "Return the name of the host in DATA."
-  (pcase-let* ((`(,hostname . ,_data) (plist-get data ':host)))
+  (pcase-let* ((`(,hostname . ,_data) (plist-get data :host)))
     (symbol-name hostname)))
 
 (defun zuul--data-host-cmd-str (data)
   "Return the command of the host in DATA."
-  (pcase-let* ((`(,_hostname . ,data) (plist-get data ':host))
+  (pcase-let* ((`(,_hostname . ,data) (plist-get data :host))
                (cmd-str (let-alist data .cmd)))
     (if (stringp cmd-str)
         cmd-str
@@ -1068,7 +1059,7 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
 
 (defun zuul--data-host-result-str (data)
   "Return the result of the host in DATA."
-  (pcase-let* ((`(,_hostname . ,data) (plist-get data ':host))
+  (pcase-let* ((`(,_hostname . ,data) (plist-get data :host))
                (result
                 (let-alist data
                   (if .failed

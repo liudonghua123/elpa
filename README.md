@@ -105,4 +105,4 @@ The `zuul.el` package supports [Connection Local Variables](https://www.gnu.org/
 
 # Contributions
 
-The author might try to include the package into ELPA in the future, which means that if you want to contribute you must have a copyright assignment.
+The author might try to include the package into GNU ELPA in the future, which means that if you want to contribute you must have a copyright assignment.
