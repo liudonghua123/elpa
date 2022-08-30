@@ -1120,20 +1120,6 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
 
 ;;;; Major mode
 
-(define-derived-mode zuul-log-mode fundamental-mode "Zuul Log"
-  "Mode for `zuul' build log."
-  (ansi-color-apply-on-region (point-min) (point-max))
-  (comint-carriage-motion (point-min) (point-max))
-  (setq zuul--project-files (zuul--project-files))
-  (setq-local compilation-parse-errors-filename-function #'zuul--locate-file)
-  (setq-local imenu-create-index-function #'zuul--imenu-index)
-  (compilation-minor-mode)
-  (setq-local font-lock-defaults '(compilation-mode-font-lock-keywords t))
-  (add-hook 'eldoc-documentation-functions #'zuul--eldoc-function nil t)
-  (read-only-mode)
-  (font-lock-mode)
-  (zuul--highlight-cmd))
-
 (defvar zuul-log-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-b") #'zuul-switch-build)
@@ -1147,6 +1133,20 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
     (define-key map (kbd "C-c C-s") #'zuul-switch-buildset)
     (define-key map (kbd "C-c C-r") #'zuul-run-build-command)
     map))
+
+(define-derived-mode zuul-log-mode fundamental-mode "Zuul Log"
+  "Mode for `zuul' build log."
+  (ansi-color-apply-on-region (point-min) (point-max))
+  (comint-carriage-motion (point-min) (point-max))
+  (setq zuul--project-files (zuul--project-files))
+  (setq-local compilation-parse-errors-filename-function #'zuul--locate-file)
+  (setq-local imenu-create-index-function #'zuul--imenu-index)
+  (compilation-minor-mode)
+  (setq-local font-lock-defaults '(compilation-mode-font-lock-keywords t))
+  (add-hook 'eldoc-documentation-functions #'zuul--eldoc-function nil t)
+  (read-only-mode)
+  (font-lock-mode)
+  (zuul--highlight-cmd))
 
 (provide 'zuul)
 
