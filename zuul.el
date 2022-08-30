@@ -51,12 +51,12 @@
 
 ;;;; Variables
 
-(defcustom zuul-base-url nil
+(defcustom zuul-base-url ""
   "Base URL to Zuul."
   :group 'zuul
   :type 'string)
 
-(defcustom zuul-tenant nil
+(defcustom zuul-tenant ""
   "Zuul tenant."
   :group 'zuul
   :type 'string)
@@ -68,7 +68,10 @@ Each configuration is a property list with the following properties:
 NAME: Name of the tenant
 PROJECT-ROOTS: An alist of (name . root)"
   :group 'zuul
-  :type 'list)
+  :type '(repeat (plist :options ((:name string)
+                                  (:project-roots
+                                   (alist :key-type string
+                                          :value-type string))))))
 
 (defcustom zuul-build-annotation
   '((:name build :function zuul--build-name-str)
@@ -84,7 +87,10 @@ Each entry in the list is a property list with the following properties:
 - :align
 - :face"
   :group 'zuul
-  :type 'list)
+  :type '(repeat (plist :options ((:name symbol)
+                                  (:function symbol)
+                                  (:align symbol)
+                                  (:face symbol)))))
 
 (defcustom zuul-buildset-annotation
   '((:name patchset :function zuul--buildset-patchset-str)
@@ -100,7 +106,10 @@ Each entry in the list is a property list with the following properties:
 - :align
 - :face"
   :group 'zuul
-  :type 'list)
+  :type '(repeat (plist :options ((:name symbol)
+                                  (:function symbol)
+                                  (:align symbol)
+                                  (:face symbol)))))
 
 (defcustom zuul-build-command-annotation
   '((:name command :function zuul--data-host-cmd-str :width 50)
@@ -118,7 +127,10 @@ Each entry in the list is a property list with the following properties:
 - :align
 - :face"
   :group 'zuul
-  :type 'list)
+  :type '(repeat (plist :options ((:name symbol)
+                                  (:function symbol)
+                                  (:align symbol)
+                                  (:face symbol)))))
 
 (defcustom zuul-build-imenu-annotation
   '((:name task-name :function zuul--data-task-name-str)
@@ -135,13 +147,16 @@ Each entry in the list is a property list with the following properties:
 - :align
 - :face"
   :group 'zuul
-  :type 'list)
+  :type '(repeat (plist :options ((:name symbol)
+                                  (:function symbol)
+                                  (:align symbol)
+                                  (:face symbol)))))
 
 (defcustom zuul-build-display-buffer-action '(display-buffer-same-window
                                               (inhibit-same-window . nil))
   "The configuration for `display-buffer' when opening a build."
   :group 'zuul
-  :type 'list)
+  :type 'sexp)
 
 (defcustom zuul-add-builds-to-buildset t
   "If set to t builds will be added to buildsets."
