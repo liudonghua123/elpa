@@ -42,6 +42,7 @@
 (require 'ansi-color)
 (require 'comint)
 (require 'project)
+(require 'subr-x)
 (require 'text-property-search)
 (require 'url)
 
@@ -761,10 +762,10 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
 (defun zuul--build-json-parser ()
   "Parse the output of a json build."
   (let ((build (zuul--request-json-parser)))
-    (mapconcat #'identity
-               (flatten-list
-                (seq-map #'zuul--build-playbook-output build))
-               "\n")))
+    (string-join
+     (flatten-list
+      (seq-map #'zuul--build-playbook-output build))
+     "\n")))
 
 (defun zuul--build-playbook-output (playbook)
   "Return the output from the PLAYBOOK."
@@ -807,7 +808,7 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
                           hostname
                           (if (stringp cmd)
                               cmd
-                            (mapconcat #'identity cmd " "))))))
+                            (string-join cmd " "))))))
       (zuul--propertize-face cmd-str 'bold-italic)
       (if (or (null output) (string-empty-p output))
           (setq output (concat cmd-str "\n"))
@@ -889,19 +890,19 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
   "A member of `eldoc-documentation-functions', for signatures."
   (when-let* ((text-properties (text-properties-at (point)))
               (data (plist-get text-properties 'zuul-data)))
-    (mapconcat #'identity
-               `(,(format "%s playbook" (zuul--data-playbook-phase-str data))
-                 ,(zuul--data-playbook-name-str data)
-                 ,(format "Play: %s" (zuul--data-play-name-str data))
-                 ,(concat "Task: ["
-                          (when-let ((role-str (zuul--data-task-role-str data)))
-                            (unless (string-empty-p role-str)
-                              (concat role-str ": ")))
-                          (zuul--data-task-name-str data)
-                          "] "
-                          (string-trim (zuul--data-task-duration-str data)))
-                 ,(format "Host: %s" (zuul--data-host-name-str data)))
-               " ")))
+    (string-join
+     `(,(format "%s playbook" (zuul--data-playbook-phase-str data))
+       ,(zuul--data-playbook-name-str data)
+       ,(format "Play: %s" (zuul--data-play-name-str data))
+       ,(concat "Task: ["
+                (when-let ((role-str (zuul--data-task-role-str data)))
+                  (unless (string-empty-p role-str)
+                    (concat role-str ": ")))
+                (zuul--data-task-name-str data)
+                "] "
+                (string-trim (zuul--data-task-duration-str data)))
+       ,(format "Host: %s" (zuul--data-host-name-str data)))
+     " ")))
 
 (defun zuul--imenu-index ()
   "Create an `imenu' index for the build log."
@@ -935,7 +936,7 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
                           (seq-map (lambda (it)
                                      (pcase-let ((`(,type . ,builds) it))
                                        (format "%s(%s)" type (length builds))))))))
-      (mapconcat #'identity summary " ")
+      (string-join summary " ")
     ""))
 
 (defun zuul--buildset-duration-str (buildset)
@@ -1055,7 +1056,7 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
                (cmd-str (let-alist data .cmd)))
     (if (stringp cmd-str)
         cmd-str
-      (mapconcat #'identity cmd-str " "))))
+      (string-join cmd-str " "))))
 
 (defun zuul--data-host-result-str (data)
   "Return the result of the host in DATA."
