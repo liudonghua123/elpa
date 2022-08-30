@@ -150,31 +150,22 @@ Each entry in the list is a property list with the following properties:
 
 ;;;;; Private
 
-(defvar zuul--response-buffer " *zuul-response*"
+(defconst zuul--response-buffer " *zuul-response*"
   "Name of the buffer which holds the response from Zuul.")
 
-(defvar zuul--build-playbook-id nil
-  "Identifier for playbook.")
-(defvar zuul--build-play-id nil
-  "Identifier for play.")
-(defvar zuul--build-task-id nil
-  "Identifier for task.")
-(defvar zuul--build-data nil
-  "Data of build.")
+(defvar zuul--build-playbook-id nil "Identifier for playbook.")
+(defvar zuul--build-play-id nil "Identifier for play.")
+(defvar zuul--build-task-id nil "Identifier for task.")
+(defvar zuul--build-data nil "Data of build.")
+(defvar zuul--builds nil "List of builds.")
+(defvar zuul--build nil "A build.")
 
-(defvar zuul--builds nil)
-(defvar zuul--build nil)
-(defvar zuul--current-build nil
+(defvar-local zuul--current-build nil
   "A buffer local variable of the current build.")
-(defvar zuul--current-builds nil
+(defvar-local zuul--current-builds nil
   "A buffer local variable of the current builds.")
-(defvar zuul--project-files nil
+(defvar-local zuul--project-files nil
   "A buffer local variable with all files in the current project.")
-
-(dolist (var '(zuul--current-build
-               zuul--current-builds
-               zuul--project-files))
-  (make-variable-buffer-local var))
 
 ;;;; Faces
 
