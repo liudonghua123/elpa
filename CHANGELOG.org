@@ -4,6 +4,11 @@
 
 * Develop
 
+* Version 0.3 (2022-08-30)
+
+- Make package is available on ELPA
+- Improve package quality by implementing suggestions from tools and reviewers
+
 * Version 0.2 (2022-08-25)
 
 - Simplify for users/packages to utilize =zuul=
