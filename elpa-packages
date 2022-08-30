@@ -810,4 +810,8 @@
  ("yasnippet-classic-snippets" :url nil)
  ("zones"		:url nil)  ;https://www.emacswiki.org/emacs/zones.el
  ("ztree"		:url "https://github.com/fourier/ztree")
+ ("zuul"		:url "https://git.sr.ht/~niklaseklund/zuul.el"
+  :news "CHANGELOG.org"
+  :readme "README.md"
+  :auto-sync t)
  )
