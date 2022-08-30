@@ -42,6 +42,7 @@
 (require 'ansi-color)
 (require 'comint)
 (require 'project)
+(eval-when-compile (require 'rx))
 (require 'subr-x)
 (require 'text-property-search)
 (require 'url)
