@@ -37,10 +37,6 @@
   :auto-sync t)
  ("ack"			:url "https://github.com/leoliu/ack-el"
   :auto-sync t)
- ("polymode"		:url "https://github.com/polymode/polymode"
-  :ignore-files ("targets" "template" "tests")
-  :readme "readme.md"
-  :auto-sync t)
  ("ada-mode"		:url nil
   :doc ("ada-mode.texi" "gpr-mode.texi")
   :branch "ada-mode"
@@ -585,6 +581,10 @@
  ("poke-mode"		:url "git://git.sv.gnu.org/poke/poke-mode.git"
   :auto-sync t)
  ("poker"		:url nil)
+ ("polymode"		:url "https://github.com/polymode/polymode"
+  :ignore-files ("targets" "template" "tests")
+  :readme "readme.md"
+  :auto-sync t)
  ("posframe"
   :url "https://github.com/tumashu/posframe"
   :auto-sync t)
