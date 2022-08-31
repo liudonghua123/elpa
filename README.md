@@ -75,22 +75,6 @@ It also integrates with the following built in features:
 - `imenu`: navigate to beginning of tasks in the build log
 - `eldoc`: echo descriptive information about where in the log point are
 
-# Customization
-
-The package provides the following customizable variables.
-
-| Name                               | Description                                                |
-|------------------------------------|------------------------------------------------------------|
-| `zuul-base-url`                    | Base URL to Zuul                                           |
-| `zuul-tenant`                      | Zuul tenant                                                |
-| `zuul-tenant-configs`              | A list of tenant configurations                            |
-| `zuul-build-annotation`            | A list of annotations to display for a build               |
-| `zuul-buildset-annotation`         | A list of annotations to display for a buildset            |
-| `zuul-build-command-annotation`    | A list of annotations to display for a build command       |
-| `zuul-build-imenu-annotation`      | A list of annotations to display for a imenu               |
-| `zuul-build-display-buffer-action` | The configuration for display-buffer when opening a build. |
-| `zuul-add-builds-to-buildset`      | If set to t builds will be added to buildsets              |
-
 # Remote support
 
 The `zuul.el` package supports [Connection Local Variables](https://www.gnu.org/software/emacs/manual/html_node/elisp/Connection-Local-Variables.html) which allows the user to customize the `zuul-tenant-configs` variable when running on a remote host. In this example `zuul-tenant-configs` are configured the same for all remote hosts.
