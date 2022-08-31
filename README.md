@@ -1,5 +1,6 @@
 # zuul.el
 
+[![GNU ELPA](https://elpa.gnu.org/packages/zuul.svg)](https://elpa.gnu.org/packages/zuul.html)
 [![GNU-devel ELPA](https://elpa.gnu.org/devel/zuul.svg)](http://elpa.gnu.org/devel/zuul.html)
 [![builds.sr.ht status](https://builds.sr.ht/~niklaseklund/zuul.el/commits/main/.build.yml.svg)](https://builds.sr.ht/~niklaseklund/zuul.el/commits/main/.build.yml?)
 
