@@ -3,7 +3,8 @@
 ;; Copyright (C) 2022  Free Software Foundation, Inc.
 
 ;; Author: Niklas Eklund <niklas.eklund@posteo.net>
-;; URL: https://git.sr.ht/~niklaseklund/zuul.el
+;; Maintainer: zuul.el Development <~niklaseklund/zuul.el@lists.sr.ht>
+;; URL: https://sr.ht/~niklaseklund/zuul.el
 ;; Version: 0.3
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: convenience tools
