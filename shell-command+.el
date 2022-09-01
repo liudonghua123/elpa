@@ -4,7 +4,7 @@
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
-;; Version: 2.4.0
+;; Version: 2.4.1
 ;; Keywords: unix, processes, convenience
 ;; Package-Requires: ((emacs "24.3"))
 ;; URL: https://git.sr.ht/~pkal/shell-command-plus
