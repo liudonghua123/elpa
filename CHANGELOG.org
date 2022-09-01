@@ -4,6 +4,11 @@
 
 * Develop
 
+* Version 0.4.0 (2022-09-01)
+
+- Reduce the required Emacs version from 28.1 to 27.1
+- Adapt semantic versioning
+
 * Version 0.3 (2022-08-30)
 
 - Make package is available on ELPA

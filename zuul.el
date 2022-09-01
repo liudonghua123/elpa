@@ -5,7 +5,7 @@
 ;; Author: Niklas Eklund <niklas.eklund@posteo.net>
 ;; Maintainer: zuul.el Development <~niklaseklund/zuul.el@lists.sr.ht>
 ;; URL: https://sr.ht/~niklaseklund/zuul.el
-;; Version: 0.3
+;; Version: 0.4.0
 ;; Package-Requires: ((emacs "27.1") (project "0.8.1"))
 ;; Keywords: convenience tools
 
