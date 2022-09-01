@@ -10,6 +10,8 @@ Browse [Zuul](https://zuul-ci.org/) build outputs from Emacs. The `zuul.el` pack
 
 The `zuul-log-mode` major mode makes it as comfortable to browse a build log as it would be to navigate a local compilation. The package implements a custom filename parser for errors in the logs which allows Emacs to open the correct project file when an error is encountered in the log, even though the absolute path may not be found on the local machine.
 
+For screenshots of the package see the blog post [Bring Zuul into Emacs](https://niklaseklund.srht.site/posts/bring_zuul_into_emacs/).
+
 # Configuration
 
 A minimal `use-package` configuration.
