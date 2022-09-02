@@ -270,6 +270,9 @@
   :url "https://github.com/oantolin/embark"
   :ignored-files ("embark.el" "embark.texi" "avy-embark-collect.el")
   :auto-sync t)
+("ement"                :url "https://github.com/alphapapa/ement.el.git"
+  :doc "README.org"
+  :auto-sync t)
  ("emms"		:url "https://git.savannah.gnu.org/git/emms.git"
   :doc "doc/emms.texinfo"
   :auto-sync t)
