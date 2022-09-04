@@ -184,6 +184,7 @@
   :url "https://git.sr.ht/~protesilaos/cursory"
   :auto-sync t
   :doc "README.org"
+  :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  ("cycle-quotes"	:url nil)
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
