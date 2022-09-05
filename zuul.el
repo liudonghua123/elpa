@@ -1115,7 +1115,7 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
           (goto-char (prop-match-beginning property))
           (search-forward "$")
           (let* ((ov-prompt (make-overlay (prop-match-beginning property) (point)))
-                 (ov-input (make-overlay (point) (progn (end-of-line) (point)))))
+                 (ov-input (make-overlay (point) (point-at-eol))))
             (overlay-put ov-prompt 'face 'zuul-command-prompt-face)
             (overlay-put ov-input 'face 'zuul-prompt-input-face)))))))
 
