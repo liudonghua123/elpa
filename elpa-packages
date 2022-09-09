@@ -153,6 +153,7 @@
  ("consult"		:url "https://github.com/minad/consult"
   :doc "README.org"
   :ignored-files ("images")
+  :news "CHANGELOG.org"
   :auto-sync t)
  ("consult-recoll"	:url "https://codeberg.org/jao/consult-recoll"
   :ignored-files ("license")
