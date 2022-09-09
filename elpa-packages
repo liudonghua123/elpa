@@ -63,8 +63,9 @@
   :auto-sync t)
  ("async"		:url "https://github.com/jwiegley/emacs-async"
   :auto-sync t)
- ;; AUCTeX is currently sync'd manually and elpa.git isn't quite a mirror :-(
- ("auctex"		:url "git://git.sv.gnu.org/auctex.git")
+ ("auctex"		:url "git://git.sv.gnu.org/auctex.git"
+  ;; AUCTeX is currently sync'd manually and elpa.git isn't quite a mirror :-(
+  :auto-sync nil)
  ("aumix-mode"		:url nil)
  ("auto-correct"	:url nil)
  ("auto-overlays"	:url "http://www.dr-qubit.org/git/predictive.git"
@@ -220,7 +221,8 @@
   :auto-sync t)
  ("dired-du"		:url nil)
  ("dired-git-info"	:url "https://github.com/clemera/dired-git-info")
- ("disk-usage"		:url "https://gitlab.com/ambrevar/emacs-disk-usage")
+ ("disk-usage"		:url "https://gitlab.com/ambrevar/emacs-disk-usage"
+  :auto-sync t)
  ("dismal"		:url nil)
  ("djvu"		:url nil)
  ("docbook"		:url nil)
@@ -257,7 +259,7 @@
  ("eldoc-eval"		:url "https://github.com/thierryvolpiatto/eldoc-eval.git")
  ("electric-spacing"	:url nil)
  ("elisp-benchmarks"	:url nil)
- ;; FIXME: Waiting for fmdkdd's copyright paperwork.
+ ;; FIXME: Waiting for Sean Allred's copyright paperwork.
  ;;("elsa"		:url "https://github.com/emacs-elsa/Elsa"
  ;; :auto-sync t)
  ;;("emacspeak"		:url nil
@@ -271,7 +273,7 @@
   :url "https://github.com/oantolin/embark"
   :ignored-files ("embark.el" "embark.texi" "avy-embark-collect.el")
   :auto-sync t)
-("ement"                :url "https://github.com/alphapapa/ement.el.git"
+ ("ement"                :url "https://github.com/alphapapa/ement.el.git"
   :doc "README.org"
   :auto-sync t)
  ("emms"		:url "https://git.savannah.gnu.org/git/emms.git"
@@ -675,8 +677,10 @@
  ("so-long"             :core "lisp/so-long.el")
  ("soap-client"		:core ("lisp/net/soap-client.el" "lisp/net/soap-inspect.el"))
  ("sokoban"		:url nil)
- ("sotlisp"		:url "https://github.com/Malabarba/speed-of-thought-lisp")
- ("spinner"		:url "https://github.com/Malabarba/spinner.el")
+ ("sotlisp"		:url "https://github.com/Malabarba/speed-of-thought-lisp"
+  :auto-sync t)
+ ("spinner"		:url "https://github.com/Malabarba/spinner.el"
+  :auto-sync t)
  ("sql-beeline"		:url nil)
  ("sql-cassandra"	:url nil)
  ("sql-indent"          :url "https://github.com/alex-hhh/emacs-sql-indent"
@@ -712,9 +716,11 @@
  ("tempel"		:url "https://github.com/minad/tempel"
   :doc "README.org"
   :auto-sync t)
- ("test-simple"         :url "https://github.com/rocky/emacs-test-simple")
+ ("test-simple"         :url "https://github.com/rocky/emacs-test-simple"
+  :auto-sync t)
  ("timerfunctions"	:url nil)
- ("tiny"		:url "https://github.com/abo-abo/tiny")
+ ("tiny"		:url "https://github.com/abo-abo/tiny"
+  :ayto-sync t)
  ("tmr"
   :url "https://git.sr.ht/~protesilaos/tmr"
   :auto-sync t
@@ -748,6 +754,9 @@
   :doc "docs/transient.texi")
  ("transient-cycles"    :url nil)
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ;; FIXME: Waiting for copyright cleanups.
+ ;;("trinary"		:url "https://github.com/emacs-elsa/trinary-logic"
+ ;; :auto-sync t)
  ;; FIXME: The upstream of `undo-tree' has diverged.  I tried to
  ;; contact Toby but he's quite busy.  He mentioned thinking of using the
  ;; `elpa.git` branch as the official upstream.
@@ -769,7 +778,8 @@
   :auto-sync t)
  ("vcard"		:url nil)
  ("vcl-mode"	        :url "git://git.gnu.org.ua/vcl-mode")
- ("vdiff"               :url "https://github.com/justbur/emacs-vdiff")
+ ("vdiff"               :url "https://github.com/justbur/emacs-vdiff"
+  :auto-sync t)
  ("verilog-mode"        :core "lisp/progmodes/verilog-mode.el")
  ("vertico"		:url "https://github.com/minad/vertico"
   :doc "README.org"
@@ -803,6 +813,9 @@
   :release-branch "wisi.release")
  ("wisitoken-grammar-mode" :url nil)
  ("wpuzzle"		:url nil)
+ ;; FIXME: Waiting for copyright paperwork from Emanuel Berg.
+ ;;("wrap-search"		:url "https://dataswamp.org/~incal/wrap-search.git"
+ ;; :auto-sync t)
  ("xclip"		:url nil)
  ("xelb"		:url "https://github.com/ch11ng/xelb.git")
  ("xpm"			:url nil)
