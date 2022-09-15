@@ -331,6 +331,10 @@
   :news "ERC-NEWS")
  ("ergoemacs-mode"	:url "https://github.com/ergoemacs/ergoemacs-mode.git"
   :auto-sync t)
+ ("ess"			:url "https://github.com/emacs-ess/ESS"
+  :lisp-dir "lisp"
+  :doc "doc/ess.texi"
+  :auto-sync t)
  ("excorporate"		:url nil)
  ("expand-region"	:url "https://github.com/magnars/expand-region.el")
  ("exwm"		:url "https://github.com/ch11ng/exwm.git"
@@ -523,9 +527,9 @@
   :shell-command "make autoloads info; mv doc/org.info org.info; mv doc/orgguide.info orgguide.info"
   :doc ("org.info" "orgguide.info")
   :auto-sync t)
- ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
  ("org-contacts"	:url "https://repo.or.cz/org-contacts.git"
   :auto-sync t)
+ ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
  ;; FIXME: Waiting for copyright paperwork from Brandon Webster.
  ;;("org-drill"		:url "https://gitlab.com/phillord/org-drill"
  ;; :auto-sync t)
