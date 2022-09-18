@@ -529,7 +529,9 @@
   :auto-sync t)
  ("org-contacts"	:url "https://repo.or.cz/org-contacts.git"
   :auto-sync t)
- ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el") ;URL?
+ ("org-edna"		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el"
+  ;; The Bzr<->Git bridge wasn't working well enough last time I tried.
+  :auto-sync nil)
  ;; FIXME: Waiting for copyright paperwork from Brandon Webster.
  ;;("org-drill"		:url "https://gitlab.com/phillord/org-drill"
  ;; :auto-sync t)
