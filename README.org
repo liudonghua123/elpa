@@ -1,6 +1,16 @@
 #+title: hc.el
 
-hc.el is the emacs client for hcel.
+hc.el is a client to [[https://g.ypei.me/hcel.git/][hcel]] and Emacs package for Haskell code
+exploring.  Features include:
+
+- Jump to definition (using xref)
+- Find references (based on compilation mode)
+- Search identifiers in a package or globally (based on compilation mode)
+- Highlight the identifier at point
+- Browse packages, modules and identifiers in an outline mode buffer
+- Eldoc integration, showing type and documentation of the identifier
+  at point, or the selected expression.
+- Syntax highlight (requires haskell-mode)
 
 * Install
 
