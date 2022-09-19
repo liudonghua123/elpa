@@ -18,7 +18,7 @@
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
 (defcustom hcel-host "localhost:8080"
-  "hcel endpoint"
+  "hcel server host"
   :group 'hcel)
 (defcustom hcel-indexed-dir "/.haskell-code-explorer"
   "hcel indexed dir"
