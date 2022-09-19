@@ -166,4 +166,9 @@ Example of an idSrcSpan:
       (shr-render-region (point-min) (point-max))
       (buffer-string))))
 
+(defun hcel-text-property-near-point (prop)
+  "Find property prop at point, or just before point."
+  (or (get-text-property (point) prop)
+      (get-text-property (1- (point)) prop)))
+
 (provide 'hcel-utils)

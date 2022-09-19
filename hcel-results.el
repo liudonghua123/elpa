@@ -23,6 +23,7 @@
 ;; compilation-mode.
 
 ;;; Code:
+(require 'hcel-utils)
 
 (defun hcel-results-next-error-no-open (n)
   (interactive "p")
@@ -202,24 +203,23 @@ Start by choosing a package."
   "Find references of the identifier at point."
   (interactive)
   (hcel-find-references-internal hcel-package-id hcel-module-path
-                                 (get-text-property (point) 'identifier)))
+                                 (hcel-text-property-near-point 'identifier)))
 (define-key hcel-mode-map (kbd "M-?") 'hcel-find-references-at-point)
 
 (defun hcel-minor-find-references-at-point ()
   (interactive)
-  (let ((props (text-properties-at (point))))
-    (cond ((or (eq major-mode 'hcel-outline-mode)
-               (eq (current-buffer) eldoc--doc-buffer))
-           (hcel-find-references-internal
-            (plist-get props 'package-id)
-            (plist-get props 'module-path)
-            (plist-get props 'internal-id)))
-          ((eq major-mode 'hcel-ids-mode)
-           (hcel-find-references-internal
-            (alist-get 'packageId (plist-get props 'location-info))
-            (alist-get 'modulePath (plist-get props 'location-info))
-            (plist-get props 'internal-id)))
-          (t (error "%S not supported and not in eldoc doc buffer." major-mode)))))
+  (cond ((or (eq major-mode 'hcel-outline-mode)
+             (eq (current-buffer) eldoc--doc-buffer))
+         (hcel-find-references-internal
+          (hcel-text-property-near-point 'package-id)
+          (hcel-text-property-near-point 'module-path)
+          (hcel-text-property-near-point 'internal-id)))
+        ((eq major-mode 'hcel-ids-mode)
+         (hcel-find-references-internal
+          (alist-get 'packageId (hcel-text-property-near-point 'location-info))
+          (alist-get 'modulePath (hcel-text-property-near-point 'location-info))
+          (hcel-text-property-near-point 'internal-id)))
+        (t (error "%S not supported and not in eldoc doc buffer." major-mode))))
 
 (defun hcel-find-references-internal (package-id module-path identifier)
   (when (and package-id module-path identifier)

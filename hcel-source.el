@@ -130,7 +130,7 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
       (when occ (alist-get 'contents (alist-get 'sort occ)))))
 
 (defun hcel-occ-symbol-at-point ()
-  (when-let* ((occ (get-text-property (point) 'occurrence))
+  (when-let* ((occ (hcel-text-property-near-point 'occurrence))
               (splitted (split-string occ "-"))
               (line (string-to-number (car splitted)))
               (col-beg (string-to-number (cadr splitted)))
@@ -140,7 +140,7 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
 (defun hcel-type-at-point ()
   (interactive)
   (hcel-render-type-internal hcel-package-id hcel-module-path
-                             (get-text-property (point) 'identifier)))
+                             (hcel-text-property-near-point 'identifier)))
 
 (defun hcel-render-type-internal (package-id module-path identifier)
   (when (and package-id module-path identifier)
@@ -169,7 +169,7 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
 
 (defun hcel-id-docs-at-point ()
   (hcel-id-docs-internal hcel-package-id hcel-module-path
-                         (get-text-property (point) 'identifier)))
+                         (hcel-text-property-near-point 'identifier)))
 
 (defun hcel-id-docs-internal (package-id module-path identifier)
   (when (and package-id module-path identifier)
@@ -242,8 +242,7 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
       (hcel-minor-mode))))
 
 (defun hcel-minor-eldoc-id-type (cb)
-  (when-let* ((props (text-properties-at (point)))
-              (identifier (plist-get props 'internal-id))
+  (when-let* ((identifier (hcel-text-property-near-point 'internal-id))
               (symbol (save-excursion
                         (buffer-substring
                          (progn
@@ -257,13 +256,13 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
               (docstring
                (cond ((eq major-mode 'hcel-outline-mode)
                       (hcel-render-type-internal
-                       (plist-get props 'package-id)
-                       (plist-get props 'module-path)
+                       (hcel-text-property-near-point 'package-id)
+                       (hcel-text-property-near-point 'module-path)
                        identifier))
                      ((eq major-mode 'hcel-ids-mode)
                       (hcel-render-type-internal
-                       (alist-get 'packageId (plist-get props 'location-info))
-                       (alist-get 'modulePath (plist-get props 'location-info))
+                       (alist-get 'packageId (hcel-text-property-near-point 'location-info))
+                       (alist-get 'modulePath (hcel-text-property-near-point 'location-info))
                        identifier))
                      (t nil))))
     (funcall cb docstring
@@ -280,18 +279,17 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
       (hcel-minor-mode))))
 
 (defun hcel-minor-eldoc-docs (cb)
-  (when-let* ((props (text-properties-at (point)))
-              (docstring
+  (when-let* ((docstring
                (cond ((eq major-mode 'hcel-outline-mode)
                       (hcel-id-docs-internal
-                       (plist-get props 'package-id)
-                       (plist-get props 'module-path)
-                       (plist-get props 'internal-id)))
+                       (hcel-text-property-near-point 'package-id)
+                       (hcel-text-property-near-point 'module-path)
+                       (hcel-text-property-near-point 'internal-id)))
                      ((eq major-mode 'hcel-ids-mode)
                       (hcel-id-docs-internal
-                       (alist-get 'packageId (plist-get props 'location-info))
-                       (alist-get 'modulePath (plist-get props 'location-info))
-                       (plist-get props 'internal-id)))
+                       (alist-get 'packageId (hcel-text-property-near-point 'location-info))
+                       (alist-get 'modulePath (hcel-text-property-near-point 'location-info))
+                       (hcel-text-property-near-point 'internal-id)))
                      (t nil))))
     (setq this-command nil)
     (funcall cb docstring)
@@ -426,8 +424,8 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
 (defun hcel-find-definition ()
   (hcel-find-definition-internal
    hcel-package-id hcel-module-path
-   (get-text-property (point) 'identifier)
-   (get-text-property (point) 'occurrence)))
+   (hcel-text-property-near-point 'identifier)
+   (hcel-text-property-near-point 'occurrence)))
 
 (add-hook 'hcel-minor-mode-hook
           (lambda ()
@@ -438,19 +436,18 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
   (hcel-minor-find-definition-at-point))
 (defun hcel-minor-find-definition-at-point ()
   (interactive)
-  (let ((props (text-properties-at (point))))
-    (cond ((or (eq major-mode 'hcel-outline-mode)
-               (eq (current-buffer) eldoc--doc-buffer))
-           (hcel-find-definition-internal
-            (plist-get props 'package-id)
-            (plist-get props 'module-path)
-            (plist-get props 'internal-id)))
-          ((eq major-mode 'hcel-ids-mode)
-           (hcel-find-definition-internal
-            (alist-get 'packageId (plist-get props 'location-info))
-            (alist-get 'modulePath (plist-get props 'location-info))
-            (plist-get props 'internal-id)))
-          (t (error "%S not supported and not in eldoc doc buffer." major-mode)))))
+  (cond ((or (eq major-mode 'hcel-outline-mode)
+             (eq (current-buffer) eldoc--doc-buffer))
+         (hcel-find-definition-internal
+          (hcel-text-property-near-point 'package-id)
+          (hcel-text-property-near-point 'module-path)
+          (hcel-text-property-near-point 'internal-id)))
+        ((eq major-mode 'hcel-ids-mode)
+         (hcel-find-definition-internal
+          (alist-get 'packageId (hcel-text-property-near-point 'location-info))
+          (alist-get 'modulePath (hcel-text-property-near-point 'location-info))
+          (hcel-text-property-near-point 'internal-id)))
+        (t (error "%S not supported and not in eldoc doc buffer." major-mode))))
 
 (defun hcel-find-definition-internal (package-id module-path identifier
                                                  &optional occurrence)
