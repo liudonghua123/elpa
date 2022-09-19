@@ -1,6 +1,6 @@
 #+title: hc.el
 
-hc.el is a client to [[https://g.ypei.me/hcel.git/][hcel]] and Emacs package for Haskell code
+hc.el is a client to [[https://g.ypei.me/hcel.git/][hcel]] and an Emacs package for Haskell code
 exploring.  Features include:
 
 - Jump to definition (using xref)
