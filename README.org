@@ -33,7 +33,7 @@ indexed packages, do the following and you are all set.
 
 #+begin_src elisp
 (require 'hc)
-(setq hcel-endpoint "localhost:8080")
+(setq hcel-host "localhost:8080")
 #+end_src
 
 * Use

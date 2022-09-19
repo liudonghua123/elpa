@@ -17,7 +17,7 @@
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
-(defcustom hcel-endpoint "localhost:8080"
+(defcustom hcel-host "localhost:8080"
   "hcel endpoint"
   :group 'hcel)
 (defcustom hcel-indexed-dir "/.haskell-code-explorer"
@@ -28,7 +28,7 @@
 
 (defun hcel-api-packages ()
   (let ((packages
-         (hcel-url-fetch-json (concat hcel-endpoint "/api/packages"))))
+         (hcel-url-fetch-json (concat hcel-host "/api/packages"))))
     (mapcan
      (lambda (package)
        (mapcar
@@ -44,13 +44,13 @@
    (alist-get
     'modules
     (hcel-url-fetch-json (concat
-                     hcel-endpoint "/files/" (hcel-format-package-id package-id "-")
+                     hcel-host "/files/" (hcel-format-package-id package-id "-")
                      hcel-indexed-dir "/packageInfo.json")))))
 
 (defun hcel-api-definition-site
     (package-id component-id module-name entity name)
   (hcel-url-fetch-json
-   (concat hcel-endpoint "/api/definitionSite/"
+   (concat hcel-host "/api/definitionSite/"
            (hcel-format-package-id package-id "-")
            "/" component-id "/" module-name "/" entity "/" name)))
 
@@ -68,7 +68,7 @@
 (defun hcel-api-module-info (package-id module-path)
   (hcel-url-fetch-json
    (concat
-    hcel-endpoint "/files/" (hcel-format-package-id package-id "-")
+    hcel-host "/files/" (hcel-format-package-id package-id "-")
     hcel-indexed-dir
     "/" (replace-regexp-in-string "/" "%252F" module-path) ".json.gz")
    t))
@@ -77,7 +77,7 @@
     (package-id module-path line-beg col-beg line-end col-end)
   (hcel-url-fetch-json
    (concat
-    hcel-endpoint "/api/expressions/" (hcel-format-package-id package-id "-")
+    hcel-host "/api/expressions/" (hcel-format-package-id package-id "-")
     "/" (replace-regexp-in-string "/" "%2F" module-path)
     "/" (number-to-string (1+ line-beg))
     "/" (number-to-string (1+ col-beg))
@@ -86,7 +86,7 @@
 
 (defun hcel-api-hoogle-docs (package-id module-name entity name)
   (hcel-url-fetch-json
-   (concat hcel-endpoint "/api/hoogleDocs/"
+   (concat hcel-host "/api/hoogleDocs/"
            (hcel-format-package-id package-id "-") "/"
            module-name "/" entity "/" name)))
 
@@ -101,7 +101,7 @@
 
 (defun hcel-api-references (package-id name &optional page per-page)
   (hcel-url-fetch-json
-   (concat hcel-endpoint "/api/references/"
+   (concat hcel-host "/api/references/"
            (hcel-format-package-id package-id "-") "/"
            name
            (hcel-format-pagination-query page per-page))))
@@ -109,7 +109,7 @@
 (defun hcel-api-identifiers (scope query package-id &optional page per-page
                                    with-header)
   (hcel-url-fetch-json
-   (concat hcel-endpoint
+   (concat hcel-host
            (if (eq scope 'global)
                "/api/globalIdentifiers/"
              (concat "/api/identifiers/"
@@ -120,7 +120,7 @@
    nil with-header))
 
 (defun hcel-api-global-references (name)
-  (hcel-url-fetch-json (concat hcel-endpoint "/api/globalReferences/" name)))
+  (hcel-url-fetch-json (concat hcel-host "/api/globalReferences/" name)))
 
 (defun hcel-parse-http-header (text)
   (let ((status) (fields))
