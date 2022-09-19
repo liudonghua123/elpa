@@ -123,8 +123,9 @@
           (number-to-string hcel-results-page-number)
           (number-to-string hcel-refs-per-page))))
     (erase-buffer)
-    (insert (format "References of %s, Page %d of %d.\n"
+    (insert (format "References of %s in %s, Page %d of %d.\n"
                     (hcel-refs-format-id hcel-refs-id)
+                    (hcel-format-package-id hcel-refs-package-id)
                     hcel-results-page-number hcel-results-max-page-number))
     (mapc
      (lambda (module-refs)
@@ -189,7 +190,8 @@ Start by choosing a package."
                       (format "%s (%s)"
                               (alist-get 'packageId pkg-count)
                               (alist-get 'count pkg-count)))
-                    global-refs))))
+                    global-refs)
+            nil t)))
          (package-id (car package-id-and-count))
          (count (string-to-number (substring (cadr package-id-and-count) 1 -1)))
          (max-page-number (1+ (/ count hcel-refs-per-page))))
