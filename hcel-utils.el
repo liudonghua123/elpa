@@ -77,6 +77,7 @@ Example of an idSrcSpan:
               (col-end (alist-get 'column (alist-get 'end span))))
     (buffer-substring-line-column line-beg (1- col-beg) line-end (1- col-end))))
 
+;; FIXME: Make sure all your definitions have an `hcel-' prefix!
 ;; buffers and strings manipulation
 (defun goto-line-column (line column)
   (goto-line line)

@@ -29,7 +29,7 @@
            (module-name (car splitted))
            (entity (if (equal "v" (cadr splitted)) "Val" "Typ"))
            (name (caddr splitted))
-           (package) (unparsed) (package-id))
+           (package) (package-id))
       (goto-char (point-min))
       (setq package (org-entry-get (point) "ITEM"))
       (setq package-id

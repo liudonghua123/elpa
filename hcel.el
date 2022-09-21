@@ -1,11 +1,11 @@
-;;; hc.el --- Haskell codebase explorer -*- lexical-binding: t; -*-
+;;; hcel.el --- Haskell codebase explorer -*- lexical-binding: t; -*-
 
 ;; Author: Yuchen Pei <id@ypei.org>
 ;; Maintainer: Yuchen Pei <id@ypei.org>
 ;; Created: 2022
 ;; Version: 0
 ;; Keywords: haskell
-;; Package-Requires: ((emacs "28") (haskell-mode))
+;; Package-Requires: ((emacs "28"))
 ;; Package-Type: multi
 ;; Homepage: https://g.ypei.me/hcel.git
 
@@ -36,9 +36,10 @@
   (interactive
    (list
     (completing-read "Select package: "
-                     (mapcar 'hcel-format-package-id
+                     (mapcar #'hcel-format-package-id
                              (hcel-api-packages)))))
-  (call-interactively (hcel-module-selector (hcel-parse-package-id package-id))))
+  (call-interactively
+   (hcel-module-selector (hcel-parse-package-id package-id))))
 
 (defun hcel-module ()
   "Select a module to display source."
@@ -56,3 +57,4 @@
      (hcel-load-module-source package-id module-path))))
 
 (provide 'hc)
+;;; hcel.el ends here.

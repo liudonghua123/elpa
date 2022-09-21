@@ -20,17 +20,20 @@
 (require 'hcel-client)
 (define-derived-mode hcel-mode special-mode "hcel"
   "Major mode for exploring Haskell codebases"
-  (setq-local eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly
+  (setq-local eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly
               eldoc-documentation-functions
               '(hcel-eldoc-id-type hcel-eldoc-expression-type hcel-eldoc-docs)
-              imenu-create-index-function 'hcel-imenu-create-index
+              imenu-create-index-function #'hcel-imenu-create-index
               imenu-space-replacement " "
               hcel-identifiers nil
               hcel-declarations nil
               hcel-occurrences nil
               hcel-package-id nil
               hcel-module-path nil
-              hcel-highlight-id nil))
+              hcel-highlight-id nil)
+  (cursor-sensor-mode 1)
+  (add-hook 'xref-backend-functions #'hcel--xref-backend nil t))
+
 (defun hcel-buffer-name (package-id module-path)
   (concat "*hcel " (hcel-format-package-id package-id "-")
           "/" module-path "*"))
@@ -65,7 +68,7 @@ When FORCE is non-nil, kill existing source buffer if any."
       (switch-to-buffer
        (hcel-load-module-source hcel-package-id hcel-module-path t))
     (error "Not in hcel-mode!")))
-(define-key hcel-mode-map "g" 'hcel-reload-module-source)
+(define-key hcel-mode-map "g" #'hcel-reload-module-source)
 
 (defun hcel-load-module-location-info (location-info &optional no-jump)
   "Load a module from exact location info.
@@ -118,7 +121,7 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
         'major-mode
         (get-buffer (if (stringp buffer) buffer (car buffer))))
 		   'hcel-mode)))))
-(define-key hcel-mode-map "b" 'hcel-switch-buffer)
+(define-key hcel-mode-map "b" #'hcel-switch-buffer)
 
 (defun hcel-lookup-occurrence-at-point ()
   (when-let ((occurrence (get-text-property (point) 'occurrence)))
@@ -224,7 +227,7 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
     (hcel-outline-load-modules-at-point)
     (hcel-outline-goto-module module-path)
     (hcel-outline-load-identifiers-at-point)))
-(define-key hcel-mode-map "O" 'hcel-outline-package-module)
+(define-key hcel-mode-map "O" #'hcel-outline-package-module)
 
 ;; eldoc
 (defun hcel-eldoc-id-type (cb)
@@ -312,7 +315,7 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
 (defface hcel-highlight-id '((t (:inherit underline)))
   "Face for highlighting hcel identifier at point.")
 
-(defun hcel-highlight-update (unused unused unused)
+(defun hcel-highlight-update (&rest _)
   ;; if mark is active, change of face will deactivate the mark in transient
   ;; mark mode
   (unless mark-active
@@ -345,8 +348,6 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
            (prop-match-beginning match)
            (prop-match-end match) 'hcel-highlight-id))))))
 
-(add-hook 'hcel-mode-hook 'cursor-sensor-mode)
-
 ;; utilities
 (defun hcel-write-source-line-to-buffer (line)
   (mapc
@@ -360,7 +361,7 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
                     'identifier (unless (string= id "") id)
                     'occurrence (unless (string= occ "") occ)
                     'cursor-sensor-functions
-                    (when id (list 'hcel-highlight-update))))))
+                    (when id (list #'hcel-highlight-update))))))
    line))
 
 (defun hcel-write-source-to-buffer (lines)
@@ -381,13 +382,13 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
                     'identifier (unless (string= id "") id)
                     'occurrence (unless (string= occ "") occ)
                     'cursor-sensor-functions
-                    (when id (list 'hcel-highlight-update))))))
+                    (when id (list #'hcel-highlight-update))))))
    (dom-by-tag line 'span))
   (insert "\n"))
 
 (defun hcel-write-html-source-to-buffer (lines)
   (mapc
-   'hcel-write-html-source-line-to-buffer
+   #'hcel-write-html-source-line-to-buffer
    lines))
 
 (defun hcel-source-html (json)
@@ -410,13 +411,9 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
        (alist-get 'name decl))
       (progn (goto-line (alist-get 'lineNumber decl)) (point))))
    hcel-declarations))
-(define-key hcel-mode-map "j" 'imenu)
+(define-key hcel-mode-map "j" #'imenu)
 
 ;; xref
-(add-hook 'hcel-mode-hook
-          (lambda ()
-            (add-hook 'xref-backend-functions
-                      #'hcel--xref-backend nil t)))
 (defun hcel--xref-backend () 'hcel-xref)
 (cl-defmethod xref-backend-definitions ((_backend (eql hcel-xref)) _identifiers)
   (hcel-find-definition))
@@ -427,10 +424,6 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
    (hcel-text-property-near-point 'identifier)
    (hcel-text-property-near-point 'occurrence)))
 
-(add-hook 'hcel-minor-mode-hook
-          (lambda ()
-            (add-hook 'xref-backend-functions
-                      #'hcel-minor--xref-backend nil t)))
 (defun hcel-minor--xref-backend () 'hcel-minor-xref)
 (cl-defmethod xref-backend-definitions ((_backend (eql hcel-minor-xref)) _identifiers)
   (hcel-minor-find-definition-at-point))
@@ -466,8 +459,7 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
                   (alist-get (intern occurrence) hcel-occurrences)))))
           (when (string= (hcel-location-tag location-info) "ApproximateLocation")
             (setq location-info (hcel-approx-to-exact-location location-info)))
-          (let ((module-path (alist-get 'modulePath location-info))
-                (line-beg (alist-get 'startLine location-info))
+          (let ((line-beg (alist-get 'startLine location-info))
                 (col-beg (alist-get 'startColumn location-info))
                 (line-end (alist-get 'endLine location-info))
                 (col-end (alist-get 'endColumn location-info)))
@@ -494,27 +486,29 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
 
 (defvar hcel-minor-mode-map
   (let ((kmap (make-sparse-keymap)))
-    (define-key kmap (kbd "M-?") 'hcel-minor-find-references-at-point)
+    (define-key kmap (kbd "M-?") #'hcel-minor-find-references-at-point)
     kmap))
 
 (define-minor-mode hcel-minor-mode
   "A minor mode for exploring haskell codebases."
   :lighter " hcel-minor"
-  :after-hook
-  (if hcel-minor-mode
-      (if (and (not (memq major-mode hcel-minor-major-modes))
-               (not (eq (current-buffer) eldoc--doc-buffer)))
-          (progn
-            (hcel-minor-mode 0)
-            (error "Not in one of the supported modes (%s) or the eldoc buffer."
-                   (string-join (mapcar 'prin1-to-string hcel-minor-major-modes)
-                                ", ")))
-        (add-hook
-         'eldoc-documentation-functions #'hcel-minor-eldoc-docs nil t)
-        (add-hook
-         'eldoc-documentation-functions #'hcel-minor-eldoc-id-type nil t)
-        (setq-local eldoc-documentation-strategy 'eldoc-documentation-compose))
+  (add-hook 'xref-backend-functions
+            #'hcel-minor--xref-backend nil t)
+  (cond
+   ((null hcel-minor-mode)
     (remove-hook 'eldoc-documentation-functions #'hcel-minor-eldoc-id-type t)
-    (remove-hook 'eldoc-documentation-functions #'hcel-minor-eldoc-docs t)))
+    (remove-hook 'eldoc-documentation-functions #'hcel-minor-eldoc-docs t))
+   ((not (or (memq major-mode hcel-minor-major-modes)
+             (eq (current-buffer) eldoc--doc-buffer)))
+    (setq hcel-minor-mode nil)
+    (error "Not in one of the supported modes (%s) or the eldoc buffer."
+           (mapconcat #'prin1-to-string hcel-minor-major-modes
+                      ", ")))
+   (t
+    (add-hook
+     'eldoc-documentation-functions #'hcel-minor-eldoc-docs nil t)
+    (add-hook
+     'eldoc-documentation-functions #'hcel-minor-eldoc-id-type nil t)
+    (setq-local eldoc-documentation-strategy 'eldoc-documentation-compose))))
 
 (provide 'hcel-source)

@@ -24,6 +24,7 @@
 
 ;;; Code:
 (require 'hcel-utils)
+(eval-when-compile (require 'compile))
 
 (defun hcel-results-next-error-no-open (n)
   (interactive "p")
@@ -40,7 +41,7 @@
         (goto-char (point-min))
         (hcel-results-next-error-internal 1 nil))
     (if (> n 0)
-        (dotimes (unused n)
+        (dotimes (_unused n)
           (condition-case nil
               (progn
                 (goto-char (next-single-property-change (point) 'match-line))
@@ -48,7 +49,7 @@
                   (goto-char
                    (next-single-property-change (point) 'match-line))))
             (error (hcel-results-next-page))))
-      (dotimes (unused (- n))
+      (dotimes (_unused (- n))
         (condition-case nil
             (progn
               (goto-char (previous-single-property-change (point) 'match-line))
@@ -68,12 +69,15 @@
   (compilation-set-overlay-arrow (selected-window))
   (hcel-load-module-location-info (get-text-property (point) 'location-info)))
 
+(defvar-local hcel-results-page-number nil)
+
 (defun hcel-results-next-page ()
   (interactive)
+  ;; FIXME: Using `major-mode' is a code smell.
   (unless (memq major-mode '(hcel-refs-mode hcel-ids-mode))
     (error "Not in hcel-refs or hcel-ids mode: %S" major-mode))
   (when (= hcel-results-page-number hcel-results-max-page-number)
-    (error "Already on the last page."))
+    (error "Already on the last page"))
   (setq hcel-results-page-number (1+ hcel-results-page-number))
   (cond ((eq major-mode 'hcel-refs-mode) (hcel-refs-update-references))
         ((eq major-mode 'hcel-ids-mode) (hcel-ids-update))
@@ -100,17 +104,17 @@
 
 (define-compilation-mode hcel-refs-mode "hcel-refs"
   "Major mode for showing references"
-  (setq-local next-error-function 'hcel-results-next-error
+  (setq-local next-error-function #'hcel-results-next-error
               hcel-refs-id nil
               hcel-refs-package-id nil
               hcel-results-page-number nil
               hcel-results-max-page-number nil))
 
 (define-key hcel-refs-mode-map (kbd "M-n")
-  'hcel-results-next-error-no-open)
+  #'hcel-results-next-error-no-open)
 
 (define-key hcel-refs-mode-map (kbd "M-p")
-  'hcel-results-previous-error-no-open)
+  #'hcel-results-previous-error-no-open)
 
 (defun hcel-refs-update-references ()
   "Find references and update the current hcel-refs-mode buffer."
@@ -159,11 +163,11 @@
 (defun hcel-refs-reload ()
   (interactive)
   (hcel-refs-update-references))
-(define-key hcel-refs-mode-map "g" 'hcel-refs-reload)
+(define-key hcel-refs-mode-map "g" #'hcel-refs-reload)
 
-(define-key hcel-refs-mode-map "f" 'hcel-results-next-page)
+(define-key hcel-refs-mode-map "f" #'hcel-results-next-page)
 
-(define-key hcel-refs-mode-map "b" 'hcel-results-previous-page)
+(define-key hcel-refs-mode-map "b" #'hcel-results-previous-page)
 
 (defun hcel-refs-buffer-name (id)
   (format "*hcel-refs %s*" (hcel-refs-format-id id)))
@@ -199,14 +203,14 @@ Start by choosing a package."
           hcel-results-page-number 1
           hcel-results-max-page-number max-page-number)
     (hcel-refs-update-references)))
-(define-key hcel-refs-mode-map "P" 'hcel-refs-update-references-package)
+(define-key hcel-refs-mode-map "P" #'hcel-refs-update-references-package)
 
 (defun hcel-find-references-at-point ()
   "Find references of the identifier at point."
   (interactive)
   (hcel-find-references-internal hcel-package-id hcel-module-path
                                  (hcel-text-property-near-point 'identifier)))
-(define-key hcel-mode-map (kbd "M-?") 'hcel-find-references-at-point)
+(define-key hcel-mode-map (kbd "M-?") #'hcel-find-references-at-point)
 
 (defun hcel-minor-find-references-at-point ()
   (interactive)
@@ -249,13 +253,13 @@ Start by choosing a package."
   :group 'hcel-ids)
 (define-compilation-mode hcel-ids-mode "hcel-ids"
   "Major mode for showing identifiers"
-  (setq-local next-error-function 'hcel-results-next-error
+  (setq-local next-error-function #'hcel-results-next-error
               hcel-ids-scope nil
               hcel-ids-query nil
               hcel-ids-package-id nil
               hcel-results-page-number nil
               hcel-results-max-page-number nil))
-(add-hook 'hcel-ids-mode-hook 'hcel-minor-mode)
+(add-hook 'hcel-ids-mode-hook #'hcel-minor-mode)
 
 (defun hcel-ids-update ()
   (unless (eq major-mode 'hcel-ids-mode)
@@ -305,14 +309,14 @@ Start by choosing a package."
 (defun hcel-ids-reload ()
   (interactive)
   (hcel-ids-update))
-(define-key hcel-ids-mode-map "g" 'hcel-ids-reload)
+(define-key hcel-ids-mode-map "g" #'hcel-ids-reload)
 
 (define-key hcel-ids-mode-map (kbd "M-n")
-  'hcel-results-next-error-no-open)
+  #'hcel-results-next-error-no-open)
 (define-key hcel-ids-mode-map (kbd "M-p")
-  'hcel-results-previous-error-no-open)
-(define-key hcel-ids-mode-map "f" 'hcel-results-next-page)
-(define-key hcel-ids-mode-map "b" 'hcel-results-previous-page)
+  #'hcel-results-previous-error-no-open)
+(define-key hcel-ids-mode-map "f" #'hcel-results-next-page)
+(define-key hcel-ids-mode-map "b" #'hcel-results-previous-page)
 
 (defun hcel-ids-update-query (query)
   "Search for identities matching query."
@@ -323,7 +327,7 @@ Start by choosing a package."
   (setq hcel-ids-query query
         hcel-results-page-number 1)
   (hcel-ids-update))
-(define-key hcel-ids-mode-map "s" 'hcel-ids-update-query)
+(define-key hcel-ids-mode-map "s" #'hcel-ids-update-query)
 
 (defun hcel-ids-buffer-name (scope query)
   (format "*hcel-ids-%S %s*" scope query))
@@ -375,9 +379,9 @@ Start by choosing a package."
   (interactive (list
                 (let ((minibuffer-allow-text-properties t))
                   (completing-read "Search for identifier globally: "
-                                   'hcel-global-ids-minibuffer-collection))))
+                                   #'hcel-global-ids-minibuffer-collection))))
   (hcel-ids 'global query))
-(define-key hcel-mode-map "I" 'hcel-global-ids)
+(define-key hcel-mode-map "I" #'hcel-global-ids)
 
 (defun hcel-package-ids (query)
   (interactive (list
@@ -390,6 +394,6 @@ Start by choosing a package."
                            (hcel-format-package-id package-id "-"))
                    (hcel-package-ids-minibuffer-collection package-id)))))
   (hcel-ids 'package query hcel-package-id))
-(define-key hcel-mode-map "i" 'hcel-package-ids)
+(define-key hcel-mode-map "i" #'hcel-package-ids)
 
 (provide 'hcel-results)

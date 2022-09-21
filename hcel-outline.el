@@ -17,31 +17,33 @@
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
+(require 'hcel-source)
+
 (defvar hcel-outline-buffer-name "*hcel-outline*")
 (defvar hcel-outline-indentation 2)
 
 (defvar hcel-outline-mode-map
   (let ((kmap (make-sparse-keymap)))
-    (define-key kmap "n" 'outline-next-visible-heading)
-    (define-key kmap "p" 'outline-previous-visible-heading)
-    (define-key kmap "f" 'outline-forward-same-level)
-    (define-key kmap "F" 'hcel-outline-follow-mode)
-    (define-key kmap "b" 'outline-backward-same-level)
-    (define-key kmap "u" 'outline-up-heading)
-    (define-key kmap "\t" 'hcel-outline-toggle-children)
-    (define-key kmap "\r" 'hcel-outline-open-thing-at-point)
-    (define-key kmap "o" 'hcel-outline-open-thing-at-point-other-window)
-    (define-key kmap "q" 'quit-window)
+    (define-key kmap "n"  #'outline-next-visible-heading)
+    (define-key kmap "p"  #'outline-previous-visible-heading)
+    (define-key kmap "f"  #'outline-forward-same-level)
+    (define-key kmap "F"  #'hcel-outline-follow-mode)
+    (define-key kmap "b"  #'outline-backward-same-level)
+    (define-key kmap "u"  #'outline-up-heading)
+    (define-key kmap "\t" #'hcel-outline-toggle-children)
+    (define-key kmap "\r" #'hcel-outline-open-thing-at-point)
+    (define-key kmap "o"  #'hcel-outline-open-thing-at-point-other-window)
+    (define-key kmap "q"  #'quit-window)
     kmap))
 (define-derived-mode hcel-outline-mode outline-mode "hcel-outline"
-  "Major mode for browsing Haskell codebases"
+  "Major mode for browsing Haskell codebases."
   (setq-local package-filter nil
               module-filter nil
               outline-regexp "\\( *\\)."
               outline-level (lambda () (1+ (/ (length (match-string 1))
                                               hcel-outline-indentation)))
-              buffer-read-only t))
-(add-hook 'hcel-outline-mode-hook 'hcel-minor-mode)
+              buffer-read-only t)
+  (hcel-minor-mode 1))
 
 (defun hcel ()
   (interactive)
@@ -61,7 +63,7 @@
          (hcel-api-packages)))
       (hcel-outline-mode))))
 
-(define-key hcel-mode-map "o" 'hcel)
+(define-key hcel-mode-map "o" #'hcel)
 
 ;; TODO: maybe remove
 (defun hcel-outline-update-opened (package-id module-path)
@@ -208,8 +210,8 @@ update in the outline mode too."
       (if (not (eq major-mode 'hcel-outline-mode))
           (error "Not in hcel-outline mode!")
         (add-hook 'post-command-hook
-                  'hcel-outline-open-thing-at-point-other-window nil t))
+                  #'hcel-outline-open-thing-at-point-other-window nil t))
     (remove-hook 'post-command-hook
-                 'hcel-outline-open-thing-at-point-other-window t)))
+                 #'hcel-outline-open-thing-at-point-other-window t)))
 
 (provide 'hcel-outline)

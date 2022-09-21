@@ -138,7 +138,7 @@
     (goto-char (point-max))
     (insert "[" (current-time-string) "] Request: " url "\n"))
   (with-current-buffer (url-retrieve-synchronously url t)
-    (let ((header) (status) (fields) (json))
+    (let ((header) (status) (fields))
       (delete-http-header)
       (setq header (hcel-parse-http-header (car kill-ring))
             status (alist-get 'status header)
