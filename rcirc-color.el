@@ -1,6 +1,6 @@
 ;;; rcirc-color.el --- color nicks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2005-2022  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
@@ -124,11 +124,9 @@ This ignores SENDER and RESPONSE."
 
 (add-hook 'rcirc-markup-text-functions #'rcirc-markup-nick-colors)
 
-(defun-rcirc-command color (args)
+(rcirc-define-command color (nick color)
   "Change one of the nick colors."
-  (interactive)
-  (setq args (split-string args))
-  (rcirc-do-color (car args) (cadr args) process target))
+  (rcirc-do-color nick color process target))
 
 (defun rcirc-do-color (nick color process target)
   "Implement the /color command.
