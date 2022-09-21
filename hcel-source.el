@@ -512,3 +512,4 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
     (setq-local eldoc-documentation-strategy 'eldoc-documentation-compose))))
 
 (provide 'hcel-source)
+;;; hcel-source.el ends here.

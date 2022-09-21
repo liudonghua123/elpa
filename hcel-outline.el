@@ -215,3 +215,4 @@ update in the outline mode too."
                  #'hcel-outline-open-thing-at-point-other-window t)))
 
 (provide 'hcel-outline)
+;;; hcel-outline.el ends here.

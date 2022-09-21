@@ -397,3 +397,4 @@ Start by choosing a package."
 (define-key hcel-mode-map "i" #'hcel-package-ids)
 
 (provide 'hcel-results)
+;;; hcel-results.el ends here.

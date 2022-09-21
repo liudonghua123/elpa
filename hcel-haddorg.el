@@ -44,3 +44,4 @@
                    package-id "lib" module-name entity name))))))
 
 (provide 'hcel-haddorg)
+;;; hcel-haddorg.el ends here.

@@ -56,5 +56,5 @@
     (switch-to-buffer
      (hcel-load-module-source package-id module-path))))
 
-(provide 'hc)
+(provide 'hcel)
 ;;; hcel.el ends here.

@@ -173,3 +173,4 @@ Example of an idSrcSpan:
       (get-text-property (1- (point)) prop)))
 
 (provide 'hcel-utils)
+;;; hcel-utils.el ends here.
