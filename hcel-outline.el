@@ -116,7 +116,7 @@ update in the outline mode too."
                         'package-id package-id
                         'module-path module
                         'folded t)))
-         (hcel-api-package-info package-id))))))
+         (hcel-list-modules (print package-id)))))))
 
 (defun hcel-outline-toggle-children ()
   (interactive)

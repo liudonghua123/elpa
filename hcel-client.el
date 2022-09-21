@@ -38,14 +38,15 @@
      packages)))
 
 (defun hcel-api-package-info (package-id)
+  (hcel-url-fetch-json (concat
+                        hcel-host "/files/" (hcel-format-package-id package-id "-")
+                        hcel-indexed-dir "/packageInfo.json")))
+
+(defun hcel-list-modules (package-id)
   (mapcar
    (lambda (tuple)
      (prin1-to-string (car tuple) t))
-   (alist-get
-    'modules
-    (hcel-url-fetch-json (concat
-                     hcel-host "/files/" (hcel-format-package-id package-id "-")
-                     hcel-indexed-dir "/packageInfo.json")))))
+   (alist-get 'modules (hcel-api-package-info package-id))))
 
 (defun hcel-api-definition-site
     (package-id component-id module-name entity name)
