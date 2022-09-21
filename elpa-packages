@@ -507,6 +507,11 @@
  ("nhexl-mode"		:url nil)
  ("nlinum"		:url nil)
  ("notes-mode"		:url nil)
+ ("notmuch-indicator"
+  :url "https://git.sr.ht/~protesilaos/notmuch-indicator"
+  :auto-sync t
+  :readme "README.md"
+  :ignored-files ("COPYING"))
  ("ntlm"		:core "lisp/net/ntlm.el")
  ("num3-mode"		:url nil)
  ("oauth2"		:url nil)
