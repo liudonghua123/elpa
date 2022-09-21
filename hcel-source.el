@@ -49,7 +49,7 @@ When FORCE is non-nil, kill existing source buffer if any."
         (with-current-buffer (get-buffer-create buffer-name)
           ;; (hcel-write-source-to-buffer (alist-get 'tokenizedLines json))
           (hcel-write-html-source-to-buffer (hcel-source-html json))
-          (fontify-with-haskell-mode)
+          (hcel-fontify-with-haskell-mode)
           ;; it is important the setq of local vars are after the (hcel-mode)
           ;; otherwise they may be rewritten
           (hcel-mode)
@@ -102,10 +102,10 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
              (buffer (hcel-load-module-source package-id module-path)))
     (unless no-jump
       (switch-to-buffer-other-window buffer)
-      (goto-line-column line-beg (1- col-beg))
+      (hcel-goto-line-column line-beg (1- col-beg))
       (pulse-momentary-highlight-region
        (point) (save-excursion
-                 (goto-line-column line-end (1- col-end))
+                 (hcel-goto-line-column line-end (1- col-end))
                  (point))
        'next-error))
     buffer))
@@ -138,7 +138,7 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
               (line (string-to-number (car splitted)))
               (col-beg (string-to-number (cadr splitted)))
               (col-end (string-to-number (caddr splitted))))
-    (buffer-substring-line-column line (1- col-beg) line (1- col-end))))
+    (hcel-buffer-substring-line-column line (1- col-beg) line (1- col-end))))
 
 (defun hcel-type-at-point ()
   (interactive)
@@ -468,9 +468,9 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
                          (buffer (hcel-load-module-location-info location-info t)))
                      (with-current-buffer buffer
                        (save-excursion
-                         (goto-line-column line-beg col-beg)
+                         (hcel-goto-line-column line-beg col-beg)
                          (setq pos (1- (point)))
-                         (goto-line-column line-end col-end)
+                         (hcel-goto-line-column line-end col-end)
                          (setq len (- (point) pos 1))))
                      (list (xref-make-match
                             "hcel match"

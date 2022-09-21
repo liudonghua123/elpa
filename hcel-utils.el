@@ -75,11 +75,10 @@ Example of an idSrcSpan:
               (col-beg (alist-get 'column (alist-get 'start span)))
               (line-end (alist-get 'line (alist-get 'end span)))
               (col-end (alist-get 'column (alist-get 'end span))))
-    (buffer-substring-line-column line-beg (1- col-beg) line-end (1- col-end))))
+    (hcel- buffer-substring-line-column line-beg (1- col-beg) line-end (1- col-end))))
 
-;; FIXME: Make sure all your definitions have an `hcel-' prefix!
 ;; buffers and strings manipulation
-(defun goto-line-column (line column)
+(defun hcel-goto-line-column (line column)
   (goto-line line)
   (move-to-column column))
 
@@ -95,13 +94,13 @@ Example of an idSrcSpan:
       (replace-regexp-in-string
        "&lt;" "<" html))))))
 
-(defun buffer-substring-line-column (line-beg col-beg line-end col-end)
+(defun hcel-buffer-substring-line-column (line-beg col-beg line-end col-end)
   (save-excursion
     (buffer-substring
-     (progn (goto-line-column line-beg col-beg) (point))
-     (progn (goto-line-column line-end col-end) (point)))))
+     (progn (hcel-goto-line-column line-beg col-beg) (point))
+     (progn (hcel-goto-line-column line-end col-end) (point)))))
 
-(defun fontify-with-haskell-mode ()
+(defun hcel-fontify-with-haskell-mode ()
   "Fontify using haskell-mode"
   (require 'haskell)
   (let ((text (buffer-string)))
@@ -115,12 +114,12 @@ Example of an idSrcSpan:
     (erase-buffer)
     (insert text)))
 
-(defun remove-html-markup (html)
+(defun hcel-remove-html-markup (html)
   (replace-regexp-in-string
    "<.*?>" "" 
    (replace-regexp-in-string "</p>" "\n\n" html)))
 
-(defun fill-string (text)
+(defun hcel-fill-string (text)
   (with-temp-buffer
     (insert text)
     (fill-region (point-min) (point-max))
