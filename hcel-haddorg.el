@@ -1,4 +1,4 @@
-;; -*- lexical-binding: t; -*-
+;;; hcel-haddorg.el --- jumping between hcel and org generated from haddorg. -*- lexical-binding: t; -*-
 ;; Copyright (C) 2022 Yuchen Pei.
 ;; 
 ;; This file is part of hcel.

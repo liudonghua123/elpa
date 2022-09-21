@@ -1,4 +1,4 @@
-;;; hc-utils.el --- Commonly used utilities -*- lexical-binding: t; -*-
+;;; hcel-utils.el --- Commonly used utilities -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Yuchen Pei.
 ;; 
@@ -169,7 +169,7 @@ Example of an idSrcSpan:
 (defun hcel-text-property-near-point (prop)
   "Find property prop at point, or just before point."
   (or (get-text-property (point) prop)
-      (get-text-property (1- (point)) prop)))
+      (get-text-property (max 0 (1- (point))) prop)))
 
 (provide 'hcel-utils)
 ;;; hcel-utils.el ends here.

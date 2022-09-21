@@ -7,7 +7,7 @@
 ;; Keywords: haskell
 ;; Package-Requires: ((emacs "28"))
 ;; Package-Type: multi
-;; Homepage: https://g.ypei.me/hcel.git
+;; Homepage: https://g.ypei.me/hc.el.git
 
 ;; Copyright (C) 2022 Yuchen Pei.
 ;; 
@@ -27,8 +27,6 @@
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'hcel-source)
-(require 'hcel-outline)
-(require 'hcel-results)
 (require 'hcel-utils)
 
 (defun hcel-package (package-id)
