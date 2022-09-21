@@ -23,6 +23,7 @@
 ;; compilation-mode.
 
 ;;; Code:
+(require 'hcel-source)
 (require 'hcel-utils)
 (eval-when-compile (require 'compile))
 
@@ -70,6 +71,7 @@
   (hcel-load-module-location-info (get-text-property (point) 'location-info)))
 
 (defvar-local hcel-results-page-number nil)
+(defvar-local hcel-results-max-page-number nil)
 
 (defun hcel-results-next-page ()
   (interactive)
@@ -100,15 +102,14 @@
 ;; hcel-refs-mode
 (defcustom hcel-refs-per-page 50
   "hcel refs number of results per page."
-  :group 'hcel-refs)
+  :group 'hcel-refs :type '(natnum))
+
+(defvar-local hcel-refs-id nil)
+(defvar-local hcel-refs-package-id nil)
 
 (define-compilation-mode hcel-refs-mode "hcel-refs"
   "Major mode for showing references"
-  (setq-local next-error-function #'hcel-results-next-error
-              hcel-refs-id nil
-              hcel-refs-package-id nil
-              hcel-results-page-number nil
-              hcel-results-max-page-number nil))
+  (setq-local next-error-function #'hcel-results-next-error))
 
 (define-key hcel-refs-mode-map (kbd "M-n")
   #'hcel-results-next-error-no-open)
@@ -247,19 +248,19 @@ Start by choosing a package."
 ;; hcel-ids-mode
 (defcustom hcel-ids-per-page 20
   "hcel-ids mode number of results per page."
-  :group 'hcel-ids)
+  :group 'hcel-ids :type '(natnum))
 (defcustom hcel-ids-live-per-page 10
   "hcel-ids live search results per page."
-  :group 'hcel-ids)
+  :group 'hcel-ids :type '(natnum))
+
+(defvar-local hcel-ids-scope nil)
+(defvar-local hcel-ids-query nil)
+(defvar-local hcel-ids-package-id nil)
+
 (define-compilation-mode hcel-ids-mode "hcel-ids"
   "Major mode for showing identifiers"
-  (setq-local next-error-function #'hcel-results-next-error
-              hcel-ids-scope nil
-              hcel-ids-query nil
-              hcel-ids-package-id nil
-              hcel-results-page-number nil
-              hcel-results-max-page-number nil))
-(add-hook 'hcel-ids-mode-hook #'hcel-minor-mode)
+  (setq-local next-error-function #'hcel-results-next-error)
+  (hcel-minor-mode 1))
 
 (defun hcel-ids-update ()
   (unless (eq major-mode 'hcel-ids-mode)
@@ -354,11 +355,11 @@ Start by choosing a package."
               (number-to-string hcel-ids-live-per-page))))
       hcel-ids--minibuffer-saved-results)))
 
-(defun hcel-global-ids-minibuffer-collection (query unused unused)
+(defun hcel-global-ids-minibuffer-collection (query &rest _)
   (hcel-ids-minibuffer-collection 'global query))
 
 (defun hcel-package-ids-minibuffer-collection (package-id)
-  (lambda (query unused unused)
+  (lambda (query &rest _)
     (hcel-ids-minibuffer-collection 'package query package-id)))
 
 (defun hcel-ids (scope query &optional package-id)

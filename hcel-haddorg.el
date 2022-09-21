@@ -19,6 +19,7 @@
 (require 'hcel-source)
 (require 'hcel-client)
 (require 'hcel-utils)
+(require 'org)
 
 (defun hcel-haddorg-to-hcel-definition ()
   (interactive)

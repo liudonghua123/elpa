@@ -18,19 +18,21 @@
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'hcel-client)
+
+(setq-local hcel-identifiers nil)
+(setq-local hcel-declarations nil)
+(setq-local hcel-occurrences nil)
+(setq-local hcel-package-id nil)
+(setq-local hcel-module-path nil)
+(setq-local hcel-highlight-id nil)
+
 (define-derived-mode hcel-mode special-mode "hcel"
   "Major mode for exploring Haskell codebases"
   (setq-local eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly
               eldoc-documentation-functions
               '(hcel-eldoc-id-type hcel-eldoc-expression-type hcel-eldoc-docs)
               imenu-create-index-function #'hcel-imenu-create-index
-              imenu-space-replacement " "
-              hcel-identifiers nil
-              hcel-declarations nil
-              hcel-occurrences nil
-              hcel-package-id nil
-              hcel-module-path nil
-              hcel-highlight-id nil)
+              imenu-space-replacement " ")
   (cursor-sensor-mode 1)
   (add-hook 'xref-backend-functions #'hcel--xref-backend nil t))
 
@@ -89,7 +91,8 @@ Example of LOCATION-INFO:
       \"tag\": \"ExactLocation\"
     },
 
-If NO-JUMP is non-nil, just open the source and does not jump to the location with pulsing.
+If NO-JUMP is non-nil, just open the source and does not jump to
+the location with pulsing.
 "
   (unless (string= (hcel-location-tag location-info) "ExactLocation")
     (error "Location tag is not ExactLocation."))
@@ -313,7 +316,8 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
 
 ;; highlight
 (defface hcel-highlight-id '((t (:inherit underline)))
-  "Face for highlighting hcel identifier at point.")
+  "Face for highlighting hcel identifier at point."
+  :group 'hcel-faces)
 
 (defun hcel-highlight-update (&rest _)
   ;; if mark is active, change of face will deactivate the mark in transient
@@ -409,7 +413,9 @@ If NO-JUMP is non-nil, just open the source and does not jump to the location wi
        (alist-get 'components
                   (alist-get 'declType decl))
        (alist-get 'name decl))
-      (progn (goto-line (alist-get 'lineNumber decl)) (point))))
+      (progn (goto-char (point-min))
+             (forward-line (1- (alist-get 'lineNumber decl)))
+             (point))))
    hcel-declarations))
 (define-key hcel-mode-map "j" #'imenu)
 

@@ -75,11 +75,12 @@ Example of an idSrcSpan:
               (col-beg (alist-get 'column (alist-get 'start span)))
               (line-end (alist-get 'line (alist-get 'end span)))
               (col-end (alist-get 'column (alist-get 'end span))))
-    (hcel- buffer-substring-line-column line-beg (1- col-beg) line-end (1- col-end))))
+    (hcel-buffer-substring-line-column line-beg (1- col-beg) line-end (1- col-end))))
 
 ;; buffers and strings manipulation
 (defun hcel-goto-line-column (line column)
-  (goto-line line)
+  (goto-char (point-min))
+  (forward-line (1- line))
   (move-to-column column))
 
 (defun hcel-unquote-html (html)
@@ -169,7 +170,7 @@ Example of an idSrcSpan:
 (defun hcel-text-property-near-point (prop)
   "Find property prop at point, or just before point."
   (or (get-text-property (point) prop)
-      (get-text-property (max 0 (1- (point))) prop)))
+      (get-text-property (max 1 (1- (point))) prop)))
 
 (provide 'hcel-utils)
 ;;; hcel-utils.el ends here.

@@ -17,7 +17,9 @@
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
+(require 'hcel-utils)
 (require 'hcel-source)
+(require 'outline)
 
 (defvar hcel-outline-buffer-name "*hcel-outline*")
 (defvar hcel-outline-indentation 2)
@@ -37,9 +39,7 @@
     kmap))
 (define-derived-mode hcel-outline-mode outline-mode "hcel-outline"
   "Major mode for browsing Haskell codebases."
-  (setq-local package-filter nil
-              module-filter nil
-              outline-regexp "\\( *\\)."
+  (setq-local outline-regexp "\\( *\\)."
               outline-level (lambda () (1+ (/ (length (match-string 1))
                                               hcel-outline-indentation)))
               buffer-read-only t)
@@ -116,7 +116,7 @@ update in the outline mode too."
                         'package-id package-id
                         'module-path module
                         'folded t)))
-         (hcel-list-modules (print package-id)))))))
+         (hcel-list-modules package-id))))))
 
 (defun hcel-outline-toggle-children ()
   (interactive)

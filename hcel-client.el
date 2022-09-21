@@ -17,12 +17,13 @@
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
+(require 'hcel-utils)
 (defcustom hcel-host "localhost:8080"
   "hcel server host"
-  :group 'hcel)
+  :group 'hcel :type '(string))
 (defcustom hcel-indexed-dir "/.haskell-code-explorer"
   "hcel indexed dir"
-  :group 'hcel)
+  :group 'hcel :type '(string))
 
 (defvar hcel-client-buffer-name "*hcel-client*")
 
@@ -140,7 +141,8 @@
     (insert "[" (current-time-string) "] Request: " url "\n"))
   (with-current-buffer (url-retrieve-synchronously url t)
     (let ((header) (status) (fields))
-      (delete-http-header)
+      (hcel-delete-http-header)
+      (goto-char (point-min))
       (setq header (hcel-parse-http-header (car kill-ring))
             status (alist-get 'status header)
             fields (alist-get 'fields header))
@@ -158,5 +160,11 @@
                  (cons 'json (json-read)))
               (json-read)))
         (error "HTTP error: %s" (buffer-substring (point) (point-max)))))))
+
+(defun hcel-delete-http-header ()
+  (save-excursion
+    (goto-char (point-min))
+    (kill-region (point) (progn (re-search-forward "\r?\n\r?\n")
+                                (point)))))
 
 (provide 'hcel-client)
