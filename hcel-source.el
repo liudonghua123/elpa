@@ -19,12 +19,12 @@
 
 (require 'hcel-client)
 
-(setq-local hcel-identifiers nil)
-(setq-local hcel-declarations nil)
-(setq-local hcel-occurrences nil)
-(setq-local hcel-package-id nil)
-(setq-local hcel-module-path nil)
-(setq-local hcel-highlight-id nil)
+(defvar-local hcel-identifiers nil)
+(defvar-local hcel-declarations nil)
+(defvar-local hcel-occurrences nil)
+(defvar-local hcel-package-id nil)
+(defvar-local hcel-module-path nil)
+(defvar-local hcel-highlight-id nil)
 
 (define-derived-mode hcel-mode special-mode "hcel"
   "Major mode for exploring Haskell codebases"
