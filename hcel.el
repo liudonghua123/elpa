@@ -26,6 +26,9 @@
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
+(require 'hcel-minor)
+(require 'hcel-outline)
+(require 'hcel-results)
 (require 'hcel-source)
 (require 'hcel-utils)
 

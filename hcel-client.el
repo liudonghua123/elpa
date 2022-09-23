@@ -68,6 +68,26 @@
               (name (alist-get 'name approx-location-info)))
     (hcel-api-definition-site package-id component-id module-name entity name)))
 
+(defun hcel-approx-to-exact-location (approx-location-info)
+  "Fetch exact location given approximate location.
+
+Example of approximate location:
+
+      \"locationInfo\": {
+        \"componentId\": \"exe-haskell-code-server\",
+        \"entity\": \"Typ\",
+        \"haddockAnchorId\": \"PackageInfo\",
+        \"moduleName\": \"HaskellCodeExplorer.Types\",
+        \"name\": \"PackageInfo\",
+        \"packageId\": {
+          \"name\": \"haskell-code-explorer\",
+          \"version\": \"0.1.0.0\"
+        },
+        \"tag\": \"ApproximateLocation\"
+      }"
+  (alist-get 'location
+             (hcel-definition-site-location-info approx-location-info)))
+
 (defun hcel-api-module-info (package-id module-path)
   (hcel-url-fetch-json
    (concat

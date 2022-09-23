@@ -212,21 +212,6 @@ Start by choosing a package."
                                  (hcel-text-property-near-point 'identifier)))
 (define-key hcel-mode-map (kbd "M-?") #'hcel-find-references-at-point)
 
-(defun hcel-minor-find-references-at-point ()
-  (interactive)
-  (cond ((or (derived-mode-p 'hcel-outline-mode)
-             (eq (current-buffer) eldoc--doc-buffer))
-         (hcel-find-references-internal
-          (hcel-text-property-near-point 'package-id)
-          (hcel-text-property-near-point 'module-path)
-          (hcel-text-property-near-point 'internal-id)))
-        ((derived-mode-p 'hcel-ids-mode)
-         (hcel-find-references-internal
-          (alist-get 'packageId (hcel-text-property-near-point 'location-info))
-          (alist-get 'modulePath (hcel-text-property-near-point 'location-info))
-          (hcel-text-property-near-point 'internal-id)))
-        (t (error "%S not supported and not in eldoc doc buffer." major-mode))))
-
 (defun hcel-find-references-internal (package-id module-path identifier)
   (when (and package-id module-path identifier)
     (let ((hcel-buffer (hcel-buffer-name package-id module-path)))
@@ -258,8 +243,7 @@ Start by choosing a package."
 
 (define-compilation-mode hcel-ids-mode "hcel-ids"
   "Major mode for showing identifiers"
-  (setq-local next-error-function #'hcel-results-next-error)
-  (hcel-minor-mode 1))
+  (setq-local next-error-function #'hcel-results-next-error))
 
 (defun hcel-ids-update ()
   (unless (derived-mode-p 'hcel-ids-mode)
