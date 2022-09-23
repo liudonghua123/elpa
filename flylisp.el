@@ -1,6 +1,6 @@
 ;;; flylisp.el --- Color unbalanced parentheses and parentheses inconsistent with indentation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022  Free Software Foundation, Inc.
 
 ;; Author: Barry O'Reilly <gundaetiapo@gmail.com>
 ;; Version: 0.2
@@ -483,6 +483,7 @@ next in the list. This is used to scan-lists efficiently."
           (or (syntax-ppss-toplevel-pos (syntax-ppss start))
               start))))
 
+;;;###autoload
 (define-minor-mode flylisp-mode
   "Color unbalanced parentheses and parentheses inconsistent with
   indentation."
