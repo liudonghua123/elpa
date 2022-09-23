@@ -1,6 +1,6 @@
 ;;; hcel-client.el --- talks to a haskell-code-server. -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Yuchen Pei.
+;; Copyright (C) 2022  Free Software Foundation, Inc.
 ;; 
 ;; This file is part of hcel.
 ;; 

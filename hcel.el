@@ -9,7 +9,7 @@
 ;; Package-Type: multi
 ;; Homepage: https://g.ypei.me/hc.el.git
 
-;; Copyright (C) 2022 Yuchen Pei.
+;; Copyright (C) 2022  Free Software Foundation, Inc.
 ;; 
 ;; This file is part of hcel.
 ;; 
