@@ -17,7 +17,12 @@
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
+(require 'array)
+(require 'dom)
 (require 'hcel-client)
+(require 'hcel-outline)
+(require 'hcel-results)
+(require 'xref)
 
 (defvar-local hcel-identifiers nil)
 (defvar-local hcel-declarations nil)
@@ -66,7 +71,7 @@ When FORCE is non-nil, kill existing source buffer if any."
 (defun hcel-reload-module-source ()
   "Reloads current module source."
   (interactive)
-  (if (equal major-mode 'hcel-mode)
+  (if (derived-mode-p 'hcel-mode)
       (switch-to-buffer
        (hcel-load-module-source hcel-package-id hcel-module-path t))
     (error "Not in hcel-mode!")))
@@ -119,11 +124,8 @@ the location with pulsing.
    (read-buffer
     "Switch to buffer: " nil t
 		(lambda (buffer)
-		  (equal 
-		   (buffer-local-value
-        'major-mode
-        (get-buffer (if (stringp buffer) buffer (car buffer))))
-		   'hcel-mode)))))
+		  (with-current-buffer (if (stringp buffer) buffer (car buffer))
+		    (derived-mode-p 'hcel-mode))))))
 (define-key hcel-mode-map "b" #'hcel-switch-buffer)
 
 (defun hcel-lookup-occurrence-at-point ()
@@ -260,12 +262,12 @@ the location with pulsing.
                             'internal-id identifier 'string=)
                            (point)))))
               (docstring
-               (cond ((eq major-mode 'hcel-outline-mode)
+               (cond ((derived-mode-p 'hcel-outline-mode)
                       (hcel-render-type-internal
                        (hcel-text-property-near-point 'package-id)
                        (hcel-text-property-near-point 'module-path)
                        identifier))
-                     ((eq major-mode 'hcel-ids-mode)
+                     ((derived-mode-p 'hcel-ids-mode)
                       (hcel-render-type-internal
                        (alist-get 'packageId (hcel-text-property-near-point 'location-info))
                        (alist-get 'modulePath (hcel-text-property-near-point 'location-info))
@@ -286,12 +288,12 @@ the location with pulsing.
 
 (defun hcel-minor-eldoc-docs (cb)
   (when-let* ((docstring
-               (cond ((eq major-mode 'hcel-outline-mode)
+               (cond ((derived-mode-p 'hcel-outline-mode)
                       (hcel-id-docs-internal
                        (hcel-text-property-near-point 'package-id)
                        (hcel-text-property-near-point 'module-path)
                        (hcel-text-property-near-point 'internal-id)))
-                     ((eq major-mode 'hcel-ids-mode)
+                     ((derived-mode-p 'hcel-ids-mode)
                       (hcel-id-docs-internal
                        (alist-get 'packageId (hcel-text-property-near-point 'location-info))
                        (alist-get 'modulePath (hcel-text-property-near-point 'location-info))
@@ -404,7 +406,7 @@ the location with pulsing.
 
 ;; imenu
 (defun hcel-imenu-create-index ()
-  (unless (eq major-mode 'hcel-mode)
+  (unless (derived-mode-p 'hcel-mode)
     (error "Not in hcel-mode!"))
   (mapcar
    (lambda (decl)
@@ -435,13 +437,13 @@ the location with pulsing.
   (hcel-minor-find-definition-at-point))
 (defun hcel-minor-find-definition-at-point ()
   (interactive)
-  (cond ((or (eq major-mode 'hcel-outline-mode)
+  (cond ((or (derived-mode-p 'hcel-outline-mode)
              (eq (current-buffer) eldoc--doc-buffer))
          (hcel-find-definition-internal
           (hcel-text-property-near-point 'package-id)
           (hcel-text-property-near-point 'module-path)
           (hcel-text-property-near-point 'internal-id)))
-        ((eq major-mode 'hcel-ids-mode)
+        ((derived-mode-p 'hcel-ids-mode)
          (hcel-find-definition-internal
           (alist-get 'packageId (hcel-text-property-near-point 'location-info))
           (alist-get 'modulePath (hcel-text-property-near-point 'location-info))
@@ -504,7 +506,7 @@ the location with pulsing.
    ((null hcel-minor-mode)
     (remove-hook 'eldoc-documentation-functions #'hcel-minor-eldoc-id-type t)
     (remove-hook 'eldoc-documentation-functions #'hcel-minor-eldoc-docs t))
-   ((not (or (memq major-mode hcel-minor-major-modes)
+   ((not (or (apply 'derived-mode-p hcel-minor-major-modes)
              (eq (current-buffer) eldoc--doc-buffer)))
     (setq hcel-minor-mode nil)
     (error "Not in one of the supported modes (%s) or the eldoc buffer."

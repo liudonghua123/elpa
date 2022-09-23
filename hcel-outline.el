@@ -207,7 +207,7 @@ update in the outline mode too."
   :lighter " hcel-outline-follow"
   :after-hook
   (if hcel-outline-follow-mode
-      (if (not (eq major-mode 'hcel-outline-mode))
+      (if (not (derived-mode-p 'hcel-outline-mode))
           (error "Not in hcel-outline mode!")
         (add-hook 'post-command-hook
                   #'hcel-outline-open-thing-at-point-other-window nil t))

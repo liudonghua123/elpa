@@ -18,6 +18,7 @@
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'hcel-utils)
+(require 'json)
 (defcustom hcel-host "localhost:8080"
   "hcel server host"
   :group 'hcel :type '(string))
