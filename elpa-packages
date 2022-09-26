@@ -263,8 +263,10 @@
  ;; FIXME: Waiting for Sean Allred's copyright paperwork.
  ;;("elsa"		:url "https://github.com/emacs-elsa/Elsa"
  ;; :auto-sync t)
- ;;("emacspeak"		:url nil
- ;; :lisp-dir "lisp")
+ ;;("emacspeak"		:url "https://github.com/tvraman/emacspeak"
+ ;; :doc "info/emacspeak.texi"
+ ;; :lisp-dir "lisp"
+ ;; :auto-sync t)
  ("embark"
   :url "https://github.com/oantolin/embark"
   :doc "embark.texi"
@@ -742,9 +744,9 @@
   :ignored-files ("COPYING" "doclicense.texi" "Makefile"))
  ;; FIXME: Basically ready, but waiting for the maintainer to decide whether
  ;; to keep this name or rename the package before inclusion.
- ;;("toc-mode"		:url "https://github.com/dalanicolai/toc-mode"
- ;; :ignore-files ("LICENSE")
- ;; :auto-sync t)
+ ("doc-toc"		:url "https://github.com/dalanicolai/doc-tools-toc"
+  :ignore-files ("LICENSE")
+  :auto-sync t)
  ("tomelr"		:url "https://github.com/kaushalmodi/tomelr"
   :ignored-files ("LICENSE")
   :news "CHANGELOG.org"
