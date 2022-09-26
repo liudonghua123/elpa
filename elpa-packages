@@ -120,20 +120,22 @@
   :auto-sync t)
  ("caps-lock"		:url nil)
  ("captain"		:url nil)
- ("chess"		:url nil) ;; Was https://github.com/jwiegley/emacs-chess.git
+ ("chess"		:url "https://github.com/jwiegley/emacs-chess.git"
+  :doc "chess.texi"
+  ;; FIXME: The two versions are badly out of sync.
+  :auto-sync nil)
  ("cl-generic"		:url nil)
  ("cl-lib"		:url nil)
  ;; The `cl-print' code doesn't try to work outside of Emacs any more.
  ;;("cl-print"		:core "lisp/emacs-lisp/cl-print.el")
  ("clipboard-collector" :url "https://github.com/clemera/clipboard-collector")
- ("cobol-mode"          :url nil ;; Was "https://gist.github.com/Edward-H/6768e7dc53ea3dd2adca"
-  :auto-sync t)
+ ("cobol-mode"          :url nil) ;; Was "https://gist.github.com/Edward-H/6768e7dc53ea3dd2adca"
  ("code-cells"		:url "https://github.com/astoff/code-cells.el"
   :ignored-files ("LICENSE")
   :auto-sync t)
  ("comint-mime"		:url "https://github.com/astoff/comint-mime"
   :auto-sync t)
- ;; FIXME: The upstream has incompatible copyrights, so we moved it to NonGNU.
+ ;; The upstream has incompatible copyrights, so we moved it to NonGNU.
  ;; ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
  ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings"
   :auto-sync t)
@@ -232,7 +234,7 @@
  ;; :news "CHANGELOG.org"
  ;; :readme "README.md"
  ;; :auto-sync t)
- ("dts-mode"		:url nil) ;; Was "https://github.com/bgamari/dts-mode.git")
+ ("dts-mode"		:url nil) ;; Was "https://github.com/bgamari/dts-mode.git"
  ("easy-escape"		:url "https://github.com/cpitclaudel/easy-escape"
   :auto-sync t)
  ("easy-kill"		:url "https://github.com/leoliu/easy-kill"
@@ -588,8 +590,7 @@
  ("phps-mode"		:url "https://github.com/cjohansson/emacs-phps-mode"
   ;; Christian Johansson works on a private Git and pushes to both Github
   ;; and elpa.git anyway, so there's no need to auto-sync.
-  :auto-sync nil
-  )
+  :auto-sync nil)
  ("pinentry"		:url "https://github.com/ueno/pinentry-el.git")
  ("plz"                 :url "https://github.com/alphapapa/plz.el.git"
   :ignored-files ("LICENSE")
@@ -610,8 +611,6 @@
   :url "https://github.com/tumashu/posframe"
   :auto-sync t)
  ("pq"			:url "https://github.com/anse1/emacs-libpq"
-  ;; FIXME: `test.el` needs a copyright notice and a better name.
-  :ignored-files ("test.el")
   :readme "README.org"
   :auto-sync t)
  ("prefixed-core"	:url nil)
@@ -742,8 +741,6 @@
   :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi" "Makefile"))
- ;; FIXME: Basically ready, but waiting for the maintainer to decide whether
- ;; to keep this name or rename the package before inclusion.
  ("doc-toc"		:url "https://github.com/dalanicolai/doc-tools-toc"
   :ignore-files ("LICENSE")
   :auto-sync t)
