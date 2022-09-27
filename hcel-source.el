@@ -54,8 +54,9 @@ When FORCE is non-nil, kill existing source buffer if any."
         (ignore-errors (kill-buffer buffer-name))
         (with-current-buffer (get-buffer-create buffer-name)
           ;; (hcel-write-source-to-buffer (alist-get 'tokenizedLines json))
-          (hcel-write-html-source-to-buffer (hcel-source-html json))
-          (hcel-fontify-with-haskell-mode)
+          (hcel-write-html-source-to-buffer (hcel-source-html json)
+                                            (alist-get 'occurrences json))
+          ;; (hcel-fontify-with-haskell-mode)
           ;; it is important the setq of local vars are after the (hcel-mode)
           ;; otherwise they may be rewritten
           (hcel-mode)
@@ -314,24 +315,51 @@ the location with pulsing.
      (insert "\n"))
    lines))
 
-(defun hcel-write-html-source-line-to-buffer (line)
+(defun hcel-write-html-source-line-to-buffer (line occs)
   (mapc
    (lambda (span)
      (let* ((id (dom-attr span 'data-identifier))
-            (occ (dom-attr span 'data-occurrence))
+            (position (dom-attr span 'data-occurrence))
+            (occ (when position (alist-get (intern position) occs)))
+            (tag (alist-get 'tag (alist-get 'sort occ)))
             (content (dom-text span)))
        (insert
         (propertize content
                     'identifier (unless (string= id "") id)
-                    'occurrence (unless (string= occ "") occ)
+                    'occurrence (unless (string= position "") position)
+                    'face (cond ((equal tag "TypeId") 'hcel-type-face)
+                                ((equal tag "ValueId") 'hcel-value-face)
+                                ((equal tag "ModuleId") 'hcel-type-face)
+                                ((string-match hcel-comment-re content)
+                                 'hcel-comment-face)
+                                ((string-match hcel-pragma-re content)
+                                 'hcel-pragma-face)
+                                (t nil))
                     'cursor-sensor-functions
                     (when id (list #'hcel-highlight-update))))))
    (dom-by-tag line 'span))
   (insert "\n"))
 
-(defun hcel-write-html-source-to-buffer (lines)
+(defface hcel-type-face '((t :inherit font-lock-type-face))
+  "Face used to highlight types" :group 'hcel-faces)
+(defface hcel-value-face '((t :inherit font-lock-variable-name-face))
+  "Face used to highlight values" :group 'hcel-faces)
+(defface hcel-comment-face '((t :inherit font-lock-comment-face))
+  "Face used to highlight comments" :group 'hcel-faces)
+(defface hcel-pragma-face '((t :inherit font-lock-preprocessor-face))
+  "Face used to highlight pragmas" :group 'hcel-faces)
+(defface hcel-builtin-face '((t :inherit font-lock-builtin-face))
+  "Face used to highlight builtins" :group 'hcel-faces)
+
+(defvar hcel-comment-re "^\\ *--.*$")
+(defvar hcel-pragma-re "^\\ *{-# .*? #-}\\ *$")
+(defvar hcel-builtin-re "^\\ *\\(module\\|import\\|qualified\\|as\\|if\\|then\\|else\\|in\\|where\\|::\\)\\ *$")
+
+
+(defun hcel-write-html-source-to-buffer (lines occs)
   (mapc
-   #'hcel-write-html-source-line-to-buffer
+   (lambda (line)
+     (hcel-write-html-source-line-to-buffer line occs))
    lines))
 
 (defun hcel-source-html (json)
