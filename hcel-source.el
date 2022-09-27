@@ -148,16 +148,21 @@ the location with pulsing.
 (defun hcel-type-at-point ()
   (interactive)
   (hcel-render-type-internal hcel-package-id hcel-module-path
-                             (hcel-text-property-near-point 'identifier)))
+                             (hcel-text-property-near-point 'identifier)
+                             (hcel-text-property-near-point 'occurrence)))
 
-;; TODO: use occurrence for things without an id, e.g. _
-(defun hcel-render-type-internal (package-id module-path identifier)
-  (when (and package-id module-path identifier)
+(defun hcel-render-type-internal (package-id module-path identifier
+                                             &optional occurrence)
+  (when (and package-id module-path (or identifier occurrence))
     (let ((hcel-buffer (hcel-buffer-name package-id module-path)))
       (when (get-buffer hcel-buffer)
         (with-current-buffer hcel-buffer
-          (when-let* ((id (alist-get (intern identifier)  hcel-identifiers))
-                      (id-type (alist-get 'idType id)))
+          (let* ((id (when identifier
+                       (alist-get (intern identifier) hcel-identifiers)))
+                 (occ (when occurrence
+                        (alist-get (intern occurrence) hcel-occurrences)))
+                 (id-type (or (alist-get 'idType id)
+                              (alist-get 'idOccType occ))))
             (concat
              (hcel-render-id-type id-type)
              (when-let* ((external-id (alist-get 'externalId id))
@@ -431,8 +436,9 @@ the location with pulsing.
                             "hcel match"
                             (xref-make-buffer-location buffer pos)
                             len))))
-                  (t
-                   (error "unimplemented: %s" (hcel-location-tag location-info))))))))))
+                  ;; FIXME: error when trying to find definition for an empty
+                  ;; string
+                  (t nil))))))))
 
 (provide 'hcel-source)
 ;;; hcel-source.el ends here.
