@@ -149,16 +149,14 @@ the location with pulsing.
   (hcel-render-type-internal hcel-package-id hcel-module-path
                              (hcel-text-property-near-point 'identifier)))
 
+;; TODO: use occurrence for things without an id, e.g. _
 (defun hcel-render-type-internal (package-id module-path identifier)
   (when (and package-id module-path identifier)
     (let ((hcel-buffer (hcel-buffer-name package-id module-path)))
       (when (get-buffer hcel-buffer)
         (with-current-buffer hcel-buffer
           (when-let* ((id (alist-get (intern identifier)  hcel-identifiers))
-                      (id-type
-                       (or (alist-get 'idType id)
-                           (alist-get 'idOccType
-                                      (hcel-lookup-occurrence-at-point)))))
+                      (id-type (alist-get 'idType id)))
             (concat
              (hcel-render-id-type id-type)
              (when-let* ((external-id (alist-get 'externalId id))
@@ -256,7 +254,7 @@ the location with pulsing.
       (run-hooks 'hcel-eldoc-hook))))
 
 ;; highlight
-(defface hcel-highlight-id '((t (:inherit underline)))
+(defface hcel-highlight-id-face '((t (:inherit underline)))
   "Face for highlighting hcel identifier at point."
   :group 'hcel-faces)
 
@@ -280,7 +278,7 @@ the location with pulsing.
                      (text-property-search-forward 'identifier id 'string=))
           (font-lock--remove-face-from-text-property
            (prop-match-beginning match)
-           (prop-match-end match) 'face 'hcel-highlight-id))))))
+           (prop-match-end match) 'face 'hcel-highlight-id-face))))))
 
 (defun hcel-highlight-start (id)
   (when id
@@ -291,7 +289,7 @@ the location with pulsing.
                      (text-property-search-forward 'identifier id 'string=))
           (add-face-text-property
            (prop-match-beginning match)
-           (prop-match-end match) 'hcel-highlight-id))))))
+           (prop-match-end match) 'hcel-highlight-id-face))))))
 
 ;; utilities
 (defun hcel-write-source-line-to-buffer (line)
