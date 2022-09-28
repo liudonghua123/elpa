@@ -180,7 +180,7 @@ update in the outline mode too."
                'module-path module-path
                'position (cdr pair)
                'invisible (unless
-                              (get-text-property 1 'exported (car pair))
+                              (get-text-property 0 'exported (car pair))
                             'hcel-unexported))))
            imenu-index))))))
 
