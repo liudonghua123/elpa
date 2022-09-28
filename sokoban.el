@@ -1,10 +1,10 @@
 ;;; sokoban.el --- Implementation of Sokoban for Emacs. -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2013, 2017, 2019 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2013, 2017, 2019, 2022 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn.clements@xemacs.org>
 ;; Maintainer: Dieter Deyke <dieter.deyke@gmail.com>
-;; Version: 1.4.8
+;; Version: 1.4.9
 ;; Comment: While we set lexical-binding, it currently doesn't make use
 ;;          of closures, which is why it can still work in Emacs-23.1.
 ;; Package-Requires: ((emacs "23.1") (cl-lib "0.5"))
@@ -403,7 +403,7 @@ static char * player_on_target_xpm[] = {
 
 (defvar sokoban-floor-options
   `(((glyph
-      [xpm :data ,sokoban-floor-xpm])
+      ((:type xpm :data ,sokoban-floor-xpm :ascent center)))
      (t ?\040))
     ((color-x color-x)
      (mono-x grid-x)
@@ -413,7 +413,7 @@ static char * player_on_target_xpm[] = {
 
 (defvar sokoban-target-options
   `(((glyph
-      [xpm :data ,sokoban-target-xpm])
+      ((:type xpm :data ,sokoban-target-xpm :ascent center)))
      ((mono-x mono-tty emacs-tty) ?\.)
      (t ?\040))
     ((color-x color-x)
@@ -424,7 +424,7 @@ static char * player_on_target_xpm[] = {
 
 (defvar sokoban-wall-options
   `(((glyph
-      [xpm :data ,sokoban-wall-xpm])
+      ((:type xpm :data ,sokoban-wall-xpm :ascent center)))
      (emacs-tty ?\X)
      (t ?\040))
     ((color-x color-x)
@@ -436,7 +436,7 @@ static char * player_on_target_xpm[] = {
 
 (defvar sokoban-block-options
   `(((glyph
-      [xpm :data ,sokoban-block-xpm])
+      ((:type xpm :data ,sokoban-block-xpm :ascent center)))
      ((mono-x mono-tty emacs-tty) ?\O)
      (t ?\040))
     ((color-x color-x)
@@ -447,7 +447,7 @@ static char * player_on_target_xpm[] = {
 
 (defvar sokoban-block-on-target-options
   `(((glyph
-      [xpm :data ,sokoban-block-on-target-xpm])
+      ((:type xpm :data ,sokoban-block-on-target-xpm :ascent center)))
      ((mono-x mono-tty emacs-tty) ?\O)
      (t ?\040))
     ((color-x color-x)
@@ -458,7 +458,7 @@ static char * player_on_target_xpm[] = {
 
 (defvar sokoban-player-options
   `(((glyph
-      [xpm :data ,sokoban-player-xpm])
+      ((:type xpm :data ,sokoban-player-xpm :ascent center)))
      (t ?\*))
     ((color-x color-x)
      (mono-x grid-x)
@@ -468,7 +468,7 @@ static char * player_on_target_xpm[] = {
 
 (defvar sokoban-player-on-target-options
   `(((glyph
-      [xpm :data ,sokoban-player-on-target-xpm])
+      ((:type xpm :data ,sokoban-player-on-target-xpm :ascent center)))
      (t ?\*))
     ((color-x color-x)
      (mono-x grid-x)
