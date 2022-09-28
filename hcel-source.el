@@ -24,8 +24,6 @@
 (require 'xref)
 
 (defvar-local hcel-identifiers nil)
-(defvar-local hcel-declarations nil)
-(defvar-local hcel-occurrences nil)
 (defvar-local hcel-package-id nil)
 (defvar-local hcel-module-path nil)
 (defvar-local hcel-highlight-id nil)
@@ -56,12 +54,12 @@ When FORCE is non-nil, kill existing source buffer if any."
           ;; (hcel-write-source-to-buffer (alist-get 'tokenizedLines json))
           (hcel-write-html-source-to-buffer (hcel-source-html json)
                                             (alist-get 'occurrences json))
+          (hcel-annotate-declarations (alist-get 'declarations json))
           ;; (hcel-fontify-with-haskell-mode)
           ;; it is important the setq of local vars are after the (hcel-mode)
           ;; otherwise they may be rewritten
           (hcel-mode)
-          (setq hcel-declarations (alist-get 'declarations json)
-                hcel-identifiers (alist-get 'identifiers json)
+          (setq hcel-identifiers (alist-get 'identifiers json)
                 hcel-package-id package-id
                 hcel-module-path module-path)
           (goto-char (point-min)))))
@@ -321,6 +319,29 @@ the location with pulsing.
    (dom-by-tag line 'span))
   (insert "\n"))
 
+(defun hcel-annotate-declarations (decls)
+  (save-excursion
+    (mapc
+     (lambda (decl)
+       (goto-char (point-min))
+       (forward-line (1- (alist-get 'lineNumber decl)))
+       (add-text-properties (point) (1+ (point))
+                            (list 'declaration decl)))
+     decls)))
+
+(defun hcel-source-next-declaration ()
+  (interactive)
+  (beginning-of-line)
+  (text-property-search-forward 'declaration nil t))
+(define-key hcel-mode-map "n" #'hcel-source-next-declaration)
+
+(defun hcel-source-previous-declaration ()
+  (interactive)
+  (beginning-of-line)
+  (text-property-search-backward 'declaration nil t)
+  (left-char))
+(define-key hcel-mode-map "p" #'hcel-source-previous-declaration)
+
 (defface hcel-type-face '((t :inherit font-lock-type-face))
   "Face used to highlight types" :group 'hcel-faces)
 (defface hcel-value-face '((t :inherit font-lock-variable-name-face))
@@ -354,17 +375,17 @@ the location with pulsing.
 (defun hcel-imenu-create-index ()
   (unless (derived-mode-p 'hcel-mode)
     (error "Not in hcel-mode!"))
-  (mapcar
-   (lambda (decl)
-     (cons
-      (hcel-render-components
-       (alist-get 'components
-                  (alist-get 'declType decl))
-       (alist-get 'name decl))
-      (progn (goto-char (point-min))
-             (forward-line (1- (alist-get 'lineNumber decl)))
-             (point))))
-   hcel-declarations))
+  (goto-char (point-min))
+  (let ((index) (match))
+    (while (setq match (text-property-search-forward 'declaration))
+      (push (cons
+             (hcel-render-components
+              (alist-get 'components
+                         (alist-get 'declType (prop-match-value match)))
+              (alist-get 'name (prop-match-value match)))
+             (1- (point)))
+            index))
+    index))
 (define-key hcel-mode-map "j" #'imenu)
 
 ;; xref
