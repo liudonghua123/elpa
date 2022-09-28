@@ -62,7 +62,6 @@ When FORCE is non-nil, kill existing source buffer if any."
           (hcel-mode)
           (setq hcel-declarations (alist-get 'declarations json)
                 hcel-identifiers (alist-get 'identifiers json)
-                hcel-occurrences (alist-get 'occurrences json)
                 hcel-package-id package-id
                 hcel-module-path module-path)
           (goto-char (point-min)))))
@@ -128,22 +127,18 @@ the location with pulsing.
 		    (derived-mode-p 'hcel-mode))))))
 (define-key hcel-mode-map "b" #'hcel-switch-buffer)
 
-(defun hcel-lookup-occurrence-at-point ()
-  (when-let ((occurrence (get-text-property (point) 'occurrence)))
-    (alist-get (intern occurrence) hcel-occurrences)))
-
 (defun hcel-get-location-info (id occ)
   (or (when id (alist-get 'locationInfo id))
       ;; happens for import modules
       (when occ (alist-get 'contents (alist-get 'sort occ)))))
 
 (defun hcel-occ-symbol-at-point ()
-  (when-let* ((occ (hcel-text-property-near-point 'occurrence))
-              (splitted (split-string occ "-"))
-              (line (string-to-number (car splitted)))
-              (col-beg (string-to-number (cadr splitted)))
-              (col-end (string-to-number (caddr splitted))))
-    (hcel-buffer-substring-line-column line (1- col-beg) line (1- col-end))))
+  (when-let* ((col-beg (hcel-text-property-near-point 'span-begin))
+              (col-end (hcel-text-property-near-point 'span-end)))
+    (save-excursion
+      (buffer-substring
+       (progn (move-to-column col-beg) (point))
+       (progn (move-to-column col-end) (point))))))
 
 (defun hcel-type-at-point ()
   (interactive)
@@ -159,10 +154,8 @@ the location with pulsing.
         (with-current-buffer hcel-buffer
           (let* ((id (when identifier
                        (alist-get (intern identifier) hcel-identifiers)))
-                 (occ (when occurrence
-                        (alist-get (intern occurrence) hcel-occurrences)))
                  (id-type (or (alist-get 'idType id)
-                              (alist-get 'idOccType occ))))
+                              (alist-get 'idOccType occurrence))))
             (concat
              (hcel-render-id-type id-type)
              (when-let* ((external-id (alist-get 'externalId id))
@@ -298,40 +291,23 @@ the location with pulsing.
            (prop-match-end match) 'hcel-highlight-id-face))))))
 
 ;; utilities
-(defun hcel-write-source-line-to-buffer (line)
-  (mapc
-   (lambda (token)
-     (let* ((idInfo (alist-get 'idInfo token))
-            (id (alist-get 'identifier idInfo))
-            (occ (alist-get 'occurrence idInfo))
-            (content (alist-get 'content token)))
-       (insert
-        (propertize content
-                    'identifier (unless (string= id "") id)
-                    'occurrence (unless (string= occ "") occ)
-                    'cursor-sensor-functions
-                    (when id (list #'hcel-highlight-update))))))
-   line))
-
-(defun hcel-write-source-to-buffer (lines)
-  (mapc
-   (lambda (line)
-     (hcel-write-source-line-to-buffer (alist-get 'lineContents line))
-     (insert "\n"))
-   lines))
-
 (defun hcel-write-html-source-line-to-buffer (line occs)
   (mapc
    (lambda (span)
      (let* ((id (dom-attr span 'data-identifier))
             (position (dom-attr span 'data-occurrence))
+            (splitted (when position (split-string position "-")))
             (occ (when position (alist-get (intern position) occs)))
             (tag (alist-get 'tag (alist-get 'sort occ)))
             (content (dom-text span)))
        (insert
         (propertize content
                     'identifier (unless (string= id "") id)
-                    'occurrence (unless (string= position "") position)
+                    'span-begin (when splitted
+                                  (1- (string-to-number (cadr splitted))))
+                    'span-end (when splitted
+                                (1- (string-to-number (caddr splitted))))
+                    'occurrence occ
                     'face (cond ((equal tag "TypeId") 'hcel-type-face)
                                 ((equal tag "ValueId") 'hcel-value-face)
                                 ((equal tag "ModuleId") 'hcel-type-face)
@@ -415,8 +391,7 @@ the location with pulsing.
                (hcel-get-location-info
                 (when identifier
                   (alist-get (intern identifier) hcel-identifiers))
-                (when occurrence
-                  (alist-get (intern occurrence) hcel-occurrences)))))
+                occurrence)))
           (when (string= (hcel-location-tag location-info) "ApproximateLocation")
             (setq location-info (hcel-approx-to-exact-location location-info)))
           (let ((line-beg (alist-get 'startLine location-info))
