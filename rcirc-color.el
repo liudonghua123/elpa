@@ -134,7 +134,9 @@ NICK is the nick for which the new color ist set; if nil, all the
 nicks in `rcirc-color-mapping' are shown with their corresponding
 faces.
 
-COLOR is the color to use as the new foreground-color.
+COLOR is the color to use as the new foreground-color.  If COLOR
+is not supplied, a random color from `rcirc-colors' is used
+instead.
 
 PROCESS and TARGET are the standard arguments for rcirc
 commands."
@@ -149,9 +151,11 @@ commands."
                  rcirc-color-mapping)
         (rcirc-print process (rcirc-nick process) "NOTICE" target
                      (mapconcat 'identity names " ")))
-    (unless color
-      (error "Use what color?"))
-    (puthash nick (cons 'foreground-color color) rcirc-color-mapping)))
+    (puthash nick
+             (cons 'foreground-color
+                   (elt rcirc-colors
+                        (random (length rcirc-colors))))
+             rcirc-color-mapping)))
 
 (advice-add 'rcirc-handler-NICK :before #'rcirc-color--handler-NICK)
 (defun rcirc-color--handler-NICK (_process sender args _text)
