@@ -21,6 +21,7 @@
 (require 'dom)
 (require 'hcel-client)
 (require 'text-property-search)
+(require 'json)
 (require 'xref)
 
 (defvar-local hcel-identifiers nil)
@@ -373,19 +374,26 @@ the location with pulsing.
 
 ;; imenu
 (defun hcel-imenu-create-index ()
+  (hcel-imenu-create-index-internal))
+
+(defun hcel-imenu-create-index-internal (&optional exported-only)
   (unless (derived-mode-p 'hcel-mode)
     (error "Not in hcel-mode!"))
   (goto-char (point-min))
-  (let ((index) (match))
+  (let ((index) (match) (exported))
     (while (setq match (text-property-search-forward 'declaration))
-      (push (cons
-             (hcel-render-components
-              (alist-get 'components
-                         (alist-get 'declType (prop-match-value match)))
-              (alist-get 'name (prop-match-value match)))
-             (1- (point)))
-            index))
-    index))
+      (setq exported (eq (alist-get 'isExported (prop-match-value match)) t))
+      (unless (and exported-only (not exported))
+        (push (cons
+               (propertize
+                (hcel-render-components
+                 (alist-get 'components
+                            (alist-get 'declType (prop-match-value match)))
+                 (alist-get 'name (prop-match-value match)))
+                'exported exported)
+               (1- (point)))
+              index)))
+    (reverse index)))
 (define-key hcel-mode-map "j" #'imenu)
 
 ;; xref
