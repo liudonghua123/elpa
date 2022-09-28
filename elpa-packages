@@ -49,6 +49,10 @@
   :auto-sync t)
  ("aggressive-indent"	:url "https://github.com/Malabarba/aggressive-indent-mode"
   :auto-sync t)
+ ("agitate"		:url "https://git.sr.ht/~protesilaos/agitate"
+  :auto-sync t
+  :doc "README.org"
+  :ignored-files ("COPYING" "doclicense.texi"))
  ("ahungry-theme"	:url "https://github.com/ahungry/color-theme-ahungry")
  ("aircon-theme"        :url "https://git.sr.ht/~chambln/aircon-theme.el"
   :ignored-files ("README" "COPYING")
@@ -142,8 +146,7 @@
  ;; ("coffee-mode"		:url "https://github.com/defunkt/coffee-mode")
  ("compact-docstrings"  :url "https://github.com/cpitclaudel/compact-docstrings"
   :auto-sync t)
- ("company"
-  :url "https://github.com/company-mode/company-mode.git"
+ ("company"		:url "https://github.com/company-mode/company-mode.git"
   :shell-command "cp -R doc/images ."
   :doc "doc/company.texi"
   :ignored-files ("doc")
@@ -188,16 +191,14 @@
   :readme "README.org"
   :auto-sync t)
  ("csv-mode"		:url nil)
- ("cursory"
-  :url "https://git.sr.ht/~protesilaos/cursory"
+ ("cursory"		:url "https://git.sr.ht/~protesilaos/cursory"
   :auto-sync t
   :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  ("cycle-quotes"	:url nil)
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
- ("dash"
-  :url "https://github.com/magnars/dash.el.git"
+ ("dash"		:url "https://github.com/magnars/dash.el.git"
   :doc "dash.texi"
   :auto-sync t)
  ("dbus-codegen"	:url "https://github.com/ueno/dbus-codegen-el.git"
@@ -206,8 +207,7 @@
  ("debbugs"		:url nil :doc ("debbugs.texi" "debbugs-ug.texi"))
  ("delight"		:url "https://git.savannah.gnu.org/r/delight.git"
   :auto-sync t)
- ("denote"
-  :url "https://git.sr.ht/~protesilaos/denote"
+ ("denote"		:url "https://git.sr.ht/~protesilaos/denote"
   :auto-sync t
   :doc "README.org"
   :news "CHANGELOG.org"
@@ -219,8 +219,7 @@
  ("devdocs"		:url "https://github.com/astoff/devdocs.el"
   :auto-sync t)
  ("dict-tree"		:url "http://www.dr-qubit.org/git/predictive.git")
- ("diff-hl"
-  :url "https://github.com/dgutov/diff-hl.git"
+ ("diff-hl"		:url "https://github.com/dgutov/diff-hl.git"
   :auto-sync t)
  ("diffview"            :url "https://github.com/mgalgs/diffview-mode.git")
  ("diminish"            :url "https://github.com/myrjola/diminish.el.git"
@@ -232,6 +231,9 @@
   :auto-sync t)
  ("dismal"		:url nil)
  ("djvu"		:url nil)
+ ("doc-toc"		:url "https://github.com/dalanicolai/doc-tools-toc"
+  :ignore-files ("LICENSE")
+  :auto-sync t)
  ("docbook"		:url nil)
  ;; `dtache' was renamed to `detached' in May 2022.
  ;;("dtache"		:url "https://git.sr.ht/~niklaseklund/dtache"
@@ -250,8 +252,7 @@
  ("ediprolog"		:url nil)
  ("eev"			:url "https://github.com/edrx/eev.git"
   :branch "UTF-8" :auto-sync t)
- ("ef-themes"
-  :url "https://git.sr.ht/~protesilaos/ef-themes"
+ ("ef-themes"		:url "https://git.sr.ht/~protesilaos/ef-themes"
   :auto-sync t
   :doc "README.org"
   :readme "README.md"
@@ -273,16 +274,14 @@
  ;; :doc "info/emacspeak.texi"
  ;; :lisp-dir "lisp"
  ;; :auto-sync t)
- ("embark"
-  :url "https://github.com/oantolin/embark"
+ ("embark"		:url "https://github.com/oantolin/embark"
   :doc "embark.texi"
   :ignored-files ("embark-consult.el" "avy-embark-collect.el")
   :auto-sync t)
- ("embark-consult"
-  :url "https://github.com/oantolin/embark"
+ ("embark-consult"	:url "https://github.com/oantolin/embark"
   :ignored-files ("embark.el" "embark.texi" "avy-embark-collect.el")
   :auto-sync t)
- ("ement"                :url "https://github.com/alphapapa/ement.el.git"
+ ("ement"		:url "https://github.com/alphapapa/ement.el.git"
   :doc "README.org"
   :auto-sync t)
  ("emms"		:url "https://git.savannah.gnu.org/git/emms.git"
@@ -353,8 +352,7 @@
  ("flymake"		:core "lisp/progmodes/flymake.el")
  ("flymake-proselint"	:url "https://git.sr.ht/~manuel-uberti/flymake-proselint"
   :auto-sync t)
- ("fontaine"
-  :url "https://git.sr.ht/~protesilaos/fontaine"
+ ("fontaine"		:url "https://git.sr.ht/~protesilaos/fontaine"
   :auto-sync t
   :doc "README.org"
   :news "CHANGELOG.org"
@@ -419,20 +417,17 @@
  ("isearch-mb"		:url "https://github.com/astoff/isearch-mb"
   :auto-sync t)
  ("iterators"		:url nil)
- ("ivy"
-  :url "https://github.com/abo-abo/swiper"
+ ("ivy"			:url "https://github.com/abo-abo/swiper"
   :renames (("doc/" ""))
   :doc "doc/ivy.texi")
  ("ivy-avy"		:url "https://github.com/abo-abo/swiper")
  ("ivy-explorer"        :url "https://github.com/clemera/ivy-explorer")
  ("ivy-hydra"		:url "https://github.com/abo-abo/swiper")
- ("ivy-posframe"
-  :url "https://github.com/tumashu/ivy-posframe"
+ ("ivy-posframe"	:url "https://github.com/tumashu/ivy-posframe"
   :auto-sync t)
  ("javaimp"		:url nil)
  ("jgraph-mode"		:url nil)
- ("js2-mode"
-  :url "https://github.com/mooz/js2-mode.git"
+ ("js2-mode"		:url "https://github.com/mooz/js2-mode.git"
   :auto-sync t)
  ("json-mode"		:url nil)
  ("jsonrpc"		:core "lisp/jsonrpc.el")
@@ -491,8 +486,7 @@
   :auto-sync t)
  ("minibuffer-line"	:url nil)
  ("minimap"		:url nil)
- ("mmm-mode"
-  :url "https://github.com/purcell/mmm-mode.git"
+ ("mmm-mode"		:url "https://github.com/purcell/mmm-mode.git"
   :auto-sync t)
  ("modus-themes"	:core ("etc/themes/modus-themes.el"
                                "etc/themes/modus-operandi-theme.el"
@@ -517,8 +511,7 @@
  ("nhexl-mode"		:url nil)
  ("nlinum"		:url nil)
  ("notes-mode"		:url nil)
- ("notmuch-indicator"
-  :url "https://git.sr.ht/~protesilaos/notmuch-indicator"
+ ("notmuch-indicator"	:url "https://git.sr.ht/~protesilaos/notmuch-indicator"
   :auto-sync t
   :readme "README.md"
   :ignored-files ("COPYING"))
@@ -533,8 +526,7 @@
   :doc "orderless.texi"
   :readme "README.org"
   :auto-sync t)
- ("org"
-  :url "git://git.sv.gnu.org/emacs/org-mode.git"
+ ("org"			:url "git://git.sv.gnu.org/emacs/org-mode.git"
   :lisp-dir "lisp"
   :release-branch "bugfix"
   :ignored-files ("etc/schema" "contrib" "mk" "testing" "lisp/org-install.el")
@@ -611,8 +603,7 @@
   :ignore-files ("targets" "template" "tests")
   :readme "readme.md"
   :auto-sync t)
- ("posframe"
-  :url "https://github.com/tumashu/posframe"
+ ("posframe"		:url "https://github.com/tumashu/posframe"
   :auto-sync t)
  ("pq"			:url "https://github.com/anse1/emacs-libpq"
   :readme "README.org"
@@ -631,11 +622,9 @@
   :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
- ("pyim"
-  :url "https://github.com/tumashu/pyim.git"
+ ("pyim"		:url "https://github.com/tumashu/pyim.git"
   :auto-sync t)
- ("pyim-basedict"
-  :url "https://github.com/tumashu/pyim-basedict.git"
+ ("pyim-basedict"	:url "https://github.com/tumashu/pyim-basedict.git"
   :auto-sync t)
  ("python"		:core "lisp/progmodes/python.el")
  ("quarter-plane"	:url nil)
@@ -739,15 +728,11 @@
  ("timerfunctions"	:url nil)
  ("tiny"		:url "https://github.com/abo-abo/tiny"
   :ayto-sync t)
- ("tmr"
-  :url "https://git.sr.ht/~protesilaos/tmr"
+ ("tmr"			:url "https://git.sr.ht/~protesilaos/tmr"
   :auto-sync t
   :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi" "Makefile"))
- ("doc-toc"		:url "https://github.com/dalanicolai/doc-tools-toc"
-  :ignore-files ("LICENSE")
-  :auto-sync t)
  ("tomelr"		:url "https://github.com/kaushalmodi/tomelr"
   :ignored-files ("LICENSE")
   :news "CHANGELOG.org"
@@ -812,15 +797,13 @@
   :ignored-files ("*.svg")
   :renames (("extensions/" ""))
   :auto-sync t)
- ("vertico-posframe"
-  :url "https://github.com/tumashu/vertico-posframe"
+ ("vertico-posframe"	:url "https://github.com/tumashu/vertico-posframe"
   :auto-sync t)
  ("vigenere" 		:url nil)
  ("visual-filename-abbrev" :url nil)
  ("visual-fill"		:url nil)
  ("vlf"			:url "https://github.com/m00natic/vlfi")
- ("vundo"
-  :url "https://github.com/casouri/vundo"
+ ("vundo"		:url "https://github.com/casouri/vundo"
   :ignored-files ("test")
   :news "NEWS.txt"
   :auto-sync t)
