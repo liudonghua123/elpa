@@ -80,6 +80,9 @@
   :auto-sync nil)
  ("beacon"		:url "https://github.com/Malabarba/beacon"
   :auto-sync t)
+ ;;("bind-key"         :url "https://github.com/jwiegley/use-package"
+ ;; :ignored-files ("LICENSE" "doc" "Makefile*" "bind-chords.el" "use-package*")
+ ;; :auto-sync t)
  ("blist"		:url "https://gitlab.com/mmemmew/blist"
   :doc "blist.texinfo"
   :readme "README.org"
@@ -167,9 +170,10 @@
   :doc "README.org"
   :renames (("extensions/" ""))
   :auto-sync t)
- ("corfu-doc"		:url "https://github.com/galeo/corfu-doc"
-  :ignored-files ("LICENSE")
-  :auto-sync t)
+ ;; Merged into `corfu' (issue #178) instead of added as a separate package.
+ ;;("corfu-doc"		:url "https://github.com/galeo/corfu-doc"
+ ;; :ignored-files ("LICENSE")
+ ;; :auto-sync t)
  ("coterm"		:url "https://repo.or.cz/emacs-coterm.git"
   :auto-sync t)
  ("counsel"		:url "https://github.com/abo-abo/swiper")
@@ -783,6 +787,11 @@
   :readme "README.md")
  ("uniquify-files"	:url nil)
  ("url-http-ntlm" 	:url nil)
+ ;;("use-package"		:url "https://github.com/jwiegley/use-package"
+ ;; :ignored-files ("LICENSE" "bind-*" "use-package-chords.el")
+ ;; :doc "use-package.texi"
+ ;; :news "NEWS.md"
+ ;; :auto-sync t)
  ("validate"		:url "https://github.com/Malabarba/validate.el")
  ("valign"		:url "https://github.com/casouri/valign")
  ("vc-backup"		:url "https://git.sr.ht/~pkal/vc-backup"
