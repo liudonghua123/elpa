@@ -320,44 +320,80 @@ Start by choosing a package."
 (defvar hcel-ids--minibuffer-saved-query nil)
 (defvar hcel-ids--minibuffer-saved-results nil)
 
-(defun hcel-ids-minibuffer-collection (scope query &optional package-id)
+(defun hcel-ids--affixation-internal (scope items)
+  (mapcar
+   (lambda (item)
+     (let* ((location-info (get-text-property 0 'location-info item))
+           (suffix
+            (propertize 
+             (format
+              " :: %s"
+              (hcel-render-components (get-text-property 0 'components item)))
+             'face 'completions-annotations))
+           (prefix
+            (propertize
+             (if (eq scope 'global)
+                 (format "(%s %s) "
+                         (alist-get 'moduleName location-info)
+                         (hcel-format-package-id
+                          (alist-get 'packageId location-info) "-"))
+                 (format "(%s) "
+                         (alist-get 'moduleName location-info)))
+             'face 'completions-annotations)))
+       (list (car (split-string item " ")) prefix suffix)))
+   items))
+
+(defun hcel-ids--affixation-function (scope)
+  (lambda (items)
+    (hcel-ids--affixation-internal scope items)))
+
+(defun hcel-ids-minibuffer-collection (scope query action &optional package-id)
   (when (and (eq scope 'package) (not package-id))
     (error "No package-id supplied for identifiers call!"))
-  (unless (length= query 0)
-    (if (string= hcel-ids--minibuffer-saved-query query)
-        hcel-ids--minibuffer-saved-results
-      (setq hcel-ids--minibuffer-saved-query query
-            hcel-ids--minibuffer-saved-results
-            (mapcar
-             (lambda (result)
-               (propertize
-                (alist-get 'demangledOccName result)
-                'location-info (alist-get 'locationInfo result)))
-             (hcel-api-identifiers
-              scope query package-id nil
-              (number-to-string hcel-ids-live-per-page))))
-      hcel-ids--minibuffer-saved-results)))
+  (if (eq action 'metadata)
+      (list 'metadata (cons 'affixation-function
+                            (hcel-ids--affixation-function scope)))
+    (unless (length= query 0)
+      (if (string= hcel-ids--minibuffer-saved-query query)
+          hcel-ids--minibuffer-saved-results
+        (setq hcel-ids--minibuffer-saved-query query
+              hcel-ids--minibuffer-saved-results
+              (mapcar
+               (lambda (result)
+                 (propertize
+                  (format "%s %s"
+                          (alist-get 'demangledOccName result)
+                          (alist-get 'externalId result))
+                  'location-info (alist-get 'locationInfo result)
+                  'components (alist-get 'components
+                                         (alist-get 'idType result))))
+               (hcel-api-identifiers
+                scope query package-id nil
+                (number-to-string hcel-ids-live-per-page))))
+        hcel-ids--minibuffer-saved-results))))
 
-(defun hcel-global-ids-minibuffer-collection (query &rest _)
-  (hcel-ids-minibuffer-collection 'global query))
+(defvar hcel-ids-selected-ids-location-info nil)
+
+(defun hcel-global-ids-minibuffer-collection (query pred action)
+  (hcel-ids-minibuffer-collection 'global query action))
 
 (defun hcel-package-ids-minibuffer-collection (package-id)
-  (lambda (query &rest _)
-    (hcel-ids-minibuffer-collection 'package query package-id)))
+  (lambda (query pred action)
+    (hcel-ids-minibuffer-collection 'package query action package-id)))
 
 (defun hcel-ids (scope query &optional package-id)
-  (if (length= hcel-ids--minibuffer-saved-results 1)
-      (hcel-load-module-location-info
-       (with-temp-buffer
-         (insert (car hcel-ids--minibuffer-saved-results))
-         (get-text-property (point-min) 'location-info)))
-    (let ((buffer-name (hcel-ids-buffer-name scope query)))
-      (with-current-buffer (get-buffer-create buffer-name)
-        (hcel-ids-mode)
-        (setq hcel-ids-scope scope
-              hcel-ids-package-id package-id)
-        (hcel-ids-update-query query))
-      (switch-to-buffer buffer-name))))
+  (let ((splitted (split-string query " ")))
+    (if (length= splitted 2)
+        (hcel-load-module-location-info
+         (alist-get 'location
+                    (hcel-definition-site-external-id (cadr splitted))))
+      (let ((buffer-name (hcel-ids-buffer-name scope query)))
+        (with-current-buffer (get-buffer-create buffer-name)
+          (hcel-ids-mode)
+          (setq hcel-ids-scope scope
+                hcel-ids-package-id package-id)
+          (hcel-ids-update-query (car splitted)))
+        (switch-to-buffer buffer-name)))))
 
 (defun hcel-global-ids (query)
   (interactive (list
