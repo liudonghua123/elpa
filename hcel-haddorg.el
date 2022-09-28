@@ -19,6 +19,7 @@
 (require 'hcel-source)
 (require 'hcel-client)
 (require 'hcel-utils)
+(require 'json)
 (require 'org)
 
 (defcustom hcel-haddorg-dir "~/Projects/sedoc/haddock/org-output"
@@ -56,22 +57,27 @@ is in ghc-8.10.1, hcel will attempt to look up in ghc-9.2.2.org.")
 (defun hcel-identifier-at-point-to-haddorg ()
   (interactive)
   (when-let* ((identifier (hcel-text-property-near-point 'identifier))
-              (external-id (alist-get 'externalId
-                                      (alist-get (intern identifier)
-                                                 hcel-identifiers))))
-    (let* ((splitted (split-string external-id "|"))
-           (package-id (car splitted))
-           (module-name (cadr splitted))
-           (entity (cond ((equal (caddr splitted) "Typ") "t")
-                         ((equal (caddr splitted) "Val") "v")
-                         (t nil)))
-           (name (cadddr splitted))
-           (file-name (hcel-haddorg-fuzzy-version-match package-id))
-           (custom-id (concat module-name "/" entity "/" name)))
-      (unless file-name
-        (error "Cannot find org file for %s" package-id))
-      (org-link-open-from-string
-       (format "[[file:%s::#%s]]" file-name custom-id)))))
+              (id (alist-get (intern identifier) hcel-identifiers))
+              (exported (alist-get 'isExported id))
+              (external-id (alist-get 'externalId id)))
+    (if (and (eq exported json-false)
+             ;; FIXME: Hacky.  ExactLocation implies identifier is declared in
+             ;; the current module.
+             (equal (alist-get 'tag (alist-get 'locationInfo id)) "ExactLocation"))
+        (message "%s is not exported." (hcel-occ-symbol-at-point))
+      (let* ((splitted (split-string external-id "|"))
+             (package-id (car splitted))
+             (module-name (cadr splitted))
+             (entity (cond ((equal (caddr splitted) "Typ") "t")
+                           ((equal (caddr splitted) "Val") "v")
+                           (t nil)))
+             (name (cadddr splitted))
+             (file-name (hcel-haddorg-fuzzy-version-match package-id))
+             (custom-id (concat module-name "/" entity "/" name)))
+        (if file-name
+            (org-link-open-from-string
+             (format "[[file:%s::#%s]]" file-name custom-id))
+          (message "Cannot find org file for %s" package-id))))))
 
 (defun hcel-haddorg-fuzzy-version-match (package-id)
   (let ((exact-match
