@@ -21,6 +21,15 @@
 (require 'hcel-utils)
 (require 'org)
 
+(defcustom hcel-haddorg-dir "~/Projects/sedoc/haddock/org-output"
+  "Directory of haddorg org files.")
+
+(defcustom hcel-haddorg-lax-version t
+  "If non-nil, match highest version if no exact match found.
+
+Say we have ghc-8.6.5.org and ghc-9.2.2.org.  If the definition
+is in ghc-8.10.1, hcel will attempt to look up in ghc-9.2.2.org.")
+
 (defun hcel-haddorg-to-hcel-definition ()
   (interactive)
   (save-excursion
@@ -43,6 +52,45 @@
        (alist-get 'location
                   (hcel-api-definition-site
                    package-id "lib" module-name entity name))))))
+
+(defun hcel-identifier-at-point-to-haddorg ()
+  (interactive)
+  (when-let* ((identifier (hcel-text-property-near-point 'identifier))
+              (external-id (alist-get 'externalId
+                                      (alist-get (intern identifier)
+                                                 hcel-identifiers))))
+    (let* ((splitted (split-string external-id "|"))
+           (package-id (car splitted))
+           (module-name (cadr splitted))
+           (entity (cond ((equal (caddr splitted) "Typ") "t")
+                         ((equal (caddr splitted) "Val") "v")
+                         (t nil)))
+           (name (cadddr splitted))
+           (file-name (hcel-haddorg-fuzzy-version-match package-id))
+           (custom-id (concat module-name "/" entity "/" name)))
+      (unless file-name
+        (error "Cannot find org file for %s" package-id))
+      (org-link-open-from-string
+       (format "[[file:%s::#%s]]" file-name custom-id)))))
+
+(defun hcel-haddorg-fuzzy-version-match (package-id)
+  (let ((exact-match
+         (expand-file-name (format "%s/%s.org" hcel-haddorg-dir package-id))))
+    (cond ((file-exists-p exact-match) exact-match)
+          (hcel-haddorg-lax-version
+           (when-let ((files
+                       (sort (directory-files
+                              hcel-haddorg-dir t
+                              (format "^%s\\(-[0-9.]+\\)?\\.org$"
+                                      (car (split-string package-id "-"))))
+                             (lambda (x y)
+                               (string> (file-name-base x)
+                                        (file-name-base y))))))
+             (message
+              "Cannot find org file for %s, opening instead that of the highest available version %s."
+              package-id (file-name-base (car files)))
+             (car files)))
+          (t nil))))
 
 (provide 'hcel-haddorg)
 ;;; hcel-haddorg.el ends here.
