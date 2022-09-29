@@ -96,7 +96,6 @@ used to determine the color: #rrrrggggbbbb.")
   "Other attributes to use for nicks.
 Example: (setq rcirc-color-other-attributes '(:weight bold))")
 
-(advice-add 'rcirc-facify :around #'rcirc-color--facify)
 (defun rcirc-color--facify (orig-fun string face &rest args)
   "Add colors to other nicks based on `rcirc-colors'."
   (when (and (eq face 'rcirc-other-nick)
@@ -121,8 +120,6 @@ This ignores SENDER and RESPONSE."
       (let ((face (gethash (match-string-no-properties 0) rcirc-color-mapping)))
 	(when face
 	  (rcirc-add-face (match-beginning 0) (match-end 0) face))))))
-
-(add-hook 'rcirc-markup-text-functions #'rcirc-markup-nick-colors)
 
 (rcirc-define-command color (nick color)
   "Change one of the nick colors."
@@ -157,7 +154,6 @@ commands."
                         (random (length rcirc-colors))))
              rcirc-color-mapping)))
 
-(advice-add 'rcirc-handler-NICK :before #'rcirc-color--handler-NICK)
 (defun rcirc-color--handler-NICK (_process sender args _text)
   "Update colors in `rcirc-color-mapping'."
   (let* ((old-nick (rcirc-user-nick sender))
@@ -166,6 +162,26 @@ commands."
     ;; don't delete the old mapping
     (when cell
       (puthash new-nick cell rcirc-color-mapping))))
+
+;;;###autoload
+(define-minor-mode rcirc-color-mode
+  "Enable the highlighting of nicknames."
+  (cond
+   (rcirc-color-mode
+    (advice-add 'rcirc-facify :around #'rcirc-color--facify)
+    (advice-add 'rcirc-handler-NICK :before #'rcirc-color--handler-NICK)
+    (add-hook 'rcirc-markup-text-functions #'rcirc-markup-nick-colors))
+   (t                                   ;disable `rcirc-color-mode'
+    (advice-remove 'rcirc-facify #'rcirc-color--facify)
+    (advice-remove 'rcirc-handler-NICK #'rcirc-color--handler-NICK)
+    (remove-hook 'rcirc-markup-text-functions #'rcirc-markup-nick-colors))))
+
+;; FIXME: Traditionally rcirc-color initialises itself when loaded, so
+;; we preserve this behaviour even after the addition of
+;; `rcirc-color-mode'.  Eventually we should move from this kind of
+;; implicit to an explicit initialisation via the minor mode.  But for
+;; now we just enable the minor mode to avoid breaking stuff.
+(rcirc-color-mode t)
 
 (provide 'rcirc-color)
 
