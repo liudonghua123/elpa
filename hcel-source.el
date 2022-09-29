@@ -24,6 +24,9 @@
 (require 'json)
 (require 'xref)
 
+(defcustom hcel-font-lock-use-haskell-mode nil
+  "If non-nil, will use haskell mode for haskell syntax highlight.")
+
 (defvar-local hcel-identifiers nil)
 (defvar-local hcel-package-id nil)
 (defvar-local hcel-module-path nil)
@@ -54,9 +57,11 @@ When FORCE is non-nil, kill existing source buffer if any."
         (with-current-buffer (get-buffer-create buffer-name)
           ;; (hcel-write-source-to-buffer (alist-get 'tokenizedLines json))
           (hcel-write-html-source-to-buffer (hcel-source-html json)
-                                            (alist-get 'occurrences json))
+                                            (alist-get 'occurrences json)
+                                            (not hcel-font-lock-use-haskell-mode))
           (hcel-annotate-declarations (alist-get 'declarations json))
-          ;; (hcel-fontify-with-haskell-mode)
+          (when hcel-font-lock-use-haskell-mode
+            (hcel-fontify-with-haskell-mode))
           ;; it is important the setq of local vars are after the (hcel-mode)
           ;; otherwise they may be rewritten
           (hcel-mode)
@@ -290,7 +295,7 @@ the location with pulsing.
            (prop-match-end match) 'hcel-highlight-id-face))))))
 
 ;; utilities
-(defun hcel-write-html-source-line-to-buffer (line occs)
+(defun hcel-write-html-source-line-to-buffer (line occs font-lock)
   (mapc
    (lambda (span)
      (let* ((id (dom-attr span 'data-identifier))
@@ -307,14 +312,15 @@ the location with pulsing.
                     'span-end (when splitted
                                 (1- (string-to-number (caddr splitted))))
                     'occurrence occ
-                    'face (cond ((equal tag "TypeId") 'hcel-type-face)
-                                ((equal tag "ValueId") 'hcel-value-face)
-                                ((equal tag "ModuleId") 'hcel-type-face)
-                                ((string-match hcel-comment-re content)
-                                 'hcel-comment-face)
-                                ((string-match hcel-pragma-re content)
-                                 'hcel-pragma-face)
-                                (t nil))
+                    'font-lock-face (when font-lock
+                            (cond ((equal tag "TypeId") 'hcel-type-face)
+                                  ((equal tag "ValueId") 'hcel-value-face)
+                                  ((equal tag "ModuleId") 'hcel-type-face)
+                                  ((string-match hcel-comment-re content)
+                                   'hcel-comment-face)
+                                  ((string-match hcel-pragma-re content)
+                                   'hcel-pragma-face)
+                                  (t nil)))
                     'cursor-sensor-functions
                     (when id (list #'hcel-highlight-update))))))
    (dom-by-tag line 'span))
@@ -359,10 +365,10 @@ the location with pulsing.
 (defvar hcel-builtin-re "^\\ *\\(module\\|import\\|qualified\\|as\\|if\\|then\\|else\\|in\\|where\\|::\\)\\ *$")
 
 
-(defun hcel-write-html-source-to-buffer (lines occs)
+(defun hcel-write-html-source-to-buffer (lines occs font-lock)
   (mapc
    (lambda (line)
-     (hcel-write-html-source-line-to-buffer line occs))
+     (hcel-write-html-source-line-to-buffer line occs font-lock))
    lines))
 
 (defun hcel-source-html (json)
