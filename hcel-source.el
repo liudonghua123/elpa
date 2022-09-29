@@ -425,8 +425,7 @@ the location with pulsing.
                 (when identifier
                   (alist-get (intern identifier) hcel-identifiers))
                 occurrence)))
-          (when (string= (hcel-location-tag location-info) "ApproximateLocation")
-            (setq location-info (hcel-approx-to-exact-location location-info)))
+          (setq location-info (hcel-to-exact-location location-info))
           (let ((line-beg (alist-get 'startLine location-info))
                 (col-beg (alist-get 'startColumn location-info))
                 (line-end (alist-get 'endLine location-info))

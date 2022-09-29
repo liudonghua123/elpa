@@ -147,10 +147,36 @@ Example of an idSrcSpan:
 
 (defun hcel-render-html (html)
   (when html
+    ;; (hcel-debug-html html)
     (with-temp-buffer
       (insert html)
-      (shr-render-region (point-min) (point-max))
+      (let ((shr-external-rendering-functions
+             '((span . hcel-tag-span))))
+        (shr-render-region (point-min) (point-max)))
       (buffer-string))))
+
+(defun hcel-debug-html (html)
+  (with-temp-buffer
+    (insert html)
+    (pp (libxml-parse-html-region (point-min) (point-max)))))
+
+(defun hcel-tag-span (dom)
+  (let ((start (point)))
+    (shr-tag-span dom)
+    (mapc (lambda (attr)
+            (cond ((eq (car attr) 'data-location)
+                   (put-text-property start (point)
+                                      'location-info
+                                      (json-read-from-string (cdr attr)))
+                   (make-text-button start (point)
+                                     'action
+                                     (lambda (m)
+                                       (hcel-load-module-location-info
+                                        (hcel-to-exact-location
+                                         (get-text-property m 'location-info))))
+                                     'face 'button)
+)))
+     (dom-attributes dom))))
 
 (defun hcel-text-property-near-point (prop)
   "Find property prop at point, or just before point."

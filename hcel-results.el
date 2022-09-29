@@ -281,10 +281,6 @@ Start by choosing a package."
                               (ignore-errors
                                 (hcel-definition-site-location-info
                                  location-info)))))))
-    ;; TODO: remove
-    ;; (print (with-temp-buffer
-    ;;          (insert (alist-get 'doc result))
-    ;;          (libxml-parse-html-region (point-min) (point-max))))
     (concat
      (propertize
       (format "%s :: %s\n"
