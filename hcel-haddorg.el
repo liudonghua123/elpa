@@ -22,7 +22,7 @@
 (require 'json)
 (require 'org)
 
-(defcustom hcel-haddorg-dir "~/Projects/sedoc/haddock/org-output"
+(defcustom hcel-haddorg-dir nil
   "Directory of haddorg org files."
   :group 'hcel :type '(string))
 
