@@ -271,7 +271,7 @@ the location with pulsing.
       (run-hooks 'hcel-eldoc-hook))))
 
 ;; highlight
-(defface hcel-highlight-id-face '((t (:inherit underline)))
+(defface hcel-highlight-id-face '((t (:inherit highlight)))
   "Face for highlighting hcel identifier at point."
   :group 'hcel-faces)
 
