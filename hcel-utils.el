@@ -145,14 +145,16 @@ Example of an idSrcSpan:
                     (alist-get 'exprType (alist-get 'info expr)))))
     (cons expression type)))
 
-(defun hcel-render-html (html)
+(defun hcel-render-html (html &optional action)
+  (unless action (setq action 'hcel-tag-span-button-load-source))
   (when html
     ;; (hcel-debug-html html)
     (with-temp-buffer
       (insert html)
-      (let ((shr-external-rendering-functions
-             '((span . hcel-tag-span)
-               (div . hcel-tag-div))))
+      (let* ((hcel-tag-span (hcel-tag-span-function action))
+             (shr-external-rendering-functions
+              `((span . ,hcel-tag-span)
+                (div . hcel-tag-div))))
         (shr-render-region (point-min) (point-max)))
       (buffer-string))))
 
@@ -161,23 +163,25 @@ Example of an idSrcSpan:
     (insert html)
     (pp (libxml-parse-html-region (point-min) (point-max)))))
 
-(defun hcel-tag-span (dom)
-  (let ((start (point)))
-    (shr-tag-span dom)
-    (mapc (lambda (attr)
-            (cond ((eq (car attr) 'data-location)
-                   (put-text-property start (point)
-                                      'location-info
-                                      (json-read-from-string (cdr attr)))
-                   (make-text-button start (point)
-                                     'action
-                                     (lambda (m)
-                                       (hcel-load-module-location-info
-                                        (hcel-to-exact-location
-                                         (get-text-property m 'location-info))))
-                                     'face 'button)
-)))
-     (dom-attributes dom))))
+(defun hcel-tag-span-function (button-action)
+  (lambda (dom)
+    (let ((start (point)))
+      (shr-tag-span dom)
+      (mapc (lambda (attr)
+              (cond ((eq (car attr) 'data-location)
+                     (put-text-property start (point)
+                                        'location-info
+                                        (json-read-from-string (cdr attr)))
+                     (make-text-button start (point)
+                                       'action button-action
+                                       'face 'button)
+                     )))
+            (dom-attributes dom)))))
+
+(defun hcel-tag-span-button-load-source (marker)
+  (hcel-load-module-location-info
+   (hcel-to-exact-location
+    (get-text-property marker 'location-info))))
 
 (defun hcel-tag-div (dom)
   (if (equal (dom-attr dom 'class) "source-code")

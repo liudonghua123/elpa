@@ -273,14 +273,15 @@ Start by choosing a package."
      (alist-get 'json results))
     (goto-char (point-min))))
 
-(defun hcel-ids-render-result (result)
+(defun hcel-ids-render-result (result &optional button-action)
   (let* ((location-info (alist-get 'locationInfo result))
          (doc (hcel-render-html
                (or (alist-get 'doc result)
                    (alist-get 'documentation
                               (ignore-errors
                                 (hcel-definition-site-location-info
-                                 location-info)))))))
+                                 location-info))))
+               button-action)))
     (concat
      (propertize
       (format "%s :: %s\n"
@@ -433,6 +434,21 @@ Start by choosing a package."
   (hcel-ids 'package query hcel-package-id))
 (define-key hcel-mode-map "i" #'hcel-package-ids)
 
+;; TODO: this is impossible with the current API, as definitionSite does not
+;; contain signature, and ExactLocation does not contain component name or even
+;; name
+(defun hcel-help-tag-span-button-action (marker)
+  (hcel-help-internal
+   (print (hcel-definition-site-location-info
+           (get-text-property marker 'location-info)))))
+
+(defun hcel-help-internal (info)
+  (help-setup-xref (list #'hcel-help-internal info)
+                   (called-interactively-p 'interactive))
+  (with-help-window (help-buffer)
+      (with-current-buffer standard-output
+        (insert (hcel-ids-render-result info)))))
+
 (defun hcel-help (query)
   (interactive
    (list
@@ -440,10 +456,8 @@ Start by choosing a package."
       (completing-read "Find help for identifier: "
                        #'hcel-global-ids-minibuffer-collection))))
   (when (length= (split-string query " ") 2)
-    (with-help-window "*hcel-help*"
-      (with-current-buffer standard-output
-        (insert (hcel-ids-render-result
-                (get-text-property 0 'info hcel-ids--minibuffer-selected)))))))
+    (hcel-help-internal
+     (get-text-property 0 'info hcel-ids--minibuffer-selected))))
 
 (provide 'hcel-results)
 ;;; hcel-results.el ends here.
