@@ -332,6 +332,7 @@ Start by choosing a package."
 (defvar hcel-ids--minibuffer-saved-query nil)
 (defvar hcel-ids--minibuffer-saved-results nil)
 (defvar hcel-ids--minibuffer-selected nil)
+(defvar hcel-ids-minibuffer-component-max-len 80)
 
 (defun hcel-ids--affixation-internal (scope items)
   (let ((results
@@ -344,7 +345,9 @@ Start by choosing a package."
                      (format
                       " :: %s"
                       (hcel-render-components
-                       (alist-get 'components (alist-get 'idType info))))
+                       (alist-get 'components (alist-get 'idType info))
+                       nil
+                       hcel-ids-minibuffer-component-max-len))
                      'face 'completions-annotations))
                    (prefix
                     (propertize

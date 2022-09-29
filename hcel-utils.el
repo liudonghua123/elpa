@@ -111,20 +111,25 @@ Example of an idSrcSpan:
   (unless (stringp divider) (setq divider " "))
   (concat (alist-get 'name package) divider (alist-get 'version package)))
 
-(defun hcel-render-components (components &optional name)
+(defun hcel-render-components (components &optional name comp-max-len)
   (when (or components name)
     (concat (when name (replace-regexp-in-string "\n" " " name))
             (when components
-              (concat (when name " :: ")
-                      (replace-regexp-in-string
-                       "\n" " " (mapconcat
-                                 (lambda (component)
-                                   (propertize
-                                    (or (alist-get 'name component)
-                                        (alist-get 'contents component))
-                                    'internal-id (alist-get 'internalId component)))
-                                 components
-                                 "")))))))
+              (let ((rendered-comp
+                     (concat (when name " :: ")
+                             (substring
+                              (replace-regexp-in-string
+                               "\n" " " (mapconcat
+                                         (lambda (component)
+                                           (propertize
+                                            (or (alist-get 'name component)
+                                                (alist-get 'contents component))
+                                            'internal-id (alist-get 'internalId component)))
+                                         components
+                                         ""))))))
+                (if (and comp-max-len (< comp-max-len (length rendered-comp)))
+                    (concat (substring rendered-comp 0 comp-max-len) "...")
+                  rendered-comp))))))
 
 (defun hcel-render-id-type (id-type)
   (concat
