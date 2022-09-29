@@ -25,7 +25,21 @@
 (require 'xref)
 
 (defcustom hcel-font-lock-use-haskell-mode nil
-  "If non-nil, will use haskell mode for haskell syntax highlight.")
+  "If non-nil, will use haskell mode for haskell syntax highlight."
+  :group 'hcel :type '(boolean))
+
+
+(defface hcel-type-face '((t :inherit font-lock-type-face))
+  "Face used to highlight types" :group 'hcel-faces)
+(defface hcel-value-face '((t :inherit font-lock-variable-name-face))
+  "Face used to highlight values" :group 'hcel-faces)
+(defface hcel-comment-face '((t :inherit font-lock-comment-face))
+  "Face used to highlight comments" :group 'hcel-faces)
+(defface hcel-pragma-face '((t :inherit font-lock-preprocessor-face))
+  "Face used to highlight pragmas" :group 'hcel-faces)
+
+(defvar hcel-comment-re "^\\ *--.*$")
+(defvar hcel-pragma-re "^\\ *{-# .*? #-}\\ *$")
 
 (defvar-local hcel-identifiers nil)
 (defvar-local hcel-package-id nil)
@@ -348,22 +362,6 @@ the location with pulsing.
   (text-property-search-backward 'declaration nil t)
   (left-char))
 (define-key hcel-mode-map "p" #'hcel-source-previous-declaration)
-
-(defface hcel-type-face '((t :inherit font-lock-type-face))
-  "Face used to highlight types" :group 'hcel-faces)
-(defface hcel-value-face '((t :inherit font-lock-variable-name-face))
-  "Face used to highlight values" :group 'hcel-faces)
-(defface hcel-comment-face '((t :inherit font-lock-comment-face))
-  "Face used to highlight comments" :group 'hcel-faces)
-(defface hcel-pragma-face '((t :inherit font-lock-preprocessor-face))
-  "Face used to highlight pragmas" :group 'hcel-faces)
-(defface hcel-builtin-face '((t :inherit font-lock-builtin-face))
-  "Face used to highlight builtins" :group 'hcel-faces)
-
-(defvar hcel-comment-re "^\\ *--.*$")
-(defvar hcel-pragma-re "^\\ *{-# .*? #-}\\ *$")
-(defvar hcel-builtin-re "^\\ *\\(module\\|import\\|qualified\\|as\\|if\\|then\\|else\\|in\\|where\\|::\\)\\ *$")
-
 
 (defun hcel-write-html-source-to-buffer (lines occs font-lock)
   (mapc

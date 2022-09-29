@@ -391,11 +391,11 @@ Start by choosing a package."
                 (number-to-string hcel-ids-live-per-page))))
         hcel-ids--minibuffer-saved-results))))
 
-(defun hcel-global-ids-minibuffer-collection (query pred action)
+(defun hcel-global-ids-minibuffer-collection (query _ action)
   (hcel-ids-minibuffer-collection 'global query action))
 
 (defun hcel-package-ids-minibuffer-collection (package-id)
-  (lambda (query pred action)
+  (lambda (query _ action)
     (hcel-ids-minibuffer-collection 'package query action package-id)))
 
 (defun hcel-ids (scope query &optional package-id)

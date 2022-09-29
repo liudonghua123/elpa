@@ -23,13 +23,15 @@
 (require 'org)
 
 (defcustom hcel-haddorg-dir "~/Projects/sedoc/haddock/org-output"
-  "Directory of haddorg org files.")
+  "Directory of haddorg org files."
+  :group 'hcel :type '(string))
 
 (defcustom hcel-haddorg-lax-version t
   "If non-nil, match highest version if no exact match found.
 
 Say we have ghc-8.6.5.org and ghc-9.2.2.org.  If the definition
-is in ghc-8.10.1, hcel will attempt to look up in ghc-9.2.2.org.")
+is in ghc-8.10.1, hcel will attempt to look up in ghc-9.2.2.org."
+  :group 'hcel :type '(string))
 
 (defun hcel-haddorg-to-hcel-definition ()
   (interactive)
