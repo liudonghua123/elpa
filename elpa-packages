@@ -51,7 +51,7 @@
   :auto-sync t)
  ("agitate"		:url "https://git.sr.ht/~protesilaos/agitate"
   :auto-sync t
-  :doc "README.org"
+  :doc "README.md"
   :ignored-files ("COPYING" "doclicense.texi"))
  ("ahungry-theme"	:url "https://github.com/ahungry/color-theme-ahungry")
  ("aircon-theme"        :url "https://git.sr.ht/~chambln/aircon-theme.el"
