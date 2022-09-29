@@ -61,8 +61,7 @@
   "Call definitionSite with info from an approximate location."
   (when (not (equal (hcel-location-tag approx-location-info)
                     "ApproximateLocation"))
-    (error "An non ApproximateLocation supplied: %s"
-           (prin1-to-string approx-location-info)))
+    (error "An non ApproximateLocation supplied: %S" approx-location-info))
   (when-let* ((package-id (alist-get 'packageId approx-location-info))
               (component-id (alist-get 'componentId approx-location-info))
               (module-name (alist-get 'moduleName approx-location-info))

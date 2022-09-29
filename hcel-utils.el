@@ -191,7 +191,7 @@ Example of an idSrcSpan:
 (defun hcel-text-property-near-point (prop)
   "Find property prop at point, or just before point."
   (or (get-text-property (point) prop)
-      (get-text-property (max 1 (1- (point))) prop)))
+      (get-text-property (max (point-min) (1- (point))) prop)))
 
 (provide 'hcel-utils)
 ;;; hcel-utils.el ends here.
