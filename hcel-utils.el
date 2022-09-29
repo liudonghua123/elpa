@@ -151,7 +151,8 @@ Example of an idSrcSpan:
     (with-temp-buffer
       (insert html)
       (let ((shr-external-rendering-functions
-             '((span . hcel-tag-span))))
+             '((span . hcel-tag-span)
+               (div . hcel-tag-div))))
         (shr-render-region (point-min) (point-max)))
       (buffer-string))))
 
@@ -177,6 +178,11 @@ Example of an idSrcSpan:
                                      'face 'button)
 )))
      (dom-attributes dom))))
+
+(defun hcel-tag-div (dom)
+  (if (equal (dom-attr dom 'class) "source-code")
+      (shr-tag-pre dom)
+    (shr-tag-div dom)))
 
 (defun hcel-text-property-near-point (prop)
   "Find property prop at point, or just before point."
