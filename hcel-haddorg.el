@@ -86,14 +86,16 @@ is in ghc-8.10.1, hcel will attempt to look up in ghc-9.2.2.org."
          (expand-file-name (format "%s/%s.org" hcel-haddorg-dir package-id))))
     (cond ((file-exists-p exact-match) exact-match)
           (hcel-haddorg-lax-version
-           (when-let ((files
-                       (sort (directory-files
-                              hcel-haddorg-dir t
-                              (format "^%s\\(-[0-9.]+\\)?\\.org$"
-                                      (car (split-string package-id "-"))))
-                             (lambda (x y)
-                               (string> (file-name-base x)
-                                        (file-name-base y))))))
+           (when-let
+               ((files
+                 (sort (directory-files
+                        hcel-haddorg-dir t
+                        (format "^%s\\(-[0-9.]+\\)?\\.org$"
+                                (alist-get
+                                 'name (hcel-parse-package-id package-id "-"))))
+                       (lambda (x y)
+                         (string> (file-name-base x)
+                                  (file-name-base y))))))
              (message
               "Cannot find org file for %s, opening instead that of the highest available version %s."
               package-id (file-name-base (car files)))
