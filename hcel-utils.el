@@ -17,6 +17,9 @@
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with hcel.  If not, see <https://www.gnu.org/licenses/>.
 
+(require 'dom)
+(require 'shr)
+
 ;; data conversions
 (defun hcel-parse-package-id (package-id &optional divider)
   (unless (stringp divider) (setq divider " "))
@@ -145,7 +148,7 @@ Example of an idSrcSpan:
                     (alist-get 'exprType (alist-get 'info expr)))))
     (cons expression type)))
 
-(defun hcel-render-html (html &optional action)
+(defun hcel-render-html (html action)
   (unless action (setq action 'hcel-tag-span-button-load-source))
   (when html
     ;; (hcel-debug-html html)
@@ -177,11 +180,6 @@ Example of an idSrcSpan:
                                        'face 'button)
                      )))
             (dom-attributes dom)))))
-
-(defun hcel-tag-span-button-load-source (marker)
-  (hcel-load-module-location-info
-   (hcel-to-exact-location
-    (get-text-property marker 'location-info))))
 
 (defun hcel-tag-div (dom)
   (if (equal (dom-attr dom 'class) "source-code")

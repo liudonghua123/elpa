@@ -269,11 +269,12 @@ Start by choosing a package."
     (mapc
      (lambda (result)
        (insert "--\n")
-       (insert (hcel-ids-render-result result)))
+       (insert (hcel-ids-render-result result
+                                       'hcel-tag-span-button-load-source)))
      (alist-get 'json results))
     (goto-char (point-min))))
 
-(defun hcel-ids-render-result (result &optional button-action)
+(defun hcel-ids-render-result (result button-action)
   (let* ((location-info (alist-get 'locationInfo result))
          (doc (hcel-render-html
                (or (alist-get 'doc result)
@@ -434,20 +435,15 @@ Start by choosing a package."
   (hcel-ids 'package query hcel-package-id))
 (define-key hcel-mode-map "i" #'hcel-package-ids)
 
-;; TODO: this is impossible with the current API, as definitionSite does not
-;; contain signature, and ExactLocation does not contain component name or even
-;; name
-(defun hcel-help-tag-span-button-action (marker)
-  (hcel-help-internal
-   (print (hcel-definition-site-location-info
-           (get-text-property marker 'location-info)))))
-
+;; TODO: it is impossible with the current API to follow link within the help
+;; buffer, as definitionSite does not contain signature, and ExactLocation does
+;; not contain component name or even name
 (defun hcel-help-internal (info)
   (help-setup-xref (list #'hcel-help-internal info)
                    (called-interactively-p 'interactive))
   (with-help-window (help-buffer)
       (with-current-buffer standard-output
-        (insert (hcel-ids-render-result info)))))
+        (insert (hcel-ids-render-result info 'hcel-tag-span-button-load-source)))))
 
 (defun hcel-help (query)
   (interactive

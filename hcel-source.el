@@ -215,7 +215,7 @@ the location with pulsing.
                              (ignore-errors
                                (hcel-hoogle-docs-location-info location-info))))
                    (when (length> hoogle-docs 0) (concat "Hoogle: " hoogle-docs))))))
-            (hcel-render-html docs)))))))
+            (hcel-render-html docs 'hcel-tag-span-button-load-source)))))))
 
 ;; TODO: multiple expressions
 (defun hcel-expressions-type (beg end)
@@ -375,6 +375,11 @@ the location with pulsing.
     (dom-by-class
      (libxml-parse-html-region (point-min) (point-max))
      "line-content")))
+
+(defun hcel-tag-span-button-load-source (marker)
+  (hcel-load-module-location-info
+   (hcel-to-exact-location
+    (get-text-property marker 'location-info))))
 
 ;; imenu
 (defun hcel-imenu-create-index ()
