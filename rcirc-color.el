@@ -121,9 +121,11 @@ This ignores SENDER and RESPONSE."
 	(when face
 	  (rcirc-add-face (match-beginning 0) (match-end 0) face))))))
 
-(rcirc-define-command color (nick color)
+(defun-rcirc-command color (args)
   "Change one of the nick colors."
-  (rcirc-do-color nick color process target))
+  (interactive)
+  (setq args (split-string args))
+  (rcirc-do-color (car args) (cadr args) process target))
 
 (defun rcirc-do-color (nick color process target)
   "Implement the /color command.
