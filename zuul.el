@@ -164,6 +164,31 @@ Each entry in the list is a property list with the following properties:
   :group 'zuul
   :type 'boolean)
 
+(defcustom zuul-sort-priority-functions
+  `((lambda (it)
+      (if-let ((start-time (zuul--start-time it)))
+          (float-time (date-to-time start-time))
+        0.0))
+    (lambda (it)
+      (pcase (zuul--status it)
+        ("SUCCESS" 0)
+        ("QUEUED" 1)
+        ("FAILURE" 3)
+        (_ 2)))
+    (lambda (it)
+      (pcase (let-alist (zuul-data it) .pipeline)
+        ("check" 1)
+        ("gate" 2)
+        (_ 3))))
+  "A list of functions to use to sort builds."
+  :group 'zuul
+  :type '(repeat sexp))
+
+(defcustom zuul-status-face-function #'zuul--get-status-face
+  "Function to map a status to face."
+  :group 'zuul
+  :type 'sexp)
+
 ;;;;; Private
 
 (defconst zuul--response-buffer " *zuul-response*"
@@ -561,28 +586,10 @@ Optionally provide CATEGORY and PROMPT."
 
 (defun zuul--sort-builds (builds)
   "Sort BUILDS."
-  (let ((status-priority
-         (lambda (it)
-           (pcase (zuul--status it)
-             ("SUCCESS" 0)
-             ("QUEUED" 1)
-             ("FAILURE" 3)
-             (_ 2))))
-        (time-priority
-         (lambda (it)
-           (if-let ((start-time (zuul--start-time it)))
-               (float-time (date-to-time start-time))
-             0.0)))
-        (pipeline-priority
-         (lambda (it)
-           (pcase (let-alist (zuul-data it) .pipeline)
-             ("check" 1)
-             ("gate" 2)
-             (_ 3)))))
-    (thread-last builds
-                 (seq-sort-by time-priority #'>)
-                 (seq-sort-by status-priority #'>)
-                 (seq-sort-by pipeline-priority #'>))))
+  (seq-do (lambda (priority-fun)
+            (setq builds (seq-sort-by priority-fun #'> builds)))
+          zuul-sort-priority-functions)
+  builds)
 
 (defun zuul--locate-file (filename)
   "Locate FILENAME.
@@ -973,7 +980,7 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
   (let ((status (zuul--status buildset)))
     (zuul--propertize-face
      status
-     (zuul--get-status-face status))))
+     (funcall zuul-status-face-function status))))
 
 (defun zuul--build-name-str (build)
   "Return the name of the BUILD."
@@ -1002,7 +1009,7 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
   (let ((status (zuul--status build)))
     (zuul--propertize-face
      status
-     (zuul--get-status-face status))))
+     (funcall zuul-status-face-function status))))
 
 (defun zuul--duration-str (duration)
   "Return a string representation of DURATION."
@@ -1076,7 +1083,7 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
                     "SUCCESS"))))
     (zuul--propertize-face
      result
-     (zuul--get-status-face result))))
+     (funcall zuul-status-face-function result))))
 
 (defun zuul--propertize-face (str value)
   "Put face VALUE on STR."
