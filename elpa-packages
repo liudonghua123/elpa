@@ -66,6 +66,7 @@
   :doc "assess-doc.org"
   :auto-sync t)
  ("async"		:url "https://github.com/jwiegley/emacs-async"
+  :ignored-files "COPYING"
   :auto-sync t)
  ("auctex"		:url "git://git.sv.gnu.org/auctex.git"
   ;; AUCTeX is currently sync'd manually and elpa.git isn't quite a mirror :-(
