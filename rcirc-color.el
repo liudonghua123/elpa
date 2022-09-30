@@ -158,11 +158,10 @@ commands."
                  rcirc-color-mapping)
         (rcirc-print process (rcirc-nick process) "NOTICE" target
                      (mapconcat 'identity names " ")))
-    (puthash nick
-             (cons 'foreground-color
-                   (elt rcirc-colors
-                        (random (length rcirc-colors))))
-             rcirc-color-mapping)))
+    (let* ((index (random (length rcirc-colors)))
+           (color (elt rcirc-colors index))
+           (face (cons 'foreground-color color)))
+      (puthash nick face rcirc-color-mapping))))
 
 (defun rcirc-color--handler-NICK (_process sender args _text)
   "Update colors in `rcirc-color-mapping'."
