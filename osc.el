@@ -1,6 +1,6 @@
 ;;; osc.el --- Open Sound Control protocol library  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022  Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@blind.guru>
 ;; Version: 0.4
@@ -76,9 +76,9 @@
       (if (= e 0) (while (< (* f (expt 2.0 e)) 1.0) (setq e (1+ e))))
       (setq f (round (* (1- (* f (expt 2.0 e))) (expt 2 23)))
 	    e (+ (* -1 e) 127))))
-    (unibyte-string (+ (lsh s 7) (lsh (logand e #XFE) -1))
-		    (+ (lsh (logand e #X01) 7) (lsh (logand f #X7F0000) -16))
-		    (lsh (logand f #XFF00) -8)
+    (unibyte-string (+ (ash s 7) (ash (logand e #XFE) -1))
+		    (+ (ash (logand e #X01) 7) (ash (logand f #X7F0000) -16))
+		    (ash (logand f #XFF00) -8)
 		    (logand f #XFF))))
 
 (defconst osc-int32-zero (unibyte-string 0 0 0 0))
@@ -109,9 +109,13 @@
   (concat (osc-int32 0 t) (osc-int32 1 t)))
 
 (defconst osc-ntp-offset
-  (round
-   (float-time (time-subtract (time-convert 0)
-			      (encode-time '(0 0 0 1 1 1900 nil nil t))))))
+  (condition-case nil
+      (round
+       (float-time (time-subtract (time-convert 0 t)
+			          (encode-time '(0 0 0 1 1 1900 nil nil t)))))
+    ;; Hard code the result for systems that can't yet handle dates
+    ;; before 1902 (e.g. 32bit GNU/Linux).
+    (error 2208988800)))
 
 (defun osc-timetag (&optional time)
   (if (not time)
@@ -139,11 +143,11 @@
 A unibyte string is returned.  Use `vconcat' to convert that unibyte
 string to a vector if embedding in another OSC message is what you want."
   (apply
-   'concat
+   #'concat
     (osc-string path)
     (osc-string
      (apply
-      'concat ","
+      #'concat ","
       (mapcar (lambda (arg)
 		(cond
 		 ((floatp arg) "f")
@@ -205,11 +209,11 @@ string to a vector if embedding in another OSC message is what you want."
     value))
 
 (defun osc-read-float32 ()
-  (let ((s (lsh (logand (following-char) #X80) -7))
-	(e (+ (lsh (logand (following-char) #X7F) 1)
-	      (lsh (logand (progn (forward-char) (following-char)) #X80) -7)))
-	(f (+ (lsh (logand (following-char) #X7F) 16)
-	      (lsh (progn (forward-char) (following-char)) 8)
+  (let ((s (ash (logand (following-char) #X80) -7))
+	(e (+ (ash (logand (following-char) #X7F) 1)
+	      (ash (logand (progn (forward-char) (following-char)) #X80) -7)))
+	(f (+ (ash (logand (following-char) #X7F) 16)
+	      (ash (progn (forward-char) (following-char)) 8)
 	      (prog1 (progn (forward-char) (following-char)) (forward-char)))))
     (cond
      ((and (= e 0) (= f 0))
@@ -224,15 +228,15 @@ string to a vector if embedding in another OSC message is what you want."
 	 (1+ (/ f (expt 2.0 23))))))))
 
 (defun osc-read-float64 ()
-  (let ((s (lsh (logand (following-char) #X80) -7))
-	(e (+ (lsh (logand (following-char) #X7F) 4)
-	      (lsh (logand (progn (forward-char) (following-char)) #XF0) -4)))
-	(f (+ (lsh (logand (following-char) #X0F) 48)
-	      (lsh (progn (forward-char) (following-char)) 40)
-	      (lsh (progn (forward-char) (following-char)) 32)
-	      (lsh (progn (forward-char) (following-char)) 24)
-	      (lsh (progn (forward-char) (following-char)) 16)
-	      (lsh (progn (forward-char) (following-char)) 8)
+  (let ((s (ash (logand (following-char) #X80) -7))
+	(e (+ (ash (logand (following-char) #X7F) 4)
+	      (ash (logand (progn (forward-char) (following-char)) #XF0) -4)))
+	(f (+ (ash (logand (following-char) #X0F) 48)
+	      (ash (progn (forward-char) (following-char)) 40)
+	      (ash (progn (forward-char) (following-char)) 32)
+	      (ash (progn (forward-char) (following-char)) 24)
+	      (ash (progn (forward-char) (following-char)) 16)
+	      (ash (progn (forward-char) (following-char)) 8)
 	      (prog1 (progn (forward-char) (following-char)) (forward-char)))))
     (cond
      ((and (= e 0) (= f 0))
@@ -250,8 +254,8 @@ string to a vector if embedding in another OSC message is what you want."
   (let ((secs (osc-read-int32)) (frac (osc-read-int32)))
     (if (and (zerop secs) (= frac 1))
 	nil ; now
-      (time-add (time-convert (- secs osc-ntp-offset))
-		(time-convert (cons frac (ash 1 32)))))))
+      (time-add (time-convert (- secs osc-ntp-offset) t)
+		(time-convert (cons frac (ash 1 32)) t)))))
 
 (defun osc-server-set-handler (server path handler)
   "Set HANDLER for PATH on SERVER.
@@ -303,7 +307,7 @@ the generic handler for SERVER."
 DEFAULT-HANDLER is a function with arguments (path &rest args) which is called
 when a new OSC message arrives.  See `osc-server-set-handler' for more
 fine grained control.
-A process object is returned which can be dicarded with `delete-process'."
+A process object is returned which can be discarded with `delete-process'."
   (make-network-process
    :name "OSCserver"
    :coding 'binary
