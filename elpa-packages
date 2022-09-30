@@ -52,6 +52,7 @@
  ("agitate"		:url "https://git.sr.ht/~protesilaos/agitate"
   :auto-sync t
   :doc "README.org"
+  :readme "README.md"
   :ignored-files ("COPYING" "doclicense.texi"))
  ("ahungry-theme"	:url "https://github.com/ahungry/color-theme-ahungry")
  ("aircon-theme"        :url "https://git.sr.ht/~chambln/aircon-theme.el"
@@ -66,7 +67,7 @@
   :doc "assess-doc.org"
   :auto-sync t)
  ("async"		:url "https://github.com/jwiegley/emacs-async"
-  :ignored-files "COPYING"
+  :ignored-files ("COPYING")
   :auto-sync t)
  ("auctex"		:url "git://git.sv.gnu.org/auctex.git"
   ;; AUCTeX is currently sync'd manually and elpa.git isn't quite a mirror :-(
