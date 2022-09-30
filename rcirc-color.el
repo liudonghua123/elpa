@@ -160,7 +160,7 @@ commands."
                      (mapconcat 'identity names " ")))
     (let* ((index (random (length rcirc-colors)))
            (color (elt rcirc-colors index))
-           (face (cons 'foreground-color color)))
+           (face `(:foreground ,color ,@rcirc-color-other-attributes)))
       (puthash nick face rcirc-color-mapping))))
 
 (defun rcirc-color--handler-NICK (_process sender args _text)
