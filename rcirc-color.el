@@ -101,7 +101,7 @@ used to determine the color: #rrrrggggbbbb."
 
 (defcustom rcirc-color-other-attributes nil
   "Other attributes to use for nicks.
-Example: (setq rcirc-color-other-attributes '(:weight bold))"
+Example: (setq rcirc-color-other-attributes \\='(:weight bold))"
   :type 'plist)
 
 
