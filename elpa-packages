@@ -251,7 +251,9 @@
   :auto-sync t)
  ("ebdb-gnorb"		:url nil)
  ("ebdb-i18n-chn"	:url nil)
- ("ediprolog"		:url nil)
+ ("ediprolog"		:url "https://github.com/triska/ediprolog"
+  :readme "README.md"
+  :auto-sync t)
  ("eev"			:url "https://github.com/edrx/eev.git"
   :branch "UTF-8" :auto-sync t)
  ("ef-themes"		:url "https://git.sr.ht/~protesilaos/ef-themes"
