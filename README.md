@@ -32,7 +32,7 @@ After you have installed ediprolog, you can customize it with:
 
 The two most important configuration options are:
 
-   - `ediprolog-system`, either `scryer` or `swi`
+   - `ediprolog-system`, either `scryer` (default) or `swi`
    - `ediprolog-program`, the path of the Prolog executable.
 
 # Usage
@@ -51,11 +51,11 @@ Prolog process, and you interact with the process in the current
 buffer as on a terminal. Queries start with "?-" or ":-", possibly
 preceded by "%" and whitespace. An example of a query is:
 
-    %?- member(X, [a,b,c]).
+    %?- member(X, "abc").
 
 If you press F10 when point is on that query, you get:
 
-    %?- member(X, [a,b,c]).
+    %?- member(X, "abc").
     %@    X = a
     %@ ;  X = b
     %@ ;  X = c
@@ -95,7 +95,7 @@ versions 26.1 and&nbsp;27.0.50.
 # Screenshot
 
 Here is a sample interaction, using
-[CLP(FD)&nbsp;constraints](https://www.metalevel.at/prolog/clpfd) to
+[CLP(ℤ)&nbsp;constraints](https://www.metalevel.at/prolog/clpz) to
 relate a number to its factorial:
 
 ![Factorial](factorial.png)
