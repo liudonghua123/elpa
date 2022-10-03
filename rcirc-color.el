@@ -113,7 +113,9 @@ Example: (setq rcirc-color-other-attributes \\='(:weight bold))"
                     (puthash (substring-no-properties string)
                              `(:foreground
 			       ,(if rcirc-color-is-deterministic
-				    (concat "#" (substring (md5 string) 0 12))
+                                    (nth (mod (string-to-number (md5 string) 16)
+                                              (length rcirc-colors))
+                                         rcirc-colors)
 				  (elt rcirc-colors
                                        (random (length rcirc-colors))))
 			       ,@rcirc-color-other-attributes)
