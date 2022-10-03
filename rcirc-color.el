@@ -176,6 +176,7 @@ commands."
 ;;;###autoload
 (define-minor-mode rcirc-color-mode
   "Enable the highlighting of nicknames."
+  :global t
   (cond
    (rcirc-color-mode
     (advice-add 'rcirc-facify :around #'rcirc-color--facify)
