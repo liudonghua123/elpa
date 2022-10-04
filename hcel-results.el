@@ -103,7 +103,8 @@
   "hcel refs number of results per page."
   :group 'hcel-refs :type '(natnum))
 
-(defvar-local hcel-refs-id nil)
+(defvar-local hcel-refs-id nil
+  "External ID of the identifier we are looking for refs in the current buffer")
 (defvar-local hcel-refs-package-id nil)
 
 (define-compilation-mode hcel-refs-mode "hcel-refs"
@@ -209,24 +210,25 @@ Start by choosing a package."
   "Find references of the identifier at point."
   (interactive)
   (hcel-find-references-internal hcel-package-id hcel-module-path
-                                 (hcel-text-property-near-point 'identifier)))
+                                 (hcel-text-property-near-point 'internal-id)))
 (define-key hcel-mode-map (kbd "M-?") #'hcel-find-references-at-point)
 
-(defun hcel-find-references-internal (package-id module-path identifier)
-  (when (and package-id module-path identifier)
+(defun hcel-find-references-internal (package-id module-path internal-id)
+  (when (and package-id module-path internal-id)
     (let ((hcel-buffer (hcel-buffer-name package-id module-path)))
       (when (or (get-buffer hcel-buffer)
                 (and (y-or-n-p "Open module source?")
                      (hcel-load-module-source
                       package-id module-path))))
       (with-current-buffer hcel-buffer
-        (when-let* ((id (alist-get
-                         'externalId
-                         (alist-get (intern identifier) hcel-identifiers)))
-                    (buffer-name (hcel-refs-format-id id)))
+        (when-let* ((external-id
+                     (alist-get
+                      'externalId
+                      (alist-get (intern internal-id) hcel-identifiers)))
+                    (buffer-name (hcel-refs-format-id external-id)))
           (with-current-buffer (get-buffer-create buffer-name)
             (hcel-refs-mode)
-            (setq hcel-refs-id id)
+            (setq hcel-refs-id external-id)
             (hcel-refs-update-references-package))
           (switch-to-buffer-other-window buffer-name))))))
 ;; hcel-ids-mode
@@ -286,7 +288,7 @@ Start by choosing a package."
     (concat
      (propertize
       (format "%s :: %s\n"
-              (alist-get 'demangledOccName result)
+              (alist-get 'occName result)
               (hcel-render-id-type (alist-get 'idType result)))
       'location-info location-info
       'match-line t)
