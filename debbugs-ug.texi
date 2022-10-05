@@ -206,6 +206,17 @@ of bugs you are currently working on.
 @ref{Presenting Bugs} for the presentation of the results.
 @end deffn
 
+@deffn  {Command} debbugs-gnu-my-open-bugs
+@deffnx {Command} debbugs-org-my-open-bugs
+
+It is a good idea to maintain and eventually close your open bug
+reports.  The functions @code{debbugs-gnu-my-open-bugs} and
+@code{debbugs-org-my-open-bugs} help you do this, by retrieving open
+bug reports, in which you are the submitter.  These functions assume
+that you have defined the variable @code{user-mail-address}
+(@pxref{Mail Headers, , , emacs}).
+@end deffn
+
 
 @deffn  {Command} debbugs-gnu-emacs-release-blocking-reports &optional release
 @deffnx {Command} debbugs-org-emacs-release-blocking-reports &optional release
@@ -225,7 +236,6 @@ change this when called interactively.
 If this user option is non-@code{nil}, a progress report is shown when
 retrieving bugs, defaults to t.
 @end defopt
-
 
 @node Searching Bugs
 @chapter Searching in the Debbugs Database
@@ -364,6 +374,16 @@ applied only after all bugs have been downloaded.
 
 These commands show also a progress report when
 @code{debbugs-show-progress} is non-@code{nil}.
+@end deffn
+
+
+@deffn  {Command} debbugs-gnu-guix-search
+@deffnx {Command} debbugs-org-guix-search
+
+By default, @code{debbugs-gnu-search} and @code{debbugs-org-search},
+search for all open bugs in the debbugs database.  While this is
+extensive search is laudable, it is perhaps not efficient.  These two
+functions will let you search for only open guix bugs and patches.
 @end deffn
 
 

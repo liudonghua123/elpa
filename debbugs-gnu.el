@@ -164,6 +164,14 @@
 ;; presented, and in the latter case the last 10 bugs are shown,
 ;; counting from the highest bug number in the repository.
 
+;; M-x debbugs-gnu-my-open-bugs
+;;
+;; It is a good idea to maintain and eventually close your open bug
+;; reports.  The function 'debbugs-gnu-my-open-bugs' helps you do
+;; this, by retrieving open bug reports, in which you are the
+;; submitter.  This function assumes that you have defined the
+;; variable 'user-mail-address'.
+
 ;; For posting commit to bugs, or constructing a bug closing message
 ;; based on a pushed commit, use the command
 ;;
@@ -826,6 +834,13 @@ Shall be bound in `debbugs-org-*' functions.")
 	  debbugs-gnu-current-suppress nil)
     (when (called-interactively-p 'interactive)
       (message "Query finished"))))
+
+;;;###autoload
+(defun debbugs-gnu-my-open-bugs ()
+  "Retrieve the open bugs, that you submitted.  This function assumes the variable
+'user-mail-address' is defined."
+  (interactive)
+  (apply #'debbugs-gnu-bugs (debbugs-get-bugs :submitter "me" :status "open")))
 
 (defun debbugs-gnu-get-bugs (query)
   "Retrieve bug numbers from debbugs.gnu.org according search criteria."
@@ -2478,6 +2493,8 @@ or bug ranges, with default to `debbugs-gnu-default-bug-number-list'."
   (debbugs-gnu nil)
   (when (called-interactively-p 'interactive)
     (message "Retrieving bugs finished")))
+
+(defalias 'debbugs-gnu-get-bug-by-id 'debbugs-gnu-bugs)
 
 (defcustom debbugs-gnu-trunk-directory "~/src/emacs/trunk/"
   "The directory where the main source tree lives."
