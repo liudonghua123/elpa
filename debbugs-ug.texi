@@ -206,6 +206,7 @@ of bugs you are currently working on.
 @ref{Presenting Bugs} for the presentation of the results.
 @end deffn
 
+
 @deffn  {Command} debbugs-gnu-my-open-bugs
 @deffnx {Command} debbugs-org-my-open-bugs
 
@@ -236,6 +237,7 @@ change this when called interactively.
 If this user option is non-@code{nil}, a progress report is shown when
 retrieving bugs, defaults to t.
 @end defopt
+
 
 @node Searching Bugs
 @chapter Searching in the Debbugs Database
@@ -380,8 +382,8 @@ These commands show also a progress report when
 @deffn  {Command} debbugs-gnu-guix-search
 @deffnx {Command} debbugs-org-guix-search
 
-By default, @code{debbugs-gnu-search} and @code{debbugs-org-search},
-search for all open bugs in the debbugs database.  While this is
+By default, @code{debbugs-gnu-search} and @code{debbugs-org-search}
+search for all open bugs in the debbugs database.  While this
 extensive search is laudable, it is perhaps not efficient.  These two
 functions will let you search for only open guix bugs and patches.
 @end deffn
@@ -846,7 +848,6 @@ the commit and where it was pushed to, and answering @kbd{y} will
 arrange for the bug to be closed when the message is sent.
 
 
-@node Customizing debbugs-gnu-pick-commits
 @subsection Customizing @code{debbugs-gnu-pick-commits}
 
 @vindex debbugs-gnu-commit-description-format

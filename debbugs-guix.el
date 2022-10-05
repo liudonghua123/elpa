@@ -1,6 +1,6 @@
-;;; debbugs-guix.el Guix Specific Debbugs Functions -*- lexical-binding: t; -*-
+;;; debbugs-guix.el --- guix specific debbugs functions -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022 Free Software Foundation, Inc.
 
 ;; Author: Joshua Branson <jbranso@dismail.de>
 ;; Keywords: comm, hypermedia, maint
@@ -22,13 +22,13 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
-;; By default, debbugs-gnu-search searches for open and closed bugs of
-;; all GNU packages, which can make searching a little slow.  To
-;; remedy this situation, this file provides the function
-;; 'debbugs-gnu-guix-search', which search for open bugs that relate
-;; to the GNU guix.
-;;
+
+;; By default, `debbugs-gnu-search' searches for open and closed bugs
+;; of all GNU packages, which can make searching a little slow.  To
+;; remedy this situation, this file provides the functions
+;; `debbugs-gnu-guix-search' and `debbugs-org-guix-search', which
+;; search for open bugs that relate to the GNU guix.
+
 ;;; Code:
 
 ;;;###autoload
@@ -40,12 +40,13 @@
 
 ;;;###autoload
 (defun debbugs-org-guix-search ()
-  "Search for open guix bugs and patches and display the results in an org
- buffer."
+  "Search for open guix bugs and patches and display the results in an \
+org buffer."
   (interactive)
   (let ((debbugs-gnu-show-reports-function #'debbugs-org-show-reports))
     (debbugs-gnu-search (read-string "Search String: ") '((pending . "pending"))
                         nil '("guix" "guix-patches") nil)))
 
 (provide 'debbugs-guix)
+
 ;;; debbugs-guix.el ends here

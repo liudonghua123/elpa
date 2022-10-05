@@ -114,13 +114,13 @@
 ;; presented, and in the latter case the last 10 bugs are shown,
 ;; counting from the highest bug number in the repository.
 
-;; M-x debbugs-org-my-open-bugs
-;;
+;;   M-x debbugs-org-my-open-bugs
+
 ;; It is a good idea to maintain and eventually close your open bug
-;; reports.  The function 'debbugs-org-my-open-bugs' helps you do
+;; reports.  The function `debbugs-org-my-open-bugs' helps you do
 ;; this, by retrieving open bug reports, in which you are the
 ;; submitter.  This function assumes that you have defined the
-;; variable 'user-mail-address'.
+;; variable `user-mail-address'.
 
 ;;; Code:
 
@@ -362,8 +362,9 @@ or bug ranges, with default to `debbugs-gnu-default-bug-number-list'."
 
 ;;;###autoload
 (defun debbugs-org-my-open-bugs ()
-  "Retrieve the open bugs, that you submitted.  This function assumes the variable
-'user-mail-address' is defined."
+  "Retrieve the open bugs, that you submitted.
+This function assumes the variable `user-mail-address' is
+defined."
   (interactive)
   (let ((debbugs-gnu-show-reports-function #'debbugs-org-show-reports))
     (apply #'debbugs-gnu-bugs (debbugs-get-bugs :submitter "me" :status "open"))))
