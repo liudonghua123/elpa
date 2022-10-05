@@ -1,4 +1,4 @@
-;;; hcel.el --- Haskell codebase explorer -*- lexical-binding: t; -*-
+;;; hcel.el --- Haskell codebase explorer / cross referencer -*- lexical-binding: t; -*-
 
 ;; Author: Yuchen Pei <id@ypei.org>
 ;; Maintainer: Yuchen Pei <id@ypei.org>
