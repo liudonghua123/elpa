@@ -73,11 +73,11 @@
                         (buffer-substring-no-properties
                          (progn
                            (text-property-search-backward
-                            'internal-id internal-id 'string=)
+                            'internal-id internal-id 'equal)
                            (point))
                          (progn
                            (text-property-search-forward
-                            'internal-id internal-id 'string=)
+                            'internal-id internal-id 'equal)
                            (point)))))
               (docstring
                (cond ((derived-mode-p 'hcel-outline-mode)

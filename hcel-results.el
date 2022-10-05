@@ -436,17 +436,20 @@ Start by choosing a package."
   (hcel-ids 'package query hcel-package-id))
 (define-key hcel-mode-map "i" #'hcel-package-ids)
 
-;; TODO: it is impossible with the current API to follow link within the help
-;; buffer, as definitionSite does not contain signature, and ExactLocation does
-;; not contain component name or even name
+(defun hcel-tag-span-button-help (marker)
+  (hcel-help-internal
+   (hcel-global-identifier
+    (get-text-property marker 'location-info)
+    (hcel-string-with-text-property-at-point 'location-info))))
+
 (defun hcel-help-internal (identifier)
   (help-setup-xref (list #'hcel-help-internal identifier)
                    (called-interactively-p 'interactive))
   (with-help-window (help-buffer)
-      (with-current-buffer standard-output
-        (insert
-         (hcel-ids-render-identifier
-          identifier 'hcel-tag-span-button-load-source)))))
+    (with-current-buffer standard-output
+      (insert
+       (hcel-ids-render-identifier
+        identifier 'hcel-tag-span-button-help)))))
 
 (defun hcel-help (query)
   (interactive
