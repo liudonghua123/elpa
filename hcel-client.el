@@ -27,6 +27,29 @@
   :group 'hcel :type '(string))
 
 (defvar hcel-client-buffer-name "*hcel-client*")
+(defvar hcel-server-version "0.1.0.0"
+  "The version of hcel the server we are talking to.")
+
+(defun hcel-fetch-server-version ()
+  (interactive)
+  (setq hcel-server-version
+        (condition-case nil
+            (hcel-url-fetch-json
+             (concat hcel-host "/api/greet"))
+          (error "0.1.0.0"))))
+
+(hcel-fetch-server-version)
+
+(defun hcel-require-server-version (lower-bound higher-bound)
+  (unless (and (or (not lower-bound)
+                   (string< lower-bound hcel-server-version)
+                   (equal lower-bound hcel-server-version))
+               (or (not higher-bound)
+                   (string> higher-bound hcel-server-version)
+                   (equal higher-bound hcel-server-version)))
+    (error
+     "Server version cannot be satisfied.  Actual version: %s.  Required version: lower bound - %s, higher bound - %s"
+     hcel-server-version lower-bound higher-bound)))
 
 (defun hcel-api-packages ()
   (let ((packages
@@ -161,6 +184,7 @@ Example of approximate location:
 
 (defun hcel-api-global-identifier-a (package-id component-id module-name entity
                                             name)
+  (hcel-require-server-version "1.0.0" nil)
   (hcel-url-fetch-json
    (concat hcel-host "/api/globalIdentifierA/"
            (hcel-format-package-id package-id "-") "/" component-id "/"
@@ -168,6 +192,7 @@ Example of approximate location:
 
 (defun hcel-api-global-identifier-e (package-id module-path start-line start-column
                                                 end-line end-column name)
+  (hcel-require-server-version "1.0.0" nil)
   (hcel-url-fetch-json
    (concat hcel-host "/api/globalIdentifierE/"
            (hcel-format-package-id package-id "-") "/"
