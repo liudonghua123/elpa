@@ -1,0 +1,30 @@
+#+title: luwak: a text-only Emacs web browser based on lynx -dump
+
+* Install and use
+
+Luwak mode is a simple Emacs GET-only and text-only web browser, based
+on ~lynx -dump~.
+
+To use, clone this repo, add to ~load-path~ and ~require~.  Make sure
+you have lynx installed in your system (~apt install lynx~, ~pacman -S
+lynx~ etc.).
+
+#+begin_src elisp
+(add-to-list 'load-path "~/.emacs.d/luwak")
+(require 'luwak)
+#+end_src
+
+There are two entry points:
+
+- ~luwak-open~: open a url
+- ~luwak-search~: search a query (default to ddg html)
+
+* Naming
+
+lynx dump -> feline excretion -> Kopi Luwak
+
+* Contact and Copyright
+
+luwak is maintained by Yuchen Pei (id@ypei.org).  It is covered by [[https://www.gnu.org/licenses/agpl-3.0.en.html][GNU
+AGPLv3+]].  You may find the license text in a file named COPYING.agpl3
+in the project tree.

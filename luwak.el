@@ -1,4 +1,23 @@
 ;; -*- lexical-binding: t; -*-
+;; Copyright (C) 2022 Yuchen Pei.
+;; 
+;; This file is part of luwak.
+;; 
+;; luwak is free software: you can redistribute it and/or modify it under
+;; the terms of the GNU Affero General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; luwak is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General
+;; Public License for more details.
+;; 
+;; You should have received a copy of the GNU Affero General Public
+;; License along with luwak.  If not, see <https://www.gnu.org/licenses/>.
+
+(require 'eww)
+
 (defvar luwak-buffer "*luwak*")
 
 (defvar-local luwak-data nil)
@@ -6,9 +25,11 @@
 
 (defun luwak-lynx-buffer (url) (format "*luwak-lynx %s*" url))
 (defcustom luwak-search-engine "https://html.duckduckgo.com/html?q=%s"
-  "Default search engine for use in 'luwak-search'.")
+  "Default search engine for use in 'luwak-search'."
+  :group 'luwak :type '(string))
 (defcustom luwak-url-rewrite-function 'identity
-  "Function to rewrite url before loading.")
+  "Function to rewrite url before loading."
+  :group 'luwak :type '(function))
 
 (define-derived-mode luwak-mode special-mode "luwak"
   "Major mode for browsing the web using lynx -dump.")
@@ -45,7 +66,7 @@
   (setq url (funcall luwak-url-rewrite-function url))
   (message "Loading %s..." url)
   (set-process-sentinel
-   (start-process-with-torsocks
+   (luwak-start-process-with-torsocks
     current-prefix-arg
     "luwak-lynx" (luwak-lynx-buffer url)
     "lynx" "-dump" "--display_charset" "utf-8" url)
@@ -119,7 +140,7 @@
           (setq i (1+ i)))))))
 
 (defun luwak-get-links ()
-  "Get links and re"
+  "Get links and remove the reference section if any."
   (with-current-buffer luwak-buffer
     (save-excursion
       (goto-char (point-min))
@@ -130,5 +151,11 @@
             (push (match-string 2) results))
           (delete-region ref-beg (point-max))
           (reverse results))))))
+
+(defun luwak-start-process-with-torsocks (no-tor name buffer program &rest program-args)
+  (if no-tor
+      (apply 'start-process (append (list name buffer program) program-args))
+    (apply 'start-process
+           (append (list name buffer "torsocks" program) program-args))))
 
 (provide 'luwak)
