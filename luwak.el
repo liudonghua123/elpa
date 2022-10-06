@@ -5,6 +5,10 @@
 (defvar-local luwak-history nil)
 
 (defun luwak-lynx-buffer (url) (format "*luwak-lynx %s*" url))
+(defcustom luwak-search-engine "https://html.duckduckgo.com/html?q=%s"
+  "Default search engine for use in 'luwak-search'.")
+(defcustom luwak-url-rewrite-function 'identity
+  "Function to rewrite url before loading.")
 
 (define-derived-mode luwak-mode special-mode "luwak"
   "Major mode for browsing the web using lynx -dump.")
@@ -16,6 +20,9 @@
     (define-key kmap "g" 'luwak-reload)
     (define-key kmap "l" 'luwak-history-backward)
     (define-key kmap "r" 'luwak-history-forward)
+    (define-key kmap "w" 'luwak-copy-url)
+    (define-key kmap "o" 'luwak-open)
+    (define-key kmap "s" 'luwak-search)
     kmap))
 
 (defun luwak-open (url)
@@ -23,13 +30,27 @@
   (setq url (eww--dwim-expand-url url))
   (luwak-open-internal url current-prefix-arg 'luwak-add-to-history))
 
+(defun luwak-copy-url ()
+  (interactive)
+  (when-let ((url (or (get-text-property (point) 'url)
+                      (plist-get luwak-data :url))))
+    (kill-new url)
+    (message "Copied: %s" url)))
+
+(defun luwak-search (query)
+  (interactive "sLuwak search query: ")
+  (luwak-open (format luwak-search-engine query)))
+
 (defun luwak-open-internal (url no-tor &optional cb)
+  (setq url (funcall luwak-url-rewrite-function url))
+  (message "Loading %s..." url)
   (set-process-sentinel
    (start-process-with-torsocks
     current-prefix-arg
     "luwak-lynx" (luwak-lynx-buffer url)
     "lynx" "-dump" "--display_charset" "utf-8" url)
    (lambda (process _)
+     (message "Loading %s... Done." url)
      (with-current-buffer (get-buffer-create luwak-buffer)
        (let ((inhibit-read-only t))
          (erase-buffer)
@@ -92,18 +113,22 @@
             (replace-match "")
             (make-text-button (point) (progn (forward-sexp) (point))
                               'url url
+                              'help-echo url
                               'action 'luwak-follow-link
                               'face 'button))
           (setq i (1+ i)))))))
 
 (defun luwak-get-links ()
+  "Get links and re"
   (with-current-buffer luwak-buffer
     (save-excursion
       (goto-char (point-min))
-      (re-search-forward "^References\n\n\\(\\ *Visible links:\n\\)?")
-      (let ((results))
-        (while (re-search-forward "^\\ *\\([0-9]+\\)\\.\\ *\\(.*\\)$" nil t)
-          (push (match-string 2) results))
-        (reverse results)))))
+      (when (re-search-forward "^References\n\n\\(\\ *Visible links:\n\\)?" nil t)
+        (let ((ref-beg (match-beginning 0))
+              (results))
+          (while (re-search-forward "^\\ *\\([0-9]+\\)\\.\\ *\\(.*\\)$" nil t)
+            (push (match-string 2) results))
+          (delete-region ref-beg (point-max))
+          (reverse results))))))
 
 (provide 'luwak)
