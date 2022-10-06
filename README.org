@@ -7,7 +7,8 @@ on ~lynx -dump~.
 
 To use, clone this repo, add to ~load-path~ and ~require~.  Make sure
 you have lynx installed in your system (~apt install lynx~, ~pacman -S
-lynx~ etc.).
+lynx~ etc.).  By default the browser uses torsocks, which can be
+disabled with a prefix arg.
 
 #+begin_src elisp
 (add-to-list 'load-path "~/.emacs.d/luwak")
