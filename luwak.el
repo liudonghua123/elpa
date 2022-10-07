@@ -16,8 +16,6 @@
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with luwak.  If not, see <https://www.gnu.org/licenses/>.
 
-(require 'eww)
-
 (defvar luwak-buffer "*luwak*")
 
 (defvar-local luwak-data nil)
@@ -48,7 +46,6 @@
 
 (defun luwak-open (url)
   (interactive "sUrl to open: ")
-  (setq url (eww--dwim-expand-url url))
   (luwak-open-internal url current-prefix-arg 'luwak-add-to-history))
 
 (defun luwak-copy-url ()
