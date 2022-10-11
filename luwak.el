@@ -29,7 +29,14 @@
   "Function to rewrite url before loading."
   :group 'luwak :type '(function))
 
-(define-derived-mode luwak-mode special-mode "luwak"
+(defun luwak-mode-name ()
+  (concat "luwak "
+          (cond
+           ((null luwak-data) "Tor unknown")
+           ((plist-get luwak-data :no-tor) "Tor off")
+           (t "Tor on"))))
+
+(define-derived-mode luwak-mode special-mode (luwak-mode-name)
   "Major mode for browsing the web using lynx -dump.")
 
 (defvar luwak-mode-map
@@ -64,7 +71,7 @@
   (message "Loading %s..." url)
   (set-process-sentinel
    (luwak-start-process-with-torsocks
-    current-prefix-arg
+    no-tor
     "luwak-lynx" (luwak-lynx-buffer url)
     "lynx" "-dump" "--display_charset" "utf-8" url)
    (lambda (process _)
@@ -78,8 +85,11 @@
          (luwak-render-links (luwak-get-links)))
        (unless (derived-mode-p 'luwak-mode) (luwak-mode))
        (if luwak-data
-           (plist-put luwak-data :url url)
+           (progn
+             (plist-put luwak-data :url url)
+             (plist-put luwak-data :no-tor no-tor))
          (setq luwak-data (list :url url :no-tor no-tor :history-pos 0)))
+       (setq mode-name (luwak-mode-name))
        (when cb (funcall cb)))
      (display-buffer luwak-buffer))))
 
