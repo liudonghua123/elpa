@@ -162,7 +162,7 @@ commands."
         (rcirc-print process (rcirc-nick process) "NOTICE" target
                      (mapconcat 'identity names " ")))
     (let* ((index (random (length rcirc-colors)))
-           (color (elt rcirc-colors index))
+           (color (or color (elt rcirc-colors index)))
            (face `(:foreground ,color ,@rcirc-color-other-attributes)))
       (puthash nick face rcirc-color-mapping))))
 
