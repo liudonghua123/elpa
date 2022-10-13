@@ -36,9 +36,6 @@
            ((plist-get luwak-data :no-tor) "Tor off")
            (t "Tor on"))))
 
-(define-derived-mode luwak-mode special-mode (luwak-mode-name)
-  "Major mode for browsing the web using lynx -dump.")
-
 (defvar luwak-mode-map
   (let ((kmap (make-sparse-keymap)))
     (define-key kmap "\t" 'forward-button)
@@ -50,6 +47,9 @@
     (define-key kmap "o" 'luwak-open)
     (define-key kmap "s" 'luwak-search)
     kmap))
+
+(define-derived-mode luwak-mode special-mode (luwak-mode-name)
+  "Major mode for browsing the web using lynx -dump.")
 
 (defun luwak-open (url)
   (interactive "sUrl to open: ")
