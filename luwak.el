@@ -28,6 +28,16 @@
 (defcustom luwak-url-rewrite-function 'identity
   "Function to rewrite url before loading."
   :group 'luwak :type '(function))
+(defcustom luwak-tor-switch nil
+  "Switch behaviour of prefix arg concerning the use of tor.
+
+When nil, use tor by default, and not use it with a prefix arg.  
+When non-nill, swap the tor-switch in prefix-arg effect."
+  :group 'luwak :type '(boolean))
+
+(defun luwak-toggle-tor-switch ()
+  (interactive)
+  (setq luwak-tor-switch (not luwak-tor-switch)))
 
 (defun luwak-mode-name ()
   (concat "luwak "
@@ -53,7 +63,8 @@
 
 (defun luwak-open (url)
   (interactive "sUrl to open: ")
-  (luwak-open-internal url current-prefix-arg 'luwak-add-to-history))
+  (luwak-open-internal
+   url (xor luwak-tor-switch current-prefix-arg) 'luwak-add-to-history))
 
 (defun luwak-copy-url ()
   (interactive)
