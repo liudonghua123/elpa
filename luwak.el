@@ -62,6 +62,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
   "Major mode for browsing the web using lynx -dump.")
 
 (defun luwak-open (url)
+  "Open URL in luwak."
   (interactive "sUrl to open: ")
   (luwak-open-internal
    url (xor luwak-tor-switch current-prefix-arg) 'luwak-add-to-history))
@@ -74,6 +75,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (message "Copied: %s" url)))
 
 (defun luwak-search (query)
+  "Search QUERY using 'luwak-search-engine'."
   (interactive "sLuwak search query: ")
   (luwak-open (format luwak-search-engine query)))
 
