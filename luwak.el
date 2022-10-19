@@ -18,7 +18,7 @@
 
 (defvar luwak-buffer "*luwak*")
 
-(defvar-local luwak-data nil)
+(defvar-local luwak-data (:url nil :dump nil :history-pos nil :no-tor nil))
 (defvar-local luwak-history nil)
 
 (defun luwak-lynx-buffer (url) (format "*luwak-lynx %s*" url))
@@ -34,6 +34,11 @@
 When nil, use tor by default, and not use it with a prefix arg.  
 When non-nill, swap the tor-switch in prefix-arg effect."
   :group 'luwak :type '(boolean))
+(defcustom luwak-max-history-length 25
+  "Maximum history length."
+  :group 'luwak :type '(natnum))
+
+(put luwak-history 'history-length luwak-max-history-length)
 
 (defun luwak-toggle-tor-switch ()
   (interactive)
@@ -64,7 +69,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
 (defun luwak-open (url)
   "Open URL in luwak."
   (interactive "sUrl to open: ")
-  (luwak-open-internal
+  (luwak-open-url
    url (xor luwak-tor-switch current-prefix-arg) 'luwak-add-to-history))
 
 (defun luwak-copy-url ()
@@ -79,7 +84,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
   (interactive "sLuwak search query: ")
   (luwak-open (format luwak-search-engine query)))
 
-(defun luwak-open-internal (url no-tor &optional cb)
+(defun luwak-open-url (url no-tor &optional cb)
   (setq url (funcall luwak-url-rewrite-function url))
   (message "Loading %s..." url)
   (set-process-sentinel
@@ -90,27 +95,35 @@ When non-nill, swap the tor-switch in prefix-arg effect."
    (lambda (process _)
      (message "Loading %s... Done." url)
      (with-current-buffer (get-buffer-create luwak-buffer)
-       (let ((inhibit-read-only t))
-         (erase-buffer)
-         (insert-buffer-substring (process-buffer process))
-         (kill-buffer (process-buffer process))
-         (goto-char (point-min))
-         (luwak-render-links (luwak-get-links)))
-       (unless (derived-mode-p 'luwak-mode) (luwak-mode))
-       (if luwak-data
-           (progn
-             (plist-put luwak-data :url url)
-             (plist-put luwak-data :no-tor no-tor))
-         (setq luwak-data (list :url url :no-tor no-tor :history-pos 0)))
-       (setq mode-name (luwak-mode-name))
-       (when cb (funcall cb)))
+       (luwak-open-internal
+        url
+        (with-current-buffer (process-buffer process) (buffer-string))
+        (or (plist-get luwak-data :history-pos) 0)
+        no-tor)
+       (kill-buffer (process-buffer process))
+       (when cb (funcall cb))
+       (goto-char (point-min)))
      (display-buffer luwak-buffer))))
+
+(defun luwak-open-internal (url dump history-pos no-tor)
+  (with-current-buffer (get-buffer-create luwak-buffer)
+    (unless (derived-mode-p 'luwak-mode) (luwak-mode))
+    (setq luwak-data (list :url url :no-tor no-tor
+                           :history-pos history-pos :dump dump))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert dump)
+      (luwak-render-links (luwak-get-links)))
+    (setq mode-name (luwak-mode-name))
+    (goto-char (point-min))))
 
 (defun luwak-add-to-history ()
   (let ((history-delete-duplicates nil))
     (setq luwak-history (nthcdr (plist-get luwak-data :history-pos)
                                 luwak-history))
-    (add-to-history 'luwak-history (plist-get luwak-data :url))
+    (add-to-history 'luwak-history
+                    (cons (plist-get luwak-data :url)
+                          (plist-get luwak-data :dump)))
     (plist-put luwak-data :history-pos 0)))
 
 (defun luwak-history-backward ()
@@ -119,9 +132,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
          (1+ (plist-get luwak-data :history-pos))))
     (when (<= (length luwak-history) history-pos)
       (error "Already at the earliest history."))
-    (plist-put luwak-data :history-pos history-pos)
-    (luwak-open-internal (nth history-pos luwak-history)
-                         (plist-get luwak-data :no-tor))))
+    (luwak-history-open history-pos)))
 
 (defun luwak-history-forward ()
   (interactive)
@@ -129,19 +140,22 @@ When non-nill, swap the tor-switch in prefix-arg effect."
          (1- (plist-get luwak-data :history-pos))))
     (when (< history-pos 0)
       (error "Already at the latest history."))
-    (plist-put luwak-data :history-pos history-pos)
-    (luwak-open-internal (nth history-pos luwak-history)
-                         (plist-get luwak-data :no-tor))))
+    (luwak-history-open history-pos)))
+
+(defun luwak-history-open (history-pos)
+  (let ((pair (nth history-pos luwak-history)))
+      (luwak-open-internal (car pair) (cdr pair) history-pos
+                           (plist-get luwak-data :no-tor))))
 
 (defun luwak-reload ()
   (interactive)
-  (luwak-open-internal
+  (luwak-open-url
    (plist-get luwak-data :url)
    (plist-get luwak-data :no-tor)))
 
 (defun luwak-follow-link (marker)
   (let ((url (get-text-property marker 'url)))
-    (luwak-open-internal
+    (luwak-open-url
      url (plist-get luwak-data :no-tor) 'luwak-add-to-history)))
 
 (defun luwak-render-links (urls)
