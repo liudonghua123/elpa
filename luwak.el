@@ -34,9 +34,13 @@
 When nil, use tor by default, and not use it with a prefix arg.  
 When non-nill, swap the tor-switch in prefix-arg effect."
   :group 'luwak :type '(boolean))
-(defcustom luwak-max-history-length 25
+(defcustom luwak-max-history-length 100
   "Maximum history length."
   :group 'luwak :type '(natnum))
+(defcustom luwak-render-link-function 'luwak-render-link-id
+  "Function to render a link."
+  :group 'luwak :type '(choice (const luwak-render-link-id)
+                               (const luwak-render-link-forward-sexp)))
 
 (put luwak-history 'history-length luwak-max-history-length)
 
@@ -61,6 +65,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (define-key kmap "w" 'luwak-copy-url)
     (define-key kmap "o" 'luwak-open)
     (define-key kmap "s" 'luwak-search)
+    (define-key kmap "d" 'luwak-save-dump)
     kmap))
 
 (define-derived-mode luwak-mode special-mode (luwak-mode-name)
@@ -143,9 +148,12 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (luwak-history-open history-pos)))
 
 (defun luwak-history-open (history-pos)
-  (let ((pair (nth history-pos luwak-history)))
+  (let ((pair (nth history-pos luwak-history))
+        (len (length luwak-history)))
       (luwak-open-internal (car pair) (cdr pair) history-pos
-                           (plist-get luwak-data :no-tor))))
+                           (plist-get luwak-data :no-tor))
+      (message "Loaded history %d/%d: %s"
+               (- len history-pos) len (car pair))))
 
 (defun luwak-reload ()
   (interactive)
@@ -164,14 +172,27 @@ When non-nill, swap the tor-switch in prefix-arg effect."
       (goto-char (point-min))
       (let ((i 1))
         (dolist (url urls)
-          (when (re-search-forward (format "\\[%d\\]" i) nil t)
-            (replace-match "")
-            (make-text-button (point) (progn (forward-sexp) (point))
-                              'url url
-                              'help-echo url
-                              'action 'luwak-follow-link
-                              'face 'button))
+          (luwak-render-link-id i url)
           (setq i (1+ i)))))))
+
+(defun luwak-render-link-forward-sexp (idx url)
+  "Render a link using forward-sexp."
+  (when (re-search-forward (format "\\[%d\\]" idx) nil t)
+    (replace-match "")
+    (make-text-button (point) (progn (forward-sexp) (point))
+                      'url url
+                      'help-echo url
+                      'action 'luwak-follow-link
+                      'face 'button)))
+
+(defun luwak-render-link-id (idx url)
+  "Render a link by its id."
+  (when (re-search-forward (format "\\[%d\\]" idx) nil t)
+    (make-text-button (match-beginning 0) (match-end 0)
+                      'url url
+                      'help-echo url
+                      'action 'luwak-follow-link
+                      'face 'button)))
 
 (defun luwak-get-links ()
   "Get links and remove the reference section if any."
@@ -191,5 +212,22 @@ When non-nill, swap the tor-switch in prefix-arg effect."
       (apply 'start-process (append (list name buffer program) program-args))
     (apply 'start-process
            (append (list name buffer "torsocks" program) program-args))))
+
+(defun luwak-save-dump (file-name)
+  (interactive
+   (list
+    (read-file-name (format "Write dump of %s to: " (plist-get luwak-data :url))
+                    default-directory)))
+  (let ((dump (plist-get luwak-data :dump)))
+    (with-temp-buffer
+      (insert dump)
+      (write-file file-name)))
+  (message "Wrote %s." file-name))
+
+(defun luwak-make-filename (name &optional sep)
+  "Convert name to filename by replacing special chars with sep."
+  (unless sep (setq sep "-"))
+  (replace-regexp-in-string "[[:punct:][:space:]\n\r]+" sep
+                            (string-trim name)))
 
 (provide 'luwak)
