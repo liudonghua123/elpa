@@ -340,10 +340,4 @@ When non-nill, swap the tor-switch in prefix-arg effect."
       (write-file file-name)))
   (message "Wrote %s." file-name))
 
-(defun luwak-make-filename (name &optional sep)
-  "Convert name to filename by replacing special chars with sep."
-  (unless sep (setq sep "-"))
-  (replace-regexp-in-string "[[:punct:][:space:]\n\r]+" sep
-                            (string-trim name)))
-
 (provide 'luwak)
