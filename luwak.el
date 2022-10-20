@@ -40,7 +40,8 @@ When non-nill, swap the tor-switch in prefix-arg effect."
 (defcustom luwak-render-link-function 'luwak-render-link-id
   "Function to render a link."
   :group 'luwak :type '(choice (const luwak-render-link-id)
-                               (const luwak-render-link-forward-sexp)))
+                               (const luwak-render-link-forward-sexp)
+                               (const luwak-render-link-hide-link)))
 
 (put luwak-history 'history-length luwak-max-history-length)
 
@@ -66,10 +67,27 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (define-key kmap "o" 'luwak-open)
     (define-key kmap "s" 'luwak-search)
     (define-key kmap "d" 'luwak-save-dump)
+    (define-key kmap "j" 'imenu)
+    (define-key kmap "t" 'luwak-toggle-links)
     kmap))
 
 (define-derived-mode luwak-mode special-mode (luwak-mode-name)
-  "Major mode for browsing the web using lynx -dump.")
+  "Major mode for browsing the web using lynx -dump."
+  (setq-local imenu-create-index-function #'luwak-imenu-create-index
+              imenu-space-replacement " "
+              imenu-max-item-length nil
+              imenu-auto-rescan t))
+
+(defun luwak-imenu-create-index ()
+  (goto-char (point-min))
+  (let ((index) (position))
+    (while (re-search-forward "^[^[:space:]]" nil t)
+      (push (cons (buffer-substring-no-properties
+                   (setq position (1- (point)))
+                   (progn (end-of-line 1) (point)))
+                  position)
+            index))
+    (reverse index)))
 
 (defun luwak-open (url)
   "Open URL in luwak."
@@ -115,12 +133,26 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (unless (derived-mode-p 'luwak-mode) (luwak-mode))
     (setq luwak-data (list :url url :no-tor no-tor
                            :history-pos history-pos :dump dump))
-    (let ((inhibit-read-only t))
-      (erase-buffer)
-      (insert dump)
-      (luwak-render-links (luwak-get-links)))
+    (luwak-insert-and-render)
     (setq mode-name (luwak-mode-name))
     (goto-char (point-min))))
+
+(defun luwak-toggle-links ()
+  (interactive)
+  (pcase luwak-render-link-function
+    ('luwak-render-link-id
+     (setq luwak-render-link-function 'luwak-render-link-hide-link))
+    ('luwak-render-link-hide-link
+     (setq luwak-render-link-function 'luwak-render-link-forward-sexp))
+    (_
+     (setq luwak-render-link-function 'luwak-render-link-id)))
+  (save-excursion (luwak-insert-and-render)))
+
+(defun luwak-insert-and-render ()
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (insert (plist-get luwak-data :dump))
+    (luwak-render-links (luwak-get-links))))
 
 (defun luwak-add-to-history ()
   (let ((history-delete-duplicates nil))
@@ -172,7 +204,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
       (goto-char (point-min))
       (let ((i 1))
         (dolist (url urls)
-          (luwak-render-link-id i url)
+          (funcall luwak-render-link-function i url)
           (setq i (1+ i)))))))
 
 (defun luwak-render-link-forward-sexp (idx url)
@@ -193,6 +225,10 @@ When non-nill, swap the tor-switch in prefix-arg effect."
                       'help-echo url
                       'action 'luwak-follow-link
                       'face 'button)))
+
+(defun luwak-render-link-hide-link (idx _)
+  (when (re-search-forward (format "\\[%d\\]" idx) nil t)
+    (replace-match "")))
 
 (defun luwak-get-links ()
   "Get links and remove the reference section if any."
