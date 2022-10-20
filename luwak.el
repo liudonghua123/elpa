@@ -20,6 +20,7 @@
 
 (defvar-local luwak-data (:url nil :dump nil :history-pos nil :no-tor nil))
 (defvar-local luwak-history nil)
+(defvar luwak-history-file "~/.emacs.d/luwak-history")
 
 (defun luwak-lynx-buffer (url) (format "*luwak-lynx %s*" url))
 (defcustom luwak-search-engine "https://html.duckduckgo.com/html?q=%s"
@@ -42,6 +43,13 @@ When non-nill, swap the tor-switch in prefix-arg effect."
   :group 'luwak :type '(choice (const luwak-render-link-id)
                                (const luwak-render-link-forward-sexp)
                                (const luwak-render-link-hide-link)))
+(defcustom luwak-keep-history t
+  "If non-nil, will keep history in 'luwak-history-file'."
+  :group 'luwak :type '(boolean))
+(defcustom luwak-use-history t
+  "If non-nil, will use history from the 'luwak-history-file' when running
+'luwak-open'."
+  :group 'luwak :type '(boolean))
 
 (put luwak-history 'history-length luwak-max-history-length)
 
@@ -69,6 +77,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (define-key kmap "d" 'luwak-save-dump)
     (define-key kmap "j" 'imenu)
     (define-key kmap "t" 'luwak-toggle-links)
+    (define-key kmap "a" 'luwak-follow-numbered-link)
     kmap))
 
 (define-derived-mode luwak-mode special-mode (luwak-mode-name)
@@ -109,9 +118,21 @@ When non-nill, swap the tor-switch in prefix-arg effect."
 
 (defun luwak-open (url)
   "Open URL in luwak."
-  (interactive "sUrl to open: ")
+  (interactive
+   (list
+    (if luwak-use-history
+        (completing-read "Url to open: " (luwak-history-collection-from-file))
+      (read-string "Url to open: "))))
   (luwak-open-url
-   url (xor luwak-tor-switch current-prefix-arg) 'luwak-add-to-history))
+   (car (split-string url))
+   (xor luwak-tor-switch current-prefix-arg) 'luwak-add-to-history))
+
+(defun luwak-history-collection-from-file ()
+  (split-string
+   (with-temp-buffer
+     (insert-file-contents luwak-history-file)
+     (buffer-string))
+   "\n" t))
 
 (defun luwak-copy-url ()
   (interactive)
@@ -179,7 +200,13 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (add-to-history 'luwak-history
                     (cons (plist-get luwak-data :url)
                           (plist-get luwak-data :dump)))
+    (when luwak-keep-history luwak-add-to-history-file)
     (plist-put luwak-data :history-pos 0)))
+
+(defun luwak-add-to-history-file ()
+  (let ((url (plist-get luwak-data :url))
+        (title (luwak-guess-title)))
+    (append-to-file (concat url " " title "\n") nil luwak-history-file)))
 
 (defun luwak-history-backward ()
   (interactive)
@@ -237,7 +264,8 @@ When non-nill, swap the tor-switch in prefix-arg effect."
        (or (plist-get luwak-data :history-pos) 0)
        (or (plist-get luwak-data :no-tor)
            (xor luwak-tor-switch current-prefix-arg)))
-      (luwak-add-to-history))))
+      (luwak-add-to-history))
+    (display-buffer luwak-buffer)))
 
 (defun luwak-render-link-forward-sexp (idx url)
   "Render a link using forward-sexp."
@@ -274,6 +302,26 @@ When non-nill, swap the tor-switch in prefix-arg effect."
             (push (match-string 2) results))
           (delete-region ref-beg (point-max))
           (reverse results))))))
+
+(defun luwak-collect-links ()
+  "Collect links into a list."
+  (let ((dump (plist-get luwak-data :dump)))
+    (with-temp-buffer
+      (insert dump)
+      (goto-char (point-min))
+      (re-search-forward "^References\n\n\\(\\ *Visible links:\n\\)?" nil t)
+      (delete-region (point-min) (match-end 0))
+      (seq-filter 'identity
+       (mapcar (lambda (s)
+                (when (string-match "^\\ *\\([0-9]+\\)\\. \\(.*\\)" s)
+                  (concat (match-string 1 s) " " (match-string 2 s))))
+               (split-string (buffer-string) "\n"))))))
+
+(defun luwak-follow-numbered-link (link)
+  "Follow a link."
+  (interactive
+   (list (completing-read "Select link: " (luwak-collect-links) nil t)))
+  (luwak-open (cadr (split-string link))))
 
 (defun luwak-start-process-with-torsocks (no-tor name buffer program &rest program-args)
   (if no-tor
