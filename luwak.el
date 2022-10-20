@@ -207,9 +207,10 @@ When non-nill, swap the tor-switch in prefix-arg effect."
 
 (defun luwak-reload ()
   (interactive)
-  (luwak-open-url
-   (plist-get luwak-data :url)
-   (plist-get luwak-data :no-tor)))
+  (let ((url (plist-get luwak-data :url)))
+    (unless url
+        (error "The current buffer is not associated with any url."))
+    (luwak-open-url url (plist-get luwak-data :no-tor))))
 
 (defun luwak-follow-link (marker)
   (let ((url (get-text-property marker 'url)))
@@ -224,6 +225,19 @@ When non-nill, swap the tor-switch in prefix-arg effect."
         (dolist (url urls)
           (funcall luwak-render-link-function i url)
           (setq i (1+ i)))))))
+
+(defun luwak-render-buffer ()
+  "Render the current buffer in luwak mode."
+  (interactive)
+  (let ((dump (buffer-string)))
+    (with-current-buffer (get-buffer-create luwak-buffer)
+      (luwak-open-internal
+       nil
+       dump
+       (or (plist-get luwak-data :history-pos) 0)
+       (or (plist-get luwak-data :no-tor)
+           (xor luwak-tor-switch current-prefix-arg)))
+      (luwak-add-to-history))))
 
 (defun luwak-render-link-forward-sexp (idx url)
   "Render a link using forward-sexp."
