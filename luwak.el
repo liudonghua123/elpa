@@ -89,6 +89,24 @@ When non-nill, swap the tor-switch in prefix-arg effect."
             index))
     (reverse index)))
 
+(defun luwak-guess-title ()
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward "^[^[:space:]]" nil t)
+    (buffer-substring-no-properties (1- (point))
+                                    (progn (end-of-line 1) (point)))))
+
+(defun luwak-org-store-link ()
+  (when (derived-mode-p 'luwak-mode)
+    (org-link-store-props
+     :type "luwak"
+     :link (plist-get luwak-data :url)
+     :description (luwak-guess-title))))
+
+(org-link-set-parameters "luwak"
+                         :follow #'luwak-open
+                         :store #'luwak-org-store-link)
+
 (defun luwak-open (url)
   "Open URL in luwak."
   (interactive "sUrl to open: ")
