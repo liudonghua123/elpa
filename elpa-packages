@@ -262,10 +262,7 @@
   :readme "README.md"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi" "contrast-ratios.org"))
- ("eglot"               :url "https://github.com/joaotavora/eglot.git"
-  :news "NEWS.md"
-  :ignored-files (".github" "LICENSE" "gif-examples")
-  :auto-sync t)
+ ("eglot"               :core "lisp/progmodes/eglot.el")
  ("el-search"		:url nil)
  ("eldoc"		:core "lisp/emacs-lisp/eldoc.el")
  ("eldoc-eval"		:url "https://github.com/thierryvolpiatto/eldoc-eval.git")
