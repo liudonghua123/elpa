@@ -200,7 +200,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (add-to-history 'luwak-history
                     (cons (plist-get luwak-data :url)
                           (plist-get luwak-data :dump)))
-    (when luwak-keep-history luwak-add-to-history-file)
+    (when luwak-keep-history (luwak-add-to-history-file))
     (plist-put luwak-data :history-pos 0)))
 
 (defun luwak-add-to-history-file ()
