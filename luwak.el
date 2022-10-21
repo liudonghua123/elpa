@@ -1,5 +1,15 @@
-;; -*- lexical-binding: t; -*-
-;; Copyright (C) 2022 Yuchen Pei.
+;;; luwak.el --- Web browser based on lynx -dump. -*- lexical-binding: t; -*-
+
+;; Author: Yuchen Pei <id@ypei.org>
+;; Maintainer: Yuchen Pei <id@ypei.org>
+;; Created: 2022
+;; Version: 0
+;; Keywords: web-browser, lynx, html, tor
+;; Package-Requires: ((emacs "28"))
+;; Package-Type: 
+;; Homepage: https://g.ypei.me/luwak.git
+
+;; Copyright (C) 2022  Free Software Foundation, Inc.
 ;; 
 ;; This file is part of luwak.
 ;; 
@@ -16,7 +26,9 @@
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with luwak.  If not, see <https://www.gnu.org/licenses/>.
 
-(require 'org)
+;;; Commentary:
+
+;;; Code:
 
 (defvar luwak-buffer "*luwak*")
 
@@ -107,17 +119,19 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (buffer-substring-no-properties (1- (point))
                                     (progn (end-of-line 1) (point)))))
 
-(defun luwak-org-store-link ()
-  (when (derived-mode-p 'luwak-mode)
-    (org-link-store-props
-     :type "luwak"
-     :link (plist-get luwak-data :url)
-     :description (luwak-guess-title))))
+(when (require 'org nil t)
+  (defun luwak-org-store-link ()
+    (when (derived-mode-p 'luwak-mode)
+      (org-link-store-props
+       :type "luwak"
+       :link (plist-get luwak-data :url)
+       :description (luwak-guess-title))))
 
-(org-link-set-parameters "luwak"
-                         :follow #'luwak-open
-                         :store #'luwak-org-store-link)
+  (org-link-set-parameters "luwak"
+                           :follow #'luwak-open
+                           :store #'luwak-org-store-link))
 
+;;;###autoload
 (defun luwak-open (url)
   "Open URL in luwak."
   (interactive
@@ -145,6 +159,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (kill-new url)
     (message "Copied: %s" url)))
 
+;;;###autoload
 (defun luwak-search (query)
   "Search QUERY using 'luwak-search-engine'."
   (interactive "sLuwak search query: ")
@@ -211,7 +226,8 @@ When non-nill, swap the tor-switch in prefix-arg effect."
 
 (defun luwak-add-to-history-file ()
   (let ((url (plist-get luwak-data :url))
-        (title (luwak-guess-title)))
+        (title (luwak-guess-title))
+        (inhibit-message t))
     (append-to-file (concat url " " title "\n") nil luwak-history-file)))
 
 (defun luwak-history-backward ()
@@ -259,6 +275,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
           (funcall luwak-render-link-function i url)
           (setq i (1+ i)))))))
 
+;;;###autoload
 (defun luwak-render-buffer ()
   "Render the current buffer in luwak mode."
   (interactive)
@@ -336,6 +353,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
            (append (list name buffer "torsocks" program) program-args))))
 
 (defun luwak-save-dump (file-name)
+  "Write dump of the current luwak buffer to FILE-NAME."
   (interactive
    (list
     (read-file-name (format "Write dump of %s to: " (plist-get luwak-data :url))
@@ -347,3 +365,5 @@ When non-nill, swap the tor-switch in prefix-arg effect."
   (message "Wrote %s." file-name))
 
 (provide 'luwak)
+
+;;; luwak.el ends here

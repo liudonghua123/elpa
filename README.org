@@ -1,30 +1,51 @@
 #+title: luwak: a text-only Emacs web browser based on lynx -dump
 
-* Install and use
+* Overview
 
 Luwak mode is a simple Emacs GET-only and text-only web browser, based
 on ~lynx -dump~.
 
+Features:
+
+- Some usual browser features: open, reload, search with a search
+  engine, follow links, go forward / backward in history, copy url of
+  the current page or link at point
+- Completion from persistent history in prompt to open a url
+- Write the dump of the current page to a file
+- Render a lynx dump in the luwak mode
+- imenu support, from all unindented strings (which look like
+  headings)
+- Support of storing and capturing for org mode, guessing the title
+  (first imenu item)
+- Multiple ways of rendering links: numbered, forward-sexp, hide
+  altogether
+- Quickly open a link on the page with completion for url / link id
+- Browse with or without torsocks
+
+* Install and use
+
 To use, clone this repo, add to ~load-path~ and ~require~.  Make sure
 you have lynx installed in your system (~apt install lynx~, ~pacman -S
 lynx~ etc.).  By default the browser uses torsocks, which can be
-disabled with a prefix arg.
+disabled with a prefix arg or switching ~luwak-tor-switch~ to ~t~.
 
 #+begin_src elisp
 (add-to-list 'load-path "~/.emacs.d/luwak")
 (require 'luwak)
 #+end_src
 
-There are two entry points:
+There are three entry points:
 
 - ~luwak-open~: open a url
-- ~luwak-search~: search a query (default to ddg html)
+- ~luwak-search~: search a query using a customisable default search
+  engine
+- ~luwak-render-buffer~: render a lynx dump file in luwak mode
 
 * Naming
 
 lynx dump -> feline excretion -> Kopi Luwak
 
-* Contact and Copyright
+* Contact and license
 
 luwak is maintained by Yuchen Pei (id@ypei.org).  It is covered by [[https://www.gnu.org/licenses/agpl-3.0.en.html][GNU
 AGPLv3+]].  You may find the license text in a file named COPYING.agpl3
