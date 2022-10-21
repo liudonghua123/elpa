@@ -364,6 +364,17 @@ When non-nill, swap the tor-switch in prefix-arg effect."
       (write-file file-name)))
   (message "Wrote %s." file-name))
 
+;; Example url rewrite function
+(defun luwak-rewrite-ddg-result (url)
+  "Rewrites ddg result url to save one jump."
+  (let ((new-url url))
+    (when (string-match
+           "^https://duckduckgo.com/l/\\?uddg=\\(.*\\)&rut=.*$" url)
+      (setq new-url (url-unhex-string (match-string 1 url))))
+    (unless (equal url new-url)
+      (message "Rewriting %s to %s" url new-url))
+    new-url))
+
 (provide 'luwak)
 
 ;;; luwak.el ends here
