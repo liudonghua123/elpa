@@ -46,8 +46,9 @@
 (defcustom luwak-tor-switch t
   "Switch behaviour of prefix arg concerning the use of tor.
 
-When nil, use tor by default, and not use it with a prefix arg.  
-When non-nill, swap the tor-switch in prefix-arg effect."
+When nil, use tor by default (requires a tor daemon having been
+started in the system), and not use it with a prefix arg.  When
+non-nill, swap the tor-switch in prefix-arg effect."
   :group 'luwak :type '(boolean))
 (defcustom luwak-max-history-length 100
   "Maximum history length."
