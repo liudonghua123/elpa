@@ -1,4 +1,4 @@
-#+title: luwak: a text-only Emacs web browser based on lynx -dump
+#+title: luwak: a simple Emacs web browser based on lynx -dump
 
 * Overview
 
