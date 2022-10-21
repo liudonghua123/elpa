@@ -343,7 +343,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
 (defun luwak-follow-numbered-link (link)
   "Follow a link."
   (interactive
-   (list (completing-read "Select link: " (luwak-collect-links) nil t)))
+   (list (completing-read "Select link to open: " (luwak-collect-links) nil t)))
   (luwak-open (cadr (split-string link))))
 
 (defun luwak-start-process-with-torsocks (no-tor name buffer program &rest program-args)
