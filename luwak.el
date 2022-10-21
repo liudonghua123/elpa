@@ -16,9 +16,11 @@
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with luwak.  If not, see <https://www.gnu.org/licenses/>.
 
+(require 'org)
+
 (defvar luwak-buffer "*luwak*")
 
-(defvar-local luwak-data (:url nil :dump nil :history-pos nil :no-tor nil))
+(defvar-local luwak-data '(:url nil :dump nil :history-pos nil :no-tor nil))
 (defvar-local luwak-history nil)
 (defvar luwak-history-file "~/.emacs.d/luwak-history")
 
@@ -47,7 +49,7 @@ When non-nill, swap the tor-switch in prefix-arg effect."
   "If non-nil, will keep history in 'luwak-history-file'."
   :group 'luwak :type '(boolean))
 (defcustom luwak-use-history t
-  "If non-nil, will use history from the 'luwak-history-file' when running
+  "If non-nil, will use history from the 'luwak-history-file' when invoking
 'luwak-open'."
   :group 'luwak :type '(boolean))
 
@@ -121,10 +123,12 @@ When non-nill, swap the tor-switch in prefix-arg effect."
   (interactive
    (list
     (if luwak-use-history
-        (completing-read "Url to open: " (luwak-history-collection-from-file))
+        (car
+         (split-string
+          (completing-read "Url to open: " (luwak-history-collection-from-file))))
       (read-string "Url to open: "))))
   (luwak-open-url
-   (car (split-string url))
+   (url-encode-url url)
    (xor luwak-tor-switch current-prefix-arg) 'luwak-add-to-history))
 
 (defun luwak-history-collection-from-file ()
@@ -200,7 +204,9 @@ When non-nill, swap the tor-switch in prefix-arg effect."
     (add-to-history 'luwak-history
                     (cons (plist-get luwak-data :url)
                           (plist-get luwak-data :dump)))
-    (when luwak-keep-history (luwak-add-to-history-file))
+    (when (and (plist-get luwak-data :url)
+               luwak-keep-history)
+      (luwak-add-to-history-file))
     (plist-put luwak-data :history-pos 0)))
 
 (defun luwak-add-to-history-file ()
