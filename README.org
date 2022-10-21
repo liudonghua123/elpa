@@ -2,24 +2,25 @@
 
 * Overview
 
-Luwak mode is a simple Emacs GET-only and text-only web browser, based
-on ~lynx -dump~.
+luwak mode is a simple Emacs web browser based on ~lynx -dump~.  It is
+currently text-only and GET-only.
 
 Features:
 
+- Asynchronous loading
 - Some usual browser features: open, reload, search with a search
   engine, follow links, go forward / backward in history, copy url of
   the current page or link at point
 - Completion from persistent history in prompt to open a url
-- Write the dump of the current page to a file
-- Render a lynx dump in the luwak mode
+- Multiple ways of rendering links: numbered, forward-sexp or hide
+  altogether
+- Quickly open a link on the page with completion for url / link id
 - imenu support, from all unindented strings (which look like
   headings)
 - Support of storing and capturing for org mode, guessing the title
   (first imenu item)
-- Multiple ways of rendering links: numbered, forward-sexp, hide
-  altogether
-- Quickly open a link on the page with completion for url / link id
+- Write the dump of the current page to a file
+- Render a buffer containing a lynx dump in the luwak mode
 - Browse with or without torsocks
 
 * Install and use
@@ -44,6 +45,12 @@ There are three entry points:
 * Naming
 
 lynx dump -> feline excretion -> Kopi Luwak
+
+* TODOs
+
+- Multiple search engines
+- Support for images
+- Support for POST
 
 * Contact and license
 
