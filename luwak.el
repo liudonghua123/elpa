@@ -115,9 +115,9 @@ When non-nill, swap the tor-switch in prefix-arg effect."
 (defun luwak-guess-title ()
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward "^[^[:space:]]" nil t)
-    (buffer-substring-no-properties (1- (point))
-                                    (progn (end-of-line 1) (point)))))
+    (when (re-search-forward "^[^[:space:]]" nil t)
+      (buffer-substring-no-properties (1- (point))
+                                      (progn (end-of-line 1) (point))))))
 
 (when (require 'org nil t)
   (defun luwak-org-store-link ()
