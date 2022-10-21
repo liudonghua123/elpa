@@ -43,7 +43,7 @@
 (defcustom luwak-url-rewrite-function 'identity
   "Function to rewrite url before loading."
   :group 'luwak :type '(function))
-(defcustom luwak-tor-switch nil
+(defcustom luwak-tor-switch t
   "Switch behaviour of prefix arg concerning the use of tor.
 
 When nil, use tor by default, and not use it with a prefix arg.  
