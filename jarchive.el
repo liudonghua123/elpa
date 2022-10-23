@@ -18,7 +18,8 @@
    ;; match group 2, the file within the archive
    (group (* not-newline) "." (+ alphanumeric))
    line-end)
-  "A regex for matching jar files to be opened by eglot and clojure-lsp.")
+  "A regex for matching paths to a jar file and a file path into the jar file.
+Delimited by `!' or `::'")
 
 (defvar-local jarchive--managed-buffer nil
   "This value is t when a buffer is managed by jarchive.")
