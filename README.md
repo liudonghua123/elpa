@@ -10,6 +10,10 @@ When using eglot, invoking `xref-find-definitions` on symbols defined in JAR fil
 
 This package is intended to be used with eglot and lsp-servers like clojure-lsp that provide URIs to files contained in jars through methods like `textDocument/definition`.
 
+# Package status
+
+This package is still under active development and is not yet ready for widespread use. Proceed with caution!
+
 # Installing
 
 Add this repository to your emacs load-path
