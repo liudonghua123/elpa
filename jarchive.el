@@ -55,6 +55,7 @@ provided when calling OP."
 
 
 (defun jarchive-setup ()
+  (interactive)
   (add-to-list 'file-name-handler-alist (cons jarchive--hybrid-path-regex #'jarchive--file-name-handler)))
 
 ;; Temporary, for testing
