@@ -29,9 +29,6 @@ Delimited by `!' or `::'")
   (string-match jarchive--hybrid-path-regex hybrid-filename)
   (substring hybrid-filename (match-beginning 2) (match-end 2)))
 
-(defvar-local jarchive--managed-buffer nil ;; consider making a minor mode
-  "This value is t when a buffer is managed by jarchive.")
-
 (defmacro jarchive--inhibit (op &rest body)
   "Run BODY with `jarchive--file-name-handler' inhibited for OP."
   `(let ((inhibit-file-name-handlers (cons (quote jarchive--file-name-handler)
@@ -54,7 +51,6 @@ provided when calling OP."
            (buffer-file (concat jar ":" file-in-jar)))
       (or (find-buffer-visiting buffer-file)
           (with-current-buffer (create-file-buffer buffer-file)
-            (setq-local jarchive--managed-buffer t)
             (archive-zip-extract jar file-in-jar)
             (goto-char 0)
             (set-visited-file-name buffer-file)
