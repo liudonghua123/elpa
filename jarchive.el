@@ -66,6 +66,7 @@ provided when calling OP."
             (current-buffer)))))
    (t (jarchive--inhibit op (apply op args)))))
 
+;;;###autoload
 (defun jarchive-setup ()
   (interactive)
   (add-to-list 'file-name-handler-alist (cons jarchive--hybrid-path-regex #'jarchive--file-name-handler)))
