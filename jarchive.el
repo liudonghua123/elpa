@@ -18,19 +18,10 @@
    ;; match group 2, the file within the archive
    (group (* not-newline) "." (+ alphanumeric))
    line-end)
-  "A regex for matching jar files to be opened by eglot and clojure-lsp")
+  "A regex for matching jar files to be opened by eglot and clojure-lsp.")
 
-(defvar jarchive--file->buffer
-  (make-hash-table :test 'equal)
-  "A hash table mapping a file name to a buffer.")
-
-;; Maybe I can use find-buffer-visiting, but right now it creates an infinite loop
-(defun jarchive--find-buffer-visiting (file)
-  (when-let ((existing-buffer (gethash file jarchive--file->buffer)))
-    (if (buffer-live-p existing-buffer)
-        existing-buffer
-      (remhash file jarchive--file->buffer)
-      nil)))
+(defvar-local jarchive--managed-buffer nil
+  "This value is t when a buffer is managed by jarchive.")
 
 (defun jarchive--file-name-handler (op &rest args)
   "A `file-name-handler-alist' handler for opening files located in jars.
@@ -40,35 +31,34 @@ provided when calling OP."
    ((eq op 'get-file-buffer)
     (let* ((file  (car args))
            (match (string-match jarchive--hybrid-path-regex file))
-           (jar   (substring file (match-beginning 1) (match-end 1)))
-           (source-file (substring file (match-beginning 2))))
-      (if-let ((existing-buffer (jarchive--find-buffer-visiting file)))
-          existing-buffer
-        ;; Can I do this with generate-new-buffer
-        (with-current-buffer (create-file-buffer file)
-          (message "Unzipping %s to show %s" jar source-file)
-          (archive-zip-extract jar source-file)
-          (puthash file (current-buffer) jarchive--file->buffer)
+           (jar (substring file (match-beginning 1) (match-end 1)))
+           (file-in-jar (substring file (match-beginning 2))))
+      (with-current-buffer (get-buffer-create file)
+        (unless (or buffer-read-only jarchive--managed-buffer)
+          (message "jarchive: writing buffer %s " args)
+          (setq-local jarchive--managed-buffer t)
+          (archive-zip-extract jar file-in-jar)
           (setq-local buffer-file-name file)
           (setq-local default-directory (file-name-directory jar))
-          (setq-local buffer-read-only t)
           (setq-local buffer-offer-save nil)
+          (setq buffer-read-only t)
           (set-auto-mode)
-          (set-buffer-modified-p nil)
           (goto-char 0)
-          (current-buffer)))))
+          (set-buffer-modified-p nil))
+        (current-buffer))))
    (t (let ((inhibit-file-name-handlers (cons 'jarchive--file-name-handler
                                               (and (eq inhibit-file-name-operation op)
                                                    inhibit-file-name-handlers)))
             (inhibit-file-name-operation op))
         (apply op args)))))
 
-(defun jarchive--kill-buffer (file)
-  (kill-buffer (jarchive--find-buffer-visiting file))
-  (remhash file jarchive--file->buffer))
+(defvar test-file "/home/user/.m2/repository/hiccup/hiccup/1.0.5/hiccup-1.0.5.jar!/hiccup/page.clj")
 
-;;(find-file "/home/user/.m2/repository/hiccup/hiccup/1.0.5/hiccup-1.0.5.jar!hiccup/page.clj")
-;;(jarchive--kill-buffer "/home/user/.m2/repository/hiccup/hiccup/1.0.5/hiccup-1.0.5.jar!hiccup/page.clj")
+(defmacro comment (&rest body) nil)
+
+(comment
+ (find-file test-file)
+ )
 
 (defun jarchive-setup ()
   (add-to-list 'file-name-handler-alist (cons jarchive--hybrid-path-regex #'jarchive--file-name-handler)))
