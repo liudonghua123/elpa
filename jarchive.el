@@ -52,15 +52,16 @@ provided when calling OP."
             (inhibit-file-name-operation op))
         (apply op args)))))
 
-(defvar test-file "/home/user/.m2/repository/hiccup/hiccup/1.0.5/hiccup-1.0.5.jar!/hiccup/page.clj")
-
-(defmacro comment (&rest body) nil)
-
-(comment
- (find-file test-file)
- )
 
 (defun jarchive-setup ()
   (add-to-list 'file-name-handler-alist (cons jarchive--hybrid-path-regex #'jarchive--file-name-handler)))
+
+;; Temporary, for testing
+(defmacro comment (&rest body) nil)
+(comment
+ (jarchive-setup)
+ (defvar test-file "/home/user/.m2/repository/hiccup/hiccup/1.0.5/hiccup-1.0.5.jar!/hiccup/page.clj")
+ (find-file test-file)
+ )
 
 (provide 'jarchive)
