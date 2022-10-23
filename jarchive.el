@@ -21,7 +21,15 @@
   "A regex for matching paths to a jar file and a file path into the jar file.
 Delimited by `!' or `::'")
 
-(defvar-local jarchive--managed-buffer nil
+(defun jarchive--match-jar (hybrid-filename)
+  (string-match jarchive--hybrid-path-regex hybrid-filename)
+  (substring hybrid-filename (match-beginning 1) (match-end 1)))
+
+(defun jarchive--match-file (hybrid-filename)
+  (string-match jarchive--hybrid-path-regex hybrid-filename)
+  (substring hybrid-filename (match-beginning 2) (match-end 2)))
+
+(defvar-local jarchive--managed-buffer nil ;; consider making a minor mode
   "This value is t when a buffer is managed by jarchive.")
 
 (defmacro jarchive--inhibit (op &rest body)
@@ -39,13 +47,13 @@ provided when calling OP."
   (cond
    ((eq op 'get-file-buffer)
     (let* ((file  (car args))
-           (match (string-match jarchive--hybrid-path-regex file))
-           (jar (substring file (match-beginning 1) (match-end 1)))
-           (file-in-jar (substring file (match-beginning 2)))
+           (jar (jarchive--match-jar file))
+           (file-in-jar  (jarchive--match-file file))
+           ;; Use a different filename that doesn't match `jarchive--hybrid-path-regex'
+           ;; so that this handler will not deal with existing open buffers.
            (buffer-file (concat jar ":" file-in-jar)))
       (or (find-buffer-visiting buffer-file)
           (with-current-buffer (create-file-buffer buffer-file)
-            (message "jarchive: writing buffer %s " args)
             (setq-local jarchive--managed-buffer t)
             (archive-zip-extract jar file-in-jar)
             (goto-char 0)
