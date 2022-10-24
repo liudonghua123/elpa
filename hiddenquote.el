@@ -316,6 +316,16 @@ Syllables window."
     (define-key map "\t" #'hiddenquote-forward-syllable)
     (define-key map [(shift tab)] #'hiddenquote-backward-syllable)
     (define-key map [backtab] #'hiddenquote-backward-syllable)
+    (define-key map "f" #'hiddenquote-forward-syllable)
+    (define-key map "\C-f" #'hiddenquote-forward-syllable)
+    (define-key map "b" #'hiddenquote-backward-syllable)
+    (define-key map "\C-b" #'hiddenquote-backward-syllable)
+    (define-key map "n" #'next-line)
+    (define-key map "p" #'previous-line)
+    (define-key map "a" #'hiddenquote-beg-of-line-syllable)
+    (define-key map "\C-a" #'hiddenquote-beg-of-line-syllable)
+    (define-key map "e" #'hiddenquote-end-of-line-syllable)
+    (define-key map "\C-e" #'hiddenquote-end-of-line-syllable)
     map)
   "Keymap for the Syllables buffer.")
 
@@ -1443,6 +1453,17 @@ Character cell bindings:
                     (not (eq orig (widget-at))))
           (widget-backward 1)))
     (widget-backward 1)))
+
+(defun hiddenquote-beg-of-line-syllable ()
+  "Move to the first syllable in the current line."
+  (interactive)
+  (beginning-of-line))
+
+(defun hiddenquote-end-of-line-syllable ()
+  "Move to the last syllable in the current line."
+  (interactive)
+  (end-of-line)
+  (widget-backward 1))
 
 (defun hiddenquote-check-answer ()
   "Check if the answer for the word point is at is right or wrong."
