@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Mauro Aranda
+# Copyright (C) 2021-2022 Mauro Aranda
 
 # This file is part of hiddenquote.
 
