@@ -1,6 +1,6 @@
 ;;; hiddenquote.el --- Major mode for doing hidden quote puzzles -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022  Free Software Foundation, Inc.
 
 ;; Author: Mauro Aranda <maurooaranda@gmail.com>
 ;; Maintainer: Mauro Aranda <maurooaranda@gmail.com>
@@ -81,7 +81,7 @@
 
 ;; Customization.
 (defgroup hiddenquote nil
-  "Solve hiddenquote in Emacs."
+  "Solve hiddenquote puzzles in Emacs."
   :group 'games
   :version "0.1")
 
@@ -91,15 +91,14 @@
   "An alist of hidden quote puzzle sources.
 Each member is of the form (SOURCE-NAME ORIG-FORMAT FUNCTION).
 
-SOURCE-NAME should be a string, an unique name for the source/publisher.
+SOURCE-NAME should be a string, a unique name for the source/publisher.
 ORIG-FORMAT should be a symbol naming the format in which the puzzle
 is retrieved.  At the moment, there is builtin support for two formats:
-.ipuz format and html format.
+ipuz format and html format.
 
-REST should be a function that retrieves an instance of
-`hiddenquote-hidden-quote-puzzle'.
-
-The function handles the prefix arg given to `hiddenquote'."
+FUNCTION should be a function that retrieves an instance of
+`hiddenquote-hidden-quote-puzzle'.  The function should take one argument,
+which is the prefix arg given to `hiddenquote'."
   :type '(repeat :tag "Hidden Quote Sources"
                  (choice
                   (list :tag "IPUZ"
@@ -114,7 +113,7 @@ The function handles the prefix arg given to `hiddenquote'."
   :package-version '(hiddenquote . "0.1"))
 
 (defcustom hiddenquote-mode-hook nil
-  "Hook to run when entering `hiddenquote-mode'."
+  "Hook to run after entering `hiddenquote-mode'."
   :type 'hook
   :package-version '(hiddenquote . "0.1"))
 
@@ -174,7 +173,6 @@ Syllables window."
                     do (set-window-parameter (get-buffer-window buff)
                                              'no-other-window val)))))
 
-
 (defgroup hiddenquote-faces nil
   "Faces used by `hiddenquote'."
   :group 'hiddenquote)
@@ -195,7 +193,7 @@ Syllables window."
 
 (defface hiddenquote-sep
   '((t (:height 0.1 :inherit default)))
-  "Face to use in character-separating spaces."
+  "Face used in character-separating spaces."
   :package-version '(hiddenquote . "0.1"))
 
 (defface hiddenquote-word-number
@@ -219,32 +217,32 @@ Syllables window."
 
 (defface hiddenquote-value
   '((t (:foreground "#333" :background "gray80" :inherit hiddenquote)))
-  "Face for characters inserted by the user."
+  "Face used for characters inserted by the user."
   :package-version '(hiddenquote . "0.1"))
 
 (defface hiddenquote-quote-value
   '((t (:foreground "#333" :background "#fcee21" :inherit hiddenquote)))
-  "Face for the characters in the grid that hold the quote."
+  "Face used for the characters in the grid that hold the quote."
   :package-version '(hiddenquote . "0.1"))
 
 (defface hiddenquote-used-syllable
   '((t (:foreground "black" :background "yellow" :inherit hiddenquote)))
-  "Face for syllables that the user has used."
+  "Face used for syllables that the user has used."
   :package-version '(hiddenquote . "0.1"))
 
 (defface hiddenquote-unused-syllable
   '((t (:inherit hiddenquote)))
-  "Face for syllables that the user hasn't used."
+  "Face used for syllables that the user hasn't used."
   :package-version '(hiddenquote . "0.1"))
 
 (defface hiddenquote-highlight-syllable
   '((t (:background "#fcee21" :height 1.5 :inherit default)))
-  "Face for highlighting syllables when the mouse hovers."
+  "Face used for highlighting syllables when the mouse hovers."
   :package-version '(hiddenquote . "0.1"))
 
 (defface hiddenquote-widget-highlight
   '((t (:background "#fcee21" :inherit hiddenquote)))
-  "Face for highlighting a widget."
+  "Face used for highlighting a widget."
   :package-version '(hiddenquote . "0.1"))
 
 (defface hiddenquote-highlight
@@ -253,7 +251,7 @@ Syllables window."
     (((class color) (background dark))
      (:background "#fcee21" :foreground "black"))
     (t (:inherit default)))
-  "Face for highlighting the current definition."
+  "Face used for highlighting the current definition."
   :package-version '(hiddenquote . "0.1"))
 
 (defface hiddenquote-doc
@@ -318,13 +316,14 @@ Syllables window."
     (define-key map "\t" #'hiddenquote-forward-syllable)
     (define-key map [(shift tab)] #'hiddenquote-backward-syllable)
     (define-key map [backtab] #'hiddenquote-backward-syllable)
-    map))
+    map)
+  "Keymap for the Syllables buffer.")
 
 (defvar hiddenquote-previous-window-configuration nil
   "Holds the window configuration before `hiddenquote' creates its windows.")
 
 (defvar-local hiddenquote-current nil
-  "Hold the current puzzle, a `hiddenquote-grid' widget.")
+  "Holds the current puzzle, a `hiddenquote-grid' widget.")
 
 (defvar-local hiddenquote-definition-markers nil
   "A vector of cons-cells (START . END), the START and END of a definition.
@@ -332,7 +331,7 @@ Syllables window."
 Used locally in the definitions buffer, to highlight/unhighlight them.")
 
 (defvar-local hiddenquote-syllables nil
-  "Hold all syllable widgets in the syllables buffer.")
+  "Holds all syllable widgets in the syllables buffer.")
 
 (defvar-local hiddenquote-buffer nil "The buffer where the grid is at.")
 
@@ -774,6 +773,7 @@ values."
 
 (defun hiddenquote-grid-convert-widget (widget)
   "Initialize :tag and :doc properties of `hiddenquote-grid' widget WIDGET.
+
 Use the number slot of a `hiddenquote-hidden-quote-puzzle' object to build
 the :tag, and use the description slot to build the :doc."
   (let ((puzzle (nth 0 (widget-get widget :args))))
@@ -849,6 +849,7 @@ the :tag, and use the description slot to build the :doc."
 
 (defun hiddenquote-word-value-create (widget)
   "Create a `hiddenquote-word' widget WIDGET, by creating each character cell.
+
 Highlight the character cells that form the quote."
   (let ((arrows (split-string
                  (oref (widget-get (widget-get widget :parent) :hiddenquote)
@@ -898,6 +899,7 @@ Highlight the character cells that form the quote."
 
 (defun hiddenquote-after-change (from to _old)
   "Compatibility `after-change-function' for Emacs < 28.
+
 Starting from Emacs 28.1, `widget-after-change' passes a fake event to the
 field :notify function.  We use that fake event to figure out what to do.
 
@@ -913,8 +915,8 @@ Notify the widget between FROM and TO about a change."
   "Notify the `hiddenquote-word' widget WIDGET about a change in CHILD.
 
 If the car of EVENT is `before-change', this function just calls
-`widget-default-notify'.  If the of EVENT is `after-change', then advance
-point to some other widget and maybe check the answer."
+`widget-default-notify'.  If the car of EVENT is `after-change',
+advance point to some other widget and maybe check the answer."
   ;; When CHILD is the last WIDGET's children, go to the first child.
   (when (and (eq (car-safe event) 'after-change)
              (not (eql (nth 1 event) (nth 2 event))))
@@ -934,7 +936,7 @@ point to some other widget and maybe check the answer."
   (widget-default-notify widget child event))
 
 (defun hiddenquote-word-validate (widget)
-  "Nil if current value of hiddenquote-word WIDGET is correct."
+  "Nil if the current value of the hiddenquote-word WIDGET is correct."
   (let ((val (widget-value widget))
         (puzzle (widget-get (widget-get widget :parent) :hiddenquote)))
     (unless (string-collate-equalp
@@ -946,6 +948,7 @@ point to some other widget and maybe check the answer."
 
 (defun hiddenquote-character-notify (widget child &optional event)
   "Replace characters in character widget WIDGET, so its size is always 1.
+
 Checks that the car of EVENT is `after-change'.
 
 Calls `widget-default-notify' with WIDGET, CHILD and EVENT as args."
@@ -1079,6 +1082,7 @@ Calls `widget-default-notify' with WIDGET, CHILD and EVENT as args."
 
 (defun hiddenquote-syllable-button-face-get (widget)
   "Return the face to use by the `hiddenquote-syllable' widget WIDGET.
+
 Return `hiddenquote-used-syllable' if WIDGET's value is non-nil,
 `hiddenquote-unused-syllable' otherwise."
   (if (widget-value widget)
@@ -1141,6 +1145,7 @@ Return `hiddenquote-used-syllable' if WIDGET's value is non-nil,
 
 (defun hiddenquote-get-local-puzzle (&optional n)
   "Return a puzzle from this package `puzzles' directory.
+
 With N non-nil, return that puzzle, otherwise return the newest one."
   (let* ((num (and n (read-number "Enter a puzzle number: ")))
          (dir (file-name-directory (locate-library "hiddenquote")))
@@ -1232,7 +1237,7 @@ puzzle Nº."
                            '(face default)))))
 
 (defun hiddenquote-timer-start-timer (widget)
-  "Start the `hiddenquote-timer' WIDGET."
+  "Start the `hiddenquote-timer' widget WIDGET."
   (unless (widget-get widget :hiddenquote-start) ; Alreay started.
     (let ((elapsed (if (fboundp 'time-convert) ; Emacs 27.1
                        (time-convert
@@ -1310,7 +1315,8 @@ puzzle Nº."
     (define-key-after map [sep] menu-bar-separator)
     (tool-bar-local-item-from-menu #'hiddenquote-check-answer "search" map
                                    hiddenquote-character-map)
-    map))
+    map)
+  "Tool-bar support for hiddenquote.")
 
 (define-derived-mode hiddenquote-mode nil "Hiddenquote"
   "Major mode for `hiddenquote'.
@@ -1417,7 +1423,7 @@ Character cell bindings:
                 :from))))
 
 (defun hiddenquote-forward-syllable ()
-  "Move N syllables forward."
+  "Move one syllable forward."
   (interactive)
   (if hiddenquote-skip-used-syllables
       (let ((orig (widget-at)))
@@ -1428,7 +1434,7 @@ Character cell bindings:
     (widget-forward 1)))
 
 (defun hiddenquote-backward-syllable ()
-  "Move N syllables backward."
+  "Move one syllables backward."
   (interactive)
   (if hiddenquote-skip-used-syllables
       (let ((orig (widget-at)))
