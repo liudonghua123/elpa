@@ -43,3 +43,7 @@ Some Emacs "distributions" like doom set the `file-name-handler-alist` var to ni
 
 If this is the case for you, `jarchive-setup` should be called AFTER everything is initialized.
 This package modifies `file-name-handler-alist`, so it relies on it not being reset after `jarchive-setup` is invoked.
+
+## Questions
+
+Questions and patches can be submitted to the [mailing list](https://lists.sr.ht/~dannyfreeman/jarchive-dev).
