@@ -1444,7 +1444,7 @@ Character cell bindings:
     (widget-forward 1)))
 
 (defun hiddenquote-backward-syllable ()
-  "Move one syllables backward."
+  "Move one syllable backward."
   (interactive)
   (if hiddenquote-skip-used-syllables
       (let ((orig (widget-at)))
