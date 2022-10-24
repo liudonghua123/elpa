@@ -1,10 +1,10 @@
 {
   "version": "http://ipuz.org/v2",
   "kind": [
-    "http://mauroaranda.com/puzzles//hiddenquote#5",
-    "http://ipuz.org/crossword#5"
+    "http://mauroaranda.com/puzzles/hiddenquote#1",
+    "http://ipuz.org/crossword#1"
   ],
-  "copyright": "Copyright (C) 2022 tbb",
+  "copyright": "Copyright (C) 2022 Mauro Aranda",
   "publisher": "MauroAranda",
   "url": "http://mauroaranda.com/puzzles/hidden-quote-puzzle/5",
   "uniqueid": "5",
@@ -248,37 +248,37 @@
     "Clues": [
       {
         "number": 1,
-        "clue": "The person to whom a warrant or warranty is made.",
+        "clue": "The person to whom a warrant or warranty is made",
         "answer": "warrantee",
         "enumeration": 9
       },
       {
         "number": 2,
-        "clue": "One who emulates.",
+        "clue": "One who emulates",
         "answer": "emulator",
         "enumeration": 8
       },
       {
         "number": 3,
-        "clue": "Fictional island imagined by Jonathan Swift, inhabitated by tiny people.",
+        "clue": "Fictional island imagined by Jonathan Swift, inhabitated by tiny people",
         "answer": "lilliput",
         "enumeration": 8
       },
       {
         "number": 4,
-        "clue": "Of or relating to or using logarithms.",
+        "clue": "Of or relating to or using logarithms",
         "answer": "logarithmic",
         "enumeration": 11
       },
       {
         "number": 5,
-        "clue": "A breed of medium-sized dog, with a white coat marked with black or brown-colored spots.",
+        "clue": "A breed of medium-sized dog, with a white coat marked with black or brown-colored spots",
         "answer": "dalmatian",
         "enumeration": 9
       },
       {
         "number": 6,
-        "clue": "Two words or phrases used together that have, or seem to have, opposite meanings.",
+        "clue": "Two words or phrases used together that have, or seem to have, opposite meanings",
         "answer": "oxymoron",
         "enumeration": 8
       },
@@ -290,25 +290,25 @@
       },
       {
         "number": 8,
-        "clue": "The closing part of a discourse.",
+        "clue": "The closing part of a discourse",
         "answer": "epilogue",
         "enumeration": 8
       },
       {
         "number": 9,
-        "clue": "Without the least delay or interval.",
+        "clue": "Without the least delay or interval",
         "answer": "instantly",
         "enumeration": 9
       },
       {
         "number": 10,
-        "clue": "One who whatches or guards; specifically a soldier set to guard an army, camp, or other place.",
+        "clue": "One who whatches or guards; specifically a soldier set to guard an army, camp, or other place",
         "answer": "sentinel",
         "enumeration": 8
       },
       {
         "number": 11,
-        "clue": "An island country in the Caribbean region of the Americas.  Its capital is Bridgetown.",
+        "clue": "An island country in the Caribbean region of the Americas.  Its capital is Bridgetown",
         "answer": "barbados",
         "enumeration": 8
       },
@@ -320,13 +320,13 @@
       },
       {
         "number": 13,
-        "clue": "Gymnastic apparatus onsisting of a strong canvas sheet attached with springs to a metal frame; used for tumbling.",
+        "clue": "Gymnastic apparatus onsisting of a strong canvas sheet attached with springs to a metal frame; used for tumbling",
         "answer": "trampoline",
         "enumeration": 10
       },
       {
         "number": 14,
-        "clue": "A leguminous tree that produces brown pod-like fruits that contain a sweet tangy pulp.  It is indigenous to tropical Africa.",
+        "clue": "A leguminous tree that produces brown pod-like fruits that contain a sweet tangy pulp.  It is indigenous to tropical Africa",
         "answer": "tamarind",
         "enumeration": 8
       }
