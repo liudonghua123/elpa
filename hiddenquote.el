@@ -5,8 +5,8 @@
 ;; Author: Mauro Aranda <maurooaranda@gmail.com>
 ;; Maintainer: Mauro Aranda <maurooaranda@gmail.com>
 ;; Created: Sun Dec 13 11:10:00 2020
-;; Version: 1.1
-;; Package-Version: 1.1
+;; Version: 1.2
+;; Package-Version: 1.2
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: http://mauroaranda.com/puzzles/hidden-quote-puzzle/
 ;; Keywords: games
