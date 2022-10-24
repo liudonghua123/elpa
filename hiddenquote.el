@@ -1458,6 +1458,12 @@ Character cell bindings:
   (customize-set-variable 'hiddenquote-automatic-check
                           (not hiddenquote-automatic-check)))
 
+(defun hiddenquote-toggle-skip-used-syllables ()
+  "Toggle the `hiddenquote-skip-used-syllables' variable."
+  (interactive)
+  (customize-set-variable 'hiddenquote-skip-used-syllables
+                          (not hiddenquote-skip-used-syllables)))
+
 (defun hiddenquote-save ()
   "Save the puzzle and the user progress."
   (interactive)
