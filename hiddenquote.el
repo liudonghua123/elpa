@@ -1410,13 +1410,13 @@ Character cell bindings:
     (forward-line -1)))
 
 (defun hiddenquote-move-beginning-of-word ()
-  "Go to the first character of the word point is at."
+  "Go to the first character of the word where point is at."
   (interactive)
   (forward-line 0)
   (widget-forward 1))
 
 (defun hiddenquote-move-end-of-word ()
-  "Go to the last character of the word point is at."
+  "Go to the last character of the word where point is at."
   (interactive)
   (let ((inhibit-field-text-motion t))
     (end-of-line)
@@ -1466,7 +1466,7 @@ Character cell bindings:
   (widget-backward 1))
 
 (defun hiddenquote-check-answer ()
-  "Check if the answer for the word point is at is right or wrong."
+  "Check if the answer for the word where point is at is right or wrong."
   (interactive)
   (let ((parent (widget-get (widget-at) :parent)))
     (widget-apply-action (nth (widget-get parent :hiddenquote-word-number)
