@@ -431,6 +431,9 @@
   :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
+ ("luwak"		:url "https://g.ypei.me/luwak.git"
+  :auto-sync t
+  :readme "README.org")
  ("m-buffer"		:url "https://github.com/phillord/m-buffer-el"
   :doc "m-buffer-doc.org"
   :auto-sync t)
