@@ -1533,10 +1533,13 @@ Character cell bindings:
           (setq i (1+ i))))
       (hiddenquote-timer-stop-timer))))
 
-(defun hiddenquote-quit ()
-  "Prompt the user and kill the buffer if the answer is \"yes\"."
-  (interactive)
-  (when (yes-or-no-p "Really quit playing Hiddenquote? ")
+(defun hiddenquote-quit (&optional noprompt)
+  "Stop playing hiddenquote, without saving the progress.
+
+Prompts the user and kills the buffer if the answer is \"yes\".
+With a prefix argument NOPROMPT non-nil, doesn't prompt."
+  (interactive "P")
+  (when (or noprompt (yes-or-no-p "Really quit playing Hiddenquote? "))
     (hiddenquote-timer-stop-timer)
     (let ((name (buffer-name)))
       (dolist (buff (mapcar (lambda (suffix)
