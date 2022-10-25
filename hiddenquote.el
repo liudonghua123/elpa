@@ -1516,10 +1516,13 @@ Character cell bindings:
       (write-file (oref puzzle file)))
     (message "Saved puzzle in %s" (oref puzzle file))))
 
-(defun hiddenquote-give-up ()
-  "Give up completing the puzzle, showing the solutions."
-  (interactive)
-  (when (yes-or-no-p "Really give up? ")
+(defun hiddenquote-give-up (&optional noprompt)
+  "Give up completing the puzzle, showing the solutions.
+
+Prompts the user and shows the solutions if the answer is \"yes\".
+With a prefix argument NOPROMPT non-nil, doesn't prompt."
+  (interactive "P")
+  (when (or noprompt (yes-or-no-p "Really give up? "))
     (save-excursion
       (with-current-buffer (concat
                             (buffer-name hiddenquote-buffer) " - Syllables")
