@@ -1,4 +1,8 @@
+# Hydra
+
 [![Build Status](https://travis-ci.org/abo-abo/hydra.svg?branch=master)](https://travis-ci.org/abo-abo/hydra)
+[![MELPA](https://melpa.org/packages/hydra-badge.svg)](https://melpa.org/#/hydra)
+[![MELPA Stable](https://stable.melpa.org/packages/hydra-badge.svg)](https://stable.melpa.org/#/hydra)
 
 This is a package for GNU Emacs that can be used to tie related commands into a family of short
 bindings with a common prefix - a Hydra.
@@ -326,6 +330,9 @@ instead of `define-key` you can use this option.
 The `:bind` key can be overridden by each head. This is useful if you want to have a few heads that
 are not bound outside the hydra.
 
+### `:base-map`
+Use this option if you want to override `hydra-base-map` for the current hydra.
+
 ## `awesome-docstring`
 
 This can be a simple string used to build the final hydra hint.  However, if you start it with a
@@ -399,7 +406,7 @@ Here's an example of the last option:
 ### `head-hint`
 
 In case of a large body docstring, you usually don't want the head hint to show up, since
-you've already documented it the the body docstring.
+you've already documented it in the body docstring.
 You can set the head hint to `nil` to do this.
 
 Example:
@@ -420,3 +427,7 @@ Here's a list of body keys that can be overridden in each head:
 - `:exit`
 - `:color`
 - `:bind`
+- `:column`
+
+Use `:column` feature to have an aligned rectangular docstring without defining it manually.
+See [hydra-examples.el](https://github.com/abo-abo/hydra/blob/05871dd6c8af7b2268bd1a10eb9f8a3e423209cd/hydra-examples.el#L337) for an example code.
