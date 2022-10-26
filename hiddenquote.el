@@ -381,6 +381,23 @@ Used locally in the definitions buffer, to highlight/unhighlight them.")
   (unless (eobp)
     (forward-char 1)))
 
+(defun hiddenquote--get-quote-length ()
+  "Return the quote length, by looking each word in the widget."
+  ;; We have to do this when the qquote slot is empty.
+  (let* ((puzzle (widget-get hiddenquote-current :hiddenquote))
+         (words (widget-get hiddenquote-current :children))
+         (arrows (split-string (oref puzzle arrows) ","))
+         (len (* (length arrows) (length words)))
+         (first-word (car words))
+         (last-word (car (last words))))
+    (unless (> (widget-get last-word :hiddenquote-word-length)
+               (string-to-number (car (last arrows))))
+      (setq len (1- len)))
+    (unless (> (widget-get first-word :hiddenquote-word-length)
+               (string-to-number (car arrows)))
+      (setq len (1- len)))
+    len))
+
 ;; Classes.
 ;; A `hiddenquote-hidden-quote-puzzle' represents a hidden quote puzzle,
 ;; following closely its ipuz spec.
@@ -1192,7 +1209,7 @@ With N non-nil, return that puzzle, otherwise return the newest one."
                     (prog1 (buffer-string)
                       (kill-buffer)))))
     puzzle))
-			    
+
 (defun hiddenquote-get-hidden-quote-puzzle (&optional n)
   "Return a puzzle from the hidden-quote puzzle source.
 
@@ -1464,6 +1481,66 @@ Character cell bindings:
   (interactive)
   (end-of-line)
   (widget-backward 1))
+
+(defun hiddenquote-complete-quote (str)
+  "Complete the quote with the string STR.
+
+Interactively, prompts for the string.
+
+This command comes handy when you have figured out the quote but not yet
+every word."
+  (interactive (list (read-string "Quote: ")))
+  (setq str
+        (replace-regexp-in-string "\\([[:blank:]]\\|[[:punct:]]\\)" "" str))
+  ;; First, check the length.
+  (let ((len (if (string-empty-p
+                  (oref (widget-get hiddenquote-current :hiddenquote) qquote))
+                 (hiddenquote--get-quote-length)
+               (length
+                (replace-regexp-in-string "\\([[:blank:]]\\|[[:punct:]]\\)" ""
+                                          (oref
+                                           (widget-get hiddenquote-current
+                                                       :hiddenquote)
+                                           qquote))))))
+    (if (/= len (length str))
+        (user-error "Wrong quote length")
+      ;; Ok, let's set it.
+      ;; Run through the string, and set each character cell value to
+      ;; the right value.
+      (save-excursion
+        (cl-loop for ch across str
+                 with i = 0
+                 with words = (widget-get hiddenquote-current :children)
+                 with l = (length words)
+                 with puzzle = (widget-get hiddenquote-current :hiddenquote)
+                 with arrows = (let ((lst (split-string
+                                           (oref puzzle arrows) ",")))
+                                 (cons (string-to-number (car lst))
+                                       (string-to-number (cadr lst))))
+                 with arrow = (car arrows)
+                 with word
+                 with characters
+                 do
+                 (when (>= i l)
+                   (setq i 0
+                         arrow (cdr arrows)))
+                 (setq word (nth i words)
+                       characters (widget-get word :children))
+                 ;; This is an edge case.  It might happen that the first word
+                 ;; doesn't have the 2nd arrow (or greater).  So skip it, and
+                 ;; set the character in the next word.
+                 ;; Of course the last word may not have the 2nd arrow
+                 ;; (or greater), but by then this loop has already completed,
+                 ;; so it doesn't matter.
+                 (when (>= (1- arrow) (length characters))
+                   (setq i (1+ i)
+                         word (nth i words)
+                         characters (widget-get word :children)))
+                 ;; Don't mess with what's already there.
+                 (when (char-equal (widget-value (nth (1- arrow) characters))
+                                   ?\s)
+                   (widget-value-set (nth (1- arrow) characters) ch))
+                 (setq i (1+ i)))))))
 
 (defun hiddenquote-check-answer ()
   "Check if the answer for the word where point is at is right or wrong."
