@@ -86,9 +86,9 @@
   :auto-sync nil)
  ("beacon"		:url "https://github.com/Malabarba/beacon"
   :auto-sync t)
- ;;("bind-key"         :url "https://github.com/jwiegley/use-package"
- ;; :ignored-files ("LICENSE" "doc" "Makefile*" "bind-chords.el" "use-package*")
- ;; :auto-sync t)
+ ("bind-key"         :url "https://github.com/jwiegley/use-package"
+  :ignored-files ("LICENSE" "doc" "Makefile*" "bind-chords.el" "use-package*")
+  :auto-sync t)
  ("blist"		:url "https://gitlab.com/mmemmew/blist"
   :doc "blist.texinfo"
   :readme "README.org"
@@ -202,6 +202,7 @@
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
  ("dash"		:url "https://github.com/magnars/dash.el.git"
   :doc "dash.texi"
+  :news "NEWS.md"
   :auto-sync t)
  ("dbus-codegen"	:url "https://github.com/ueno/dbus-codegen-el.git"
   :ignored-files ("COPYING")
@@ -353,15 +354,18 @@
  ("hcel"		:url "https://g.ypei.me/hc.el.git"
   :auto-sync t)
  ("heap"		:url "http://www.dr-qubit.org/git/predictive.git")
- ("hiddenquote"	:url "https://gitlab.com/mauroaranda/hiddenquote/hiddenquote")
+ ("hiddenquote"	:url "https://gitlab.com/mauroaranda/hiddenquote/hiddenquote"
+  :auto-sync t)
  ("highlight-escape-sequences"
   :url "https://github.com/dgutov/highlight-escape-sequences/"
   :auto-sync t)
  ("hook-helpers"	:url "https://git.savannah.nongnu.org/git/hook-helpers-el.git")
  ("html5-schema"	:url nil)
- ;; FIXME: Upstream has accidentally diverged, see
- ;; https://github.com/abo-abo/hydra/pull/408 as well as bug#52902
  ("hydra"		:url "https://github.com/abo-abo/hydra"
+  ;; FIXME: Upstream has accidentally diverged but doesn't want to fix the
+  ;; problem on their end, see bug#52902 as well as
+  ;; https://github.com/abo-abo/hydra/pull/408.
+  :merge t
   :auto-sync t)
  ("hyperbole"           :url "https://git.savannah.gnu.org/r/hyperbole.git"
   :make ("kotl/kotl-autoloads.el")
@@ -431,6 +435,9 @@
   :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
+ ("luwak"		:url "https://g.ypei.me/luwak.git"
+  :auto-sync t
+  :readme "README.org")
  ("m-buffer"		:url "https://github.com/phillord/m-buffer-el"
   :doc "m-buffer-doc.org"
   :auto-sync t)
@@ -513,6 +520,8 @@
   :doc "README.org"
   :auto-sync t)
  ("org-notify"		:url "https://github.com/p-m/org-notify"
+  ;; FIXME: Upstream diverged; https://github.com/p-m/org-notify/issues/9
+  ;; :merge t
   :auto-sync t)
  ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
   :auto-sync t
@@ -739,11 +748,11 @@
   :readme "README.md")
  ("uniquify-files"	:url nil)
  ("url-http-ntlm" 	:url nil)
- ;;("use-package"		:url "https://github.com/jwiegley/use-package"
- ;; :ignored-files ("LICENSE" "bind-*" "use-package-chords.el")
- ;; :doc "use-package.texi"
- ;; :news "NEWS.md"
- ;; :auto-sync t)
+ ("use-package"		:url "https://github.com/jwiegley/use-package"
+  :ignored-files ("LICENSE" "bind-*" "use-package-chords.el")
+  :doc "use-package.texi"
+  :news "NEWS.md"
+  :auto-sync t)
  ("validate"		:url "https://github.com/Malabarba/validate.el")
  ("valign"		:url "https://github.com/casouri/valign")
  ("vc-backup"		:url "https://git.sr.ht/~pkal/vc-backup"
