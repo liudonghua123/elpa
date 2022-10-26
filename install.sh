@@ -8,7 +8,7 @@
 # If you don't have write permission in the GNAT installation
 # directory, you need to use --prefix=<dir>, or run with root priviledges.
 
-if [ -d ../wisi-3.1.? ]; then
+if [ -d ../wisi-4.0.? ]; then
     WISI_DIR=`ls -d ../wisi-4.0.?`
 fi
 
