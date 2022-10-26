@@ -938,6 +938,14 @@ Notify the widget between FROM and TO about a change."
         (error "Change in different fields"))
       (widget-apply field :notify field (list 'after-change from to)))))
 
+(defvar hiddenquote-after-last-character-hook nil
+  "Hook that runs after entering the last character in a word.
+
+Note that this doesn't mean the word is the right word.
+
+It can be handy to run `other-window' in this hook, so you can go directly
+to the syllables buffer.")
+
 (defun hiddenquote-word-notify (widget child event)
   "Notify the `hiddenquote-word' widget WIDGET about a change in CHILD.
 
@@ -948,9 +956,11 @@ advance point to some other widget and maybe check the answer."
   (when (and (eq (car-safe event) 'after-change)
              (not (eql (nth 1 event) (nth 2 event))))
     (if (eq child (car (last (widget-get widget :children))))
-        (goto-char (overlay-start
-                    (widget-get (car (widget-get widget :children))
-                                :field-overlay)))
+        (progn
+          (goto-char (overlay-start
+                      (widget-get (car (widget-get widget :children))
+                                  :field-overlay)))
+          (run-hooks 'hiddenquote-after-last-character-hook)) 
       (widget-forward 1)))
   (when (and (eq (car-safe event) 'after-change)
              (or hiddenquote-automatic-check
