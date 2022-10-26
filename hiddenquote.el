@@ -776,7 +776,7 @@ values."
   :value-to-internal (lambda (_widget value)
                        (if (stringp value) value (char-to-string value)))
   :keymap hiddenquote-character-map
-  :help-echo "")
+  :help-echo nil)
 
 (define-widget 'hiddenquote-timer 'item
   "A widget that shows the elapsed time starting from its creation."
