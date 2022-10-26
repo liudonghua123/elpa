@@ -37,6 +37,14 @@ It can also be done in a hook (recommended)
 
 or interactively, via `M-x jarchive-setup`.
 
+# Usage
+
+With eglot, `xref-find-definitions` should correctly open up source files found in jar dependencies.
+
+Once a file is opened, typing `M-x jarchive-move-to-visiting-project` will move the file and it's buffer
+to the project that was used to visit it.
+This will allow you to edit the file and let eglot manage it as part of the real project.
+
 ## Note about when to call `jarchive-setup`
 
 Some Emacs "distributions" like doom set the `file-name-handler-alist` var to nil on startup, then restore it's value when startup is complete.

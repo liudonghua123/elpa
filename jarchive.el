@@ -5,6 +5,7 @@
 
 ;;; Code:
 (require 'arc-mode)
+(require 'project)
 
 (defvar jarchive--hybrid-path-regex
   (rx
@@ -37,6 +38,22 @@ Delimited by `!' or `::'")
          (inhibit-file-name-operation ,op))
      ,@body))
 
+(defvar-local jarchive--jar-path nil)
+
+(defvar-local jarchive--file-in-jar-path nil)
+
+(defvar-local jarchive--visitor-project nil)
+
+(defvar-local jarchive-visiting-project-source-dir "src/"
+  "The source directory of the project that is visiting an archived file.
+When invoking `jarchive-move-to-visiting-project',
+this value is used as the parent directory in the project to save the extracted file.")
+
+(defun jarchive--instruction-message ()
+  (message "File opened by jarchive. Type %s to move it into your project."
+           (or (car (mapcar 'key-description (where-is-internal 'jarchive-move-to-visiting-project)))
+               "M-x jarchive-move-to-visiting-project")))
+
 (defun jarchive--file-name-handler (op &rest args)
   "A `file-name-handler-alist' handler for opening files located in jars.
 OP is a `(elisp)Magic File Names' operation and ARGS are any extra argument
@@ -48,7 +65,8 @@ provided when calling OP."
            (file-in-jar  (jarchive--match-file file))
            ;; Use a different filename that doesn't match `jarchive--hybrid-path-regex'
            ;; so that this handler will not deal with existing open buffers.
-           (buffer-file (concat jar ":" file-in-jar)))
+           (buffer-file (concat jar ":" file-in-jar))
+           (visitor-project (project-current)))
       (or (find-buffer-visiting buffer-file)
           (with-current-buffer (create-file-buffer buffer-file)
             (archive-zip-extract jar file-in-jar)
@@ -56,11 +74,49 @@ provided when calling OP."
             (set-visited-file-name buffer-file)
             (setq-local default-directory (file-name-directory jar))
             (setq-local buffer-offer-save nil)
-            (setq buffer-read-only t)
+            (setq-local buffer-read-only t)
             (set-auto-mode)
+            (jarchive--managed-mode 1)
+            (when visitor-project ;; Allow the user to move to the visitor project later.
+              (setq-local jarchive--jar-path jar)
+              (setq-local jarchive--file-in-jar-path file-in-jar)
+              (setq-local jarchive--visitor-project visitor-project))
             (set-buffer-modified-p nil)
+            (jarchive--instruction-message)
             (current-buffer)))))
    (t (jarchive--inhibit op (apply op args)))))
+
+(defvar jarchive-mode-map (make-sparse-keymap)
+  "A keymap that is active in buffers opened by jarchive.")
+
+;;;###autoload
+(define-minor-mode jarchive--managed-mode
+  "Mode for buffers opened by jarchive mode."
+  :init-value nil
+  :ligher nil
+  :interactive nil
+  :keymap jarchive-mode-map)
+
+(defun jarchive--visting-project-location ()
+  (concat (project-root jarchive--visitor-project)
+          jarchive-visiting-project-source-dir
+          jarchive--file-in-jar-path))
+
+(defun jarchive-move-to-visiting-project ()
+  "Move the currently archived file into the project that visited it.
+The file will be moved under the `jarchive-visiting-project-source-dir' and saved."
+  (interactive)
+  (cond ((not jarchive--managed-mode)
+         (message "This command is only available in jarchive--managed-mode"))
+        ((not jarchive--visitor-project)
+         (message "This buffer was not visited from a known project. Nothing to do."))
+        (t
+         (let* ((new-location (jarchive--visting-project-location)))
+           (write-file new-location t)
+           (revert-buffer t t)
+           (setq-local buffer-read-only nil)
+           (jarchive--managed-mode -1)
+           (message "Moved to %s" new-location)))))
 
 ;;;###autoload
 (defun jarchive-setup ()
