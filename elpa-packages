@@ -202,6 +202,7 @@
  ("darkroom"            :url "https://github.com/capitaomorte/darkroom.git")
  ("dash"		:url "https://github.com/magnars/dash.el.git"
   :doc "dash.texi"
+  :news "NEWS.md"
   :auto-sync t)
  ("dbus-codegen"	:url "https://github.com/ueno/dbus-codegen-el.git"
   :ignored-files ("COPYING")
@@ -353,15 +354,17 @@
  ("hcel"		:url "https://g.ypei.me/hc.el.git"
   :auto-sync t)
  ("heap"		:url "http://www.dr-qubit.org/git/predictive.git")
- ("hiddenquote"	:url "https://gitlab.com/mauroaranda/hiddenquote/hiddenquote")
+ ("hiddenquote"	:url "https://gitlab.com/mauroaranda/hiddenquote/hiddenquote"
+  :auto-sync t)
  ("highlight-escape-sequences"
   :url "https://github.com/dgutov/highlight-escape-sequences/"
   :auto-sync t)
  ("hook-helpers"	:url "https://git.savannah.nongnu.org/git/hook-helpers-el.git")
  ("html5-schema"	:url nil)
- ;; FIXME: Upstream has accidentally diverged, see
- ;; https://github.com/abo-abo/hydra/pull/408 as well as bug#52902
  ("hydra"		:url "https://github.com/abo-abo/hydra"
+  ;; FIXME: Upstream has accidentally diverged but doesn't want to fix the
+  ;; problem on their end, see bug#52902 as well as
+  ;; https://github.com/abo-abo/hydra/pull/408.
   :merge t
   :auto-sync t)
  ("hyperbole"           :url "https://git.savannah.gnu.org/r/hyperbole.git"
@@ -517,6 +520,8 @@
   :doc "README.org"
   :auto-sync t)
  ("org-notify"		:url "https://github.com/p-m/org-notify"
+  ;; FIXME: Upstream diverged; https://github.com/p-m/org-notify/issues/9
+  ;; :merge t
   :auto-sync t)
  ("org-real"		:url "https://gitlab.com/tygrdev/org-real"
   :auto-sync t
