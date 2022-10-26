@@ -1,6 +1,6 @@
 ;;; ediprolog.el --- Emacs Does Interactive Prolog
 
-;; Copyright (C) 2006-2009, 2012-2013, 2016-2017, 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2022  Free Software Foundation, Inc.
 
 ;; Author: Markus Triska <triska@metalevel.at>
 ;; Keywords: languages, processes
