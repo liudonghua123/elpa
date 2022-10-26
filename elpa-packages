@@ -86,9 +86,9 @@
   :auto-sync nil)
  ("beacon"		:url "https://github.com/Malabarba/beacon"
   :auto-sync t)
- ;;("bind-key"         :url "https://github.com/jwiegley/use-package"
- ;; :ignored-files ("LICENSE" "doc" "Makefile*" "bind-chords.el" "use-package*")
- ;; :auto-sync t)
+ ("bind-key"         :url "https://github.com/jwiegley/use-package"
+  :ignored-files ("LICENSE" "doc" "Makefile*" "bind-chords.el" "use-package*")
+  :auto-sync t)
  ("blist"		:url "https://gitlab.com/mmemmew/blist"
   :doc "blist.texinfo"
   :readme "README.org"
@@ -362,6 +362,7 @@
  ;; FIXME: Upstream has accidentally diverged, see
  ;; https://github.com/abo-abo/hydra/pull/408 as well as bug#52902
  ("hydra"		:url "https://github.com/abo-abo/hydra"
+  :merge t
   :auto-sync t)
  ("hyperbole"           :url "https://git.savannah.gnu.org/r/hyperbole.git"
   :make ("kotl/kotl-autoloads.el")
@@ -742,11 +743,11 @@
   :readme "README.md")
  ("uniquify-files"	:url nil)
  ("url-http-ntlm" 	:url nil)
- ;;("use-package"		:url "https://github.com/jwiegley/use-package"
- ;; :ignored-files ("LICENSE" "bind-*" "use-package-chords.el")
- ;; :doc "use-package.texi"
- ;; :news "NEWS.md"
- ;; :auto-sync t)
+ ("use-package"		:url "https://github.com/jwiegley/use-package"
+  :ignored-files ("LICENSE" "bind-*" "use-package-chords.el")
+  :doc "use-package.texi"
+  :news "NEWS.md"
+  :auto-sync t)
  ("validate"		:url "https://github.com/Malabarba/validate.el")
  ("valign"		:url "https://github.com/casouri/valign")
  ("vc-backup"		:url "https://git.sr.ht/~pkal/vc-backup"
