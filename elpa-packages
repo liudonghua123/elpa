@@ -463,7 +463,9 @@
   :auto-sync t)
  ("minibuffer-line"	:url nil)
  ("minimap"		:url nil)
- ("mmm-mode"		:url "https://github.com/purcell/mmm-mode.git"
+ ("mmm-mode"
+  :doc "mmm.texi"
+  :url "https://github.com/purcell/mmm-mode.git"
   :auto-sync t)
  ("modus-themes"	:core ("etc/themes/modus-themes.el"
                                "etc/themes/modus-operandi-theme.el"
