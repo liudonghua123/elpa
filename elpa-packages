@@ -286,6 +286,7 @@
   :ignored-files ("embark.el" "embark.texi" "avy-embark-collect.el")
   :auto-sync t)
  ("ement"		:url "https://github.com/alphapapa/ement.el.git"
+  :release-branch "stable"
   :doc "README.org"
   :auto-sync t)
  ("emms"		:url "https://git.savannah.gnu.org/git/emms.git"
@@ -738,6 +739,9 @@
   :doc "docs/transient.texi")
  ("transient-cycles"    :url nil)
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ;; FIXME: Depends on `emacsql` which is on its way to NonGNU ELPA.
+ ;;("triples"		:url "https://github.com/ahyatt/triples"
+ ;; :auto-sync t)
  ;; FIXME: Waiting for copyright cleanups.
  ;;("trinary"		:url "https://github.com/emacs-elsa/trinary-logic"
  ;; :auto-sync t)
