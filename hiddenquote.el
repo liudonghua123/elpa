@@ -173,6 +173,16 @@ Syllables window."
                     do (set-window-parameter (get-buffer-window buff)
                                              'no-other-window val)))))
 
+(defcustom hiddenquote-after-last-character-hook nil
+  "Hook that runs after entering the last character in a word.
+
+Note that this doesn't mean the word is the right word.
+
+It can be handy to run `other-window' in this hook, so you can go directly
+to the syllables buffer."
+  :type 'hook
+  :package-version '(hiddenquote . "1.3"))  
+
 (defgroup hiddenquote-faces nil
   "Faces used by `hiddenquote'."
   :group 'hiddenquote)
@@ -380,23 +390,6 @@ Used locally in the definitions buffer, to highlight/unhighlight them.")
   "Compatibility function, to avoid `widget-backward' to skip widgets."
   (unless (eobp)
     (forward-char 1)))
-
-(defun hiddenquote--get-quote-length ()
-  "Return the quote length, by looking each word in the widget."
-  ;; We have to do this when the qquote slot is empty.
-  (let* ((puzzle (widget-get hiddenquote-current :hiddenquote))
-         (words (widget-get hiddenquote-current :children))
-         (arrows (split-string (oref puzzle arrows) ","))
-         (len (* (length arrows) (length words)))
-         (first-word (car words))
-         (last-word (car (last words))))
-    (unless (> (widget-get last-word :hiddenquote-word-length)
-               (string-to-number (car (last arrows))))
-      (setq len (1- len)))
-    (unless (> (widget-get first-word :hiddenquote-word-length)
-               (string-to-number (car arrows)))
-      (setq len (1- len)))
-    len))
 
 ;; Classes.
 ;; A `hiddenquote-hidden-quote-puzzle' represents a hidden quote puzzle,
@@ -938,14 +931,6 @@ Notify the widget between FROM and TO about a change."
         (error "Change in different fields"))
       (widget-apply field :notify field (list 'after-change from to)))))
 
-(defvar hiddenquote-after-last-character-hook nil
-  "Hook that runs after entering the last character in a word.
-
-Note that this doesn't mean the word is the right word.
-
-It can be handy to run `other-window' in this hook, so you can go directly
-to the syllables buffer.")
-
 (defun hiddenquote-word-notify (widget child event)
   "Notify the `hiddenquote-word' widget WIDGET about a change in CHILD.
 
@@ -1132,6 +1117,23 @@ Return `hiddenquote-used-syllable' if WIDGET's value is non-nil,
     (hiddenquote-timer-stop-timer)))
 
 ;; Functions.
+(defun hiddenquote--get-quote-length ()
+  "Return the quote length, by looking each word in the widget."
+  ;; We have to do this when the qquote slot is empty.
+  (let* ((puzzle (widget-get hiddenquote-current :hiddenquote))
+         (words (widget-get hiddenquote-current :children))
+         (arrows (split-string (oref puzzle arrows) ","))
+         (len (* (length arrows) (length words)))
+         (first-word (car words))
+         (last-word (car (last words))))
+    (unless (> (widget-get last-word :hiddenquote-word-length)
+               (string-to-number (car (last arrows))))
+      (setq len (1- len)))
+    (unless (> (widget-get first-word :hiddenquote-word-length)
+               (string-to-number (car arrows)))
+      (setq len (1- len)))
+    len))
+
 (defun hiddenquote-puzzle-from-ipuz (ipuz)
   "Return a `hiddenquote-hidden-quote-puzzle' instance specified by IPUZ."
   (let* ((json (json-read-from-string ipuz))
