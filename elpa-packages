@@ -87,7 +87,9 @@
  ("beacon"		:url "https://github.com/Malabarba/beacon"
   :auto-sync t)
  ("bind-key"         :url "https://github.com/jwiegley/use-package"
-  :ignored-files ("LICENSE" "doc" "Makefile*" "bind-chords.el" "use-package*")
+  :ignored-files ("LICENSE" "doc" "Makefile*" "bind-chords.el" "use-package*"
+                  "README.md" "NEWS.md") ;; These two are for use-package.
+  :news "/dev/null"           ;l Don't use use-package' s `NEWS.md`.
   :auto-sync t)
  ("blist"		:url "https://gitlab.com/mmemmew/blist"
   :doc "blist.texinfo"
