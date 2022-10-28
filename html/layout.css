@@ -151,6 +151,10 @@ pre .kw {
   color: #4f0f71;
 }
 
+/* Apparently the big "reset" at the beginning makes this necessary.  */
+strong { font-weight: bold; }
+em { font-style: oblique; }
+
 p {
   margin: 1em 0 1em 0;
 }
