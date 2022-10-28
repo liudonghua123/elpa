@@ -1,6 +1,6 @@
-;;; hydra-examples.el --- Some applications for Hydra
+;;; hydra-examples.el --- Some applications for Hydra  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel
 

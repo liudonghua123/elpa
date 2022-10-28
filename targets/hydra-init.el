@@ -1,6 +1,6 @@
-;;; hydra-test.el --- bare hydra init
+;;; hydra-test.el --- bare hydra init  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel
 

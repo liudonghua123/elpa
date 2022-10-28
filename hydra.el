@@ -1,13 +1,13 @@
 ;;; hydra.el --- Make bindings that stick around. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2019  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/hydra
 ;; Version: 0.15.0
 ;; Keywords: bindings
-;; Package-Requires: ((cl-lib "0.5") (lv "0"))
+;; Package-Requires: ((emacs "24.4") (lv "0"))
 
 ;; This file is part of GNU Emacs.
 
@@ -120,7 +120,7 @@ warn: keep KEYMAP and issue a warning instead of running the command."
     (setq hydra-curr-map keymap)
     (setq hydra-curr-on-exit on-exit)
     (setq hydra-curr-foreign-keys foreign-keys)
-    (add-hook 'pre-command-hook 'hydra--clearfun)
+    (add-hook 'pre-command-hook #'hydra--clearfun)
     (internal-push-keymap keymap 'overriding-terminal-local-map)))
 
 (defun hydra--clearfun ()
@@ -149,13 +149,9 @@ warn: keep KEYMAP and issue a warning instead of running the command."
 (defun hydra-disable ()
   "Disable the current Hydra."
   (setq hydra-deactivate nil)
-  (remove-hook 'pre-command-hook 'hydra--clearfun)
+  (remove-hook 'pre-command-hook #'hydra--clearfun)
   (unless hydra--ignore
-    (if (fboundp 'remove-function)
-        (remove-function input-method-function #'hydra--imf)
-      (when hydra--input-method-function
-        (setq input-method-function hydra--input-method-function)
-        (setq hydra--input-method-function nil))))
+    (remove-function input-method-function #'hydra--imf))
   (dolist (frame (frame-list))
     (with-selected-frame frame
       (when overriding-terminal-local-map
@@ -200,14 +196,12 @@ warn: keep KEYMAP and issue a warning instead of running the command."
 
 (defcustom hydra-is-helpful t
   "When t, display a hint with possible bindings in the echo area."
-  :type 'boolean
-  :group 'hydra)
+  :type 'boolean)
 
 (defcustom hydra-default-hint ""
   "Default :hint property to use for heads when not specified in
 the body or the head."
-  :type 'sexp
-  :group 'hydra)
+  :type 'sexp)
 
 (declare-function posframe-show "posframe")
 (declare-function posframe-hide "posframe")
@@ -252,8 +246,7 @@ the body or the head."
   :type '(choice
           (const message)
           (const lv)
-          (const posframe))
-  :group 'hydra)
+          (const posframe)))
 
 (defcustom hydra-verbose nil
   "When non-nil, hydra will issue some non essential style warnings."
@@ -283,8 +276,7 @@ found"
 (defface hydra-face-red
   '((t (:foreground "#FF0000" :bold t)))
   "Red Hydra heads don't exit the Hydra.
-Every other command exits the Hydra."
-  :group 'hydra)
+Every other command exits the Hydra.")
 
 (defface hydra-face-blue
   '((((class color) (background light))
@@ -327,56 +319,61 @@ Exitable only through a blue head.")
   (add-to-list
    'imenu-generic-expression
    '("Hydras"
-     "^.*(\\(defhydra\\) \\([a-zA-Z-]+\\)"
+     "^.*(\\(defhydra\\) \\([[:alpha:]-]+\\)"
      2)))
 
 ;;* Find Function
-(eval-after-load 'find-func
-  '(defadvice find-function-search-for-symbol
-    (around hydra-around-find-function-search-for-symbol-advice
-     (symbol type library) activate)
-    "Navigate to hydras with `find-function-search-for-symbol'."
-    (prog1 ad-do-it
-      (when (symbolp symbol)
+
+;; FIXME: Maybe we can dispense with this advice if `defhydra' adds appropriate
+;; `definition-name' properties to the functions it defines?
+(advice-add 'find-function-search-for-symbol :around
+            #'hydra--around-find-function-search-for-symbol-advice)
+
+(defun hydra--around-find-function-search-for-symbol-advice
+    (orig-fun symbol type library)
+  "Navigate to hydras with `find-function-search-for-symbol'."
+  (let ((res (apply orig-fun symbol type library)))
+    (when (symbolp symbol)
         ;; The original function returns (cons (current-buffer) (point))
         ;; if it found the point.
-        (unless (cdr ad-return-value)
+        (unless (cdr res)
           (with-current-buffer (find-file-noselect library)
             (let ((sn (symbol-name symbol)))
               (when (and (null type)
-                         (string-match "\\`\\(hydra-[a-z-A-Z0-9]+\\)/\\(.*\\)\\'" sn)
+                         (string-match "\\`\\(hydra-[[:alnum:]-]+\\)/\\(.*\\)\\'" sn)
                          (re-search-forward (concat "(defhydra " (match-string 1 sn))
                                             nil t))
                 (goto-char (match-beginning 0)))
-              (cons (current-buffer) (point)))))))))
+              (cons (current-buffer) (point))))))
+    res))
 
 ;;* Universal Argument
 (defvar hydra-base-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<f1> k") 'hydra--describe-key)
-    (define-key map [?\C-u] 'hydra--universal-argument)
-    (define-key map [?-] 'hydra--negative-argument)
-    (define-key map [?0] 'hydra--digit-argument)
-    (define-key map [?1] 'hydra--digit-argument)
-    (define-key map [?2] 'hydra--digit-argument)
-    (define-key map [?3] 'hydra--digit-argument)
-    (define-key map [?4] 'hydra--digit-argument)
-    (define-key map [?5] 'hydra--digit-argument)
-    (define-key map [?6] 'hydra--digit-argument)
-    (define-key map [?7] 'hydra--digit-argument)
-    (define-key map [?8] 'hydra--digit-argument)
-    (define-key map [?9] 'hydra--digit-argument)
-    (define-key map [kp-0] 'hydra--digit-argument)
-    (define-key map [kp-1] 'hydra--digit-argument)
-    (define-key map [kp-2] 'hydra--digit-argument)
-    (define-key map [kp-3] 'hydra--digit-argument)
-    (define-key map [kp-4] 'hydra--digit-argument)
-    (define-key map [kp-5] 'hydra--digit-argument)
-    (define-key map [kp-6] 'hydra--digit-argument)
-    (define-key map [kp-7] 'hydra--digit-argument)
-    (define-key map [kp-8] 'hydra--digit-argument)
-    (define-key map [kp-9] 'hydra--digit-argument)
-    (define-key map [kp-subtract] 'hydra--negative-argument)
+    (define-key map (kbd "<f1> k") #'hydra--describe-key)
+    (define-key map [?\C-u] #'hydra--universal-argument)
+    (define-key map [?-] #'hydra--negative-argument)
+    (define-key map [?0] #'hydra--digit-argument)
+    (define-key map [?1] #'hydra--digit-argument)
+    (define-key map [?2] #'hydra--digit-argument)
+    (define-key map [?3] #'hydra--digit-argument)
+    (define-key map [?4] #'hydra--digit-argument)
+    (define-key map [?5] #'hydra--digit-argument)
+    (define-key map [?6] #'hydra--digit-argument)
+    (define-key map [?7] #'hydra--digit-argument)
+    (define-key map [?8] #'hydra--digit-argument)
+    (define-key map [?9] #'hydra--digit-argument)
+    (define-key map [kp-0] #'hydra--digit-argument)
+    (define-key map [kp-1] #'hydra--digit-argument)
+    (define-key map [kp-2] #'hydra--digit-argument)
+    (define-key map [kp-3] #'hydra--digit-argument)
+    (define-key map [kp-4] #'hydra--digit-argument)
+    (define-key map [kp-5] #'hydra--digit-argument)
+    (define-key map [kp-6] #'hydra--digit-argument)
+    (define-key map [kp-7] #'hydra--digit-argument)
+    (define-key map [kp-8] #'hydra--digit-argument)
+    (define-key map [kp-9] #'hydra--digit-argument)
+    (define-key map [kp-subtract] #'hydra--negative-argument)
     map)
   "Keymap that all Hydras inherit.  See `universal-argument-map'.")
 
@@ -525,11 +522,7 @@ Remove :color key. And sort the plist alphabetically."
 (defun hydra-default-pre ()
   "Default setup that happens in each head before :pre."
   (when (eq input-method-function 'key-chord-input-method)
-    (if (fboundp 'add-function)
-        (add-function :override input-method-function #'hydra--imf)
-      (unless hydra--input-method-function
-        (setq hydra--input-method-function input-method-function)
-        (setq input-method-function nil)))))
+    (add-function :override input-method-function #'hydra--imf)))
 
 (defvar hydra-timeout-timer (timer-create)
   "Timer for `hydra-timeout'.")
@@ -567,9 +560,7 @@ Remove :color key. And sort the plist alphabetically."
     (t (format (format "%%%ds: %%%ds" key-width (- -1 doc-width)) key doc))))
 
 (defun hydra--to-string (x)
-  (if (stringp x)
-      x
-    (eval x)))
+  (eval x t))
 
 (defun hydra--eval-and-format (x)
   (let ((str (hydra--to-string (cdr x))))
@@ -615,7 +606,8 @@ Works for heads without a property :column."
                                                    (car y)
                                                    ,max-key-len
                                                    (hydra--to-string (cdr y))
-                                                   ,max-doc-len))) x ""))
+                                                   ,max-doc-len)))
+                                   x ""))
                                 ',(hydra--matrix keys n-cols n-rows))
                                "\n")))
 
@@ -627,8 +619,8 @@ Works for heads without a property :column."
                  ", ")
                 ,(if keys "." ""))))
       (if (cl-every #'stringp
-                    (mapcar 'cddr alist))
-          (eval res)
+                    (mapcar #'cddr alist))
+          (eval res t)
         res))))
 
 (defun hydra--hint (body heads)
@@ -736,7 +728,7 @@ The expressions can be auto-expanded according to NAME."
       (while (setq start
                    (string-match
                     (format
-                     "\\(?:%%\\( ?-?[0-9]*s?\\)\\(`[a-z-A-Z/0-9]+\\|(\\)\\)\\|\\(?:_%s_\\)\\|\\(?:[?]%s[?]\\)\\|__"
+                     "\\(?:%%\\( ?-?[0-9]*s?\\)\\(`[[:alnum:]-/]+\\|(\\)\\)\\|\\(?:_%s_\\)\\|\\(?:[?]%s[?]\\)\\|__"
                      inner-regex
                      inner-regex)
                     docstring start))
@@ -831,14 +823,12 @@ The expressions can be auto-expanded according to NAME."
                         (replace-regexp-in-string
                          "\\(%\\)" "\\1\\1" ,rest)))))
        (if (stringp rest)
-           `(format ,(eval r))
+           `(format ,(eval r t))
          `(format ,r))))))
 
 (defun hydra--complain (format-string &rest args)
   "Forward to (`message' FORMAT-STRING ARGS) unless `hydra-verbose' is nil."
-  (if hydra-verbose
-      (apply #'error format-string args)
-    (apply #'message format-string args)))
+  (apply (if hydra-verbose #'error #'message) format-string args))
 
 (defun hydra--doc (body-key body-name heads)
   "Generate a part of Hydra docstring.
@@ -893,6 +883,8 @@ BODY-AFTER-EXIT is added to the end of the wrapper."
                 (hydra--make-callable
                  (cadr head))))
          (doc (if (car head)
+                  ;; FIXME: If the printed representation of (cadr head)
+                  ;; include quotes, they should be \\= escaped!
                   (format "Call the head `%S' in the \"%s\" hydra.\n\n%s"
                           (cadr head) name doc)
                 (format "Call the body in the \"%s\" hydra.\n\n%s"
@@ -978,12 +970,12 @@ KEY is forwarded to `plist-get'."
                               :verbosity)))
     (cond ((eq verbosity 0))
           ((eq verbosity 1)
-           (message (eval hint)))
+           (message (eval hint t)))
           (t
            (when hydra-is-helpful
              (funcall
               (nth 1 (assoc hydra-hint-display-type hydra-hint-display-alist))
-              (eval hint)))))))
+              (eval hint t)))))))
 
 (defmacro hydra--make-funcall (sym)
   "Transform SYM into a `funcall' to call it."
@@ -1176,11 +1168,12 @@ representing the maximum dimension of their owning group.
                                    (mapcar (lambda (x) (length (hydra--to-string (nth 2 x)))) heads-group)))
                (header-virtual-head `(" " nil ,column-name :column ,column-name :exit t))
                (separator-virtual-head `(" " nil ,(make-string (+ 2 max-doc-len max-key-len) ?-) :column ,column-name :exit t))
-               (decorated-heads (copy-tree (apply 'list header-virtual-head separator-virtual-head heads-group))))
+               (decorated-heads (copy-tree (apply #'list header-virtual-head separator-virtual-head heads-group))))
           (push (mapcar (lambda (it)
                           (hydra--head-set-property it :max-key-len max-key-len)
                           (hydra--head-set-property it :max-doc-len max-doc-len))
-                        decorated-heads) res)))
+                        decorated-heads)
+                res)))
       (nreverse res))))
 
 (defun hydra-interpose (x lst)
@@ -1318,7 +1311,7 @@ result of `defhydra'."
   (cond ((stringp docstring))
         ((and (consp docstring)
               (memq (car docstring) '(hydra--table concat format)))
-         (setq docstring (concat "\n" (eval docstring))))
+         (setq docstring (concat "\n" (eval docstring t))))
         (t
          (setq heads (cons docstring heads))
          (setq docstring "")))
@@ -1330,7 +1323,7 @@ result of `defhydra'."
              (body-name (intern (format "%S/body" name)))
              (body-key (cadr body))
              (body-plist (cddr body))
-             (base-map (or (eval (plist-get body-plist :base-map))
+             (base-map (or (eval (plist-get body-plist :base-map) t)
                            hydra-base-map))
              (keymap (copy-keymap base-map))
              (body-map (or (car body)
@@ -1344,7 +1337,7 @@ result of `defhydra'."
              (body-foreign-keys (hydra--body-foreign-keys body))
              (body-exit (hydra--body-exit body)))
         (dolist (base body-inherit)
-          (setq heads (append heads (copy-sequence (eval base)))))
+          (setq heads (append heads (copy-sequence (eval base t)))))
         (dolist (h heads)
           (let ((len (length h)))
             (cond ((< len 2)

@@ -1,6 +1,6 @@
-;;; hydra-ox.el --- Org mode export widget implemented in Hydra
+;;; hydra-ox.el --- Org mode export widget implemented in Hydra  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel
 
@@ -54,13 +54,15 @@
         hydra-ox/async-export
         (eq hydra-ox/export-scope 'subtree)
         hydra-ox/visible-only
-        hydra-ox/body-only) "As HTML file")
+        hydra-ox/body-only)
+   "As HTML file")
   ("o" (org-open-file
         (org-html-export-to-html
          hydra-ox/async-export
          (eq hydra-ox/export-scope 'subtree)
          hydra-ox/visible-only
-         hydra-ox/body-only)) "As HTML file and open")
+         hydra-ox/body-only))
+   "As HTML file and open")
   ("b" hydra-ox/body "back")
   ("q" nil "quit"))
 
@@ -120,7 +122,7 @@ _C-a_ Async export: %`hydra-ox/async-export
   ("t" hydra-ox-text/body "Export to Plain Text" :exit t)
   ("q" nil "quit"))
 
-(define-key org-mode-map (kbd "C-c C-,") 'hydra-ox/body)
+(define-key org-mode-map (kbd "C-c C-,") #'hydra-ox/body)
 
 (provide 'hydra-ox)
 

@@ -1,6 +1,6 @@
-;;; hydra-test.el --- Tests for Hydra
+;;; hydra-test.el --- Tests for Hydra  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel
 

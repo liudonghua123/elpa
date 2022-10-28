@@ -1,8 +1,9 @@
-;;; lv.el --- Other echo area
+;;; lv.el --- Other echo area  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel
+;; Version: 0.15.0
 
 ;; This file is part of GNU Emacs.
 
@@ -42,12 +43,10 @@
 
 (defcustom lv-use-separator nil
   "Whether to draw a line between the LV window and the Echo Area."
-  :group 'lv
   :type 'boolean)
 
 (defcustom lv-use-padding nil
   "Whether to use horizontal padding in the LV window."
-  :group 'lv
   :type 'boolean)
 
 (defface lv-separator
@@ -55,8 +54,7 @@
     (((class color) (background  dark)) :background "grey30"))
   "Face used to draw line between the lv window and the echo area.
 This is only used if option `lv-use-separator' is non-nil.
-Only the background color is significant."
-  :group 'lv)
+Only the background color is significant.")
 
 (defvar lv-wnd nil
   "Holds the current LV window.")
@@ -97,7 +95,7 @@ Only the background color is significant."
           (run-hooks 'lv-window-hook))
         (select-window ori 'norecord)))))
 
-(defvar golden-ratio-mode)
+(defvar golden-ratio-mode) ;; https://github.com/roman/golden-ratio.el
 
 (defvar lv-force-update nil
   "When non-nil, `lv-message' will refresh even for the same string.")
@@ -106,15 +104,20 @@ Only the background color is significant."
   "Pad STR with spaces on the left to be centered to WIDTH."
   (let* ((strs (split-string str "\n"))
          (padding (make-string
-                   (/ (- width (length (car strs))) 2)
-                   ?\ )))
+                   (/ (- width (string-width (car strs))) 2)
+                   ?\s)))
     (mapconcat (lambda (s) (concat padding s)) strs "\n")))
 
 (defun lv-message (format-string &rest args)
   "Set LV window contents to (`format' FORMAT-STRING ARGS)."
-  (let* ((str (apply #'format format-string args))
+  (let* ((str (apply (if (fboundp 'format-message) #'format-message #'format)
+                     format-string args))
          (n-lines (cl-count ?\n str))
          deactivate-mark
+         ;; Keep auto-resizing out of the way.
+         ;; FIXME: We should find a way to do that without naming this specific
+         ;; package, i.e. by setting/let-binding a generic variable which
+         ;; packages like `golden-ratio' should obey.
          golden-ratio-mode)
     (with-selected-window (lv-window)
       (when lv-use-padding

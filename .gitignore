@@ -1,0 +1,5 @@
+*.elc
+/hydra-autoloads.el
+/hydra-pkg.el
+/lv-autoloads.el
+/lv-pkg.el
