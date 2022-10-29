@@ -237,7 +237,7 @@
  ("dismal"		:url nil)
  ("djvu"		:url nil)
  ("doc-toc"		:url "https://github.com/dalanicolai/doc-tools-toc"
-  :ignore-files ("LICENSE")
+  :ignored-files ("LICENSE")
   :auto-sync t)
  ("docbook"		:url nil)
  ;; `dtache' was renamed to `detached' in May 2022.
@@ -384,7 +384,7 @@
  ;; ("inspector"		:url "https://github.com/mmontone/emacs-inspector"
  ;;  :auto-sync t)
  ("inspector"		:url "https://github.com/mmontone/emacs-inspector"
-  :ignore-files ("LICENSE")
+  :ignored-files ("LICENSE")
   :auto-sync t)
  ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git"
   :auto-sync t)
@@ -580,7 +580,7 @@
   :auto-sync t)
  ("poker"		:url nil)
  ("polymode"		:url "https://github.com/polymode/polymode"
-  :ignore-files ("targets" "template" "tests")
+  :ignored-files ("targets" "template" "tests")
   :readme "readme.md"
   :auto-sync t)
  ("posframe"		:url "https://github.com/tumashu/posframe"
