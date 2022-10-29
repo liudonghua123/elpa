@@ -761,6 +761,9 @@
   :doc "use-package.texi"
   :news "NEWS.md"
   :auto-sync t)
+ ("url-scgi"		:url "https://github.com/skangas/url-scgi"
+  :readme "README.org"
+  :auto-sync t)
  ("validate"		:url "https://github.com/Malabarba/validate.el")
  ("valign"		:url "https://github.com/casouri/valign")
  ("vc-backup"		:url "https://git.sr.ht/~pkal/vc-backup"
