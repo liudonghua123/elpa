@@ -828,3 +828,7 @@
   :readme "README.md"
   :auto-sync t)
  )
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
