@@ -1,6 +1,6 @@
 ;;; stream.el --- Implementation of streams  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: stream, laziness, sequences
@@ -120,22 +120,42 @@ SEQ can be a list, vector or string."
      (car list)
      (stream (cdr list)))))
 
-(cl-defmethod stream ((buffer buffer) &optional pos)
+(cl-defmethod stream ((buffer buffer) &optional pos thing)
   "Return a stream of the characters of the buffer BUFFER.
-BUFFER may be a buffer or a string (buffer name).
-The sequence starts at POS if non-nil, `point-min' otherwise."
+BUFFER may be a buffer or a string (buffer name).  The sequence
+starts at POS if non-nil, `point-min' otherwise.  By default the
+stream will consist of characters.  If THING is non-nil, it must
+be a symbol supported by `thing-at-point' and `forward-thing'
+that will be used to extract and navigate through things.
+Examples include \\='line, \\='page, or \\='defun."
   (with-current-buffer buffer
     (unless pos (setq pos (point-min)))
-    (if (>= pos (point-max))
-        (stream-empty))
-    (stream-cons
-     (with-current-buffer buffer
-       (save-excursion
-         (save-restriction
-           (widen)
-           (goto-char pos)
-           (char-after (point)))))
-     (stream buffer (1+ pos)))))
+    (cond
+     ((>= pos (point-max))
+      (stream-empty))
+     ((not (null thing))
+      (with-current-buffer buffer
+        (let ((this (save-excursion
+                      (save-restriction
+                        (widen)
+                        (goto-char pos)
+                        (thing-at-point thing))))
+              (next (save-excursion
+                      (save-restriction
+                        (widen)
+                        (goto-char pos)
+                        (forward-thing thing)
+                        (point)))))
+          (stream-cons this (stream buffer next thing)))))
+     ((null thing)
+      (stream-cons
+       (with-current-buffer buffer
+         (save-excursion
+           (save-restriction
+             (widen)
+             (goto-char pos)
+             (char-after (point)))))
+       (stream buffer (1+ pos)))))))
 
 (declare-function iter-next "generator")
 
