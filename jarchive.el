@@ -57,7 +57,7 @@ See `(elisp)Magic File Names'."
           ((eq op 'file-name-nondirectory) (file-name-nondirectory file-path))
           ((eq op 'directory-file-name) (directory-file-name (file-name-directory jar-path)))
           ((eq op 'file-name-case-insensitive-p) (file-name-case-insensitive-p jar-path))
-          ((eq op 'file-attributes) (file-attributes jar-path (cadr args)))
+          ((eq op 'file-attributes) nil)
 
           ;; Predicates
           ((eq op 'file-directory-p) nil)
