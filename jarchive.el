@@ -108,6 +108,7 @@ TODO: this might be unnecessary, try to remove"
 ;;;###autoload
 (defun jarchive-setup ()
   (interactive)
+  (setq eglot-preserve-jar-uri t)
   (add-to-list 'file-name-handler-alist (cons jarchive--uri-regex #'jarchive--file-name-handler))
   (add-to-list 'find-file-not-found-functions #'jarchive--find-file-not-found))
 
