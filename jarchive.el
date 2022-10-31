@@ -14,15 +14,16 @@
    "jar:file://"
    ;; match group 1, the jar file location
    (group "/" (* not-newline) ".jar")
-   ;; Potential delimiters between the jar and the file inside the jar
-   "!" ;; match the leading directory delimiter /,
+   ;; Delimiter between the jar and the file inside the jar
+   "!"
+   ;; match the leading directory delimiter /,
    ;; archvie mode expects none so it's outside match group 2
    (zero-or-one "/")
    ;; match group 2, the file within the archive
    (group (* not-newline) "." (+ alphanumeric))
    line-end)
   "A regex for matching paths to a jar file and a file path into the jar file.
-Delimited by `!' or `::'")
+Delimited by `!'.")
 
 (defun jarchive--match! (uri)
   (string-match jarchive--uri-regex uri))
@@ -108,7 +109,8 @@ TODO: this might be unnecessary, try to remove"
 ;;;###autoload
 (defun jarchive-setup ()
   (interactive)
-  (setq eglot-preserve-jar-uri t)
+  (with-eval-after-load 'eglot
+    (setq eglot-preserve-jar-uri t))
   (add-to-list 'file-name-handler-alist (cons jarchive--uri-regex #'jarchive--file-name-handler))
   (add-to-list 'find-file-not-found-functions #'jarchive--find-file-not-found))
 
