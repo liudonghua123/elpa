@@ -87,7 +87,9 @@
  ("beacon"		:url "https://github.com/Malabarba/beacon"
   :auto-sync t)
  ("bind-key"         :url "https://github.com/jwiegley/use-package"
-  :ignored-files ("LICENSE" "doc" "Makefile*" "bind-chords.el" "use-package*")
+  :ignored-files ("LICENSE" "doc" "Makefile*" "bind-chords.el" "use-package*"
+                  "README.md" "NEWS.md") ;; These two are for use-package.
+  :news "/dev/null"           ;l Don't use use-package' s `NEWS.md`.
   :auto-sync t)
  ("blist"		:url "https://gitlab.com/mmemmew/blist"
   :doc "blist.texinfo"
@@ -235,7 +237,7 @@
  ("dismal"		:url nil)
  ("djvu"		:url nil)
  ("doc-toc"		:url "https://github.com/dalanicolai/doc-tools-toc"
-  :ignore-files ("LICENSE")
+  :ignored-files ("LICENSE")
   :auto-sync t)
  ("docbook"		:url nil)
  ;; `dtache' was renamed to `detached' in May 2022.
@@ -269,7 +271,7 @@
  ("eldoc-eval"		:url "https://github.com/thierryvolpiatto/eldoc-eval.git")
  ("electric-spacing"	:url nil)
  ("elisp-benchmarks"	:url nil)
- ;; FIXME: Waiting for Sean Allred's copyright paperwork.
+ ;; FIXME: Work in progress.  The copyright paperwork is ready.
  ;;("elsa"		:url "https://github.com/emacs-elsa/Elsa"
  ;; :auto-sync t)
  ;;("emacspeak"		:url "https://github.com/tvraman/emacspeak"
@@ -284,6 +286,7 @@
   :ignored-files ("embark.el" "embark.texi" "avy-embark-collect.el")
   :auto-sync t)
  ("ement"		:url "https://github.com/alphapapa/ement.el.git"
+  :release-branch "stable"
   :doc "README.org"
   :auto-sync t)
  ("emms"		:url "https://git.savannah.gnu.org/git/emms.git"
@@ -345,9 +348,9 @@
  ("gnugo"		:url nil)
  ("gnus-mock"		:url nil)
  ("gpastel"		:url "https://gitlab.petton.fr/DamienCassou/gpastel")
- ;; FIXME: Waiting for copyright assignment.
- ;;("graphql"		:url "https://github.com/vermiculus/graphql.el"
- ;; :auto-sync t)
+ ("graphql"		:url "https://github.com/vermiculus/graphql.el"
+  :readme "README.md"
+  :auto-sync t)
  ("gpr-query"	:url nil
   :branch "gpr-query"
   :release-branch "gpr-query.release"
@@ -373,6 +376,8 @@
   ;; problem on their end, see bug#52902 as well as
   ;; https://github.com/abo-abo/hydra/pull/408.
   :merge t
+  :ignored-files ("lv.el")
+  :news "doc/Changelog.org"
   :auto-sync t)
  ("hyperbole"           :url "https://git.savannah.gnu.org/r/hyperbole.git"
   :make ("kotl/kotl-autoloads.el")
@@ -388,7 +393,7 @@
  ;; ("inspector"		:url "https://github.com/mmontone/emacs-inspector"
  ;;  :auto-sync t)
  ("inspector"		:url "https://github.com/mmontone/emacs-inspector"
-  :ignore-files ("LICENSE")
+  :ignored-files ("LICENSE")
   :auto-sync t)
  ("ioccur"		:url "https://github.com/thierryvolpiatto/ioccur.git"
   :auto-sync t)
@@ -445,6 +450,9 @@
  ("luwak"		:url "https://g.ypei.me/luwak.git"
   :auto-sync t
   :readme "README.org")
+ ("lv"			:url "https://github.com/abo-abo/hydra"
+  :ignored-files ("hydra*" "README.md" "doc" "targets")
+  :auto-sync t)
  ("m-buffer"		:url "https://github.com/phillord/m-buffer-el"
   :doc "m-buffer-doc.org"
   :auto-sync t)
@@ -468,6 +476,7 @@
  ("minibuffer-line"	:url nil)
  ("minimap"		:url nil)
  ("mmm-mode"		:url "https://github.com/purcell/mmm-mode.git"
+  :doc "mmm.texi"
   :auto-sync t)
  ("modus-themes"	:core ("etc/themes/modus-themes.el"
                                "etc/themes/modus-operandi-theme.el"
@@ -583,7 +592,7 @@
   :auto-sync t)
  ("poker"		:url nil)
  ("polymode"		:url "https://github.com/polymode/polymode"
-  :ignore-files ("targets" "template" "tests")
+  :ignored-files ("targets" "template" "tests")
   :readme "readme.md"
   :auto-sync t)
  ("posframe"		:url "https://github.com/tumashu/posframe"
@@ -743,6 +752,9 @@
   :doc "docs/transient.texi")
  ("transient-cycles"    :url nil)
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
+ ;; FIXME: Depends on `emacsql` which is on its way to NonGNU ELPA.
+ ;;("triples"		:url "https://github.com/ahyatt/triples"
+ ;; :auto-sync t)
  ;; FIXME: Waiting for copyright cleanups.
  ;;("trinary"		:url "https://github.com/emacs-elsa/trinary-logic"
  ;; :auto-sync t)
@@ -755,8 +767,12 @@
   :readme "README.md")
  ("uniquify-files"	:url nil)
  ("url-http-ntlm" 	:url nil)
+ ("url-scgi"		:url "https://github.com/skangas/url-scgi"
+  :readme "README.org"
+  :auto-sync t)
  ("use-package"		:url "https://github.com/jwiegley/use-package"
   :ignored-files ("LICENSE" "bind-*" "use-package-chords.el")
+  :readme "README.md"
   :doc "use-package.texi"
   :news "NEWS.md"
   :auto-sync t)
@@ -824,3 +840,7 @@
   :readme "README.md"
   :auto-sync t)
  )
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
