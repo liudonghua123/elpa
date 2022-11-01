@@ -348,6 +348,9 @@
  ;; FIXME: Waiting for copyright assignment.
  ;;("graphql"		:url "https://github.com/vermiculus/graphql.el"
  ;; :auto-sync t)
+ ("gpr-query"	:url nil
+  :branch "gpr-query"
+  :release-branch "gpr-query.release")
  ("greader"		:url "https://gitlab.com/michelangelo-rodriguez/greader"
   :auto-sync t)
  ("greenbar"		:url nil)
