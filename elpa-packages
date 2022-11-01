@@ -38,7 +38,7 @@
  ("ack"			:url "https://github.com/leoliu/ack-el"
   :auto-sync t)
  ("ada-mode"		:url nil
-  :doc ("ada-mode.texi" "gpr-mode.texi")
+  :doc ("ada-mode.texi")
   :branch "ada-mode"
   :release-branch "ada-mode.release")
  ("ada-ref-man"		:url nil)
@@ -351,6 +351,10 @@
  ("graphql"		:url "https://github.com/vermiculus/graphql.el"
   :readme "README.md"
   :auto-sync t)
+ ("gpr-mode"	:url nil
+  :branch "gpr-mode"
+  :release-branch "gpr-mode.release"
+  :doc ("gpr-mode.texi"))
  ("gpr-query"	:url nil
   :branch "gpr-query"
   :release-branch "gpr-query.release"
