@@ -335,6 +335,9 @@
   :auto-sync t)
  ("gited"		:url nil)
  ("gle-mode"		:url nil)
+ ("gnat-compiler"	:url nil
+  :branch "gnat-compiler"
+  :release-branch "gnat-compiler.release")
  ("gnome-c-style"	:url "https://github.com/ueno/gnome-c-style.git")
  ("gnorb"               :url nil) ;; Was "https://github.com/girzel/gnorb"
  ("gnu-elpa"		:url nil)
