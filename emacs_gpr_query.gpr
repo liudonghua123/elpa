@@ -1,0 +1,100 @@
+--  Abstract :
+--
+--  GNAT project file for building Emacs gpr-query executables with Alire
+--
+--  Copyright (C) 2022 Free Software Foundation, Inc.
+--
+--  This program is free software; you can redistribute it and/or
+--  modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version. This program is distributed in the
+--  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+--  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+--  PURPOSE. See the GNU General Public License for more details. You
+--  should have received a copy of the GNU General Public License
+--  distributed with this program; see file COPYING. If not, write to
+--  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
+--  MA 02110-1335, USA.
+
+with "config/emacs_gpr_query_config.gpr";
+with "gnatcoll";
+with "gnatcoll_sqlite";
+with "gnatcoll_xref";
+project Emacs_Gpr_Query is
+
+   for Source_Dirs use (".", "config/");
+
+   for Object_Dir use "obj/" & Emacs_Gpr_Query_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Exec_Dir use "bin";
+   for Main use ("gpr_query.adb");
+
+   package Compiler is
+      Style_Checks := ("-gnaty3abcefhiklnOprtx", "-gnatyM120");
+
+   Common_Switches :=
+        ("-gnat2020", --  GNAT 11.3 (Debian testing as of Sept 2022) doesn't have -gnat2022
+         "-fstack-check",
+         "-g",
+         "-gnatfqQ", -- f = all error messages, qQ = process semantics, generate .ali if syntax errors
+         "-gnatw.d", -- warnings about tags
+         "-gnatwaBCeJL"
+        -- wa = most warnings
+        -- wB = no warn on bad fixed values
+        -- wC = no warn on conditionals
+        -- we = error on warning
+        -- wJ = no warn on obsolescent (including () for array indices!)
+        -- wL = no warn on elaboration
+        );
+
+      --  -gnatVa causes some inline procedures to be non-inlineable;
+      --  suppress that warning with -gnatwP.
+      Debug_Switches := Common_Switches &
+        (
+         "-O0", --  we don't use -Og because that causes gdb to report incorrect results in some cases in Ada.
+         "-gnatVa", -- validity checks
+         "-gnateE", -- extra info in exceptions
+         "-gnatwP", -- no warn on Inline
+         "-gnata"  -- assertions, pre/post-conditions
+        );
+
+      --  -O3 is measurably faster than -O2 for wisitoken generate
+      --  LR1. We include -fstack-check because it catches
+      --  hard-to-find bugs, and the processors are so fast.
+      --  -fno-var-tracking-assignments speeds compiling of large
+      --  files; var tracking is only useful for debugging.
+      Release_Switches := Common_Switches &
+        (
+         "-O3",
+         "-gnatn",
+         "-fno-var-tracking-assignments"
+        );
+
+      case Emacs_Gpr_Query_Config.Build_Profile is
+      when "release" =>
+         for Default_Switches ("Ada") use Release_Switches & Style_Checks;
+
+         for Switches ("gpr_query.adb") use
+           -- WORKAROUND: GNAT Community 2021 with gnatcoll 21.2 and -gnat2020 reports a missing "overrides"
+           -- AdaCore ticket U618-051
+           Common_Switches &
+           "-gnaty3abcefhiklnprtx" & "-gnatyM120" & -- not overriding
+           Release_Switches;
+
+      when "validation" | "development" =>
+         for Default_Switches ("Ada") use Debug_Switches & Style_Checks;
+
+         for Switches ("gpr_query.adb") use
+           -- WORKAROUND: GNAT Community 2021 reports that gnatcoll 21.2 is missing an "overrides" somewhere
+           Common_Switches &
+           "-gnaty3abcefhiklnprtx" & -- not overrding
+           Debug_Switches;
+
+      end case;
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+end Emacs_Gpr_Query;

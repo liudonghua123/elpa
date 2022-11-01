@@ -1,0 +1,178 @@
+General notes on Emacs gpr-query minor mode
+
+Alire.make       Alire
+ELPA.make        elpa, devel
+
+o.e.gpr-query: release, in use
+
+(dvc-state-multiple
+'((xgit . "/Projects/org.emacs.wisi/")
+  (xgit . "/Projects/org.emacs.gnat-compiler/")
+  (xgit . "/Projects/org.emacs.gpr-query/")))
+
+ current work
+
+ release process
+keep status in ~/projects.text
+
+check for ELPA patches by others
+    (dvc-state-one "/Projects/elpa/packages/gpr-query")
+    (dvc-pull "/Projects/elpa")
+    (dvc-sync-review "/Projects/elpa")
+        update
+        clean, quit sync
+    cd c:/Projects/elpa
+    git log -2 -- packages/gpr-query
+    if changes:
+        (dvc-log "/Projects/elpa/packages/<dir>/<file>")
+        apply changes to current
+
+check emacs buglist
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-query
+    to update a bug: nnn@debbugs.gnu.org
+        subject: from bug title, for people who rely on that.
+    if fixed in devel sources, add 'pending' tag:
+        control@debbugs.gnu.org
+        tags nnn + pending
+
+tested in ada-mode; it uses the same test sources for multiple xref backends.
+
+compare:
+    ELPA.make pub
+
+    (setq package-load-list '(all))
+    (list-packages)
+        install previous gpr-query from public ELPA for diffs
+
+    (ediff-directories "~/.emacs.d/elpa/gpr-query-3.1.7" "/Projects/elpa/packages/gpr-query" nil)
+        ../org.emacs.gpr-query/NEWS
+            copyright date
+            add release date
+            add new features
+
+build in elpa; /Projects/elpa/packages/gpr-query/ELPA.make
+
+Check copyright on files in elpa
+    c:/Projects/elpa/GNUMakefile check-all
+    if any gpr-query files added to output, fix them (add or change to FSF)
+
+bump version
+    Gnu ELPA requires single digits between dots in versions
+
+    bump if _any_ changes other than autoloads, so ELPA package handler knows to update
+        bump third digit for bug fixes, minor features, no user-incompatible changes
+        bump second digit for major features, mostly backward-compatible
+            or if third digit gets to 10
+
+        bump first digit for really major elisp user-visible changes:
+
+    gpr-query.el
+        Version:
+
+    NEWS
+        if not done above
+
+    gpr-query.texi
+        @title
+        @node top
+
+    README
+        first line
+
+    alire.toml
+        version
+        depends-on versions
+
+(dvc-state-one ".")
+
+On Debian (alr publish --tar broken on Windows (alr version 1.2.1))
+    cd /Projects/org.emacs.gpr-query
+    alr publish --tar
+    # at "upload and enter url" prompt; in mys2
+    cd alire/archives
+    gpg -b *.tgz
+    scp *.tgz* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    # wait until http download actually works; took 0.5 days
+    cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_query-1.0.0.tgz
+    # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_query-i.j.k.tgz
+
+update elpa:
+    (gpr-query-kill-all-sessions)
+    ELPA.make pub
+
+    # sometimes this is useful
+    # (ediff-directories "/Projects/org.emacs.gpr-query" "/Projects/elpa/packages/gpr-query" nil)
+
+    (dvc-state-multiple "/Projects/elpa/packages" t)
+    (dvc-push "/Projects/elpa")
+
+    ask for beta testers
+        edit notice below
+        ada-mode mailing list
+        comp.lang.ada
+
+    # 24 hrs for web repository to update
+
+after Gnu ELPA updated, test install from GNU ELPA
+    first install current version, to be sure upgrade requires new versions
+        ada-mode 7.1.5 should have required wisi 3.1.5
+
+    (list-packages)
+    5.1.8 crashed emacs for me
+    see 'build.sh; install.sh' above for compiling
+
+    also wisitoken-grammar-mode
+
+(dvc-state-one ".")
+ELPA.make tag zip
+
+in cygwin console for gpg prompts:
+    cd /Projects/org.emacs.gpr-query/build/
+    ls *.tar*
+    rm <old>.tar*
+    gpg -b *.tar.*
+
+    scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/gpr-query/
+
+publish on Alire
+    https://alire.ada.dev/
+
+create release branch
+
+post on:
+    emacs-ada-mode mailing list
+    c.l.a newsgroup
+    https://savannah.nongnu.org/news/submit.php?group_id=11631:
+
+-------------------
+Gnu Emacs gpr-query 1.0 released.
+-------------------
+
+Gnu Emacs gpr-query 1.0 is now available in GNU ELPA.
+
+See the NEWS files in ~/.emacs.d/elpa/gpr-query-7.1.6 and wisi-3.1.3,
+or at http://www.nongnu.org/gpr-query/, for more details.
+
+The required Ada code requires a manual compile step, after the normal
+list-packages installation ('install.sh' is new in this release):
+
+cd ~/.emacs.d/elpa/gpr-query-7.1.6
+./build.sh
+./install.sh
+
+If you are not using Alire, this requires AdaCore gnatcoll packages
+which you may not have installed; see gpr-query.info Installation for
+help in installing them.
+-------------------
+
+mark fixed bugs
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-query
+    http://debbugs.gnu.org/Developer.html
+    email to nnn-close@debbugs.gnu.org
+        subject: copy from bug report
+        body: closed by ada-mode version 7.2.1
+        don't include Version: header; that's an Emacs version
+    debbugs updates summary page within half an hour; no emails
+
+-- end of file

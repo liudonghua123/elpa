@@ -1,0 +1,212 @@
+\input texinfo  @c -*-texinfo-*-
+@settitle gpr-query
+
+@copying
+Copyright @copyright{} 2022  Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom.''
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* gpr-query: (gpr-query).         Minor mode providing cross-reference information from the GNAT compiler.
+@end direntry
+
+@titlepage
+@sp 10
+@title gpr-query Version 1.0.1
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top, Overview, (dir), (dir)
+@top Top
+
+gpr-query Version 1.0.1
+
+@node Overview
+@chapter Overview
+
+gpr-query is an Emacs minor mode that provides an xref backend using
+cross-reference information output by the GNAT compiler. It uses an
+external program @code{gpr_query} to interface to the information.
+
+It can also be used with the wisi package, as ada-mode does.
+
+@code{gpr_query} is similar to the AdaCore utility @code{gnatxref},
+but supports additional queries.
+
+When @code{gpr_query} reads the compiler output, it caches the results in a
+database. As the code is edited and compiled, that database gets out
+of date. It can be refreshed by invoking @key{C-c C-q}, which is bound
+to @code{wisi-refresh-prj-cache}.
+
+@node Installation
+@chapter Installation
+
+The easiest way to install @code{gpr_query} is via the Ada package
+mangager Alire. You can also install the required libraries manually,
+and then build @code{gpr_query} manually.
+
+If you are building with Alire, and planning to use gpr-query with the
+system Ada compiler (ie, not one provided by Alire), then you must
+first tell Alire to use that compiler to compile and install
+gpr-query. To do this:
+@example
+alr toolchain --select --local gnat_external
+@end example
+
+Sometimes Alire does not properly detect a corresponding external
+gprbuild; then you must use the toolchain assistant:
+@example
+alr toolchain --select --local
+@end example
+
+You can also install a compiler provided by Alire in an external
+directory, to be used outside Alire:
+@example
+alr toolchain --install --install-dir $HOME/.local gnat_native
+alr toolchain --install --install-dir $HOME/.local gprbuild
+@end example
+
+Then add the installed @code{bin} directories to your @code{PATH}.
+
+
+In any case, after installing the gpr-query ELPA package:
+@example
+cd ~/.emacs.d/elpa/gpr-query-1.0.x
+./build.sh
+./install.sh
+@end example
+
+Both scripts will use Alire if @code{alr} is found in @code{PATH};
+otherwise, they use @code{gprbuild} and @code{gprinstall}.
+
+By default, @file{install.sh} installs the parser executable in the
+same directory as the GNAT executable (using @file{gprinstall}),
+because it depends on data output by the compiler, which can change
+with the compiler version. If you don't have write privileges there,
+or if you want to install somewhere else, use @code{install.sh
+--prefix=<dir>}.
+
+When building manually, @code{gpr_query} requires the @code{GNATCOLL}
+library provided by AdaCore, distributed with GNAT GPL 2017 or later,
+and also available at Github
+(@url{https://github.com/AdaCore/gnatcoll}). The parser builds with
+the gnatcoll distributed with the gnat compiler. However, that
+gnatcoll does not include the xref package, which is required by
+@code{gpr_query}. So we must build gnatcoll xref from sources
+downloaded from github.
+
+The notes below assume that the compiler is installed at
+@file{$prefix}, e.g. @file{/usr/local/gnat-2019}, and that
+@file{$prefix/bin} is first on the @code{PATH}. If you are running
+Windows, use mingw64 @code{bash} to run these commands.
+
+On some operating systems, we must install gnatcoll-iconv; other
+operating systems don't need it.
+
+In general, @code{gpr_query} should be compiled with the compiler
+version that is used to generate the user project @file{.ali} files;
+the @file{ali} file format can change with each compiler
+version. @code{gpr_query} creates a database of cross reference
+information; that database must be deleted if the compiler version
+changes, to force a complete rebuild.
+
+@file{gpr_query} requires the @code{pthread} library. On Windows, this
+is available in Mingw64 as package
+@code{mingw64/mingw-w64-x86_64-winpthreads-git}.
+
+@menu
+* Building GNATCOLL::
+* Building the executables::
+@end menu
+
+@node Building GNATCOLL
+@subsection Building GNATCOLL
+
+The GNAT Community and GNAT pro binary installs have some of the
+GNATCOLL packages we need, but we need to install others from source.
+
+Debian 11 provides binary packages for the GNATCOLL packages we need;
+@table @samp
+@item libgnatcoll-db-bin
+@item libgnatcoll-iconv20-dev
+@item libgnatcoll-sql4-dev
+@item libgnatcoll-sqlite20-dev
+@item libgnatcoll-xref21-dev
+@end table
+
+Debian does not provide a binary for gnatstub.
+
+If you are using GNAT Community, download gnatcoll-db from
+@url{https://github.com/AdaCore/gnatcoll-db}; select the latest
+release branch (or the one that matches your compiler), click on the
+``clone or download'' button, select ``Download ZIP''.
+
+If you are using GNAT Pro, download @file{gnatcoll-db.tar.gz} from the
+GNAT Studio sources in GNAT Tracker.
+
+Similarly, if needed for your OS, download gnatcoll-bindings from the
+GNAT Community sources. This is for gnatcoll-iconv; not needed on
+Windows.
+
+@c debian/comm-2020 requires gnatcoll-iconv
+@c debian/pro-21.1 requires gnatcoll-iconv
+
+Then unpack, build, and install the required components. If you are
+unsure whether you need to install iconv, skip that step; a later step
+will complain if it is needed.
+
+If @code{./setup.py} complains it can't find @code{python}, try
+@code{python3 setup.py ...}.
+
+For github gnatcoll-db version 21.2, apply gnatcoll-2021-sql.diff.
+
+@example
+unzip ~/Downloads/gnatcoll-bindings-22.2.zip
+cd gnatcoll-bindings-22.2
+cd iconv
+./setup.py build
+./setup.py install
+
+unzip ~/Downloads/gnatcoll-db-22.2.zip
+cd gnatcoll-db-22.2
+make -C sql
+make -C sql install
+make -C sqlite
+make -C sqlite install
+make -C xref
+make -C xref install
+@end example
+
+@c To build gnatcoll-core with debug, edit the corresponding gpr file
+@c to delete @code{-gnatwe} (there are lots of warnings about license
+@c incompatibility, and a few other things). Then _do not_ build or
+@c install; just setup to create the .gpr files. Installing causes
+@c lots of spurious warnings about files need to be
+@c recompiled. Uninstall core, sql, sqlite, xref; add the build
+@c directories to GPR_PROJECT_PATH, add @code{BUILD=DEBUG} to the
+@c command line, edit the .gpr files to set OS. Sigh; that still
+@c doesn't work.
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@end ifnottex
