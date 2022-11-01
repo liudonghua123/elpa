@@ -2337,9 +2337,9 @@ Prefix argument STAY means stay on the field we just edited."
       (kill-buffer edit-buffer)
       (goto-char marker)
       (rec-delete-field)
-      (rec-insert (rec-field :position 0
-                             :name name
-                             :value value))
+      (rec-insert (make-rec-field :position 0
+                                  :name name
+                                  :value value))
       (goto-char prev-pointer)
       (unless (derived-mode-p 'rec-edit-mode)
         (rec-hide-continuation-line-markers))
