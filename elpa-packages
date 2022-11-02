@@ -39,8 +39,7 @@
   :auto-sync t)
  ("ada-mode"		:url nil
   :doc ("ada-mode.texi")
-  :branch "ada-mode"
-  :release-branch "ada-mode.release")
+  :release-branch t)
  ("ada-ref-man"		:url nil)
  ("adaptive-wrap"	:url nil)
  ("adjust-parens"	:url nil)
@@ -339,8 +338,7 @@
  ("gited"		:url nil)
  ("gle-mode"		:url nil)
  ("gnat-compiler"	:url nil
-  :branch "gnat-compiler"
-  :release-branch "gnat-compiler.release")
+  :release-branch t)
  ("gnome-c-style"	:url "https://github.com/ueno/gnome-c-style.git")
  ("gnorb"               :url nil) ;; Was "https://github.com/girzel/gnorb"
  ("gnu-elpa"		:url nil)
@@ -352,12 +350,10 @@
   :readme "README.md"
   :auto-sync t)
  ("gpr-mode"	:url nil
-  :branch "gpr-mode"
-  :release-branch "gpr-mode.release"
+  :release-branch t
   :doc ("gpr-mode.texi"))
  ("gpr-query"	:url nil
-  :branch "gpr-query"
-  :release-branch "gpr-query.release"
+  :release-branch t
   :doc ("gpr-query.texi"))
  ("greader"		:url "https://gitlab.com/michelangelo-rodriguez/greader"
   :auto-sync t)
@@ -821,8 +817,7 @@
  ("windresize"		:url nil)
  ("wisi"		:url nil
   :doc ("wisi.texi" "wisitoken-user_guide.texinfo")
-  :branch "wisi"
-  :release-branch "wisi.release")
+  :release-branch t)
  ("wisitoken-grammar-mode" :url nil)
  ("wpuzzle"		:url nil)
  ;; FIXME: Waiting for copyright paperwork from Emanuel Berg.
