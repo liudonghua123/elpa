@@ -1,4 +1,4 @@
-;; gnat-compiler.el --- Support for running GNAT tools  -*- lexical-binding:t -*-
+;;; gnat-compiler.el --- Support for running GNAT tools  -*- lexical-binding:t -*-
 ;;
 ;; GNAT is provided by AdaCore; see https://www.adacore.com/community
 ;;
@@ -1460,4 +1460,5 @@ server executable not found; otherwise signal user-error."
 (eval-after-load 'ada-mode '(add-hook 'ada-mode-hook #'gnatprep-setup))
 
 (provide 'gnat-compiler)
-;; end of file
+
+;;; gnat-compiler.el ends here

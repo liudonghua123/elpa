@@ -4,8 +4,6 @@
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Version: 1.0
-;; package-requires: ((emacs "25.3") (wisi "4.0"))
 ;;
 ;; This file is part of GNU Emacs.
 ;;
