@@ -1103,4 +1103,4 @@ FILE is from gpr-query."
 	     (cons 'gpr-query-ident-file gpr-query-ident-file-regexp-alist))
 
 (provide 'gpr-query)
-;;; end of file
+;;; gpr-query.el ends here
