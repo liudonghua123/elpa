@@ -6,16 +6,23 @@ all : byte-compile autoloads
 
 ifeq ($(shell uname),Linux)
 EMACS_EXE ?= emacs
+WISI ?= /Projects/org.emacs.wisi
+
 else ifeq ($(shell uname),Darwin)
 EMACS_EXE ?= "/Applications/Emacs.app/Contents/MacOS/Emacs"
+WISI ?= /Projects/org.emacs.wisi
+
 else
 # windows
 # specify uniscribe to workaround weird Windows harfbuzz bug
 EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
+WISI ?= c:/Projects/elpa/packages/wisi
+
 endif
 
 BYTE_COMPILE := "(progn (setq byte-compile-error-on-warn t)(batch-byte-compile))"
 byte-compile : byte-compile-clean
+	$(MAKE) -C $(WISI)/build byte-compile autoloads
 	$(EMACS_EXE) -Q -batch -L . -L $(WISI) --eval $(BYTE_COMPILE) *.el
 
 byte-compile-clean :
