@@ -31,9 +31,15 @@
   ;; https://github.com/alire-project/alire/issues/1147). So empty it
   ;; here.
   ;;
+  ;; gnat list does not respect ADA_PROJECT_PATH, so if the
+  ;; alire.toml specifies ADA_PROJECT_PATH (ada_language_server does
+  ;; this), append that to GPR_PROJECT_PATH here.
+  ;;
   ;; We need all of the alire settings for "gnat list" and "gpr_query"
   ;; to properly process complex projects (like Alire).
-  (let ((process-environment (copy-sequence process-environment)))
+  (let ((process-environment (copy-sequence process-environment))
+	ada-project-path
+	gpr-project-path)
     (setenv "GPR_PROJECT_PATH" "")
 
     (with-temp-buffer
@@ -42,19 +48,34 @@
 	 ((= 0 status)
 	  (goto-char (point-min))
 	  (while (not (eobp))
-	    (looking-at "export \\(.*\\)$")
+	    (looking-at "export \\(.*\\)=\"\\(.*\\)\"$")
 	    (setf (wisi-prj-file-env project)
-		  (append (wisi-prj-file-env project) (list (match-string-no-properties 1))))
+		  (append (wisi-prj-file-env project)
+			  (list (concat (match-string-no-properties 1) "=" (match-string-no-properties 2)))))
+
+	    (let ((name  (match-string-no-properties 1))
+		  (value (match-string-no-properties 2)))
+	      (when (string= name "ADA_PROJECT_PATH")
+		(setq ada-project-path value))
+	      (when (string= name "GPR_PROJECT_PATH")
+		(setq gpr-project-path value)))
 	    (forward-line 1)
 	    ))
 
 	 (t
 	  (user-error "alr printenv failed; bad or missing alire.toml?"))
-	 ))
-      )))
+	 )))
+    (when ada-project-path
+      (setf (wisi-prj-file-env project)
+	    (delete (concat "GPR_PROJECT_PATH=" gpr-project-path) (wisi-prj-file-env project)))
+      (setf (wisi-prj-file-env project)
+	    (append (wisi-prj-file-env project)
+		    (list (concat "GPR_PROJECT_PATH="
+				  (concat gpr-project-path ":" ada-project-path))))))
+    ))
 
 ;;;###autoload
-(cl-defun create-alire-project (&key name gpr-file compile-env xref-label)
+(cl-defun create-alire-project (&key name gpr-file compile-env file-env xref-label)
   ;; We could use "alr exec -P -- echo" to get the project file (also
   ;; see https://github.com/alire-project/alire/issues/1151), but that
   ;; doesn't work when there are multiple project files listed in
@@ -68,7 +89,7 @@
   "Return an initial wisi project for the current Alire workspace."
   (let* ((default-directory (locate-dominating-file default-directory "alire.toml"))
 	 (abs-gpr-file (expand-file-name gpr-file))
-	 (project (make-wisi-prj :name name :compile-env compile-env))
+	 (project (make-wisi-prj :name name :compile-env compile-env :file-env file-env))
 	 )
 
     (alire-get-env project)

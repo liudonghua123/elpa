@@ -268,17 +268,19 @@ Assumes current buffer is (gnat-run-buffer)"
     (funcall process-list (wisi-prj-compile-env project))
     (funcall process-list (wisi-prj-file-env project))
 
-    (when (gnat-debug-enabled 0)
-      (insert (format "GPR_PROJECT_PATH=%s\n%s " (getenv "GPR_PROJECT_PATH") exec))
-      (mapc (lambda (str) (insert (concat str " "))) command)
-      (newline))
-
-    (when (gnat-debug-enabled 1)
-      (dolist (item process-environment)
-	(insert item)(insert "\n")))
-
     (let ((exec-path (split-string (getenv "PATH") path-separator)))
+      (when (gnat-debug-enabled 0)
+	(insert (format "GPR_PROJECT_PATH=%s\n%s " (getenv "GPR_PROJECT_PATH")
+			(executable-find exec)))
+	(mapc (lambda (str) (insert (concat str " "))) command)
+	(newline))
+
+      (when (gnat-debug-enabled 1)
+	(dolist (item process-environment)
+	  (insert item)(insert "\n")))
+
       (setq status (apply 'call-process exec nil t nil command)))
+
     (cond
      ((memq status (or expected-status '(0))); success
       nil)
