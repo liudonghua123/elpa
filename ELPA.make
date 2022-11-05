@@ -46,9 +46,9 @@ recursive-clean : force
 # builds $(ELPA_ROOT)/archive-devel/*, from the last commit, _not_ the
 # current workspace Also checks copyright; run elpa/GNUMakefile
 # check/<pkg> first if added files.
-build-elpa : force
-	rm -rf $(ELPA_ROOT)/archive-devel
-	make -C $(ELPA_ROOT)/ build/gpr-query
+build-elpa : ../../GNUmakefile force
+	rm -rf ../../archive-devel
+	make -C ../.. build/gpr-query
 
 config :
 	mkdir config
