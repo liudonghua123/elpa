@@ -286,6 +286,7 @@ to the syllables buffer."
     (define-key map "\C-p" #'hiddenquote-prev)
     (define-key map [up] #'hiddenquote-prev)
     (define-key map [(meta ?g) (meta ?g)] #'hiddenquote-goto-word)
+    (define-key map [(meta ?g) (control ?s)] #'hiddenquote-search-word)
     ;; Done.
     (define-key map [(control ?x) (control ?s)] #'hiddenquote-save)
     (define-key map [(control ?x) ?!] #'hiddenquote-give-up)
@@ -1114,7 +1115,8 @@ Return `hiddenquote-used-syllable' if WIDGET's value is non-nil,
 (defun hiddenquote-syllable-notify (_widget _child &optional _event)
   "Check if all syllables are marked as used."
   (when (hiddenquote-puzzle-complete-p)
-    (hiddenquote-timer-stop-timer)))
+    (hiddenquote-timer-stop-timer)
+    (message "Congratulations, you won!")))
 
 ;; Functions.
 (defun hiddenquote--get-quote-length ()
@@ -1561,6 +1563,17 @@ every word."
     (widget-apply-action (nth (widget-get parent :hiddenquote-word-number)
                               (widget-get (widget-get parent :parent)
                                           :buttons)))))
+
+(defun hiddenquote-search-word (word)
+  "Search for presence of the string WORD in a definition and go to that word."
+  (interactive (list (read-string "Word: ")))
+  (let* ((clues (oref (widget-get hiddenquote-current :hiddenquote) clues))
+         (re (concat "\\<" (regexp-quote word) "\\>"))
+         (def (seq-position clues word (lambda (clue _word)
+                                         (string-match re (cadr clue))))))
+    (if def
+        (hiddenquote-goto-word (1+ def))
+      (message "No definition contains that word"))))
 
 (defun hiddenquote-toggle-automatic-check ()
   "Toggle the `hiddenquote-automatic-check' variable."
