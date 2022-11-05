@@ -62,9 +62,10 @@
  ("ampc"		:url nil)
  ("arbitools"		:url nil)
  ("ascii-art-to-unicode" :url nil)
- ("assess"		:url "https://github.com/phillord/assess"
-  :doc "assess-doc.org"
-  :auto-sync t)
+ ;; FIXME: Need to fix the manual's build problem.
+ ;; ("assess"		:url "https://github.com/phillord/assess"
+ ;;  :doc "assess-doc.org"
+ ;;  :auto-sync t)
  ("async"		:url "https://github.com/jwiegley/emacs-async"
   :ignored-files ("COPYING")
   :auto-sync t)
@@ -453,9 +454,10 @@
  ("lv"			:url "https://github.com/abo-abo/hydra"
   :ignored-files ("hydra*" "README.md" "doc" "targets")
   :auto-sync t)
- ("m-buffer"		:url "https://github.com/phillord/m-buffer-el"
-  :doc "m-buffer-doc.org"
-  :auto-sync t)
+ ;; FIXME: Need to fix the manual's build problem.
+ ;; ("m-buffer"		:url "https://github.com/phillord/m-buffer-el"
+ ;;  :doc "m-buffer-doc.org"
+ ;;  :auto-sync t)
  ("map"                 :core "lisp/emacs-lisp/map.el")
  ("marginalia"		:url "https://github.com/minad/marginalia"
   :doc "README.org"
@@ -752,9 +754,9 @@
   :doc "docs/transient.texi")
  ("transient-cycles"    :url nil)
  ("trie"		:url "http://www.dr-qubit.org/git/predictive.git")
- ;; FIXME: Depends on `emacsql` which is on its way to NonGNU ELPA.
- ;;("triples"		:url "https://github.com/ahyatt/triples"
- ;; :auto-sync t)
+ ("triples"		:url "https://github.com/ahyatt/triples"
+  :readme "README.org"
+  :auto-sync t)
  ;; FIXME: Waiting for copyright cleanups.
  ;;("trinary"		:url "https://github.com/emacs-elsa/trinary-logic"
  ;; :auto-sync t)
