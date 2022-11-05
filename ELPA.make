@@ -12,7 +12,7 @@ build : config/emacs_gpr_query_config.gpr force
 	gprbuild -p -j8 emacs_gpr_query.gpr
 
 install : bin/gpr_query$(EXE_EXT)
-	gprinstall -f -p -P emacs_gpr_query.gpr --install-name=gpr_query
+	gprinstall -f -p -P emacs_gpr_query.gpr --prefix=~/.local --install-name=gpr_query
 
 ifeq ($(shell uname),Linux)
 EMACS_EXE ?= emacs
@@ -43,15 +43,6 @@ clean : force
 recursive-clean : force
 	gprclean -r -P emacs_gpr_query.gpr
 
-### publish to elpa package
-ELPA_ROOT ?= $(shell cd ../elpa; pwd -W)
-
-pub : force | $(ELPA_ROOT)/packages/gpr-query
-	rm -rf $(ELPA_ROOT)/packages/gpr-query/*
-	cp *.el *.gpr *.make *.prj *.sh *.texi $(ELPA_ROOT)/packages/gpr-query
-	cp NEWS README $(ELPA_ROOT)/packages/gpr-query
-	cd $(ELPA_ROOT)/packages/gpr-query; rm autoloads.el
-
 # builds $(ELPA_ROOT)/archive-devel/*, from the last commit, _not_ the
 # current workspace Also checks copyright; run elpa/GNUMakefile
 # check/<pkg> first if added files.
@@ -59,26 +50,11 @@ build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive-devel
 	make -C $(ELPA_ROOT)/ build/gpr-query
 
-config/emacs_gpr_query_config.gpr :
+config :
+	mkdir config
+
+config/emacs_gpr_query_config.gpr : config
 	cp emacs_gpr_query_config_devel.gpr config/emacs_gpr_query_config.gpr
-
-### misc stuff
-BRANCH := $(notdir $(shell cd ..; pwd))
-
-ifeq ($(BRANCH),org.emacs.gpr-query)
-  TAR_FILE := org.emacs.gpr-query-$(GPR_QUERY_VERSION)
-else
-  TAR_FILE := $(BRANCH)
-endif
-
-zip :
-	rm -rf $(TAR_FILE)
-	mtn checkout --branch $(BRANCH) $(TAR_FILE)
-	tar jcf $(TAR_FILE).tar.bz2 --exclude _MTN -C .. $(TAR_FILE)
-
-tag :
-	mtn tag h:org.emacs.gpr-query org.emacs.gpr-query-$(GPR_QUERY_VERSION)
-
 
 # Local Variables:
 # eval: (load-file "prj.el")

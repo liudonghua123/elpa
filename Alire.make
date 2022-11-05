@@ -1,8 +1,9 @@
 # For compiling gpr-query Ada code with Alire
 
-STEPHES_ADA_LIBRARY_ALIRE_PREFIX ?= $(CURDIR)/../org.stephe_leake.sal
+include ../wisi/alire_rules.make
 
-include $(STEPHES_ADA_LIBRARY_ALIRE_PREFIX)/build/alire_rules.make
+install : bin/gpr_query$(EXE_EXT)
+	gprinstall -f -p -P emacs_gpr_query.gpr --prefix=~/.local --install-name=gpr_query
 
 # Local Variables:
 # eval: (load-file "prj-eglot.el")

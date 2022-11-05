@@ -77,17 +77,7 @@ gprbuild; then you must use the toolchain assistant:
 alr toolchain --select --local
 @end example
 
-You can also install a compiler provided by Alire in an external
-directory, to be used outside Alire:
-@example
-alr toolchain --install --install-dir $HOME/.local gnat_native
-alr toolchain --install --install-dir $HOME/.local gprbuild
-@end example
-
-Then add the installed @code{bin} directories to your @code{PATH}.
-
-
-In any case, after installing the gpr-query ELPA package:
+After installing the gpr-query ELPA package:
 @example
 cd ~/.emacs.d/elpa/gpr-query-1.0.x
 ./build.sh

@@ -1,0 +1,7 @@
+alire/
+autoloads.el
+autoloads.el~
+bin/
+config/
+*.elc
+obj/
