@@ -39,6 +39,12 @@ developing GNU and promoting software freedom.''
 
 gpr-query Version 1.0.1
 
+@menu
+* Overview::
+* Installation::
+* GNU Free Documentation License::
+@end menu
+
 @node Overview
 @chapter Overview
 
@@ -124,11 +130,10 @@ is available in Mingw64 as package
 
 @menu
 * Building GNATCOLL::
-* Building the executables::
 @end menu
 
 @node Building GNATCOLL
-@subsection Building GNATCOLL
+@section Building GNATCOLL
 
 The GNAT Community and GNAT pro binary installs have some of the
 GNATCOLL packages we need, but we need to install others from source.

@@ -4,7 +4,7 @@
 
 .PHONY : all force
 
-all : build byte-compile autoloads
+all : build byte-compile autoloads docs
 
 docs : gpr-query.info
 
