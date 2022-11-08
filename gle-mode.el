@@ -145,18 +145,15 @@
   "Expects point to be right after `if`."
   (save-excursion
     (let ((eol (line-end-position))
-          (lasttok nil)
-          (tok nil))
-      (while (<= (point) eol)
-        (setq lasttok tok)
-        (forward-comment (point-max))
-        (setq tok (buffer-substring (point)
-                                    (progn
-                                      (or (> (skip-syntax-forward "w_") 0)
-                                          (> (skip-syntax-forward ".") 0)
-                                          (forward-char 1))
-                                      (point)))))
-      (if (equal lasttok "then")
+          (then nil))
+      (while (progn
+               (forward-comment (point-max))
+               (and (< (point) eol)
+                    (not (setq then (looking-at "then\\_>")))))
+        (or (> (skip-syntax-forward "w_") 0)
+            (> (skip-syntax-forward ".") 0)
+            (forward-char 1)))
+      (if then
           "if bloc"
         "if line"))))
 
