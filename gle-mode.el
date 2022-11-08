@@ -342,7 +342,7 @@
              ;; List of (MORE FACE . ENTRIES) where MORE is non-nil if
              ;; one of the ENTRIES needs further processing.
              (mapcar (lambda (x)
-                       (cons (cl-some #'cdr (cdr x)) x))
+                       (cons (not (not (cl-some #'cdr (cdr x)))) x))
                      rules))
             (regexp
              (concat (cond (any ".*") (top "^[ \t]*") (t "[ \t]*"))
@@ -354,31 +354,23 @@
                                 "\\|")
                      "\\)")))
         (lambda (limit)
-          (if any
-              (while (looking-at regexp)
+          (while
+              (when (if top (re-search-forward regexp limit t)
+                      (looking-at regexp))
                 (goto-char (match-end 0))
                 (let ((i 2))
                   (while (not (match-beginning i)) (setq i (1+ i)))
                   (let ((arule (nth (- i 2) arules)))
                     (put-text-property (match-beginning 1) (match-end 1)
                                        'face (cadr arule))
-                    (cl-assert (not (car arule))))))
-            (when (if top (re-search-forward regexp limit t)
-                    (looking-at regexp))
-              (goto-char (match-end 0))
-              (let ((i 2))
-                (while (not (match-beginning i)) (setq i (1+ i)))
-                (let ((arule (nth (- i 2) arules)))
-                  (put-text-property (match-beginning 1) (match-end 1)
-                                     'face (cadr arule))
-                  (when (car arule)
-                    (let* ((kw (match-string-no-properties 1))
-                           (entry (assoc kw (cddr arule))))
-                      (cl-assert entry)
-                      (when (cdr entry)
-                        (funcall (cdr entry) limit))))))
-              ;; Try again (if at top).
-              t)))))))
+                    (when (car arule)
+                      (let* ((kw (match-string-no-properties 1))
+                             (entry (assoc-string kw (cddr arule) t)))
+                        (cl-assert entry t)
+                        (when (cdr entry)
+                          (funcall (cdr entry) limit))))))
+                ;; Try again if applicable.
+                (or top any))))))))
 
 (defvar gle-font-lock-keywords
   `(("^[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*="
