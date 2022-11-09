@@ -312,6 +312,7 @@ to the syllables buffer."
     (define-key map [backspace] #'hiddenquote-delete-backward-char)
     (define-key map [delete] #'delete-char)
     (define-key map [?\d] #'hiddenquote-delete-backward-char)
+    (define-key map "\C-t" #'hiddenquote-transpose-chars)
     ;; Actions.
     (define-key map "?" #'hiddenquote-check-answer)
     (define-key map "\C-m" #'widget-field-activate)
@@ -1395,6 +1396,29 @@ Character cell bindings:
   (unless (eq (widget-type (widget-at)) 'hiddenquote-character)
     (widget-forward 1))
   (delete-char 1))
+
+(defun hiddenquote-transpose-chars ()
+  "Interchange the characters around point, and move forward one character.
+
+Attempting to transporte the first character in a word results in an error.
+
+Note that after transposing the last character in a word, this command moves
+point to the next word."
+  (interactive)
+  (let* ((ch1 (widget-at))
+         (parent (widget-get ch1 :parent))
+         (children (widget-get parent :children))
+         (length (length children))
+         (n (seq-position children ch1))
+         (ch2 (if (= n 0)
+                  (user-error "Can't transpose the first character in a word")
+                (nth (1- n) children)))
+         (oval (widget-value ch1))
+         (nval (widget-value ch2)))
+    ;; Spaces are problematic.
+    (widget-value-set ch1 (if (char-equal nval ?\s) "" nval))
+    (widget-value-set ch2 (if (char-equal oval ?\s) "" oval))
+    (hiddenquote-forward)))
 
 (defun hiddenquote-forward ()
   "Go to the next character if at a widget, use `forward-char' otherwise."
