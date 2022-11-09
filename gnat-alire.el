@@ -48,18 +48,22 @@
 	 ((= 0 status)
 	  (goto-char (point-min))
 	  (while (not (eobp))
-	    (looking-at "export \\(.*\\)=\"\\(.*\\)\"$")
-	    (setf (wisi-prj-file-env project)
-		  (append (wisi-prj-file-env project)
-			  (list (concat (match-string-no-properties 1) "=" (match-string-no-properties 2)))))
+            ;; Sometimes alr puts comments in this output:
+            ;; Note: Running post_fetch actions for xmlada=23.0.0...
+            ;; checking build system type... x86_64-pc-linux-gnu
+	    (when (looking-at "export \\(.*\\)=\"\\(.*\\)\"$")
+	      (setf (wisi-prj-file-env project)
+		    (append (wisi-prj-file-env project)
+			    (list (concat (match-string-no-properties 1) "=" (match-string-no-properties 2)))))
 
-	    (let ((name  (match-string-no-properties 1))
-		  (value (match-string-no-properties 2)))
-	      (when (string= name "ADA_PROJECT_PATH")
-		(setq ada-project-path value))
-	      (when (string= name "GPR_PROJECT_PATH")
-		(setq gpr-project-path value)))
-	    (forward-line 1)
+	      (let ((name  (match-string-no-properties 1))
+		    (value (match-string-no-properties 2)))
+	        (when (string= name "ADA_PROJECT_PATH")
+		  (setq ada-project-path value))
+	        (when (string= name "GPR_PROJECT_PATH")
+		  (setq gpr-project-path value)))
+	      )
+            (forward-line 1)
 	    ))
 
 	 (t
