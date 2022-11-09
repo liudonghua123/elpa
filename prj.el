@@ -8,8 +8,8 @@
     :name "gpr-query elpa"
     :compile-env
     (list
-     (concat "GNAT_COMPILER=" (expand-file-name "../org.emacs.gnat-compiler"))
-     (concat "WISI=" (expand-file-name "../org.emacs.wisi"))
+     (concat "GNAT_COMPILER=" (expand-file-name "../gnat-compiler"))
+     (concat "WISI=" (expand-file-name "../wisi"))
      ))
    "ELPA.make"
    )
