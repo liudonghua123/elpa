@@ -11,11 +11,11 @@
 (defconst jarchive--uri-regex
   (rx
    line-start
-   "jar:file://"
+   (or "jar:file://" "zipfile://")
    ;; match group 1, the jar file location
    (group "/" (* not-newline) ".jar")
    ;; Delimiter between the jar and the file inside the jar
-   "!"
+   (or "!" "::")
    ;; match the leading directory delimiter /,
    ;; archvie mode expects none so it's outside match group 2
    (zero-or-one "/")
