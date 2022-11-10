@@ -106,11 +106,20 @@ TODO: this might be unnecessary, try to remove"
   (and (string-match-p jarchive--uri-regex buffer-file-name)
        t))
 
+;; Eventually clojure-lsp devs may make this the default.
+(defvar jarchive-eglot-clojure-lsp-initialization-options '(:dependency-scheme "jar")
+  "If non-nil, use these options when starting clojure-lsp servers with eglot.")
+
 ;;;###autoload
 (defun jarchive-setup ()
+  "setup jarchive, enabling emacs to open files inside jar archives.
+the files can be identified with the `jar' uri scheme."
   (interactive)
   (with-eval-after-load 'eglot
-    (setq eglot-preserve-jar-uri t))
+    (when (and jarchive-eglot-clojure-lsp-initialization-options (boundp 'eglot-server-programs))
+      (add-to-list 'eglot-server-programs
+                   `((clojure-mode clojurescript-mode clojurec-mode) .
+                     ("clojure-lsp" :initializationOptions ,jarchive-eglot-clojure-lsp-initialization-options)))))
   (add-to-list 'file-name-handler-alist (cons jarchive--uri-regex #'jarchive--file-name-handler))
   (add-to-list 'find-file-not-found-functions #'jarchive--find-file-not-found))
 
