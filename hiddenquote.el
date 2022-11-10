@@ -338,6 +338,7 @@ to the syllables buffer."
     (define-key map "\C-a" #'hiddenquote-beg-of-line-syllable)
     (define-key map "e" #'hiddenquote-end-of-line-syllable)
     (define-key map "\C-e" #'hiddenquote-end-of-line-syllable)
+    (define-key map "\M->" #'hiddenquote-goto-last-syllable)
     map)
   "Keymap for the Syllables buffer.")
 
@@ -1518,7 +1519,13 @@ point to the next word."
   "Move to the last syllable in the current line."
   (interactive)
   (end-of-line)
-  (widget-backward 1))
+  (hiddenquote-backward-syllable))
+
+(defun hiddenquote-goto-last-syllable ()
+  "Move to the last syllable in the buffer."
+  (interactive)
+  (goto-char (point-max))
+  (hiddenquote-backward-syllable))
 
 (defun hiddenquote-complete-quote (str)
   "Complete the quote with the string STR.
