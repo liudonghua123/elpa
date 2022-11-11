@@ -1,7 +1,32 @@
-;;; jarchive.el --- Enables navigation into jar archives -*- lexical-binding: t; -*-
+;;; jarchive.el --- Open project dependencies in jar archives -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2022 Danny Freeman
+;; Authors: Danny Freeman <danny@dfreeman.email>
+;; Maintainer: Danny Freeman <danny@dfreeman.email>>
+;; Version: 0.1.0
+;; Keywords: java, clojure, jvm, jar, archives, lsp, eglot
+;; URL: https://git.sr.ht/~dannyfreeman/jarchive
+;; Package-Requires: ((seq "2.23"))
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; Jarchive extends Emacs to allow navigation into files contained withing .jar archives.
+;; Jarchive extends Emacs to allow navigation into files contained within .jar archives.
+;; Works great with Eglot and JVM language servers like clojure-lsp!
+;;
+;; Special shout out to João Távora for his advice and feedback while I wrote this package and for
+;; his work on Eglot.
 
 ;;; Code:
 (require 'arc-mode)
