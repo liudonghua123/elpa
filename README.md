@@ -2,11 +2,12 @@ Jarchive teaches emacs how to open project dependencies that reside inside jar f
 
 # Package status
 
-This package is still under active development and is not yet ready for widespread use. Proceed with caution!
+This package is still under active development.
+Right now it should be relatively stable. 
+Any important or breaking changes will now be noted in the CHANGELOG.
 
-It current works well with eglot on the Emacs master branch. 
-If you are using eglot from melpa or the eglot github, this won't work.
-I will update the README when this changes.
+It current works well with eglot on the Emacs master branch.
+I've also included a patch for legacy versions of eglot that are not yet up to date with Emacs master.
 
 See the [CHANGELOG](item/CHANGELOG.md "change log") for more information.
 
