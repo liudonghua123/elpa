@@ -7,6 +7,7 @@
 (require 'arc-mode)
 (require 'cl-macs)
 (require 'seq)
+(require 'url-parse)
 
 (defconst jarchive--uri-regex
   (rx
@@ -106,6 +107,22 @@ TODO: this might be unnecessary, try to remove"
   (and (string-match-p jarchive--uri-regex buffer-file-name)
        t))
 
+(defun jarchive--wrap-legacy-eglot--path-to-uri (original-fn &rest args)
+  "Hack until eglot is updated.
+If path is a jar URI, don't parse. If it is not a jar call original impl."
+  (let ((path (file-truename (car args))))
+    (if (equal "jar" (url-type (url-generic-parse-url path)))
+        path
+      (apply 'funcall original-fn args))))
+
+(defun jarchive--wrap-legacy-eglot--uri-to-path (original-fn &rest args)
+  "Hack until eglot is updated.
+If URI is a jar URI, don't parse and let the `jarchive--file-name-handler' handle it.
+If it is not a jar call original impl."
+  (let ((uri (car args)))
+    (if (string= "file" (url-type (url-generic-parse-url uri)))
+        (apply 'funcall original-fn args)
+      uri)))
 
 ;;;###autoload
 (defun jarchive-setup ()
@@ -113,6 +130,10 @@ TODO: this might be unnecessary, try to remove"
 the files can be identified with the `jar' uri scheme."
   (interactive)
   (with-eval-after-load 'eglot
+    (when (version< emacs-version "29") ;; TODO, remove when eglot is updated in melpa
+      (advice-add 'eglot--path-to-uri :around #'jarchive--wrap-legacy-eglot--path-to-uri)
+      (advice-add 'eglot--uri-to-path :around #'jarchive--wrap-legacy-eglot--uri-to-path)))
+
   (add-to-list 'file-name-handler-alist (cons jarchive--uri-regex #'jarchive--file-name-handler))
   (add-to-list 'find-file-not-found-functions #'jarchive--find-file-not-found))
 
