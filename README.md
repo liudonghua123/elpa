@@ -8,6 +8,8 @@ It current works well with eglot on the Emacs master branch.
 If you are using eglot from melpa or the eglot github, this won't work.
 I will update the README when this changes.
 
+See the [CHANGELOG](item/CHANGELOG.md "change log") for more information.
+
 # Installing
 
 This package is not available on any package repositories yet.
