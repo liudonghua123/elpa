@@ -106,7 +106,9 @@ a {
   color: #c73a6c;
   text-decoration: none;
 }
-
+small {
+  font-size: smaller;
+}
 a:hover {
   color: #973066;
   text-decoration: underline;
