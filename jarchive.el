@@ -1,6 +1,6 @@
 ;;; jarchive.el --- Open project dependencies in jar archives -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Danny Freeman
+;; Copyright (C) 2022 Free Software Foundation, Inc.
 ;; Authors: Danny Freeman <danny@dfreeman.email>
 ;; Maintainer: Danny Freeman <danny@dfreeman.email>>
 ;; Version: 0.1.0
