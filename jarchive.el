@@ -49,15 +49,21 @@
    (group (* not-newline) "." (+ alphanumeric))
    line-end)
   "A regex for matching paths to a jar file and a file path into the jar file.
-Delimited by `!'.")
+Delimited by `!' for jar: schemes. Delimited by `::' for zipfile: schemes.")
 
 (defun jarchive--match! (uri)
+  "Perform a regex match on the URI.
+Expected by `jarchive--match-jar' and `jarchive--match-file'"
   (string-match jarchive--uri-regex uri))
 
 (defun jarchive--match-jar (uri)
+  "Extract the jar path from a URI.
+`jarchive--match!' must be called first"
   (substring uri (match-beginning 1) (match-end 1)))
 
 (defun jarchive--match-file (uri)
+  "Extract the inter-jar file path from a URI.
+`jarchive--match!' must be called first"
   (substring uri (match-beginning 2) (match-end 2)))
 
 (defmacro jarchive--inhibit (op handler &rest body)
@@ -69,9 +75,10 @@ Delimited by `!'.")
      ,@body))
 
 (defun jarchive--file-name-handler (op &rest args)
-  "A `file-name-handler-alist' function for files matching `jarchive--url-regex'.
-OP is an I/O primitive and ARGS are the remaining arguments passed to that primitive.
-See `(elisp)Magic File Names'."
+  "A `file-name-handler-alist' function for files matching jar URIs.
+Jar URIs are identified by `jarchive--url-regex'.
+OP is an I/O primitive and ARGS are the remaining arguments passed to that
+primitive. See `(elisp)Magic File Names'."
   (if-let ((uri (car args)))  ;; Sometimes this is invoked with nil args
       (let* ((_   (jarchive--match! uri))
              (jar-path (jarchive--match-jar uri))
@@ -134,7 +141,8 @@ TODO: this might be unnecessary, try to remove"
 
 (defun jarchive--wrap-legacy-eglot--path-to-uri (original-fn &rest args)
   "Hack until eglot is updated.
-If path is a jar URI, don't parse. If it is not a jar call original impl."
+ARGS is a list with one element, a file path or potentially a URI.
+If path is a jar URI, don't parse. If it is not a jar call ORIGINAL-FN."
   (let ((path (file-truename (car args))))
     (if (equal "jar" (url-type (url-generic-parse-url path)))
         path
@@ -142,8 +150,9 @@ If path is a jar URI, don't parse. If it is not a jar call original impl."
 
 (defun jarchive--wrap-legacy-eglot--uri-to-path (original-fn &rest args)
   "Hack until eglot is updated.
-If URI is a jar URI, don't parse and let the `jarchive--file-name-handler' handle it.
-If it is not a jar call original impl."
+ARGS is a list with one element, a URI.
+If URI is a jar URI, don't parse and let the `jarchive--file-name-handler'
+handle it. If it is not a jar call ORIGINAL-FN."
   (let ((uri (car args)))
     (if (string= "file" (url-type (url-generic-parse-url uri)))
         (apply 'funcall original-fn args)
@@ -151,7 +160,7 @@ If it is not a jar call original impl."
 
 ;;;###autoload
 (defun jarchive-setup ()
-  "setup jarchive, enabling emacs to open files inside jar archives.
+  "Setup jarchive, enabling Emacs to open files inside jar archives.
 the files can be identified with the `jar' uri scheme."
   (interactive)
   (with-eval-after-load 'eglot
