@@ -347,15 +347,15 @@
  ("gnugo"		:url nil)
  ("gnus-mock"		:url nil)
  ("gpastel"		:url "https://gitlab.petton.fr/DamienCassou/gpastel")
- ("graphql"		:url "https://github.com/vermiculus/graphql.el"
-  :readme "README.md"
-  :auto-sync t)
  ("gpr-mode"	:url nil
   :release-branch t
   :doc ("gpr-mode.texi"))
  ("gpr-query"	:url nil
   :release-branch t
   :doc ("gpr-query.texi"))
+ ("graphql"		:url "https://github.com/vermiculus/graphql.el"
+  :readme "README.md"
+  :auto-sync t)
  ("greader"		:url "https://gitlab.com/michelangelo-rodriguez/greader"
   :auto-sync t)
  ("greenbar"		:url nil)
@@ -409,6 +409,11 @@
  ("ivy-hydra"		:url "https://github.com/abo-abo/swiper")
  ("ivy-posframe"	:url "https://github.com/tumashu/ivy-posframe"
   :auto-sync t)
+ ("jarchive"		:url "https://git.sr.ht/~dannyfreeman/jarchive"
+  :auto-sync t
+  :readme "README.md"
+  :news "CHANGELOG.md"
+  :ignored-files ("LICENSE"))
  ("javaimp"		:url nil)
  ("jgraph-mode"		:url nil)
  ("js2-mode"		:url "https://github.com/mooz/js2-mode.git"
