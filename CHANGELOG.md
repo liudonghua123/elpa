@@ -1,5 +1,12 @@
 # Change Log
-## 2022-11-11 Release Notes
+
+## 2022-11-12 0.2.0 Release Notes
+- Documentation updates in preparation for submitting to elpa or melpa
+- BREAKING: Patching legacy Eglot no longer happens automatically when calling `jarchive-setup`.
+  - Users can call `(with-eval-after-load 'eglot (jarchive-patch-eglot))` now in their config instead.
+- `jarchive-patch-eglot` attempts to print warnings when it is called at the wrong time.
+
+## 2022-11-11 0.1.0 Release Notes
 
 - Now operates on full jar URIs and zipfile URIs
   - For example `jar:file:///path/to/library.jar!/path/in/jar/source.ext`

@@ -35,16 +35,32 @@ It can also be done in a hook (recommended)
 
 ``` emacs-lisp
 (add-hook 'eglot-managed-mode-hook #'jarchive-setup)
+;; OR something like
+(add-hook 'clojure-mode-hook #'jarchive-setup)
+```
+or interactively, via `M-x jarchive-setup`.
+
+## Working with Eglot
+
+Jarchive will open jar dependencies provided to Eglot by lsp servers.
+
+If you are using an older version of Eglot, like the melpa version released on [2022-10-20](https://melpa.org/packages/eglot-20221020.1010.el "Eglot Melpa Release 2022-10-20"), then you need to call `jarchive-patch-eglot` after Eglot is loaded, like so
+
+``` emacs-lisp
+(with-eval-after-load 'eglot
+  (jarchive-patch-eglot))
 ```
 
-or interactively, via `M-x jarchive-setup`.
+This is _not_ required on newer versions of eglot. Installs that are up to date with eglot on [ELPA devel](https://elpa.gnu.org/devel/eglot.html "Eglot ELPA Devel Release") or eglot bundled with emacs 29 will work without patching.
+This patch function is included so those on older releases of eglot can also take advantage of this package.
+Eventually it will be removed (with some advanced notice).
 
 ## Note about when to call `jarchive-setup`
 
-Some Emacs "distributions" like doom set the `file-name-handler-alist` var to nil on startup, then restore it's value when startup is complete.
+Some Emacs distributions like [Doom](https://github.com/doomemacs/doomemacs) (and many personal configurations), set the `file-name-handler-alist` var to nil on startup, then restore it's value when startup is complete.
 
 If this is the case for you, `jarchive-setup` should be called AFTER everything is initialized.
-This package modifies `file-name-handler-alist`, so it relies on it not being reset after `jarchive-setup` is invoked.
+This package modifies `file-name-handler-alist`, so it relies on it _not_ being reset after `jarchive-setup` is invoked.
 
 # Usage
 

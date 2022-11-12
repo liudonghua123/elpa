@@ -159,15 +159,24 @@ handle it. If it is not a jar call ORIGINAL-FN."
       uri)))
 
 ;;;###autoload
+(defun jarchive-patch-eglot ()
+  "Patch old versions of Eglot to work with Jarchive."
+  (interactive) ;; TODO, remove when eglot is updated in melpa
+  (cond
+   ((version<= "29" emacs-version)
+    (message "[jarchive] Eglot does not need to be patched. Skipping."))
+   ((or (not (fboundp 'eglot--path-to-uri))
+        (not (fboundp 'eglot--uri-to-path)))
+    (message "[jarchive] Eglot is not loaded, try calling `jarchive-patch-eglot' after loading eglot."))
+   (t (advice-add 'eglot--path-to-uri :around #'jarchive--wrap-legacy-eglot--path-to-uri)
+      (advice-add 'eglot--uri-to-path :around #'jarchive--wrap-legacy-eglot--uri-to-path)
+      (message "[jarchive] Eglot successfully patched."))))
+
+;;;###autoload
 (defun jarchive-setup ()
   "Setup jarchive, enabling Emacs to open files inside jar archives.
 the files can be identified with the `jar' uri scheme."
   (interactive)
-  (with-eval-after-load 'eglot
-    (when (version< emacs-version "29") ;; TODO, remove when eglot is updated in melpa
-      (advice-add 'eglot--path-to-uri :around #'jarchive--wrap-legacy-eglot--path-to-uri)
-      (advice-add 'eglot--uri-to-path :around #'jarchive--wrap-legacy-eglot--uri-to-path)))
-
   (add-to-list 'file-name-handler-alist (cons jarchive--uri-regex #'jarchive--file-name-handler))
   (add-to-list 'find-file-not-found-functions #'jarchive--find-file-not-found))
 
