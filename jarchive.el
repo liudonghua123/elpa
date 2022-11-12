@@ -4,9 +4,9 @@
 ;; Authors: Danny Freeman <danny@dfreeman.email>
 ;; Maintainer: Danny Freeman <danny@dfreeman.email>>
 ;; Version: 0.1.0
-;; Keywords: java, clojure, jvm, jar, archives, lsp, eglot
+;; Keywords: tools, languages, jvm, java, clojure
 ;; URL: https://git.sr.ht/~dannyfreeman/jarchive
-;; Package-Requires: ((seq "2.23"))
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 ;;; Code:
 (require 'arc-mode)
-(require 'cl-macs)
+(require 'cl-lib)
 (require 'seq)
 (require 'url-parse)
 
