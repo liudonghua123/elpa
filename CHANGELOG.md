@@ -1,5 +1,10 @@
 # Change Log
 
+## 2022-11-12 0.3.0 Release Notes
+
+- Assigned copyright to Free Software Foundation (elpa requirement)
+- Bumped version in jarchive.el to 0.3.0 (forgot to bump to 0.2.0 in last version)
+
 ## 2022-11-12 0.2.0 Release Notes
 - Documentation updates in preparation for submitting to elpa or melpa
 - BREAKING: Patching legacy Eglot no longer happens automatically when calling `jarchive-setup`.
