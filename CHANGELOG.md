@@ -1,5 +1,8 @@
 # Change Log
 
+## 2022-11-13 0.7.0 Release Notes
+- Add info about jarchive on ELPA
+
 ## 2022-11-13 0.6.0 Release Notes
 - Add link to bug tracker
 

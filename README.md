@@ -13,17 +13,10 @@ See the [CHANGELOG](item/CHANGELOG.md "change log") for more information.
 
 # Installing
 
-This package is not available on any package repositories yet.
-
-Write now I recommend cloning this repository and adding it to your emacs load-path:
-
-``` emacs-lisp
-(add-to-list 'load-path "path/to/jarchive")
-```
-
+This package is available on [ELPA](https://elpa.gnu.org/packages/jarchive.html "jarchive on elpa").
 There is also an example of a [guix recipe](https://git.sr.ht/~abcdw/rde/tree/90af100a4d70d7016261d39b91b6748768ac374b/rde/packages/emacs-xyz.scm#L330).
 
-Load and initialize the repository
+In your config: Load and initialize the repository
 
 ``` emacs-lisp
 (require 'jarchive)
