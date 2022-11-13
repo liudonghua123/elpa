@@ -31,13 +31,6 @@ Load and initialize the repository
   (jarchive-setup))
 ```
 
-It can also be done in a hook (recommended)
-
-``` emacs-lisp
-(add-hook 'eglot-managed-mode-hook #'jarchive-setup)
-;; OR something like
-(add-hook 'clojure-mode-hook #'jarchive-setup)
-```
 or interactively, via `M-x jarchive-setup`.
 
 ## Working with Eglot

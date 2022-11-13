@@ -1,5 +1,10 @@
 # Change Log
 
+## 2022-11-13 0.4.0 Release Notes
+- Remove some unnecessary messages
+- Misc non breaking fixes
+- Quiet down eglot patch messages in case it's called from a hook
+
 ## 2022-11-12 0.3.0 Release Notes
 
 - Assigned copyright to Free Software Foundation (elpa requirement)

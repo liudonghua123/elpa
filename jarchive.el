@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 ;; Authors: Danny Freeman <danny@dfreeman.email>
 ;; Maintainer: Danny Freeman <danny@dfreeman.email>>
-;; Version: 0.3.0
+;; Version: 0.4.0
 ;; Keywords: tools, languages, jvm, java, clojure
 ;; URL: https://git.sr.ht/~dannyfreeman/jarchive
 ;; Package-Requires: ((emacs "26.1"))
@@ -161,12 +161,12 @@ handle it. If it is not a jar call ORIGINAL-FN."
 (defun jarchive-patch-eglot ()
   "Patch old versions of Eglot to work with Jarchive."
   (interactive) ;; TODO, remove when eglot is updated in melpa
-  (cond
-   ((<= 29 emacs-major-version)
-    (message "[jarchive] Eglot does not need to be patched. Skipping."))
-   (t (advice-add 'eglot--path-to-uri :around #'jarchive--wrap-legacy-eglot--path-to-uri)
-      (advice-add 'eglot--uri-to-path :around #'jarchive--wrap-legacy-eglot--uri-to-path)
-      (message "[jarchive] Eglot successfully patched."))))
+  (unless (or (and (advice-member-p #'jarchive--wrap-legacy-eglot--path-to-uri 'eglot--path-to-uri)
+                   (advice-member-p #'jarchive--wrap-legacy-eglot--uri-to-path 'eglot--uri-to-path ))
+              (<= 29 emacs-major-version))
+    (advice-add 'eglot--path-to-uri :around #'jarchive--wrap-legacy-eglot--path-to-uri)
+    (advice-add 'eglot--uri-to-path :around #'jarchive--wrap-legacy-eglot--uri-to-path)
+    (message "[jarchive] Eglot successfully patched.")))
 
 ;;;###autoload
 (defun jarchive-setup ()
