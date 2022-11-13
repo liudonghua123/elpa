@@ -1,5 +1,11 @@
 # Change Log
 
+## 2022-11-13 0.6.0 Release Notes
+- Add link to bug tracker
+
+## 2022-11-13 0.5.0 Release Notes
+- Fix Typo
+
 ## 2022-11-13 0.4.0 Release Notes
 - Remove some unnecessary messages
 - Misc non breaking fixes
