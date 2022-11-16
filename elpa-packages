@@ -779,7 +779,7 @@
   :auto-sync t)
  ("use-package"		:url "https://github.com/jwiegley/use-package"
   :ignored-files ("LICENSE" "bind-*" "use-package-chords.el")
-  :readme "README.md"
+  :readme ignore
   :doc "use-package.texi"
   :news "NEWS.md"
   :auto-sync t)
