@@ -38,8 +38,7 @@
 the command.  Otherwise, they will show only the output of the
 command.  Higher integers show more information (environment vars etc)."
   :type 'integer
-  :safe  #'integerp
-  :group 'gnat-compiler)
+  :safe  #'integerp)
 
 (defun gnat-debug-enabled (level)
   "Return t if gnat-debug-run is t or > LEVEL."
@@ -74,7 +73,7 @@ command.  Higher integers show more information (environment vars etc)."
      gnat-stub-opts
      gnat-stub-cargs)
   ;; We declare and autoload this because we can't autoload
-  ;; make-gnat-compiler in emacs < 27. We also can't use '(defalias
+  ;; make-gnat-compiler in emacs < 27. We also can't use (defalias
   ;; 'create-gnat-compiler 'make-gnat-compiler); then
   ;; make-gnat-compiler is not defined by autoload.
   (make-gnat-compiler
@@ -113,7 +112,7 @@ Throw an error if current project does not have a gnat-compiler."
       (cl-pushnew dir (gnat-compiler-project-path compiler) :test #'string-equal)
 
       (setenv "GPR_PROJECT_PATH"
-	      (mapconcat 'identity
+	      (mapconcat #'identity
 			 (gnat-compiler-project-path compiler) path-separator))
       (setf (wisi-prj-file-env project) (copy-sequence process-environment))
       )))
@@ -170,8 +169,8 @@ Throw an error if current project does not have a gnat-compiler."
                        (directory-file-name default-directory)
 		     (expand-file-name
                       (buffer-substring-no-properties (point) (line-end-position))))))
-	      (cl-pushnew f src-dirs :test 'string-equal)
-	      (cl-pushnew f prj-dirs :test 'string-equal))
+	      (cl-pushnew f src-dirs :test #'string-equal)
+	      (cl-pushnew f prj-dirs :test #'string-equal))
 	    (forward-line 1))
 
 	  )
@@ -279,7 +278,7 @@ Assumes current buffer is (gnat-run-buffer)"
 	(dolist (item process-environment)
 	  (insert item)(insert "\n")))
 
-      (setq status (apply 'call-process exec nil t nil command)))
+      (setq status (apply #'call-process exec nil t nil command)))
 
     (cond
      ((memq status (or expected-status '(0))); success
@@ -331,7 +330,7 @@ which is displayed on error."
   (let ((default-directory (or dir default-directory))
 	status)
 
-    (setq status (apply 'call-process "gnat" nil t nil command))
+    (setq status (apply #'call-process "gnat" nil t nil command))
     (cond
      ((= status 0); success
       nil)
@@ -785,7 +784,8 @@ server executable not found; otherwise signal user-error."
   (if gnat-lsp-server-exec
       (progn
         (setq gnat-lsp-server-exec (locate-file gnat-lsp-server-exec exec-path exec-suffixes))
-        (if (file-readable-p gnat-lsp-server-exec)
+        (if (and gnat-lsp-server-exec
+            (file-readable-p gnat-lsp-server-exec))
 	    gnat-lsp-server-exec
 	  (user-error "gnat-lsp-server-exec '%s' not a readable file"
 		      gnat-lsp-server-exec)))
@@ -906,7 +906,7 @@ server executable not found; otherwise signal user-error."
 	;; which is just annoying, but should be up to the user.
 	'(gnu)
 	)
-  (add-hook 'compilation-filter-hook 'gnat-compilation-filter)
+  (add-hook 'compilation-filter-hook #'gnat-compilation-filter)
   (add-hook 'ada-syntax-propertize-hook #'gnat-syntax-propertize)
 
   ;; We should call `syntax-ppss-flush-cache' here, to force ppss with
