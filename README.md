@@ -22,7 +22,7 @@ After installing this package, in your config call `jarchive-setup`:
 ```
 
 or it can be called interactively, via `M-x jarchive-setup`.
-
+    
 ## Doom Emacs users: Note about when to call `jarchive-setup`
 
 Some Emacs distributions like [Doom](https://github.com/doomemacs/doomemacs "doom emacs on github") (and many personal configurations), set the `file-name-handler-alist` var to nil on startup, then restore it's value when startup is complete.
@@ -36,7 +36,7 @@ Jarchive will open jar dependencies provided to Eglot by lsp servers.
 
 If you are using an older version of Eglot, like the melpa version released on [2022-10-20](https://melpa.org/packages/eglot-20221020.1010.el "Eglot Melpa Release 2022-10-20"), then you need to call `jarchive-patch-eglot` after Eglot is loaded, like so
 
-```emacs-lisp
+``` emacs-lisp
 (jarchive-patch-eglot)
 ```
 
