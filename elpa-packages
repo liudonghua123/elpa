@@ -727,7 +727,7 @@
   :auto-sync t)
  ("timerfunctions"	:url nil)
  ("tiny"		:url "https://github.com/abo-abo/tiny"
-  :ayto-sync t)
+  :auto-sync t)
  ("tmr"			:url "https://git.sr.ht/~protesilaos/tmr"
   :auto-sync t
   :doc "README.org"
