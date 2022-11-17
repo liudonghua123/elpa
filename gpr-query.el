@@ -419,7 +419,7 @@ COMMAND-TYPE is one of xref or symbols."
 	   (message "gpr-query receiving symbols %s" gpr-query--symbols-progress))))
 
 	(xref
-	 (message "running gpr_query xref ... %d" wait-count)
+	 (message "running gpr_query xref ... %s" (make-string wait-count ?.))
 
 	 ;; process output is inserted before point, so move back over it to search it
 	 (with-current-buffer (process-buffer process)
