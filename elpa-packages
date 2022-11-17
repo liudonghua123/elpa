@@ -573,7 +573,8 @@
  ("parser-generator"	:url "https://github.com/cjohansson/emacs-parser-generator"
   :auto-sync t)
  ("path-iterator"	:url nil)
- ("peg"			:url) ;Was in "https://github.com/ellerh/peg.el"
+ ("peg"			:url nil ;Was in "https://github.com/ellerh/peg.el"
+  :ignored-files ("COPYING"))
  ("perl-doc"		:url "https://github.com/HaraldJoerg/emacs-perl-doc"
   :ignored-files ("LICENSE")
   :auto-sync t)
