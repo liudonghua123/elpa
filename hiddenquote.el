@@ -183,6 +183,14 @@ to the syllables buffer."
   :type 'hook
   :package-version '(hiddenquote . "1.3"))  
 
+(defcustom hiddenquote-mark-syllable-after-isearch t
+  "Whether to mark a syllable as used/unused after exiting Isearch with RET.
+
+When non-nil, hiddenquote will add a function to `isearch-mode-end-hook' to
+allow running the command after exiting Isearch."
+  :type 'boolean
+  :package-version '(hiddenquote . "1.3"))
+
 (defgroup hiddenquote-faces nil
   "Faces used by `hiddenquote'."
   :group 'hiddenquote)
@@ -600,6 +608,12 @@ Returns the `hiddenquote-grid' widget created."
         (setq buffer-read-only t)
         (setq hiddenquote-buffer cbuff)
         (add-hook 'kill-buffer-hook #'hiddenquote-refuse-kill-buffer nil t)
+        (when hiddenquote-mark-syllable-after-isearch
+          (add-hook 'isearch-mode-end-hook
+                    (lambda ()
+                      (when (equal (this-command-keys) [return])
+                        (widget-button-press (point))))
+                    nil t))
         (when (< emacs-major-version 28)
           (add-hook 'widget-backward-hook
                     #'hiddenquote-widget-backward nil t))
