@@ -115,8 +115,9 @@
 	   :run-buffer-name (gnat-run-buffer-name abs-gpr-file)))
 
     (setf (wisi-prj-xref project)
-	  (funcall (intern (format "create-%s-xref" (symbol-name xref-label)))
-		   :gpr-file abs-gpr-file))
+	  (funcall (intern (format "create-%s-xref" (symbol-name xref-label)))))
+
+    (wisi-xref-parse-one (wisi-prj-xref project) project "gpr_file" abs-gpr-file)
 
     project))
 
