@@ -6,7 +6,7 @@
 ;; Version: 0
 ;; Keywords: web-browser, lynx, html, tor
 ;; Package-Requires: ((emacs "28"))
-;; Package-Type: 
+;; Package-Type: multi
 ;; Homepage: https://g.ypei.me/luwak.git
 
 ;; Copyright (C) 2022  Free Software Foundation, Inc.
@@ -125,26 +125,13 @@ non-nill, swap the tor-switch in prefix-arg effect."
       (buffer-substring-no-properties (1- (point))
                                       (progn (end-of-line 1) (point))))))
 
-(defun luwak-org-store-link ()
-  (when (derived-mode-p 'luwak-mode)
-    (org-link-store-props
-     :type "luwak"
-     :link (plist-get luwak-data :url)
-     :description (luwak-guess-title))))
-
-;; FIXME: `org' is always available, so this should never fail!
-(when (require 'org nil t)
-  (org-link-set-parameters "luwak"
-                           :follow #'luwak-open
-                           :store #'luwak-org-store-link))
-
 ;;;###autoload
 (defun luwak-open (url)
   "Open URL in luwak."
   (interactive
    (list
     (if luwak-use-history
-        (car            ;FIXME: Why throw away everything after space?
+        (car
          (split-string
           (completing-read "Url to open: "
                            (luwak-history-collection-from-file))))
@@ -342,7 +329,7 @@ non-nill, swap the tor-switch in prefix-arg effect."
       (goto-char (point-min))
       (re-search-forward "^References\n\n\\(\\ *Visible links:\n\\)?" nil t)
       (delete-region (point-min) (match-end 0))
-      (seq-filter #'identity            ;`delq nil' ?
+      (delq nil
        (mapcar (lambda (s)
                 (when (string-match "^\\ *\\([0-9]+\\)\\. \\(.*\\)" s)
                   (concat (match-string 1 s) " " (match-string 2 s))))
