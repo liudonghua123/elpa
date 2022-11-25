@@ -3,7 +3,7 @@
 ;; Author: Yuchen Pei <id@ypei.org>
 ;; Maintainer: Yuchen Pei <id@ypei.org>
 ;; Created: 2022
-;; Version: 0
+;; Version: 1.0.0
 ;; Keywords: web-browser, lynx, html, tor
 ;; Package-Requires: ((emacs "28"))
 ;; Package-Type: multi
