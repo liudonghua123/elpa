@@ -1,2 +1,4 @@
 *~
 *.elc
+/luwak-autoloads.el
+/luwak-pkg.el

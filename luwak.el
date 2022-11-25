@@ -37,34 +37,39 @@
 (defvar luwak-history-file "~/.emacs.d/luwak-history")
 
 (defun luwak-lynx-buffer (url) (format "*luwak-lynx %s*" url))
+
+(defgroup luwak ()
+  "Web browser based on lynx -dump."
+  :group 'web)
+
 (defcustom luwak-search-engine "https://html.duckduckgo.com/html?q=%s"
   "Default search engine for use in 'luwak-search'."
-  :group 'luwak :type '(string))
+  :type '(string))
 (defcustom luwak-url-rewrite-function 'identity
   "Function to rewrite url before loading."
-  :group 'luwak :type '(function))
+  :type '(function))
 (defcustom luwak-tor-switch t
   "Switch behaviour of prefix arg concerning the use of tor.
 
 When nil, use tor by default (requires a tor daemon having been
 started in the system), and not use it with a prefix arg.  When
 non-nill, swap the tor-switch in prefix-arg effect."
-  :group 'luwak :type '(boolean))
+  :type '(boolean))
 (defcustom luwak-max-history-length 100
   "Maximum history length."
-  :group 'luwak :type '(natnum))
+  :type '(natnum))
 (defcustom luwak-render-link-function 'luwak-render-link-id
   "Function to render a link."
-  :group 'luwak :type '(choice (const luwak-render-link-id)
-                               (const luwak-render-link-forward-sexp)
-                               (const luwak-render-link-hide-link)))
+  :type '(choice (const luwak-render-link-id)
+          (const luwak-render-link-forward-sexp)
+          (const luwak-render-link-hide-link)))
 (defcustom luwak-keep-history t
   "If non-nil, will keep history in 'luwak-history-file'."
-  :group 'luwak :type '(boolean))
+  :type '(boolean))
 (defcustom luwak-use-history t
   "If non-nil, will use history from the 'luwak-history-file' when invoking
 'luwak-open'."
-  :group 'luwak :type '(boolean))
+  :type '(boolean))
 
 (put luwak-history 'history-length luwak-max-history-length)
 
@@ -81,18 +86,18 @@ non-nill, swap the tor-switch in prefix-arg effect."
 
 (defvar luwak-mode-map
   (let ((kmap (make-sparse-keymap)))
-    (define-key kmap "\t" 'forward-button)
-    (define-key kmap [backtab] 'backward-button)
-    (define-key kmap "g" 'luwak-reload)
-    (define-key kmap "l" 'luwak-history-backward)
-    (define-key kmap "r" 'luwak-history-forward)
-    (define-key kmap "w" 'luwak-copy-url)
-    (define-key kmap "o" 'luwak-open)
-    (define-key kmap "s" 'luwak-search)
-    (define-key kmap "d" 'luwak-save-dump)
-    (define-key kmap "j" 'imenu)
-    (define-key kmap "t" 'luwak-toggle-links)
-    (define-key kmap "a" 'luwak-follow-numbered-link)
+    (define-key kmap "\t" #'forward-button)
+    (define-key kmap [backtab] #'backward-button)
+    (define-key kmap "g" #'luwak-reload)
+    (define-key kmap "l" #'luwak-history-backward)
+    (define-key kmap "r" #'luwak-history-forward)
+    (define-key kmap "w" #'luwak-copy-url)
+    (define-key kmap "o" #'luwak-open)
+    (define-key kmap "s" #'luwak-search)
+    (define-key kmap "d" #'luwak-save-dump)
+    (define-key kmap "j" #'imenu)
+    (define-key kmap "t" #'luwak-toggle-links)
+    (define-key kmap "a" #'luwak-follow-numbered-link)
     kmap))
 
 (define-derived-mode luwak-mode special-mode (luwak-mode-name)
@@ -120,14 +125,15 @@ non-nill, swap the tor-switch in prefix-arg effect."
       (buffer-substring-no-properties (1- (point))
                                       (progn (end-of-line 1) (point))))))
 
-(when (require 'org nil t)
-  (defun luwak-org-store-link ()
-    (when (derived-mode-p 'luwak-mode)
-      (org-link-store-props
-       :type "luwak"
-       :link (plist-get luwak-data :url)
-       :description (luwak-guess-title))))
+(defun luwak-org-store-link ()
+  (when (derived-mode-p 'luwak-mode)
+    (org-link-store-props
+     :type "luwak"
+     :link (plist-get luwak-data :url)
+     :description (luwak-guess-title))))
 
+;; FIXME: `org' is always available, so this should never fail!
+(when (require 'org nil t)
   (org-link-set-parameters "luwak"
                            :follow #'luwak-open
                            :store #'luwak-org-store-link))
@@ -138,13 +144,14 @@ non-nill, swap the tor-switch in prefix-arg effect."
   (interactive
    (list
     (if luwak-use-history
-        (car
+        (car            ;FIXME: Why throw away everything after space?
          (split-string
-          (completing-read "Url to open: " (luwak-history-collection-from-file))))
+          (completing-read "Url to open: "
+                           (luwak-history-collection-from-file))))
       (read-string "Url to open: "))))
   (luwak-open-url
    (url-encode-url url)
-   (xor luwak-tor-switch current-prefix-arg) 'luwak-add-to-history))
+   (xor luwak-tor-switch current-prefix-arg) #'luwak-add-to-history))
 
 (defun luwak-history-collection-from-file ()
   (split-string
@@ -162,7 +169,7 @@ non-nill, swap the tor-switch in prefix-arg effect."
 
 ;;;###autoload
 (defun luwak-search (query)
-  "Search QUERY using 'luwak-search-engine'."
+  "Search QUERY using `luwak-search-engine'."
   (interactive "sLuwak search query: ")
   (luwak-open (format luwak-search-engine query)))
 
@@ -265,7 +272,7 @@ non-nill, swap the tor-switch in prefix-arg effect."
 (defun luwak-follow-link (marker)
   (let ((url (get-text-property marker 'url)))
     (luwak-open-url
-     url (plist-get luwak-data :no-tor) 'luwak-add-to-history)))
+     url (plist-get luwak-data :no-tor) #'luwak-add-to-history)))
 
 (defun luwak-render-links (urls)
   (with-current-buffer luwak-buffer
@@ -335,7 +342,7 @@ non-nill, swap the tor-switch in prefix-arg effect."
       (goto-char (point-min))
       (re-search-forward "^References\n\n\\(\\ *Visible links:\n\\)?" nil t)
       (delete-region (point-min) (match-end 0))
-      (seq-filter 'identity
+      (seq-filter #'identity            ;`delq nil' ?
        (mapcar (lambda (s)
                 (when (string-match "^\\ *\\([0-9]+\\)\\. \\(.*\\)" s)
                   (concat (match-string 1 s) " " (match-string 2 s))))
@@ -347,11 +354,9 @@ non-nill, swap the tor-switch in prefix-arg effect."
    (list (completing-read "Select link to open: " (luwak-collect-links) nil t)))
   (luwak-open (cadr (split-string link))))
 
-(defun luwak-start-process-with-torsocks (no-tor name buffer program &rest program-args)
-  (if no-tor
-      (apply 'start-process (append (list name buffer program) program-args))
-    (apply 'start-process
-           (append (list name buffer "torsocks" program) program-args))))
+(defun luwak-start-process-with-torsocks (no-tor name buffer &rest cmd)
+  (apply #'start-process name buffer
+         (if no-tor cmd `("torsocks" ,@cmd))))
 
 (defun luwak-save-dump (file-name)
   "Write dump of the current luwak buffer to FILE-NAME."
