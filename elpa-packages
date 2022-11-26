@@ -59,6 +59,10 @@
   :readme ignore
   :auto-sync t)
  (all			:url nil)
+ (altcaps		:url "https://git.sr.ht/~protesilaos/altcaps"
+  :auto-sync t
+  :doc "README.org"
+  :ignored-files ("COPYING" "doclicense.texi"))
  (ampc			:url nil)
  (arbitools		:url nil)
  (ascii-art-to-unicode 	:url nil)
