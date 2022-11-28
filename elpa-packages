@@ -62,6 +62,7 @@
  (altcaps		:url "https://git.sr.ht/~protesilaos/altcaps"
   :auto-sync t
   :doc "README.org"
+  :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  (ampc			:url nil)
  (arbitools		:url nil)
