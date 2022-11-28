@@ -716,7 +716,7 @@
   :doc "taxy-magit-section.info"
   :auto-sync t)
  (temp-buffer-browse  	:url "https://github.com/leoliu/temp-buffer-browse"
-  :auto-sync nil)
+  :auto-sync t)
  (tempel		:url "https://github.com/minad/tempel"
   :doc "README.org"
   :auto-sync t)
