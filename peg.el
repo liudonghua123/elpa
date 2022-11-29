@@ -5,7 +5,7 @@
 ;; Author: Helmut Eller <eller.helmut@gmail.com>
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package-Requires: ((emacs "25"))
-;; Version: 1.0
+;; Version: 1.0.1
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -588,7 +588,9 @@ of PEG expressions, implicitly combined with `and'."
 
 (cl-defmethod peg--translate ((_ (eql syntax-class)) class)
   (let ((probe (assoc class peg-syntax-classes)))
-    (cond (probe `(looking-at ,(format "\\s%c" (cadr probe))))
+    (cond (probe `(when (looking-at ,(format "\\s%c" (cadr probe)))
+                    (forward-char)
+                    t))
 	  (t (error "Invalid syntax class: %S\nMust be one of: %s" class
 		    (mapcar #'car peg-syntax-classes))))))
 
