@@ -679,6 +679,10 @@
  (smalltalk-mode	:url nil) ;; Was "git://git.sv.gnu.org/smalltalk"
  (smart-yank		:url nil)
  (sml-mode		:url nil)
+ (standard-themes		:url "https://git.sr.ht/~protesilaos/standard-themes"
+  :auto-sync t
+  :doc "README.org"
+  :ignored-files ("COPYING" "doclicense.texi"))
  (so-long		:core "lisp/so-long.el")
  (soap-client		:core ("lisp/net/soap-client.el" "lisp/net/soap-inspect.el"))
  (sokoban		:url nil)
