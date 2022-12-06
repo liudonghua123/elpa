@@ -1,4 +1,4 @@
-;; gpr-skel.el --- Extension to gpr-mode for inserting statement skeletons  -*- lexical-binding:t -*-
+;;; gpr-skel.el --- Extension to gpr-mode for inserting statement skeletons  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2015, 2018 - 2021 Free Software Foundation, Inc.
 
@@ -134,4 +134,4 @@ Each user will probably want to override this."
 (add-hook 'gpr-mode-hook #'gpr-skel-setup)
 
 (provide 'gpr-skel)
-;;; end of file
+;;; gpr-skel.el ends here

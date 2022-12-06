@@ -1,4 +1,4 @@
-;; user options shared by gpr mode indentation engines  -*- lexical-binding:t -*-
+;;; user options shared by gpr mode indentation engines  -*- lexical-binding:t -*-
 ;;
 ;; Copyright (C) 2017, 2019  Free Software Foundation, Inc.
 ;;
@@ -45,4 +45,4 @@
 
 (provide 'gpr-indent-user-options)
 
-;; end file
+;; gpr-indent-user-options.el ends here

@@ -14,7 +14,7 @@ fi
     
 echo "installing gpr-mode executables to" $PREFIX/bin
 
-# No need for gprinstall; we only need the executable 
+# No need for gprinstall; we only need the executables
 
 if type alr; then
     cp emacs_gpr_mode*/bin/* $PREFIX/bin
