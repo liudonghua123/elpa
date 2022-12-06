@@ -1423,7 +1423,6 @@ point to the next word."
   (let* ((ch1 (widget-at))
          (parent (widget-get ch1 :parent))
          (children (widget-get parent :children))
-         (length (length children))
          (n (seq-position children ch1))
          (ch2 (if (= n 0)
                   (user-error "Can't transpose the first character in a word")
