@@ -682,6 +682,7 @@
  (standard-themes		:url "https://git.sr.ht/~protesilaos/standard-themes"
   :auto-sync t
   :doc "README.org"
+  :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  (so-long		:core "lisp/so-long.el")
  (soap-client		:core ("lisp/net/soap-client.el" "lisp/net/soap-inspect.el"))
