@@ -9,7 +9,8 @@
 
 if type alr; then
     # alr can be installed from https://alire.ada.dev/
-    echo "building gpr_query via Alire"
+    echo "building gpr_query via Alire; compiler:"
+    alr toolchain
     alr get emacs_gpr_query~1.0.1
     cd emacs_gpr_query_*; alr build --release
 
