@@ -653,39 +653,6 @@ with compilation-error-regexp-alist set to COMP-ERR."
   (+ (abs (- found-col col))
      (* (abs (- found-line line)) 250)))
 
-(defvar gpr-query-map
-  (let ((map (make-sparse-keymap)))
-    ;; C-c C-i prefix for gpr-query minor mode
-
-    (define-key map "\C-c\C-i\C-d" 'gpr-query-goto-declaration)
-    (define-key map "\C-c\C-i\C-q" 'gpr-query-refresh)
-    (define-key map "\C-c\C-i\C-r" 'gpr-query-show-references)
-    ;; IMPROVEME: (define-key map "\C-c\M-d" 'gpr-query-parents)
-    ;; IMPROVEME: overriding
-    map
-  )  "Local keymap used for gpr query minor mode.")
-
-(defvar gpr-query-menu (make-sparse-keymap "gpr-query"))
-(easy-menu-define gpr-query-menu gpr-query-map "Menu keymap for gpr-query minor mode"
-  '("gpr-query"
-    ["Next xref"                     next-error 		   t]
-    ["Goto declaration/body"         xref-find-definitions 	   t]
-    ["Show parent declarations"      wisi-show-declaration-parents t]
-    ["Show references"               wisi-show-references 	   t]
-    ["Show overriding"               wisi-show-overriding 	   t]
-    ["Show overridden"               wisi-show-overridden 	   t]
-    ["Refresh cross reference cache" wisi-refresh-prj-cache 	   t]
-    ))
-
-(define-minor-mode gpr-query
-  "Minor mode for navigating sources using GNAT cross reference tool.
-Enable mode if ARG is positive."
-  :initial-value t
-  :lighter       " gpr-query"   ;; mode line
-
-  ;; just enable the menu and keymap
-  )
-
 (defun gpr-query--normalize-filename (file)
   "Convert FILE from native format to Emacs standard.
 FILE is from gpr-query."
@@ -712,9 +679,10 @@ FILE is from gpr-query."
   )
 
 ;;;###autoload
-(cl-defun create-gpr_query-xref (&key gpr-file)
+(cl-defun create-gpr_query-xref ()
   ;; See note on `create-ada-prj' for why this is not a defalias.
-  (make-gpr-query-xref :gpr-file gpr-file))
+  ;; The gpr file is set later by parsing the project file.
+  (make-gpr-query-xref))
 
 (cl-defmethod wisi-xref-parse-one ((xref gpr-query-xref) project name value)
   (wisi-compiler-parse-one xref project name value))
