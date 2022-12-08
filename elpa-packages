@@ -102,7 +102,8 @@
   :auto-sync t)
  (bluetooth		:url "https://gitlab.com/rstocker/emacs-bluetooth"
   :auto-sync t)
- (bnf-mode		:url "https://github.com/sergeyklay/bnf-mode")
+ (bnf-mode		:url "https://github.com/sergeyklay/bnf-mode"
+  :auto-sync t)
  (boxy			:url "https://gitlab.com/tygrdev/boxy"
   :auto-sync t)
  (boxy-headings		:url "https://gitlab.com/tygrdev/boxy-headings"
@@ -423,7 +424,8 @@
  (kind-icon		:url "https://github.com/jdtsmith/kind-icon"
   :auto-sync t)
  (kiwix			:url "https://repo.or.cz/kiwix.el.git"
-  :ignored-files ("*.png" "LICENSE"))
+  :ignored-files ("*.png" "LICENSE")
+  :auto-sync t)
  (kmb			:url nil)
  (landmark		:url nil)
  (leaf			:url "https://github.com/conao3/leaf.el"
