@@ -319,6 +319,7 @@
   :auto-sync t)
  (excorporate		:url nil)
  (expand-region		:url "https://github.com/magnars/expand-region.el")
+ (external-completion   :core "lisp/external-completion.el")
  (exwm			:url "https://github.com/ch11ng/exwm.git"
   :auto-sync t)
  (f90-interface-browser :url nil) ;; Was "https://github.com/wence-/f90-iface"
