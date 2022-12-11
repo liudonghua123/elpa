@@ -69,6 +69,7 @@
 ;;     Boolean-guard		(guard EXP)
 ;;     Syntax-Class		(syntax-class NAME)
 ;;     Local definitions	(with RULES PEX...)
+;;     Indirect call            (funcall EXP ARGS...)
 ;; and
 ;;     Empty-string		(null)		ε
 ;;     Beginning-of-Buffer	(bob)
@@ -215,6 +216,23 @@
 ;;
 ;; See ";;; Examples" in `peg-tests.el' for other examples.
 ;;
+;;;; Rule argument and indirect calls:
+;;
+;; Rules can take arguments and those arguments can themselves be PEGs.
+;; For example:
+;;
+;;     (define-peg-rule 2-or-more (peg)
+;;       (funcall peg)
+;;       (funcall peg)
+;;       (* (funcall peg)))
+;;
+;;     ... (peg-parse
+;;          ...
+;;          (2-or-more (peg foo))
+;;          ...
+;;          (2-or-more (peg bar))
+;;          ...)
+;;
 ;;;; References:
 ;;
 ;; [Ford] Bryan Ford. Parsing Expression Grammars: a Recognition-Based
@@ -242,6 +260,9 @@
 ;;   display their source code.
 ;; - New PEX form (with RULES PEX...).
 ;; - Named rulesets.
+;; - You can pass arguments to rules.
+;; - New `funcall' rule to call rules indirectly (e.g. a peg you received
+;;   as argument).
 
 ;; Version 1.0:
 ;; - New official entry points `peg` and `peg-run`.
@@ -478,14 +499,12 @@ rulesets defined previously with `define-peg-ruleset'."
   (apply #'peg--macroexpand exp))
 
 (defconst peg-leaf-types '(any call action char range str set
-			        guard syntax-class =))
+			   guard syntax-class = funcall))
 
 (cl-defgeneric peg--macroexpand (head &rest args)
   (cond
    ((memq head peg-leaf-types) (cons head args))
-   ((null args) `(call ,head))
-   (t
-    (error "Invalid parsing expression: %S" (cons head args)))))
+   (t `(call ,head ,@args))))
 
 (cl-defmethod peg--macroexpand ((_ (eql or)) &rest args)
   (cond ((null args) '(guard nil))
@@ -767,9 +786,11 @@ rulesets defined previously with `define-peg-ruleset'."
      (goto-char (match-end 0))
      t))
 
-(cl-defmethod peg--translate ((_ (eql call)) name)
-  ;; (peg--lookup-rule name) ;; Signal error if not found!
-  `(,(peg--rule-id name)))
+(cl-defmethod peg--translate ((_ (eql call)) name &rest args)
+  `(,(peg--rule-id name) ,@args))
+
+(cl-defmethod peg--translate ((_ (eql funcall)) exp &rest args)
+  `(funcall ,exp ,@args))
 
 (cl-defmethod peg--translate ((_ (eql action)) form)
   `(progn
