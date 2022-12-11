@@ -1,6 +1,6 @@
 ;;; peg-tests.el --- Tests of PEG parsers            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2019  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022  Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -313,8 +313,8 @@ resp. succeded instead of signaling an error."
 	   `(s -- (intern s)))
    (symchar [a-z A-Z 0-9 "-;!#%&'*+,./:;<=>?@[]^_`{|}~"])
    (list "("		`(-- (cons nil nil)) `(hd -- hd hd)
-	 (* sexp	`(tl e -- (setcdr tl (list e)))
-	    ) _ ")"	`(hd _tl -- (cdr hd)))
+	 (* sexp	`(tl e -- (setcdr tl (list e))))
+	 _ ")"	`(hd _tl -- (cdr hd)))
    (digit [0-9])
    (terminating (or (set " \n\t();\"'") (eob)))))
 
