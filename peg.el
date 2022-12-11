@@ -68,6 +68,7 @@
 ;;     Character classes	[ascii cntrl]
 ;;     Boolean-guard		(guard EXP)
 ;;     Syntax-Class		(syntax-class NAME)
+;;     Local definitions	(with RULES PEX...)
 ;; and
 ;;     Empty-string		(null)		ε
 ;;     Beginning-of-Buffer	(bob)
@@ -219,6 +220,7 @@
 ;; Since 1.0.1:
 ;; - Use OClosures to represent PEG rules when available, and let cl-print
 ;;   display their source code.
+;; - New PEX form (with RULES PEX...).
 
 ;; Version 1.0:
 ;; - New official entry points `peg` and `peg-run`.
@@ -260,8 +262,6 @@ EXPS is a list of rules/expressions that failed.")
     (prin1 (peg-function--pexs peg) stream)
     (princ ">" stream)))
 
-;; Sometimes (with-peg-rules ... (peg-run (peg ...))) is too
-;; longwinded for the task at hand, so `peg-parse' comes in handy.
 (defmacro peg--lambda (pexs args &rest body)
   (declare (indent 2)
            (debug (&define form lambda-list def-body)))
@@ -269,6 +269,8 @@ EXPS is a list of rules/expressions that failed.")
       `(oclosure-lambda (peg-function (pexs ,pexs)) ,args . ,body)
     `(lambda ,args . ,body)))
 
+;; Sometimes (with-peg-rules ... (peg-run (peg ...))) is too
+;; longwinded for the task at hand, so `peg-parse' comes in handy.
 (defmacro peg-parse (&rest pexs)
   "Match PEXS at point.
 PEXS is a sequence of PEG expressions, implicitly combined with `and'.
@@ -394,7 +396,7 @@ of PEG expressions, implicitly combined with `and'."
       ;; With `peg-function' objects, we can recover the PEG from which it was
       ;; defined, but this info is not yet available at compile-time.  :-(
       ;;(let ((id (peg--rule-id name)))
-      ;;  (peg-function--peg (symbol-function id)))
+      ;;  (peg-function--pexs (symbol-function id)))
       (get (peg--rule-id name) 'peg--rule-definition)))
 
 (defun peg--rule-id (name)
@@ -631,6 +633,9 @@ of PEG expressions, implicitly combined with `and'."
     `(or ,(peg-translate-exp e1)
 	 (,@(peg--choicepoint-restore cp)
 	  ,(peg-translate-exp e2)))))
+
+(cl-defmethod peg--translate ((_ (eql with)) rules &rest exps)
+  `(with-peg-rules ,rules ,(peg--translate `(and . ,exps))))
 
 (cl-defmethod peg--translate ((_ (eql guard)) exp) exp)
 
