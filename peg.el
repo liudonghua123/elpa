@@ -86,6 +86,26 @@
 ;; buffer text.  Rules can be recursive or mutually referential,
 ;; though care must be taken not to create infinite loops.
 ;;
+;;;; Named rulesets:
+;;
+;; You can define a set of rules for later use with:
+;;
+;;     (define-peg-ruleset myrules
+;;       (sign  () (or "+" "-" ""))
+;;       (digit () [0-9])
+;;       (nat   () digit (* digit))
+;;       (int   () sign digit (* digit))
+;;       (float () int "." nat))
+;;
+;; and later refer to it:
+;;
+;;     (with-peg-rules
+;;         (myrules
+;;          (complex float "+i" float))
+;;       ... (peg-parse nat "," nat "," complex) ...)
+;;
+;;;; Parsing actions:
+;;
 ;; PEXs also support parsing actions, i.e. Lisp snippets which are
 ;; executed when a pex matches.  This can be used to construct syntax
 ;; trees or for similar tasks.  The most basic form of action is
@@ -144,7 +164,7 @@
 ;; pushes values to the stack without consuming any, and the latter
 ;; pops values from the stack and discards them.
 ;;
-;; Derived Operators:
+;;;; Derived Operators:
 ;;
 ;; The following operators are implemented as combinations of
 ;; primitive expressions:
@@ -195,7 +215,7 @@
 ;;
 ;; See ";;; Examples" in `peg-tests.el' for other examples.
 ;;
-;; References:
+;;;; References:
 ;;
 ;; [Ford] Bryan Ford. Parsing Expression Grammars: a Recognition-Based
 ;; Syntactic Foundation. In POPL'04: Proceedings of the 31st ACM
@@ -221,6 +241,7 @@
 ;; - Use OClosures to represent PEG rules when available, and let cl-print
 ;;   display their source code.
 ;; - New PEX form (with RULES PEX...).
+;; - Named rulesets.
 
 ;; Version 1.0:
 ;; - New official entry points `peg` and `peg-run`.
@@ -359,16 +380,36 @@ sequencing `and' operator of PEG grammars."
                  ,(byte-run--set-speed id nil -1)
                  (put ',id 'byte-optimizer #'byte-compile-inline-expand))))))))
 
+(defmacro define-peg-ruleset (name &rest rules)
+  "Define a set of PEG rules for later use, e.g., in `with-peg-rules'."
+  (declare (indent 1))
+  (let ((defs ())
+        (aliases ()))
+    (dolist (rule rules)
+      (let* ((rname (car rule))
+             (full-rname (format "%s %s" name rname)))
+        (push `(define-peg-rule ,full-rname . ,(cdr rule)) defs)
+        (push `(,(peg--rule-id rname) #',(peg--rule-id full-rname)) aliases)))
+    `(cl-flet ,aliases
+       ,@defs
+       (eval-and-compile (put ',name 'peg--rules ',aliases)))))
+
 (defmacro with-peg-rules (rules &rest body)
   "Make PEG rules RULES available within the scope of BODY.
 RULES is a list of rules of the form (NAME . PEXS), where PEXS is a sequence
-of PEG expressions, implicitly combined with `and'."
+of PEG expressions, implicitly combined with `and'.
+RULES can also contain symbols in which case these must name
+rulesets defined previously with `define-peg-ruleset'."
   (declare (indent 1) (debug (sexp form))) ;FIXME: `sexp' is not good enough!
-  (let ((rules
-         ;; First, macroexpand the rules.
-         (mapcar (lambda (rule)
-                   (cons (car rule) (peg-normalize `(and . ,(cdr rule)))))
-                 rules))
+  (let* ((rulesets nil)
+         (rules
+          ;; First, macroexpand the rules.
+          (delq nil
+                (mapcar (lambda (rule)
+                          (if (symbolp rule)
+                              (progn (push rule rulesets) nil)
+                            (cons (car rule) (peg-normalize `(and . ,(cdr rule))))))
+                        rules)))
         (ctx (assq :peg-rules macroexpand-all-environment)))
     (macroexpand-all
      `(cl-labels
