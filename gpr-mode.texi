@@ -217,7 +217,7 @@ code.
 @node Statement skeletons, GNU Free Documentation License, Indentation, Top
 @chapter Statement skeletons
 
-@kbd{C-c C-e} expands the previous one or two words into a statment
+@kbd{C-c C-e} expands the previous one or two words into a statement
 skeleton. For example, @kbd{c a s e C-c C-e} expands to:
 
 @example
