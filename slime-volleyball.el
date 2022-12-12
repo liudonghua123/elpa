@@ -1455,7 +1455,7 @@
 ;; Dynamically-scoped slime-volleyball-scene-update helper function.
 (defun slime-volleyball-resolve-collision (slime)
   "Resolve a collision between SLIME and another object."
-  (let* (;; Convert to slime center co-ordinate system.
+  (let* (;; Convert to slime center coordinate system.
          ;; Slime center is (0, 0).
          (slime-x (+ (slime-volleyball-slime-x slime)
                      slime-volleyball-slime-radius))
