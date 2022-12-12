@@ -41,7 +41,7 @@
 
 ;; Stefan Monnier for telling me how to add C-i binding
 
-;; Ted Zlatanov for suggesting to use less agressive key bindings
+;; Ted Zlatanov for suggesting to use less aggressive key bindings
 
 ;;;; BUGS:
 
