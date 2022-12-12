@@ -35,7 +35,7 @@
 ;;
 ;; Some commands display new buffers in other than the currently
 ;; selected window, which defeats the purpose of ‘other-frame-window’ in
-;; the absense of a prefix. To override that, customize
+;; the absence of a prefix. To override that, customize
 ;; ‘display-buffer-alist’ for those commands. For example, to override
 ;; ‘gud-gdb’:
 ;;
