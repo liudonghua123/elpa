@@ -810,7 +810,7 @@ rulesets defined previously with `define-peg-ruleset'."
     (or peg--stack t)))
 
 ;; Left recursion is presumably a common mistake when using PEGs.
-;; Here we try to detect such mistakes.  Essentailly we traverse the
+;; Here we try to detect such mistakes.  Essentially we traverse the
 ;; graph as long as we can without consuming input.  When we find a
 ;; recursive call we signal an error.
 

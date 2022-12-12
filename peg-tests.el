@@ -29,7 +29,7 @@
 (defmacro peg-parse-string (pex string &optional noerror)
   "Parse STRING according to PEX.
 If NOERROR is non-nil, push nil resp. t if the parse failed
-resp. succeded instead of signaling an error."
+resp. succeeded instead of signaling an error."
   (let ((oldstyle (consp (car-safe pex)))) ;PEX is really a list of rules.
     `(with-temp-buffer
        (insert ,string)
@@ -179,7 +179,7 @@ resp. succeded instead of signaling an error."
     (peg-run (peg number))))
 
 ;; peg-ex-parse-int recognizes integers and computes the corresponding
-;; value.  The grammer is the same as for `peg-ex-recognize-int'
+;; value.  The grammar is the same as for `peg-ex-recognize-int'
 ;; augmented with parsing actions.  Unfortunaletly, the actions add
 ;; quite a bit of clutter.
 ;;
@@ -335,7 +335,7 @@ resp. succeded instead of signaling an error."
 				(action (foo))))))
         t))
 
-;; Some efficency problems:
+;; Some efficiency problems:
 
 ;; Find the last digit in a string.
 ;; Recursive definition with excessive stack usage.
