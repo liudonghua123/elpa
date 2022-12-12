@@ -95,7 +95,7 @@ Version: 1.9.7
 
 Version: 1.9.5
 
-  'string' and derived pattern types now support expressions evaluting
+  'string' and derived pattern types now support expressions evaluating
   to regexps as arguments.  This means you can use 'rx' to construct
   regexps in 'string' patterns, for example.
 
