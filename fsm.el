@@ -28,7 +28,7 @@
 ;; fsm.el is an exercise in metaprogramming inspired by gen_fsm of
 ;; Erlang/OTP.  It aims to make asynchronous programming in Emacs Lisp
 ;; easy and fun.  By "asynchronous" I mean that long-lasting tasks
-;; don't interfer with normal editing.
+;; don't interfere with normal editing.
 
 ;; Some people say that it would be nice if Emacs Lisp had threads
 ;; and/or continuations.  They are probably right, but there are few
@@ -249,7 +249,7 @@ TIMEOUT        A number: send timeout event after this many seconds
 			      (callback-name 'callback)
 			      (event-name 'event))
   "Define a state machine class called NAME, along with its STATES.
-This macro is (further) syntatic sugar for `define-state-machine',
+This macro is (further) syntactic sugar for `define-state-machine',
 `define-state' and `define-enter-state' macros, q.v.
 
 NAME is a symbol.  Everything else is specified with a keyword arg.
