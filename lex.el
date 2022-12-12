@@ -609,7 +609,7 @@ or (check (not (PREDICATE . ARG))).")
                (setq chars (append (cdr (lex--parse-charset range)) chars)))
               ((symbolp range)
                (setq range (or (cdr (assq range lex--char-classes))
-                               (error "Uknown char class `%s'" range)))
+                               (error "Unknown char class `%s'" range)))
                (setq chars (append range chars)))
               ((and (consp range) (eq 'check (car range)))
                (push (cadr range) checks))
@@ -747,7 +747,7 @@ or (check (not (PREDICATE . ARG))).")
        ;; We could define negation directly on regexps, but it's easier to
        ;; do it on NFAs since those have fewer cases to deal with.
        (let ((posnfa
-              ;; Trow away the mergable states generated while computing the
+              ;; Trow away the mergeable states generated while computing the
               ;; posnfa, since it's only an intermediate datastructure.
               (let (lex--states)
                 (lex--nfa `(seq ,@(cdr re)) '(stop negate)))))
@@ -861,7 +861,7 @@ or (check (not (PREDICATE . ARG))).")
        `(or ,state (table ,@ct))))))
 
 (defun lex--negate-memo (nfa state)
-  ;; Make sure our `inftail' abuse of the hastable doesn't break anything.
+  ;; Make sure our `inftail' abuse of the hashtable doesn't break anything.
   (cl-assert (not (eq nfa state)))
   (or (gethash nfa lex--memoize)
       (let ((newstate (cons 'state nil)))
@@ -923,7 +923,7 @@ Returns a new NFA."
   "Compile a set of regular expressions.
 ALIST is a list of elements of the form (REGEXP . VALUE).
 The compiled automaton will match all those regexps at the same time
-and will return the VALUE fof the leftmost longest match.
+and will return the VALUE for the leftmost longest match.
 
 Each REGEXP object should be in the sexp form described in the
 Commentary section."
@@ -995,7 +995,7 @@ Commentary section."
           (setq terminate (lex--terminate-if (cdr cellf) terminate))
           (setq terminate (lex--terminate-if (cdr cells) terminate))
           ;; TODO: the check-optimizations below only work on consecutive
-          ;; pairs of checks.  We need to be more agressive and make sure
+          ;; pairs of checks.  We need to be more aggressive and make sure
           ;; the optimized DFA never does twice the same test at the same
           ;; position.  Most importantly: don't do the same test in
           ;; a tight loop as in "(^\<)*".
