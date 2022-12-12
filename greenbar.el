@@ -131,7 +131,7 @@ theme followed by the list bar colors.")
                  (mapcar #'color-defined-p color-list))))
 
 (defun greenbar-is-command-input (_start end)
-  "Return non-nil, if input is in region betweeen START and END."
+  "Return non-nil, if input is in region between START and END."
   (= end comint-last-input-end))
 
 (defun greenbar-next-bar ()
