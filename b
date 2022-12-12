@@ -61,7 +61,7 @@ function find_emacs ()
         echo "Please specify a valid emacs or install it."
         exit 1
       else
-        echo "Warning: '${PREVEMACS}' can't be found; running defaut 'emacs' found in PATH."
+        echo "Warning: '${PREVEMACS}' can't be found; running default 'emacs' found in PATH."
       fi
     else
       echo "Error: 'emacs' cannot be found; please specify a valid one or install it."

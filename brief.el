@@ -449,7 +449,7 @@
             (append byte-compile-warnings '(free-vars callargs)))))
 ;;(eval-when-compile (require 'cl-lib))
 ;; local variables
-;; Relys on `cua-rectangle-mark-mode' to perform rectangle operations.
+;; Relies on `cua-rectangle-mark-mode' to perform rectangle operations.
 (require 'cua-base)
 (require 'cua-rect)
 ;; "replace" package is Emacs26 only, for `query-replace', it's autoloaded
@@ -782,7 +782,7 @@ other minor modes.")
 
 ;;[2015-04-13 15:42:21 +0800] I found setting its parent will slow down
 ;; the system, especially if brief-prefix-F1's parent is set to
-;; `brief-global-mode-map', when openning the menu items (shift-f10)
+;; `brief-global-mode-map', when opening the menu items (shift-f10)
 ;; it will take "extremely" long to open. Seems that it will lengthen
 ;; the key searching route a lot.
 ;;(defvar brief-prefix-meta-l
@@ -1092,7 +1092,7 @@ it won't stick on 'xclip'."
 
 (defcustom brief-in-favor-of-xsel brief-in-favor-of-xsel-default
   "When both 'xclip' and 'xsel' exist, choose 'xsel'.
-This is an emperical value.  My original personal experiemnts shows
+This is an empirical value.  My original personal experiemnts shows
 that 'xsel' seems to respond faster than 'xclip'.  However, on Ubuntu
 18, the associated 'xsel' is buggy and tend to return extra garbage at
 the end of the pasted data, sigh.  Considering the wide acceptance of
@@ -1276,7 +1276,7 @@ it calls `buffer-menu' instead."
   (interactive)
   ;; Doing calibration here won't work, the measured delay is very low here.
   ;; (call-interactively 'brief-calibration)
-  (if (fboundp #'ibuffer-make-column-filename) ;; prefered buffer mode
+  (if (fboundp #'ibuffer-make-column-filename) ;; preferred buffer mode
       (let ((search-str (ibuffer-make-column-filename (current-buffer) nil))
             (pos -1))
         (if (zerop (length search-str))
@@ -1452,7 +1452,7 @@ fake cursor."
     (call-interactively 'find-file)))
 
 (defun brief-current-filename ()
-  "Dispaly file name of current buffer if it has one.
+  "Display file name of current buffer if it has one.
 When prefixed (\\[universal-argument]) it will put current buffer file name into clipboard."
   (interactive)
   (if (not buffer-file-name)
@@ -1627,7 +1627,7 @@ example, add the following into .emacs:
 (defun brief-bookmark-do-jump (bookmark)
   "Jump to Brief bookmark #0~#9.  ARG is a char within '0'~'9'."
   (setq bookmark (char-to-string bookmark))
-  ;; If not prefixed, try to switch to a existing window that continaing the
+  ;; If not prefixed, try to switch to a existing window that containing the
   ;; bookmarked file/buffer in order to keep current window/buffer intact.
   (and (boundp 'bookmarks-already-loaded)
        (fboundp 'bookmark-maybe-load-default-file)
@@ -2638,8 +2638,8 @@ If the prefix is simply a \\[universal-argument], it move down one physical line
 ;; [2017-01-13 16:39:37 +0800]
 ;; Add mark-activation/deactivation hooks to prevent keep modifying Xselection
 ;; on marking region.  Whatever make clipboard change will cause Microsoft
-;; office to broadcast WM_MSO_BROADCASTCHANGE to *ALL* openned windows which
-;; could flood X server if a lot of X windows are currently openned.  This even
+;; office to broadcast WM_MSO_BROADCASTCHANGE to *ALL* opened windows which
+;; could flood X server if a lot of X windows are currently opened.  This even
 ;; cause VcXsrv to drop important message like WM_KEYDOWN/WM_KEYUP and cause the
 ;; region marking operation goes forever, until network disconnect or all MS
 ;; Office applications closed.
@@ -2743,7 +2743,7 @@ The 'key-up' is actually emulated by running an idle timer."
                 ""))
       (setq brief-keep-postpone-gui-selection-timer t)
       ;; Run not too soon after key-up detected, otherwise MS office
-      ;; WM_MSO_BROADCASTCHANGE broadcat message will still cause problems.
+      ;; WM_MSO_BROADCASTCHANGE broadcast message will still cause problems.
       (brief-activate-postpone-gui-selection-timer
        brief-postpone-copy-to-clipboard-idle-period))
 
@@ -2966,13 +2966,13 @@ The 'key-up' is actually emulated by running an idle timer."
 ;; interact with Xselection.  These functions are mainly for *NIX systems;
 ;; native win32/win64 systems cannot use them.
 ;;
-;; 'xsel' is in favor when 'xsel' and 'xclip' are both available.  Accodring to
+;; 'xsel' is in favor when 'xsel' and 'xclip' are both available.  According to
 ;; my personal experience 'xsel' responds faster.  However, the default value
 ;; was set to 'xclip' due to Ubuntu 18.  Check the documentation string for the
 ;; custom variable `brief-in-favor-of-xsel'.
 ;;
-;; The implemetation is both non-blocking and quittable.  When huge clipboard
-;; data is transfering between Emacs and Xselection, it could take very long
+;; The implementation is both non-blocking and quittable.  When huge clipboard
+;; data is transferring between Emacs and Xselection, it could take very long
 ;; using Emacs native functions which is not even interruptible or quit-able
 ;; (C-g).  The native implementation always copy the full content of selection
 ;; into Xselection whenever region size changed, this is also very inefficient
@@ -4546,7 +4546,7 @@ To copy exactly 4 lines use C-4 as prefix instead of a single \\[universal-argum
                   ;;   ;; instead of visual line
                   ;;   (right-char))
                   (beginning-of-visual-line))))
-            ;; Set the overidden prefix arg to nil so that the following
+            ;; Set the overridden prefix arg to nil so that the following
             ;; `cua-copy-region' won't be prefixed
             (setq current-prefix-arg nil)
             (cua-copy-region nil) ; this will insert region into `kill-ring'
@@ -5625,7 +5625,7 @@ toggled by `brief-toggle-search-replace-regexp' (\\[brief-toggle-search-replace-
           (progn
             (when is-rect
               ;; Always move to corner 3 first (bottom/right)
-              ;; (refernece to `cua--rectangle-set-corners'
+              ;; (reference to `cua--rectangle-set-corners'
               (goto-char (cua--rectangle-top))
               (move-to-column (cua--rectangle-left))
               (set-mark (point))
@@ -6045,7 +6045,7 @@ When in minibuffer it will do completion unless prefixed with \\[universal-argum
                            (list filename))))
                    (error
                     "Keyboard macro not defined yet, press <f7> to define one.")))
-  (if (eq t ;; is a directory, i.e. no filename inputed
+  (if (eq t ;; is a directory, i.e. no filename inputted
           (car (file-attributes arg)))
       (error "No file name specified.")
     (with-temp-buffer
@@ -6126,7 +6126,7 @@ When in minibuffer it will do completion unless prefixed with \\[universal-argum
 When `visual-line-mode' is nil and `truncate-lines' is non-nil, the
 first \\[brief-home] moves point to the beginning of current line.
 The second consecutive \\[brief-home] moves point to top of the window.
-The thrid consecutive \\[brief-home] moves point to the beginning of the buffer.
+The third consecutive \\[brief-home] moves point to the beginning of the buffer.
 
 When `visual-line-mode' is non-nil or `truncate-lines' is nil, the first
 \\[brief-home] goes to the beginning of visible line and the second \\[brief-home]
@@ -6228,7 +6228,7 @@ bottom of screen and end of buffer."
         (goto-char (if (/= p1 p2)
                        (max p1 p2)
                      (point-max)))))
-     ;; 2rd press
+     ;; 2nd press
      (end2
       (if truncate-lines
           ;;(goto-char (brief-window-end))
@@ -6904,7 +6904,7 @@ toggle brief-mode."
   ;; `global-brief-mode' instead to make sure brief mode is ON or OFF.
   ;; [2017-06-07 18:09:47 +0800] After removed the `use-global-map' these two
   ;; variables becomes consistent; however, it seems less efficient since restoring
-  ;; a session will invoke `brief-mode' fucntion for each buffer. However, this
+  ;; a session will invoke `brief-mode' function for each buffer. However, this
   ;; could be a `session-restore' issue since it does not differentiate global
   ;; mode from local modes.
   ;; [2017-06-13 11:34:47 +0800] The above mentioned problem is because of the
