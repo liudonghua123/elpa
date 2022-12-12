@@ -375,7 +375,7 @@ see variable ‘xpm-raster-inhibit-continuity-optimization’."
                  (unless (setq in-map-ok
                                (and (= was now)
                                     ;; heuristic: Avoid being fooled
-                                    ;; by simulataneous crossings.
+                                    ;; by simultaneous crossings.
                                     (cl-evenp was)))
                    (setq in-map (make-bool-vector now nil)))))
              finally do

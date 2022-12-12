@@ -39,7 +39,7 @@ This file is both a guide for newcomers and a todo list for oldstayers.
 ***** destructive (2-op) vs non-destructive (3-op)
 ***** customizable pixel-compose fn
 *** misc functionality
-***** validate palette-data correspondance
+***** validate palette-data correspondence
 ***** import from rectangle
 ******* as-is (dangerous)
 ******* w/ char-to-px quantization
