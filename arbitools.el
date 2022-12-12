@@ -76,7 +76,7 @@
 ;; - Print standings - Native
 ;;
 ;; - Calculate performance and ARPO (Average Rating Performance of Opponents -Native
-;;   ARPO calcuations are based on the ideas of Miguel Brozos, Marco A. Campo,
+;;   ARPO calculations are based on the ideas of Miguel Brozos, Marco A. Campo,
 ;;   Carlos Díaz and Julio González
 ;;   eio.usc.es/pub/julio/desempate/Performance_Recursiva.htm
 ;;
@@ -1147,7 +1147,7 @@ Only do it if `arbitools-verbose' is non-nil."
 (defun arbitools-calculate-arpo ()
   "Calculates the ARPO for all the players and writes the results to a buffer.
    also it creates a userTB.txt buffer, so that it can be used in Vega."
-  ;; TODO This algorythm is terribly inefficient, it should be improved
+  ;; TODO This algorithm is terribly inefficient, it should be improved
   (interactive)
   
   (save-excursion
