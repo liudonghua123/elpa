@@ -449,7 +449,7 @@ The specification which bugs shall be suppressed is taken from
 See `debbugs-gnu-package' for an alternative.")
 
 (defcustom debbugs-gnu-emacs-current-release "28.1"
-  "The current Emacs relase developped for."
+  "The current Emacs release developed for."
   :type '(choice (const "24.5")
 		 (const "25.1") (const "25.2")
 		 (const "26.1") (const "26.3")
@@ -2172,7 +2172,7 @@ Throws error if git returns non-zero."
   "Return (REMOTE . INFO-ALIST).
 Where REMOTE is a string naming a git remote which matches the
 REMOTE-REGEXP key of a `debbugs-gnu-git-remote-info-alist' entry.
-INFO-ALIST is the correponding value of the entry.  If no entry
+INFO-ALIST is the corresponding value of the entry.  If no entry
 matches, return nil."
   (with-temp-buffer
     (debbugs-gnu--git-insert "remote" "-v")
@@ -2488,7 +2488,7 @@ or bug ranges, with default to `debbugs-gnu-default-bug-number-list'."
   (dolist (elt bugs)
     (unless (natnump elt) (signal 'wrong-type-argument (list 'natnump elt))))
   (add-to-list 'debbugs-gnu-current-query (cons 'bugs bugs))
-  ;; We do not suppress bugs requested explicitely.
+  ;; We do not suppress bugs requested explicitly.
   (setq debbugs-gnu-current-suppress nil)
   (debbugs-gnu nil)
   (when (called-interactively-p 'interactive)
@@ -2539,7 +2539,7 @@ If SELECTIVELY, query the user before applying the patch."
     (with-current-buffer output-buffer
       (erase-buffer))
     (gnus-summary-select-article nil t)
-    ;; The patches are either in MIME attachements or the main article
+    ;; The patches are either in MIME attachments or the main article
     ;; buffer.  Determine which.
     (with-current-buffer gnus-article-buffer
       (dolist (handle (mapcar #'cdr (gnus-article-mime-handles)))
