@@ -141,7 +141,7 @@ at which the current function begins.")
            ;; Word bound will only ever be one greater than the sentence bound if
            ;; the sentence begins with some sort of punctuation.  Remember, spaces
            ;; don’t count, so if we have a sentence starting with "A ball...",
-           ;; ’ball’ wont trigger this, only ’A’.
+           ;; ’ball’ won't trigger this, only ’A’.
            ((eq (car word-bounds) (1+ sentence-start))
             (capitalize-word 1))))))))
 
