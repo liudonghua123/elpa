@@ -735,7 +735,7 @@ extend a with_clause to include CHILD-NAME."
 	  (context-clause (gnat-context-clause)))
       (goto-char (car context-clause))
       (if (search-forward-regexp (concat "^with " parent-name ";") (cdr context-clause) t)
-	  ;; found exisiting 'with' for parent; extend it
+	  ;; found existing 'with' for parent; extend it
 	  (progn
 	    (forward-char -1) ; skip back over semicolon
 	    (insert "." child-name))
@@ -1457,7 +1457,7 @@ server executable not found; otherwise signal user-error."
    ;;   foo.c:2: `TRUE' undeclared here (not in a function)
    ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
    ;;
-   ;; we can't handle secondary errors here, because a regexp can't distinquish "message" from "filename"
+   ;; we can't handle secondary errors here, because a regexp can't distinguish "message" from "filename"
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
 (eval-after-load 'ada-mode '(add-hook 'ada-mode-hook #'gnatprep-setup))
