@@ -32,7 +32,7 @@
 ;; a command that given as an argument when the function is
 ;; called, or entered as a value in a Dismal spreadsheet cell.
 ;; It will compute the number of mental operators needed, but it can
-;; also take that as an optional arguement if the analyst knows that this
+;; also take that as an optional argument if the analyst knows that this
 ;; is higher or lower than expected.  The default algorithm give one Mop
 ;; per word separated by a dash or space.  This rule is
 ;; derived from the heuristic specified by Card et al (1983, Figure 8.2
@@ -69,7 +69,7 @@
 ;;;
 ;;; 	I.	command-time: Time to enter a command
 ;;;
-;; Takes COMMAND (a string) as arguement, automatically calculates
+;; Takes COMMAND (a string) as argument, automatically calculates
 ;; mental operators by looking for hyphens, and includes average typing
 ;; speed from wpm to return time to execute command in seconds.
 

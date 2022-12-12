@@ -126,7 +126,7 @@ VIII.  Very hard stuff
 
 (defun dismal-hard-test ()
   "Test dismal with a function!"
-  ;; note: this is imcomplete, but getting better.
+  ;; note: this is incomplete, but getting better.
   (interactive)
   (switch-to-buffer "test-dismal")
   (dismal-mode)

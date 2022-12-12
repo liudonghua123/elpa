@@ -725,7 +725,7 @@ representations.  Output to *log-time-episodes*."
 	log--lex-timestamp nil
 	log--lex-keymap nil
 	log--lex-keys nil)
-  (skip-chars-forward " \t")		; skip whitespace befor field 1
+  (skip-chars-forward " \t")		; skip whitespace before field 1
   (if (not (looking-at "\\([0-9]+\\)[ \t]"))	; line number?
       ()
     (setq log--lex-line-number (match-string 1))
@@ -1216,7 +1216,7 @@ spaces, which can't otherwise get into the data.)  Collapses ^A-^Z,
 ;; 11-28-92 - indenting copy-as-kills is meant to improve
 ;;   filterability.  in particular, it means that keystrokes can be
 ;;   counted by filtering out lines that lead with spaces.
-;;   important if one happens to yank mulitple lines from the log
+;;   important if one happens to yank multiple lines from the log
 ;;   buffer...
 
 (provide 'log)

@@ -155,13 +155,13 @@ dump files (default TAB).")
   "*Text inserted by dis-dump-range at the beginning of each row")
 
 (defvar dis-dump-between-col-marker "\t"
-  "*Text inserted by dis-dump-range betweeen columns")
+  "*Text inserted by dis-dump-range between columns")
 
 (defvar dis-dump-tex-end-row-marker "\\\\ \n"
   "*Text inserted by dis-tex-dump-range at the end of each row")
 
 (defvar dis-dump-tex-between-col-marker " & "
-  "*Text inserted by dis-tex-dump-range betweeen columns")
+  "*Text inserted by dis-tex-dump-range between columns")
 
 (defvar dis-show-update nil
   "*If t, then display the values being updated when a variable changes.")
@@ -180,7 +180,7 @@ Zero means disable autosaving.")
 (make-variable-buffer-local 'dis-show-ruler)
 
 (defvar dis-auto-update t
-  "*If t (the default) automaticaly call update after a cell changes.
+  "*If t (the default) automatically call update after a cell changes.
 Setting this to nill can save significant amounts of time on large sheets.")
 (make-variable-buffer-local 'dis-auto-update)
 
@@ -654,7 +654,7 @@ column labels.")
 
 (defvar dismal-interactive-p t)
 ;; Set to nil when doing secret commands, that we don't want side effects from.
-;; Not buffer local, if doing a command, must be accessable in all buffers.
+;; Not buffer local, if doing a command, must be accessible in all buffers.
 
 (defvar dismal-mark [nil nil])
 (make-variable-buffer-local 'dismal-mark)
@@ -898,7 +898,7 @@ in the status line."
   "Like ESC t but applies to adjacent horizontal cells.
 Flips the current cell and the one to its left."
   ;; if on left edge, moves one cell right
-  ;; this is stupid about updating forumla references, etc.
+  ;; this is stupid about updating formula references, etc.
   (interactive)
   (dismal-save-excursion
    (if (= 0 dismal-current-col)
@@ -956,7 +956,7 @@ Flips the current cell and the one to its left."
        ))
                                         ;      (or (null sexp)         ;; up and out immediately if these types,
                                         ;          (floatp sexp)
-                                        ;          (symbolp sexp)  ;; plain variables donot count, cant see changes
+                                        ;          (symbolp sexp)  ;; plain variables donot count, can't see changes
                                         ;          (not (listp sexp))) ;; b/c they have nothing to do
 
 (defsubst dismal-file-header (mode-name-to-write)
@@ -1027,7 +1027,7 @@ Optional second argument non-nil means use scientific notation."
 
 ;; For David:
 ;; 17.  Implement evaluation loop counting [you should take a whack at this,
-;;     it's outside my interests and talents (reletively)].
+;;     it's outside my interests and talents (relatively)].
 ;;     [On DF's list]
 ;; * On updates, and adding, deleting rows/cols, we're are losing time
 ;;   big in dismal-erase-all-dependencies and dismal-record-all-dependencies.
@@ -1056,10 +1056,10 @@ Optional second argument non-nil means use scientific notation."
 ;; 2 (60) Should have a submit bug command.
 ;; 2 (300) Check for and note circular references.
 ;; 3 (200) Insert cell references when they are created in formula
-;;         more generally, probbaly have to have a check when creating a new
+;;         more generally, probably have to have a check when creating a new
 ;;         cell, for can live that it is null until it has a value.
 ;; 3 (100) incorporate new frame-pop.el from David Smith
-;; 3 (40) make the foramt of saved files more readable and concise
+;; 3 (40) make the format of saved files more readable and concise
 ;; 3 (?) recover-file fails
 ;; 2 (20) chaning a null cell to a values does not update formula depending on it
 ;; 1 (15) yank does not update cells that rely on the yanked into cell
@@ -1077,7 +1077,7 @@ Optional second argument non-nil means use scientific notation."
 ;;        load write5.dis, 8:18, unit, 8:43
 ;; 3 (15) on insert col, adjust dis-middle-col
 ;; 2 (50) Compute average delay of slots,
-;;    eg. v9 matches 32 between two segmetns that match at 61 & 62
+;;    eg. v9 matches 32 between two segments that match at 61 & 62
 ;; also get this error with 18.54: could not sbrk, return=1
 ;; ? (?)  Show state changes
 ;; ? (?)  support coding before matching
@@ -1153,11 +1153,11 @@ Optional second argument non-nil means use scientific notation."
 ;; 2 (15:45) Save-some-buffers will not save files the right way, need to redefine
 ;;       save-some-buffers to do .dis special, 20-Aug-93 -FER
 ;; 1 (?) previous-pa.dis somehow blew up from 24k to 769k, with a big null row
-;;       was a basic pointer problem in how we assinged cells.  fixed now Oct-92
+;;       was a basic pointer problem in how we assigned cells.  fixed now Oct-92
 ;; copy on left mouse button fixed. 6-Nov-92 -fer
 ;; shell-command fixed (for some), but using new popper.
-;; * And related to this, is updating cell refernces,  If you have
-;;   the code in hand, I would be happy to cut in a fucntion that knows how
+;; * And related to this, is updating cell references,  If you have
+;;   the code in hand, I would be happy to cut in a function that knows how
 ;;   to update the contents of a range when it is pasted in, and that could
 ;;   apply when a rectangle is inserted or deleted.  12-Jul-93 -FER/EMA?
 ;; 3 (15) yank does not invalidate cells
@@ -1427,7 +1427,7 @@ C-x C-q to change read-only.")))
 
 (defun dismal-draw-ruler (expected-current-row)
   ;; Uses expected-current-row, b/c it is draw before current-row is updated
-  (sit-for 0)  ;this sit-for appears to be necssary, which is v. weird.
+  (sit-for 0)  ;this sit-for appears to be necessary, which is v. weird.
   (dismal-save-excursion
    (let ((new-ruler-row (- expected-current-row (dis--current-line-in-window)))
          (buffer-originally-clean (not (buffer-modified-p))))
@@ -1605,7 +1605,7 @@ C-x C-q to change read-only.")))
 (defun dis-bury-buffer (&optional _buffer)
   "Bury the current buffer and notify user."
   (interactive)
-  (message "Burying %s as a way of quiting dismal..."
+  (message "Burying %s as a way of quitting dismal..."
            (buffer-name (current-buffer)))
   (bury-buffer nil))
 
@@ -2421,7 +2421,7 @@ nil.  Leaves point in same row and column of window [which seems wrong]."
           (insert-char ?\040 chars-missing)     ; Insert some blanks
           (end-of-line)
           (set-buffer-modified-p original-modified-p)))
-    ;; this ins't quite right, but is pleasent n.t.l.
+    ;; this isn't quite right, but is pleasant n.t.l.
     ;; (setq aa (list 'last-col column 'cc (current-column)
     ;;               'hscroll (window-hscroll)
     ;; 'going2 (> (+ 3 (current-column)) (+ (window-hscroll) (window-width)))))
@@ -3884,7 +3884,7 @@ by the compress(1) command.")
 
 ;; stolen from crypt.el
 (defmacro dis--save-point (&rest body)
-  "Save value of point, evalutes FORMS and restore value of point.
+  "Save value of point, evaluates FORMS and restore value of point.
 If the saved value of point is no longer valid go to (point-max).
 This macro exists because, save-excursion loses track of point during
 some types of deletions."
@@ -4008,7 +4008,7 @@ Prefix arg (or optional second arg non-nil) UNDO means uncompress."
 
 (defun dis-insert-file (filename)
   "Insert contents of file FILENAME into buffer starting at the current cell.
-Fields (cells) are seperated by dis-field-sep.
+Fields (cells) are separated by dis-field-sep.
 Cells are overwritten rather than pushed down.
 Set mark after the inserted text."
   (interactive "FDis insert file: ")
@@ -4076,7 +4076,7 @@ Set mark after the inserted text."
   (interactive "P")
   (let ((new-sep (or initial-field-sep
                      (read-string
-                      (format "New field seperator value [was %s]: "
+                      (format "New field separator value [was %s]: "
                               dis-field-sep)) )))
     (cond ( (stringp new-sep)
             (setq dis-field-sep new-sep)
@@ -4461,7 +4461,7 @@ Writes an extra tab if last field is empty for use in other programs, like S."
 
                                         ; Usage (send-cmd-to-shell "gplot /tmp/disgnu.gp" t) Send the command
                                         ; line to the shell (using `shell-command' to process gplot commands
-                                        ; didnt work.  gplot does fancy stuff with pipes, so I'm not sure if
+                                        ; didn't work.  gplot does fancy stuff with pipes, so I'm not sure if
                                         ; there was a problem with pipes.  So, now we create a buffer called
                                         ; *dis-gnuplot* to process our gnuplot shell commands.
                                         ; (send-cmd-to-shell "ls" t)
@@ -4495,7 +4495,7 @@ Writes an extra tab if last field is empty for use in other programs, like S."
                                                (getenv "SHELL")
                                                "sh")
                          nil "-i")
-	  ;; could use make-local-hook, but thats a relatively new
+	  ;; could use make-local-hook, but that's a relatively new
 	  ;; function, so do it the hard way for now.
 	  (set (make-local-variable 'dismal-gnuplot-finish)
                dis-gnuplot-kill-gplot)
@@ -5108,7 +5108,7 @@ redraws with point in the center.  Adjusts somewhat for rulers."
 ;; (setq string "   -1.0000")
 ;; (setq rightspace 2)
 
-;; not longer necessary, convereted to all native floats 2-Jan-97 -FER
+;; no longer necessary, converted to all native floats 2-Jan-97 -FER
 ;; but used by convervsion programs.
 (defun dismal-flat-format-float-string (string rightspace)
   ;; Given the STRING returned by dis--float-to-string, return a string formatted
@@ -5205,7 +5205,7 @@ redraws with point in the center.  Adjusts somewhat for rulers."
            column))))
 
 
-;;;; XVIII.	Column formating commands
+;;;; XVIII.	Column formatting commands
 
 (defun dis-set-alignment (range-or-col alignment-style)
   (interactive (list (sm-run-menu 'dismal-range-or-col-menu 'col)
@@ -5469,7 +5469,7 @@ in a file created by the log program."
 ;; old way, changes inspired by Dan Nicolaescu <done@ece.arizona.edu>
 ;; 17-Jun-97 -FER
 ;;(defun dismal-insert-blank-box (start-point rows cols text)
-;;  ;; Starting at START-POINT insert ROW lines of COLS copys of TEXT.
+;;  ;; Starting at START-POINT insert ROW lines of COLS copies of TEXT.
 ;;  ;; The column is taken from that of START.
 ;;  ;; A rough inverse of this function is kill-rectangle.
 ;; (save-excursion
@@ -5483,7 +5483,7 @@ in a file created by the log program."
 ;;     (move-to-column cc)))))
 
 (defun dismal-insert-blank-box (start-point rows width text)
-  ;; Starting at START-POINT insert ROW lines of WIDTH copys of TEXT.
+  ;; Starting at START-POINT insert ROW lines of WIDTH copies of TEXT.
   ;; The column is taken from that of START.
   ;; A rough inverse of this function is kill-rectangle.
   (save-excursion
@@ -5560,7 +5560,7 @@ in a file created by the log program."
             (t ; not leap year
              (setq days (- days 365))
              (setq styear (+ 1 styear)))))
-    ;; this is awkard, but should work....
+    ;; this is awkward, but should work....
     (if (<= days 31) (setq month "Jan")
       (setq days (- days 31))
       (if (or (and (= 0 (% styear 4))
@@ -5650,7 +5650,7 @@ Includes leap years."
         (setq days (+ days
                       (dis-days-to-eoy stmonth stday)
                       (dis-days-from-boy month day)))
-      (setq days (+ days 1  ; double substraction here
+      (setq days (+ days 1  ; double subtraction here
                     (dis-days-from-boy month day)))
       (setq days (- days (dis-days-from-boy stmonth stday))))
     ;; return the total

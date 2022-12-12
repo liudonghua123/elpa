@@ -180,7 +180,7 @@ current size.")
 (defsubst vector-delete (vector index count)
   "In VECTOR at position INDEX delete COUNT elements."
   ;; keeping raw size of vector still large
-  ;; not deleteing more then you have to
+  ;; not deleting more then you have to
   (if (< index (aref vector 1))
     (progn
       (setq count (min count (- (aref vector 1) index)))

@@ -199,12 +199,12 @@
 (defvar dismal-current-column)
 
 (defun dis-mouse-highlight-cell-or-range ()
-  "Highlight a cell or range of cells as choosen by the mouse."
+  "Highlight a cell or range of cells as chosen by the mouse."
   (interactive)
   (mouse-set-point last-command-event)
   ;; (setq aa last-command-event)
   ;; Grab mouse position now and highlight the current cell, store
-  ;; the cell information incase a drag is performed
+  ;; the cell information in case a drag is performed
   (mouse-set-point last-command-event)
   ;; First, clear out old highlight.
   (dismal-add-text-properties (point-min) (point-max) (list 'face 'default))
@@ -296,7 +296,7 @@
 ;;  ;; set point to position of mouse on window
 ;;  (mouse-set-point last-command-event) ; may go as well
 ;;   
-;;  ;; find out what colum is to be highlighted and highlight it
+;;  ;; find out what column is to be highlighted and highlight it
 ;;  (setq column (car (dismal-find-cell)))
 ;;  (dis-highlight-range column 0 column dismal-max-row)
 ;;  (dismal-goto-row 0)

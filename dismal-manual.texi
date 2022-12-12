@@ -14,7 +14,7 @@
 @comment   come last rather than first in the table entries.  Also, I
 @comment   couldn't figure out where one of your footnotes went, so it
 @comment   is just tacked onto the end of the file.  Also, there's a
-@comment   figure missing somwhere.  And the example spreadsheets are
+@comment   figure missing somewhere.  And the example spreadsheets are
 @comment   complete rubbish.
 @comment   
 @comment   Here's a somewhat cleaned up version.
@@ -1368,7 +1368,7 @@ with something in colA-1.  It too only counts stuff that is in order.
 
 This explanation is probably inadaquate for most uses, but we
 anticipate that few will actually use this functionality.  If you find
-that you are intersted in using this, please feel free to email me or
+that you are interested in using this, please feel free to email me or
 call for more specific help.  Really.  Tony Simon did this, and we got
 his code to work (but we ran out of time for demoing it in his class).
 
@@ -1595,7 +1595,7 @@ that is evaluated to give the cell's value) through dismal-get-exp.
 You should try to use functions that start with dis-, for these are
 pretty stable.  If you have to, and you will, functions that start with
 dismal- are less stable, and access internal data structures, and you
-can get youself more easily in trouble this way.
+can get yourself more easily in trouble this way.
 
 If you really want to live dangerously (and this is documented for that
 person), you can use dynamically bound variables.  When dismal evaluates
@@ -1617,7 +1617,7 @@ The first function, klm-time, is used to calculate the time to enter a
 command that is given as an argument when the function is called, or
 entered as a value in a Dismal spreadsheet cell.  It will compute the
 number of mental operators needed, but it can also take that as an
-optional arguement if the analyst knows that this is higher or lower
+optional argument if the analyst knows that this is higher or lower
 than expected.  The default algorithm give one Mop per word separated by
 a dash or space.  This rule is derived from the heuristic specified by
 Card et al (1983, Figure 8.2 rule 2).  It was specifically used when
@@ -1693,8 +1693,8 @@ a fixed range.
 
 @item Rational
 @itemx s
-The representation of nmbers in Emacs 19 suppoert rational and
-interger numbers, which should be adaquate for most users.
+The representation of nmbers in Emacs 19 support rational and
+integer numbers, which should be adequate for most users.
 
 @item Floating point
 @itemx s
@@ -1745,7 +1745,7 @@ the opposite.
 @node Known Bugs And Interactions, GNU-Emacs/Dismal compatibility, Advanced use of Dismal, Top
 @chapter Known Bugs And Interactions
 
-Dismal has been developed to serve specific needs and with limited resources.  In addition to these limiations, Emacs was designed as an editor, and there remain a few problems with making it behave like a spreadsheet.  We note these here for your understanding and avoidance.
+Dismal has been developed to serve specific needs and with limited resources.  In addition to these limitations, Emacs was designed as an editor, and there remain a few problems with making it behave like a spreadsheet.  We note these here for your understanding and avoidance.
 
 @section Hidden variables preclude modifying mode by hand
 

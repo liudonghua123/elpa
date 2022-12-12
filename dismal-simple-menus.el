@@ -139,7 +139,7 @@
 ))
 
 (sm-def-menu 'dismal-delete-menu
-  "Dis deleteable items"
+  "Dis deletable items"
   "" ;help prompt
  '(("Row           Delete a row." dis-delete-row)
    ("Column        Delete a column." dis-delete-column)
@@ -291,7 +291,7 @@
    ("Auto-update   Toggle auto-updating." dis-toggle-auto-update)
    ("Middle-col    Set the last col, that is grouped with the LHS when aligning."
                    dis-set-metacolumn)
-   ("Field-sep     Set the field seperator in files read in."
+   ("Field-sep     Set the field separator in files read in."
                    dis-set-dis-field-sep)
    ("Show-updt     Toggle showing the variables getting updated."
                    dis-toggle-show-update)

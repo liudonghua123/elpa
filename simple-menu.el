@@ -85,7 +85,7 @@
 ;; a value with message as its result.
 ;;
 ;; If there is only one menu item, it is executed when the menu is run.
-;; After an item is selected and sucessfully completed, a possible keybinding
+;; After an item is selected and successfully completed, a possible keybinding
 ;; or call via meta-X is displayed if possible.
 ;;
 ;;  Here's an example:
@@ -152,7 +152,7 @@
   (if command
       (sm-note-function-key command sm--current-key-map)
     (beep)
-    (message "Quiting simple-menu"))
+    (message "Quitting simple-menu"))
   ;; (beep) (message "hi") (sit-for 1)
   (setq sm-run-menu-flag nil)
   ;; (keyboard-quit)
@@ -763,7 +763,7 @@ or the current-local-map."
 ;; 				       menu
 ;; 				       (get menu 'items))))
 ;; 		   ;; these had been switched to save cycles, but
-;; 		   ;; it looks like some menus are buffer sensative
+;; 		   ;; it looks like some menus are buffer sensitive
 ;; 		   (t "not documented"))))))
 
 (defun sm-note-function-key (command keymap)

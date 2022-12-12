@@ -131,7 +131,7 @@ nEnding row: ")
      (setq j (1+ j)))
    (setq i (1+ i)))
 
- ;; Step 3.  Traverse the matrix forward along the path of higest scores
+ ;; Step 3.  Traverse the matrix forward along the path of highest scores
  ;; but do it front first...
  (message "Computing best match...")
  (let* ((dis--max-seq-length
@@ -233,7 +233,7 @@ nEnding row: ")
 
 ;; (string-match "place-atom \\([0-9]*\\), \\1" "place-atom 33, 33")
 ;; move the edit references so that they are later.
-;; vaiables should be put into a lets
+;; variables should be put into a lets
 ;; ** assumes working with columns 1 and 9 ****
 (defun dis--move-references-forward (obs-col _pred-col)
   ;; low-post-number is where to start looking for something to move

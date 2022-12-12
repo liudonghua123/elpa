@@ -50,7 +50,7 @@ with something in colA-1.  Only counts stuff that is in order."
                range-list 0)
     (dis-div (float matches) (float total)) ))
 
-;; these are not easily combined with the function abov
+;; these are not easily combined with the function above
 (defun dis-model-match-op (range-list)
   "Given a cell RANGE-LIST computes the percentage of colA matched
 with something in colA-2, and col A is an operator.  Only counts stuff
