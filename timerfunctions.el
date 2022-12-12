@@ -306,7 +306,7 @@ See `tf-test-timeout' for another example.
 
 Important Note: If the body of a loop tends to stay in a timeout
 inhibited region for most of the time, then make sure that the timeout
-enabled region atleast spans about 0.02 seconds.. thus, use (sleep-for
+enabled region at least spans about 0.02 seconds.. thus, use (sleep-for
 0.02) if needed.. this is because we check every 0.01 seconds if an
 uninhibited timeout condition has been satisfied.
 
