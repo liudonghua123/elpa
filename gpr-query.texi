@@ -66,7 +66,7 @@ to @code{wisi-refresh-prj-cache}.
 @chapter Installation
 
 The easiest way to install @code{gpr_query} is via the Ada package
-mangager Alire. You can also install the required libraries manually,
+manager Alire. You can also install the required libraries manually,
 and then build @code{gpr_query} manually.
 
 If you are building with Alire, and planning to use gpr-query with the

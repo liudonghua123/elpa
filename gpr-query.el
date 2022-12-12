@@ -87,7 +87,7 @@ Must match gpr_query.adb Version.")
 
   symbol-locs ;; alist completion table, with locations; see gpr-query--symbols-filter
   symbols ;; symbols completion table.
-  symbols-valid ;; nil initialy, 'waiting when getting symbols, t when symbols valid
+  symbols-valid ;; nil initially, 'waiting when getting symbols, t when symbols valid
   symbols-count-total
   )
 
@@ -101,7 +101,7 @@ Must match gpr_query.adb Version.")
   "Regexp matching gpr_query prompt; indicates previous command is complete.")
 
 (defvar gpr-query--debug nil
-  "When non-nil, dispay debug messages.")
+  "When non-nil, display debug messages.")
 
 (defvar-local gpr-query--local-session nil
   "Buffer-local in gpr-query process buffer; the current session.")
