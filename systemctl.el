@@ -36,7 +36,7 @@
 ;; editing of remote unit files thanks to TRAMP.
 ;;
 ;; Key bindings `s t a r t' and `s t o p' can be used to start and stop
-;; services.  Similarily, `e n a b l e' and `d i s a b l e' can be used to
+;; services.  Similarly, `e n a b l e' and `d i s a b l e' can be used to
 ;; permanently enable and disable unit files.
 
 ;;; Granting access to non-root users:
