@@ -204,7 +204,7 @@ conflicts between keybindings."
     (define-key map " " 'windresize-toggle-method)
     (define-key map "s" 'windresize-save-window-configuration)
     (define-key map "r" 'windresize-restore-window-configuration)
-    ;; shorcut keys for manipulating windows
+    ;; shortcut keys for manipulating windows
     (define-key map "0" 'delete-window)
     (define-key map "o" 'windresize-other-window)
     (define-key map "n" 'windresize-next-window)
@@ -894,7 +894,7 @@ Here is a list of default keybindings:
     arrows:  move border or resize windows         =:  balance windows
 M-S-arrows:  select adjacent window                o:  other-window
 C-M-arrows:  move window with fixed width/height   0:  delete current window
-  C-arrows:  temporarilly negate INCREMENT         ~:  negate INCREMENT
+  C-arrows:  temporarily negate INCREMENT          ~:  negate INCREMENT
   M-arrows:  move with priority to left/up         1:  delete other windows
          i:  set INCREMENT (to numeric prefix)     2:  split window vertically
        +/-:  increase/decrease INCREMENT           3:  split window horizontally
