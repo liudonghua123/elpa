@@ -422,7 +422,7 @@ position."
 
 (defun scroll-restore-jump-back ()
   "Jump back to original position.
-The orginal position is the value of `window-point' in the
+The original position is the value of `window-point' in the
 selected window before you started scrolling.
 
 This command does not push the mark."
