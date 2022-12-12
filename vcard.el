@@ -531,7 +531,7 @@ US domestic telephone numbers are replaced with international format."
 
 
 (defun vcard-split-string (string &optional separator limit)
-  "Split STRING at occurences of SEPARATOR.  Return a list of substrings.
+  "Split STRING at occurrences of SEPARATOR.  Return a list of substrings.
 Optional argument SEPARATOR can be any regexp, but anything matching the
  separator will never appear in any of the returned substrings.
  If not specified, SEPARATOR defaults to \"[ \\f\\t\\n\\r\\v]+\".
