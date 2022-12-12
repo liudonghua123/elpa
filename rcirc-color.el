@@ -140,7 +140,7 @@ This ignores SENDER and RESPONSE."
 
 (defun rcirc-do-color (nick color process target)
   "Implement the /color command.
-NICK is the nick for which the new color ist set; if nil, all the
+NICK is the nick for which the new color is set; if nil, all the
 nicks in `rcirc-color-mapping' are shown with their corresponding
 faces.
 
