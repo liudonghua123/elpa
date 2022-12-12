@@ -368,11 +368,11 @@ Applicable to XML.")
 ;; DFAs are always represented by the start state, which is a
 ;; normal state.  Normal states contain moves of two types:
 ;; 1. moves for required tokens, 2. moves for optional tokens.
-;; By design these are keept in two different sets.
-;; [Alt: they could perhaps have been keept in one set but
+;; By design these are kept in two different sets.
+;; [Alt: they could perhaps have been kept in one set but
 ;; marked in different ways.]
 
-;; The and-model groups creates too big state machines, therefor
+;; The and-model groups creates too big state machines, therefore
 ;; there is a datastruture called and-node.
 
 ;; An and-node is a specification for a dfa that has not been computed.
@@ -405,7 +405,7 @@ Applicable to XML.")
 ;;        next is the next state
 
 ;; The and-state is only used during the parsing.
-;; Primitiv functions to get data from parse state need
+;; Primitive functions to get data from parse state need
 ;; to know both normal-state and and-state.
 
 
@@ -690,7 +690,7 @@ element the value."
 ;;; declared-value representation
 ;; token-group = (name-token (symbol+))
 ;; notation = (notation (symbol+))
-;; simple = symbol		lisp symbol correspoinding to SGML type
+;; simple = symbol		lisp symbol corresponding to SGML type
 
 (defun sgml-make-declared-value (type &optional names)
   "Make a declared-value of TYPE.
@@ -754,7 +754,7 @@ Special case, if ATTVAL is nil this is an implied attribute."
 If ATTSPEC is nil, nil is returned."
   (cdr attspec))
 
-;;; asl representaion = (attspec*)
+;;; asl representation = (attspec*)
 
 (defun sgml-lookup-attspec (name asl)
   (assoc name asl))
@@ -2972,7 +2972,7 @@ WHERE is `after'."
       (sgml-final state)))
 
 ;(defun sgml-current-element-contains-data ()
-;  "Retrun true if the current open element is either mixed or is (r)cdata."
+;  "Return true if the current open element is either mixed or is (r)cdata."
 ;  (or (eq sgml-cdata sgml-current-state)
 ;      (eq sgml-rcdata sgml-current-state)
 ;      (sgml-current-mixed-p)))
@@ -3146,7 +3146,7 @@ entity hierarchy as possible."
 		       (> at (sgml-element-start u)))
 		  ;; restart from to with new position
 		  ;; this can't loop forever as
-		  ;; position allways gets smaller
+		  ;; position always gets smaller
 		  (setq at (sgml-element-start u)
 			u sgml-top-tree))
 		 (t
@@ -3847,7 +3847,7 @@ VALUE is a string.  Returns nil or an attdecl."
 ;; parse.  The parser also has a position in the current content model.
 ;; (Called a state.)  The parser is used for several things:
 ;; 1) To find the state the parser would be in at a point in the buffer.
-;;    (Point in emacs sense, I.e. between chararacters).
+;;    (Point in emacs sense, I.e. between characters).
 ;; 2) Identify the element containing a character.
 ;; 3) Find end of an element.
 ;; 4) Find the next element.

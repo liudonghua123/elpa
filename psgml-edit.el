@@ -398,7 +398,7 @@ Deprecated: ELEMENT"
             (setq element-level (sgml-element-parent element-level)))))
       (when (eq element-level sgml-top-tree) ; not in a element at all
 	(setq element-level nil)        ; forget element
-	(goto-char here))		; insert normal tab insted)
+	(goto-char here))		; insert normal tab instead)
       (when element-level
         (cond ((and (> (point) (sgml-element-start element-insert))
                     (< (point) (sgml-element-stag-end element-insert))
@@ -1220,10 +1220,10 @@ buffers local variables list."
 ;;;; New Right Button Menu
 
 (defun sgml-right-menu (event)
-  "Pop up a menu with valid tags and insert the choosen tag.
+  "Pop up a menu with valid tags and insert the chosen tag.
 If the variable sgml-balanced-tag-edit is t, also inserts the
 corresponding end tag. If sgml-leave-point-after-insert is t, the point
-is left after the inserted tag(s), unless the element has som required
+is left after the inserted tag(s), unless the element has some required
 content.  If sgml-leave-point-after-insert is nil the point is left
 after the first tag inserted."
   (interactive "*e")
@@ -1453,7 +1453,7 @@ Editing is done in a separate window."
         (let* ((aname (sgml-attdecl-name attr))
                (def-value (sgml-attdecl-default-value attr))
                (cur-value (sgml-lookup-attspec aname asl)))
-          (sgml-insert			; atribute name
+          (sgml-insert			; attribute name
            '(read-only t category sgml-form) " %s =" aname)
           (cond				; attribute value
             ((sgml-default-value-type-p 'FIXED def-value)
@@ -1805,7 +1805,7 @@ references will be expanded."
     (goto-char (sgml-element-end element)) 
     ;; FIXME: actually the sgml-note-change-at called by the
     ;; before-change-functions need to be delayed to after the normalize
-    ;; to avoid destroying the tree wile traversing it.
+    ;; to avoid destroying the tree while traversing it.
     (let ((before-change-functions nil))
       (sgml-normalize-content element only-one)))
   (sgml-note-change-at (sgml-element-start element))
@@ -2036,7 +2036,7 @@ If it is something else complete with ispell-complete-word."
     (setq pattern (buffer-substring (point) here))
     (setq c (char-after (1- (point))))
     (cond
-     ;; entitiy
+     ;; entity
      ((eq c ?&)
       (sgml-need-dtd)
       (setq insert-case 'sgml-entity-insert-case)

@@ -87,7 +87,7 @@ sgml-auto-activate-dtd
 
 ** Fix documentation of sgml-display-char-list-filename
 
-File format is not properly descibed.
+File format is not properly described.
 
 ** Konstigt beteende när DOCTYPE specar en odefinierad elementtyp,
 speciellt om det är nästan samma som topelementet i instansen men
@@ -139,7 +139,7 @@ sgml-omittag-transparent and sgml-insert-tag.
 
 ** Parsing start-tag
 
-Parse the different consituents of the start tag without reference to
+Parse the different constituents of the start tag without reference to
 the DTD. If the tag is well-formed then check it against the DTD. If
 this is XML w/o a DTD, adjust the constructed DTD to allow the element
 and attributes.

@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This file contanins commands used during installation and
+;; This file contains commands used during installation and
 ;; compilation of psgml.
 
 ;; psgml-compile-files	Compiles the source files. The version of

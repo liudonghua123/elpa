@@ -52,8 +52,8 @@ Setting this variable automatically makes it local to the current buffer."
 (defcustom sgml-system-identifiers-are-preferred nil
   "*If nil, PSGML will look up external entities by searching the catalogs
 in `sgml-local-catalogs' and `sgml-catalog-files' and only if the
-entity is not found in the catalogs will a given system identifer be
-used. If the variable is non-nil and a system identifer is given, the
+entity is not found in the catalogs will a given system identifier be
+used. If the variable is non-nil and a system identifier is given, the
 system identifier will be used for the entity. If no system identifier
 is given the catalogs will searched."
   :type 'boolean
@@ -72,7 +72,7 @@ of a submenu to indicate the range of items in that menu."
 
 
 (defcustom sgml-markup-faces
-  ;; Fixme: are the font-lock correspondences here the most appopriate
+  ;; Fixme: are the font-lock correspondences here the most appropriate
   ;; ones?  I don't recall whence this set came.  -- fx
   `((start-tag . ,(if (facep 'font-lock-function-name-face)
 		      'font-lock-function-name-face

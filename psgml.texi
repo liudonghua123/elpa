@@ -1233,7 +1233,7 @@ Commands for showing information obtained by parsing the buffer.
 @item C-c C-c
 Shows in the message area: context at point, if in a tag or in mixed
 content and the open elements (@code{sgml-show-context}). The form of
-the string is controled by the user option
+the string is controlled by the user option
 @code{sgml-show-context-function}.
 
 @kindex C-c C-w

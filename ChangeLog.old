@@ -689,7 +689,7 @@ Thu Nov  4 19:07:09 1999  Lennart Staflin  <lenst@lysator.liu.se>
 	* psgml-parse.el (sgml-current-file): New variable, holds the name
 	of file name (if any) of the entity beeing parsed in the buffer.
 	(sgml-parse-warning): New func. Log a parser warning, a warning
-	including information about where the error occured. Mostly for
+	including information about where the error occurred. Mostly for
 	DTD parsing.
 	(sgml-log-entity-stack): new factored function.
 	(*) Replaces some sgml-parse-error and sgml-log-warning with
@@ -871,7 +871,7 @@ Mon Jun 22 19:58:43 1998  Lennart Staflin  <lenst@lysator.liu.se>
 
 	* psgml-edit.el (sgml-indent-line): Previous change of
 	sgml-indent-line did not work well with OMITTAG. Restore old
-	functionallity.
+	functionality.
 
 Fri Jun 19 18:54:27 1998  Lennart Staflin  <lenst@lysator.liu.se>
 
@@ -968,7 +968,7 @@ Thu Mar 12 00:04:52 1998  Lennart Staflin  <lenst@lysator.liu.se>
 Wed Mar 11 22:11:01 1998  Lennart Staflin  <lenst@lysator.liu.se>
 
 	* psgml-edit.el (sgml-insert-start-tag): extended meaning of NET
-	paramenter to insert XML-TAGCE if XML.
+	parameter to insert XML-TAGCE if XML.
 	(sgml-change-start-tag): keep XML-TAGCE
 
 	* psgml-parse.el (sgml-read-element-name): use completing read on

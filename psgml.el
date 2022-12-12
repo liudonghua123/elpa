@@ -1217,10 +1217,10 @@ tag inserted." t)
 (autoload 'sgml-entities-menu "psgml-edit" nil t)
 (autoload 'sgml-attrib-menu "psgml-edit" "Pop up a menu of the attributes of the current element
 \(or the element with start-tag before point)." t)
-(autoload 'sgml-right-menu "psgml-edit" "Pop up a menu with valid tags and insert the choosen tag.
+(autoload 'sgml-right-menu "psgml-edit" "Pop up a menu with valid tags and insert the chosen tag.
 If the variable sgml-balanced-tag-edit is t, also inserts the
 corresponding end tag. If sgml-leave-point-after-insert is t, the point
-is left after the inserted tag(s), unless the element has som required
+is left after the inserted tag(s), unless the element has some required
 content.  If sgml-leave-point-after-insert is nil the point is left
 after the first tag inserted." t)
 (autoload 'sgml-fill-element "psgml-edit" "Fill biggest enclosing element with mixed content.

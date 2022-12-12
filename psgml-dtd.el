@@ -269,7 +269,7 @@ Syntax: var dfa-expr &body forms"
 
 (defun sgml-parse-character-reference (&optional dofunchar)
   ;; *** Actually only numerical character references
-  ;; I don't know how to handel the function character references.
+  ;; I don't know how to handle the function character references.
   ;; For the shortrefs let's give them numeric values.
   (if (if dofunchar
 	  (sgml-parse-delim "CRO" (digit nmstart))
@@ -531,7 +531,7 @@ Case transformed for general names."
 		    (sgml-error "XML forbids RCDATA declared content")))
                  ((eq dc 'EMPTY))
                  (t
-                  (sgml-error "Exptected content model group or one of %s"
+                  (sgml-error "Expected content model group or one of %s"
                               (if sgml-xml-p
                                   "ANY or EMPTY"
                                   "ANY, CDATA, RCDATA or EMPTY"))))
