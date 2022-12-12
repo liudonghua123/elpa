@@ -51,7 +51,7 @@
 ;; are shown on the mode line immediately following the major mode name.
 ;;
 ;; While GNU Go is pondering its next move, certain commands that rely on its
-;; assistence will result in a "still waiting" error.  Do not be alarmed; that
+;; assistance will result in a "still waiting" error.  Do not be alarmed; that
 ;; is normal.  When it is your turn again you may retry the command.  In the
 ;; meantime, you can use Emacs for other tasks, or start an entirely new game
 ;; with `C-u M-x gnugo'.  (NOTE: A new game will slow down all games. :-)
@@ -1618,7 +1618,7 @@ If FILENAME already exists, Emacs confirms that you wish to overwrite it."
                        ;;         choice
                        ;;       (message "(Selecting the first game)")
                        ;;       0)))
-                       ;; but this is what we use (for now) to accomodate
+                       ;; but this is what we use (for now) to accommodate
                        ;; (aka faithfully mimic) GTP `loadsgf' limitations:
                        (unless (= 1 n)
                          (message "(Selecting the first game)"))
