@@ -168,7 +168,7 @@ where the close paren was moved from and the position following where
 it moved to.
 
 If there's no close parens to move, either return nil or allow
-scan-error to propogate up."
+scan-error to propagate up."
   (save-excursion
     (let* ((deleted-paren-char nil)
            (deleted-paren-pos
@@ -213,7 +213,7 @@ where the close paren was moved from and the position following where
 it moved to.
 
 If there's no close parens to move, either return nil or allow
-scan-error to propogate up."
+scan-error to propagate up."
   (save-excursion
     (let* ((deleted-paren-char nil)
            (deleted-paren-pos
