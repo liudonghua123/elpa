@@ -167,7 +167,7 @@ LATITUDE2/LONGITUDE2."
 
 (defun metar-latitude-longitude-distance-haversine (latitude1 longitude1
 						    latitude2 longitude2)
-  "Caluclate the distance (in kilometers) between two points on the
+  "Calculate the distance (in kilometers) between two points on the
 surface of the earth given as LATITUDE1, LONGITUDE1, LATITUDE2 and LONGITUDE2."
   (cl-macrolet ((distance (d1 d2)
 			  `(expt (sin (/ (degrees-to-radians (- ,d2 ,d1)) 2)) 2)))
