@@ -60,7 +60,7 @@
 ;;  - clock ticks with timer
 ;;  - use face to display picked letter
 ;;    (insert (propertize "foo" 'face 'highlight))
-;;  - kill score buffer when quiting
+;;  - kill score buffer when quitting
 ;;  - use a list instead of a string for the deck letters
 ;;  - add command to shuffle the deck
 ;;  - navigate to source code in other window to pretend working while playing
