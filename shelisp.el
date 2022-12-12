@@ -195,7 +195,7 @@ convert it to a string."
         (when shelisp-debug
           (message "shelisp> `%s'" cmd))
 
-        ;; Replace the elisp expresssion with it's value
+        ;; Replace the elisp expression with it's value
         ;;   if the value is nil, treat it as an empty string
         (setq rep (save-match-data
                     (save-excursion
