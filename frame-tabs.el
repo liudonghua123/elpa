@@ -126,7 +126,7 @@ various ways."
   :group 'frame-tabs)
 
 (defcustom frame-tabs-min-size 1
-  "Mimimum size of frame tabs windows.
+  "Minimum size of frame tabs windows.
 For tabs windows at the top or bottom of a frame this is their
 minimum number of lines.  For tabs windows at the left or right
 of a frame this is their minimum number of columns.
