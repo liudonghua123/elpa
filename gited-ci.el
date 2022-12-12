@@ -69,7 +69,7 @@
   "Show CI status for the last commit in the trunk branch.
 A list of elements (TOPLEVEL_DIR . CI-URI).
 TOPLEVEL_DIR is the toplevel directory for the local Git repository.
-CI_URI is the URI to access the Continous Integration system.
+CI_URI is the URI to access the Continuous Integration system.
 
 Supported CI are Gitlab, Travis and CircleCI: for Gitlab, you need to provide
 all but the commit hash, for instance, in the case of the Emacs Gitlab CI,
@@ -105,7 +105,7 @@ For circleci:
 (defface gited-trunk-ci-status-success
   '((((background dark)) (:foreground "green"))
     (t                   (:foreground "white" :background "forest green")))
-  "Face for trunk branch with last commit succeded in the CI."
+  "Face for trunk branch with last commit succeeded in the CI."
   :group 'gited :group 'font-lock-highlighting-faces)
 (defvar gited-trunk-ci-status-success-face 'gited-trunk-ci-status-success)
 
@@ -159,7 +159,7 @@ For circleci:
                  'pending)
                 (t 'unknown))))
     (message "Parse CI status done!")
-    ;; Show the staus in the Gited buffer.
+    ;; Show the status in the Gited buffer.
     (with-current-buffer (car (last args))
       (setq gited-trunk-ci-status ci-status)
       (gited--show-trunk-ci-status))))

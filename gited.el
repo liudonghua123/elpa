@@ -337,7 +337,7 @@ It must be `local', `remote' or `tags'.")
   "Position of branch name in array `tabulated-list-entries'.")
 
 (defvar gited-commit-idx 4
-  "Position of newest commit tittle in array `tabulated-list-entries'.")
+  "Position of newest commit title in array `tabulated-list-entries'.")
 
 (defvar gited-after-change-hook nil
   "Hook run after make a change in the list of branches.")
@@ -1138,7 +1138,7 @@ DATA is a string to specify what we want to extract.  For instance:
 (defvar-local gited--running-async-op nil)
 
 (defvar gited-async-operation-callback nil
-  "A function to call once the current async process sucessfully completes.")
+  "A function to call once the current async process successfully completes.")
 
 (defun gited-async-operation (command &optional remote-op-p buffer callback)
   "Run COMMAND asynchronously.
@@ -1331,7 +1331,7 @@ g = merged, k = keep): "
               (format "Reset --%s '%s' to '%s'? " mode branch commit)))
         (message "OK, reset canceled")
       (if (zerop (gited-git-command args))
-          (message "Reseted --%s '%s' to '%s'!" mode branch commit)
+          (message "Reset --%s '%s' to '%s'!" mode branch commit)
         (error "Cannot reset --%s '%s' to '%s'" mode branch commit)))))
 
 (defun gited-remote-prune ()
@@ -1716,7 +1716,7 @@ local, then prompt for a branch name where to check out BRANCH."
                   (match-string-no-properties 1 str))))
           (push file new-files))))
     (if (zerop (gited-git-command `("add" ,@new-files)))
-        (message "Sucessfully staged new files: %s"
+        (message "Successfully staged new files: %s"
                  (mapconcat #'shell-quote-argument new-files " "))
       (error "Cannot stage some new files.  Please check"))))
 
@@ -1757,7 +1757,7 @@ If optional arg ASK is non-nil, then prompt the user before
 to add every hunk, and display the output buffer in other window.
 
 Interactively, with a prefix C-u stage the untracked files as well.
-Interactively, with 2 prefices C-u C-u set arg ASK non-nil."
+Interactively, with 2 prefixes C-u C-u set arg ASK non-nil."
   (interactive
    (let* ((prefix current-prefix-arg)
           (untracked-ok (equal '(4) prefix))
@@ -1802,7 +1802,7 @@ If optional arg DATE is non-nil, then update just the date
  and keep the original message.
 
 Called with a prefix argument prompt to AUTHOR, and update it.
-Called with a 2 prefices prompts to DATE, and update it."
+Called with a 2 prefixes prompts to DATE, and update it."
   (interactive
    (let* ((prefix current-prefix-arg)
           (author (and (equal prefix '(4)) (read-string "Author: " (gited--last-commit-author))))
@@ -1993,7 +1993,7 @@ diff OLD-REF REF."
     (gited--set-output-buffer-mode buf 'diff)))
 
 (defun gited--valid-ref-p (str)
-  ;; Explicitely reject when STR is just a digit, like "0", "1", "2", etc.
+  ;; Explicitly reject when STR is just a digit, like "0", "1", "2", etc.
   ;; For some repositories `git rev-parse 1' might returns success, with
   ;; that reference pointing to something different that HEAD~1.
   (unless (string-match "\\`[0-9]+\\'" str)
@@ -2282,7 +2282,7 @@ If optional arg SHORT is non-nil use a short format."
 
 (defun gited-extract-patches (n &optional origin write-file)
   "Extract the patches from the N newest commits.
-Optional arg ORIGIN, means extract the patches from all commits accesible
+Optional arg ORIGIN, means extract the patches from all commits accessible
 from the trunk, and not being in the trunk.
 Optional arg WRITE-FILE if non-nil, then write the patches to disk."
   (interactive
@@ -2369,7 +2369,7 @@ This command sets BRANCH-TARGET current."
   (interactive
    (let* ((br (gited-get-branchname))
           (prompt
-           (format "Syncronized '%s' into new branch: " br))
+           (format "Synchronized '%s' into new branch: " br))
           (def (gited--sync-with-trunk-target-name br)))
      (list
       (completing-read prompt
@@ -2415,7 +2415,7 @@ Called interactively with a prefix set DONT-ASK to non-nil."
   (interactive "P")
   (dolist (br (or (gited-get-marked-branches) (list (gited-get-branchname))))
     (let* ((prompt
-            (format "Syncronized '%s' into new branch: " br))
+            (format "Synchronized '%s' into new branch: " br))
            (def (gited--sync-with-trunk-target-name br))
            (target
             (if dont-ask def
@@ -2471,7 +2471,7 @@ set RESET non-nil."
                (message "Not bisecting.  Nothing to do")
              (setq gited--running-async-op nil)
              (gited-git-command '("bisect" "reset") obuf)
-             (message "Successfully reseted git bisect!")))
+             (message "Successfully reset git bisect!")))
           ((not bisectingp)
            (with-current-buffer obuf
              (erase-buffer))
@@ -2838,7 +2838,7 @@ reach the beginning of the buffer."
     refs-fmt))
 
 (defun gited--get-branch-info (&optional pattern)
-  "Return alist with branches infor."
+  "Return alist with branches info."
   (let ((args (gited--list-refs-format pattern))
         branch-info)
     (with-temp-buffer
