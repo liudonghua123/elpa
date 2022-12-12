@@ -1,11 +1,11 @@
-;;; cl-lib.el --- Forward cl-lib compatibility library for Emacs<24.3  -*- coding: utf-8 -*-
+;;; cl-lib.el --- Forward cl-lib compatibility library for Emacs<24.3  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; vcomment: Emacs-24.3's version is 1.0 so this has to stay below.
-;; Version: 0.7
-;; Y-Package-Requires: ((emacs "21")) ¡`emacs' package only exists in Emacs≥24!
+;; Version: 0.7.1
+;; Y-Package-Requires: ((emacs "20")) `emacs' package only exists in Emacs>=24!
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 
 ;; This is a forward compatibility package, which provides (a subset of) the
 ;; features of the cl-lib package introduced in Emacs-24.3, for use on
-;; previous emacsen (it should work on Emacs≥21 as well as XEmacs).
+;; previous emacsen (it should work on Emacs>=20 as well as XEmacs).
 
 ;; Make sure this is installed *late* in your `load-path`, i.e. after Emacs's
 ;; built-in .../lisp/emacs-lisp directory, so that if/when you upgrade to
@@ -43,7 +43,7 @@
 ;;; Code:
 
 ;; We need to handle the situation where this package is used with an Emacs
-;; that comes with a real cl-lib (i.e. ≥24.3).
+;; that comes with a real cl-lib (i.e. >=24.3).
 
 ;; First line of defense: try to make sure the built-in cl-lib comes earlier in
 ;; load-path so we never get loaded:
