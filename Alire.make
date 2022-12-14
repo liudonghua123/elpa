@@ -6,5 +6,5 @@ install : bin/gpr_query$(EXE_EXT)
 	gprinstall -f -p -P emacs_gpr_query.gpr --prefix=~/.local --install-name=gpr_query
 
 # Local Variables:
-# eval: (load-file "prj-eglot.el")
+# eval: (load-file "prj.el")
 # End:
