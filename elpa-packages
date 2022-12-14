@@ -708,6 +708,10 @@
  (svg-tag-mode		:url "https://github.com/rougier/svg-tag-mode"
   :auto-sync t)
  (swiper		:url "https://github.com/abo-abo/swiper")
+ (sxhkdrc-mode		:url "https://git.sr.ht/~protesilaos/sxhkdrc-mode"
+  :auto-sync t
+  :readme "README.md"
+  :ignored-files ("COPYING"))
  (system-packages	:url "https://gitlab.com/jabranham/system-packages"
   :auto-sync t)
  (systemd		:url nil)
