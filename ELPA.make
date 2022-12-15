@@ -12,8 +12,7 @@ EMACS_EXE ?= "/Applications/Emacs.app/Contents/MacOS/Emacs"
 
 else
 # windows
-# specify uniscribe to workaround weird Windows harfbuzz bug
-EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
+EMACS_EXE ?= emacs
 WISI ?= c:/Projects/elpa/packages/wisi
 
 endif
