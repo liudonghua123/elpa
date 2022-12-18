@@ -85,18 +85,21 @@ By default, all the non-grey colors that are very different from
 the default background are candidates.  This uses `rcirc-color-distance'
 to compute distance between colors.
 
-To check out the list, evaluate (list-colors-display rcirc-colors)."
-  :type '(repeat color))
+To check out the list, evaluate (list-colors-display rcirc-colors).
+
+This may also be defined as a list of faces, which themes can
+customise."
+  :type '(choice (repeat :tag "List of colors" color)
+		 (repeat :tag "List of faces" face)))
 
 (defvar rcirc-color-mapping (make-hash-table :test 'equal)
   "Hash-map mapping nicks to color names.")
 
 (defcustom rcirc-color-is-deterministic nil
   "Normally rcirc just assigns random colors to nicks.
-These colors are based on the list in `rcirc-colors'.
-If you set this variable to a non-nil value, an md5 hash is
-computed based on the nickname and the first twelve bytes are
-used to determine the color: #rrrrggggbbbb."
+These colors are based on the list in `rcirc-colors'.  If you set
+this variable to a non-nil value, an md5 hash is computed based
+on the nickname and it is used to index `rcirc-colors'."
   :type 'boolean)
 
 (defcustom rcirc-color-other-attributes nil
@@ -104,21 +107,30 @@ used to determine the color: #rrrrggggbbbb."
 Example: (setq rcirc-color-other-attributes \\='(:weight bold))"
   :type 'plist)
 
+(defun rcirc-color-make-face (nick)
+  "Return a face for NICK."
+  (let ((fg (nth (if rcirc-color-is-deterministic
+		     (mod (string-to-number (md5 nick) 16)
+			  (length rcirc-colors))
+		   (random (length rcirc-colors)))
+		 rcirc-colors)))
+    (cond
+     ((stringp fg)
+      `(:foreground ,fg ,@rcirc-color-other-attributes))
+     ((null rcirc-color-other-attributes) fg)
+     (`(:inherit ,fg ,@rcirc-color-other-attributes)))))
 
 (defun rcirc-color--facify (orig-fun string face &rest args)
-  "Add colors to other nicks based on `rcirc-colors'."
+  "Add colors to other nicks based on `rcirc-colors'.
+This function is applied as advice over the ORIG-FUN
+`rcirc-facify'.  For detail on STRING and FACE, consult the
+documentation for `rcirc-facify'.  ARGS are any further arguments
+that the function may be extended by in the future."
   (when (and (eq face 'rcirc-other-nick)
              (> (length string) 0))
     (let ((cell (or (gethash string rcirc-color-mapping)
                     (puthash (substring-no-properties string)
-                             `(:foreground
-			       ,(if rcirc-color-is-deterministic
-                                    (nth (mod (string-to-number (md5 string) 16)
-                                              (length rcirc-colors))
-                                         rcirc-colors)
-				  (elt rcirc-colors
-                                       (random (length rcirc-colors))))
-			       ,@rcirc-color-other-attributes)
+			     (rcirc-color-make-face string)
                              rcirc-color-mapping))))
       (setq face (list cell))))
   (apply orig-fun string face args))
