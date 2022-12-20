@@ -500,7 +500,7 @@ then nil is returned."
         (delete-region (point) (point-max))
         (setq value (buffer-substring-no-properties (point-min)
                                                     (point-max))))
-      (setf (slot-value field 'value) value)
+      (setf (rec-field-value field) value)
       field)))
 
 ;;;; Get entities under pointer
@@ -750,7 +750,7 @@ this function returns nil."
   ;; If a descriptor has more than a %rec field, then the first one is
   ;; used.  The rest are ignored.
   (mapcar (lambda (descriptor)
-            (slot-value descriptor 'type))
+            (rec-record-descriptor-type descriptor))
           rec-buffer-descriptors))
 
 (defun rec-type-p (type)
@@ -1983,7 +1983,7 @@ Prefix arguments N moves next by N records."
           (user-error
            (if rec-selection-current-selection
                (format "No more records of type %s in selection %s"
-                       (slot-value rec-selection-current-selection 'type)
+                       (rec-record-type rec-selection-current-selection)
                        (rec-selection-expr rec-selection-current-selection))
              (format "No more records in selection %s" (rec-selection-expr rec-selection-current-selection))))))
     (user-error "No active selection")))
@@ -2089,7 +2089,7 @@ Aims to be backwards compatible with Emacs versions
   (let* ((results (rec--parse-sexp-records query))
          (descriptor (cl-find-if #'rec-record-descriptor-p results))
          (type (if descriptor
-                   (slot-value descriptor 'type)
+                   (rec-record-descriptor-type descriptor)
                  "Record"))
          (data (if descriptor
                    (cdr results)
