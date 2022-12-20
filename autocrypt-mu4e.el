@@ -33,7 +33,10 @@
 
 (defun autocrypt-mu4e--uninstall ()
   "Remove autocrypt hooks for mu4e."
-  (remove-hook 'mu4e-view-mode-hook #'autocrypt-process-header t)
+  (remove-hook (if (boundp 'mu4e-view-rendered-hook)
+                   'mu4e-view-rendered-hook
+                 'mu4e-view-mode-hook)
+               #'autocrypt-process-header t)
   (remove-hook 'mu4e-compose-mode-hook #'autocrypt-compose-setup t))
 
 (defun autocrypt-mu4e--get-header (header)
