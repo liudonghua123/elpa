@@ -25,7 +25,10 @@
 ;;;###autocrypt
 (defun autocrypt-mu4e--install ()
   "Install autocrypt hooks for mu4e."
-  (add-hook 'mu4e-view-mode-hook #'autocrypt-process-header nil t)
+  (add-hook (if (boundp 'mu4e-view-rendered-hook)
+                'mu4e-view-rendered-hook
+              'mu4e-view-mode-hook)
+            #'autocrypt-process-header nil t)
   (add-hook 'mu4e-compose-mode-hook #'autocrypt-compose-setup nil t))
 
 (defun autocrypt-mu4e--uninstall ()
