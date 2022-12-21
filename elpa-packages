@@ -74,7 +74,7 @@
  (async			:url "https://github.com/jwiegley/emacs-async"
   :ignored-files ("COPYING")
   :auto-sync t)
- (auctex		:url "git://git.sv.gnu.org/auctex.git"
+ (auctex		:url "https://git.savannah.gnu.org/git/auctex.git"
   ;; AUCTeX is currently sync'd manually and elpa.git isn't quite a mirror :-(
   :auto-sync nil)
  (aumix-mode		:url nil)
@@ -83,7 +83,7 @@
   :doc "docs/auto-overlay-manual.texinfo")
  ;; FIXME: Avy diverged https://github.com/abo-abo/avy/issues/344
  (avy			:url "https://github.com/abo-abo/avy")
- (bbdb			:url "git://git.savannah.nongnu.org/bbdb.git"
+ (bbdb			:url "https://git.savannah.nongnu.org/git/bbdb.git"
   :lisp-dir "lisp"
   :doc "doc/bbdb.texi"
   ;; The BBDB branch in elpa.git is managed directly by hand, with
@@ -520,7 +520,7 @@
   :doc "orderless.texi"
   :readme "README.org"
   :auto-sync t)
- (org			:url "git://git.sv.gnu.org/emacs/org-mode.git"
+ (org			:url "https://git.savannah.gnu.org/git/emacs/org-mode.git"
   :lisp-dir "lisp"
   :release-branch "bugfix"
   :ignored-files ("etc/schema" "contrib" "mk" "testing" "lisp/org-install.el")
@@ -589,11 +589,11 @@
   :ignored-files ("LICENSE")
   :doc "README.org"
   :auto-sync t)
- (poke			:url "git://git.sv.gnu.org/poke/poke-el.git"
+ (poke			:url "https://git.savannah.gnu.org/git/poke/poke-el.git"
   :doc "poke-el.texi"
   :ignored-files ("COPYING")
   :auto-sync t)
- (poke-mode		:url "git://git.sv.gnu.org/poke/poke-mode.git"
+ (poke-mode		:url "https://git.savannah.gnu.org/git/poke/poke-mode.git"
   :auto-sync t)
  (poker			:url nil)
  (polymode		:url "https://github.com/polymode/polymode"
@@ -747,7 +747,7 @@
   :ignored-files ("LICENSE")
   :news "NEWS.md"
   :auto-sync t)
- (tramp			:url "git://git.sv.gnu.org/tramp.git"
+ (tramp			:url "https://git.savannah.gnu.org/git/tramp.git"
   :branch "externals/tramp"
   :main-file "trampver.el"
   :make ("autoloads" "info")
@@ -803,7 +803,7 @@
  (vc-hgcmd		:url "https://github.com/muffinmad/emacs-vc-hgcmd"
   :auto-sync t)
  (vcard			:url nil)
- (vcl-mode	        :url "git://git.gnu.org.ua/vcl-mode")
+ (vcl-mode	        :url "https://git.gnu.org.ua/vcl-mode.git")
  (vdiff               	:url "https://github.com/justbur/emacs-vdiff"
   :auto-sync t)
  (verilog-mode		:core "lisp/progmodes/verilog-mode.el")
