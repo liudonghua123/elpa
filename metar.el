@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -83,7 +83,7 @@
 			     (const :tag "Degree Kelvin" degK)
 			     (const :tag "Degree Fahrenheit" degF)))))
 
-(defcustom metar-stations-info-url "http://tgftp.nws.noaa.gov/data/nsd_cccc.txt"
+(defcustom metar-stations-info-url "https://tgftp.nws.noaa.gov/data/nsd_cccc.txt"
   "URL to use for retrieving station meta information."
   :group 'metar
   :type 'string)
@@ -279,7 +279,7 @@ It must have the signature of `math-convert-units', which is the default."
 						  pure))))
 
 (defcustom metar-url
-  "http://tgftp.nws.noaa.gov/data/observations/metar/stations/%s.TXT"
+  "https://tgftp.nws.noaa.gov/data/observations/metar/stations/%s.TXT"
   "URL used to fetch station specific information.
 %s is replaced with the 4 letter station code."
   :group 'metar
