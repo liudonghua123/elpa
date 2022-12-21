@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -41,10 +41,10 @@
 
 ;; This is the result; I hope you find it fun.
 
-;; 1. http://vimeo.com/36579366
-;; 2. http://elpa.gnu.org/packages/svg-clock.html
-;; 3. http://lists.gnu.org/archive/html/bug-gnu-emacs/2010-05/msg00491.html
-;; 4. http://oneslime.net/
+;; 1. https://vimeo.com/36579366
+;; 2. https://elpa.gnu.org/packages/svg-clock.html
+;; 3. https://lists.gnu.org/archive/html/bug-gnu-emacs/2010-05/msg00491.html
+;; 4. https://oneslime.net/
 
 ;; Ending music: https://archive.org/details/M00GNU
 
