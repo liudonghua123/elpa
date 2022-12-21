@@ -3,4 +3,4 @@ language.  This includes both a major mode `shen-mode' and an inferior
 Shen mode (`run-shen') for evaluating shen code in a comint buffer or
 from a buffer of Shen source code.
 
-For information on shen see http://www.shenlanguage.org/.
+For information on shen see https://www.shenlanguage.org/.
