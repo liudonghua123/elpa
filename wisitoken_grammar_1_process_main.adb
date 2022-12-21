@@ -19,7 +19,7 @@
 --  GNU General Public License for more details.
 --
 --  You should have received a copy of the GNU General Public License
---  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+--  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 with Wisitoken_Grammar_1_Process_Actions; use Wisitoken_Grammar_1_Process_Actions;
 with WisiToken.Lexer.re2c;

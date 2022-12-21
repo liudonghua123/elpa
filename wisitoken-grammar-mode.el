@@ -7,7 +7,7 @@
 ;; Keywords: languages
 ;; Version: 1.2.0
 ;; package-requires: ((wisi "3.1.1") (emacs "25.0") (mmm-mode "0.5.7"))
-;; url: http://www.nongnu.org/ada-mode/
+;; url: https://www.nongnu.org/ada-mode/
 
 ;; This file is part of GNU Emacs.
 
