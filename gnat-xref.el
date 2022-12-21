@@ -3,7 +3,7 @@
 ;; These tools are all Ada-specific; see gpr-query for multi-language
 ;; GNAT cross-reference tools.
 ;;
-;; GNAT is provided by AdaCore; see http://libre.adacore.com/
+;; GNAT is provided by AdaCore; see https://libre.adacore.com/
 ;;
 ;;; Copyright (C) 2012 - 2022  Free Software Foundation, Inc.
 ;;
@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'compile)
 (require 'gnat-compiler)
