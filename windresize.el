@@ -46,7 +46,7 @@
 ;; list. Special thanks to Drew Adams, Juri Linkov, Stefan Monnier and
 ;; JunJie Nan for useful suggestions.
 ;;
-;; Also check http://www.emacswiki.org/cgi-bin/wiki/WindowResize for
+;; Also check https://www.emacswiki.org/cgi-bin/wiki/WindowResize for
 ;; general hints on window resizing.
 ;;
 ;; Put this file into your load-path and the following into your
