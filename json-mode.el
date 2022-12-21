@@ -19,12 +19,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; Major mode for editing JavaScript Object Notation (JSON) data files.
-;; Read more about JSON at http://json.org/.
+;; Read more about JSON at https://www.json.org/.
 
 ;; It provides support for indentation and syntax highlighting.
 
