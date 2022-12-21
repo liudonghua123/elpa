@@ -5,7 +5,7 @@
 ;; Author: Kevin Ryde <user42_kevin@yahoo.com.au>
 ;; Version: 7
 ;; Keywords: multimedia, mixer, aumix
-;; URL: http://user42.tuxfamily.org/aumix-mode/index.html
+;; URL: https://user42.tuxfamily.org/aumix-mode/index.html
 ;; EmacsWiki: Aumix
 ;;
 ;; aumix-mode.el is free software; you can redistribute it and/or modify it
@@ -19,7 +19,7 @@
 ;; Public License for more details.
 ;;
 ;; You can get a copy of the GNU General Public License online at
-;; <http://www.gnu.org/licenses/>.
+;; <https://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -68,7 +68,7 @@
  :prefix "aumix-mode-"
  :group  'multimedia
  :link   '(url-link :tag "aumix-mode.el home page"
-                    "http://user42.tuxfamily.org/aumix-mode/index.html")
+                    "https://user42.tuxfamily.org/aumix-mode/index.html")
  :link   '(url-link :tag "Aumix home page"
                     "http://jpj.net/~trevor/aumix.html"))
 
@@ -180,7 +180,7 @@ buffer is desired.
 The aumix home page is
   URL `http://jpj.net/~trevor/aumix.html'
 The aumix-mode.el home page is
-  URL `http://user42.tuxfamily.org/aumix-mode/index.html'
+  URL `https://user42.tuxfamily.org/aumix-mode/index.html'
 
 ----
 \\{aumix-mode-map}
