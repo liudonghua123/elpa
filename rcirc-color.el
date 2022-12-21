@@ -43,7 +43,7 @@
   "Compute the difference between two colors.
 The difference between COLOR1 and COLOR2 is computed using the
 weighted Euclidean distance formula proposed on
-<http://www.compuphase.com/cmetric.htm>.  Remember that every
+<https://www.compuphase.com/cmetric.htm>.  Remember that every
 component for the formula is in the range of 0-xFF and
 `color-values' will return a range of 0-FFFF.  Thus, divide
 everything by 256. This also helps preventing integer overflow."
