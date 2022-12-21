@@ -28,7 +28,7 @@ check for ELPA patches by others
         apply changes to current
 
 check emacs buglist
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-query
+    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-query
     to update a bug: nnn@debbugs.gnu.org
         subject: from bug title, for people who rely on that.
     if fixed in devel sources, add 'pending' tag:
@@ -151,7 +151,7 @@ Gnu Emacs gpr-query 1.0 released.
 Gnu Emacs gpr-query 1.0 is now available in GNU ELPA.
 
 See the NEWS files in ~/.emacs.d/elpa/gpr-query-7.1.6 and wisi-3.1.3,
-or at http://www.nongnu.org/gpr-query/, for more details.
+or at https://www.nongnu.org/gpr-query/, for more details.
 
 The required Ada code requires a manual compile step, after the normal
 list-packages installation ('install.sh' is new in this release):
@@ -166,9 +166,9 @@ help in installing them.
 -------------------
 
 mark fixed bugs
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-query
-    http://debbugs.gnu.org/Developer.html
+    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-query
+    https://debbugs.gnu.org/Developer.html
     email to nnn-close@debbugs.gnu.org
         subject: copy from bug report
         body: closed by ada-mode version 7.2.1
