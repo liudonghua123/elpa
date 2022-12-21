@@ -715,10 +715,10 @@ Prompt user if more than one."
     (wisi-case-adjust-identifier)
     (delete-char 1)))
 
-(defun gnat-context-clause ()
-  (if (fboundp 'ada-fix-context-clause);; in ada-mode
-      (ada-fix-context-clause)
-    (user-error "ada-fix-context-clause not defined; can't find context clause")))
+(defun gnat-context-clause-region ()
+  (if (fboundp 'ada-context-clause-region);; in ada-mode
+      (ada-context-clause-region)
+    (user-error "ada-context-clause-region not defined; can't find context clause")))
 
 (defun gnat-extend-with-clause (partial-parent-name child-name)
   "Assuming point is in a selected name, just before CHILD-NAME, add or
@@ -732,7 +732,7 @@ extend a with_clause to include CHILD-NAME."
     (skip-syntax-backward "w_.")
     (search-forward-regexp gnat-name-regexp parent-name-end t)
     (let ((parent-name (match-string 0))
-	  (context-clause (gnat-context-clause)))
+	  (context-clause (gnat-context-clause-region)))
       (goto-char (car context-clause))
       (if (search-forward-regexp (concat "^with " parent-name ";") (cdr context-clause) t)
 	  ;; found existing 'with' for parent; extend it
