@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -44,7 +44,7 @@
     st))
 
 (defconst rnc--keywords
-  ;; Taken from the grammar in http://relaxng.org/compact-20021121.html,
+  ;; Taken from the grammar in https://relaxng.org/compact-20021121.html,
   ;; by order of appearance.
   '("namespace" "default" "datatypes" "element" "attribute"
     "list" "mixed" "parent" "empty" "text" "notAllowed" "external"
