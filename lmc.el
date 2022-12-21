@@ -17,12 +17,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; A simulator for the Little Man Computer.
-;; http://en.wikipedia.org/wiki/Little_man_computer
+;; https://en.wikipedia.org/wiki/Little_man_computer
 
 ;; The simulator uses a plain editable buffer, so you can edit the machine
 ;; words just like any other text, and every word can be given a name (label)
