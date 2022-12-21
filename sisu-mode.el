@@ -6,11 +6,11 @@
 ;; Maintainer: Ralph Amissah <ralph.amissah@gmail.com>
 ;; Keywords: text, syntax, processes, tools
 ;; Version:   7.1.8
-;; URL: http://www.sisudoc.org/
+;; URL: https://www.sisudoc.org/
 ;; originally looked at (based on) doc-mode, with kind permission of the author
 ;;   Author: SUN, Tong <suntong001@users.sf.net>, (c)2001-6, all right reserved
 ;;   Version: $Date: 2006/01/19 03:13:41 $ $Revision: 1.14 $
-;;   Home URL: http://xpt.sourceforge.net/
+;;   Home URL: https://xpt.sourceforge.net/
 ;; with contributions from Kevin Ryde and Stefan Monnier
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; Viva Software Libre!
 ;; Support the free software movement!
@@ -32,7 +32,7 @@
 
 ;;; Commentary:
 
-;; SiSU (http://www.sisudoc.org/) is a document structuring and
+;; SiSU (https://www.sisudoc.org/) is a document structuring and
 ;; publishing framework.  This package provides an Emacs major mode
 ;; for SiSU markup.
 
@@ -453,7 +453,7 @@
 (define-derived-mode sisu-mode text-mode "SiSU"
   "Major mode for editing SiSU files.
 SiSU document structuring, publishing in multiple formats and search.
-URL `http://www.sisudoc.org/'"
+URL `https://www.sisudoc.org/'"
   (modify-syntax-entry ?\'  ".")
   ;;(flyspell-mode nil)
 
