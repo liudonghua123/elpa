@@ -20,12 +20,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; Simple editing mode for the Jgraph graph plotting tool.
-;; You can find more info at http://web.eecs.utk.edu/~plank/plank/jgraph/jgraph.html
+;; You can find more info at https://web.eecs.utk.edu/~plank/plank/jgraph/jgraph.html
 
 ;;; Code:
 
