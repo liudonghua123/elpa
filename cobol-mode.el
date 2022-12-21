@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -30,7 +30,7 @@
 ;; M-x customize menu.
 
 ;; This file should not be confused with Rick Bielawski's cobol-mode.el
-;; (http://www.emacswiki.org/emacs/cobol-mode.el), which this mode attempts to
+;; (https://www.emacswiki.org/emacs/cobol-mode.el), which this mode attempts to
 ;; supersede.
 
 ;; Finally, I suggest installing auto-complete-mode, which makes typing
@@ -2660,7 +2660,7 @@ arguments at all.")
 
 ;;; Indentation
 ;; Derived (a long time ago) from the wonderful Emacs Mode Tutorial at
-;; <http://www.emacswiki.org/emacs/ModeTutorial>.
+;; <https://www.emacswiki.org/emacs/ModeTutorial>.
 
 (defun cobol--code-start ()
   "Return the first column code can go in."
