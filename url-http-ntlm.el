@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -35,8 +35,8 @@
 ;; Taro Kawagishi <tarok@transpulse.org> wrote ntlm.el and md4.el,
 ;; which are parts of FLIM (Faithful Library about Internet Message).
 ;;
-;; http://stuff.mit.edu/afs/sipb/contrib/emacs/packages/flim-1.14.7/ntlm.el
-;; http://stuff.mit.edu/afs/sipb/contrib/emacs/packages/flim-1.14.7/md4.el
+;; https://stuff.mit.edu/afs/sipb/contrib/emacs/packages/flim-1.14.7/ntlm.el
+;; https://stuff.mit.edu/afs/sipb/contrib/emacs/packages/flim-1.14.7/md4.el
 
 ;;; Code:
 (require 'url-auth)
