@@ -18,12 +18,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; This provides basic editing support for DTS files (see
-;; http://www.devicetree.org/), with the following features:
+;; https://www.devicetree.org/), with the following features:
 ;;
 ;; - Font-lock highlighting
 ;; - SMIE-based automatic indentation
