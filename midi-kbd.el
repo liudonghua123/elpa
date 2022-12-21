@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -94,7 +94,7 @@
 	    (intern (concat "up-" (symbol-name i))))))
 
 ;; Emacs can deal with up-events like with down-events since the patch
-;; in <URL:http://debbugs.gnu.org/cgi/bugreport.cgi?bug=19746> has
+;; in <URL:https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19746> has
 ;; been committed to Emacs.
 ;;
 ;; Older versions will erupt in violence when forced to deal with an
