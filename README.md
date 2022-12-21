@@ -2,7 +2,7 @@ Autocrypt for Emacs
 ===================
 
 [Autocrypt][autocrypt] is cryptography protocol, for distributing and
-automatically encrypting emails. This package generically implements
+automatically encrypting emails.  This package generically implements
 the protocol, for various Emacs MUAs (Mail User Agent).
 
 Currently, it supports:
@@ -13,7 +13,7 @@ Currently, it supports:
 - message, as a composer
 
 As of writing, this package doesn't fully implement the autocrypt
-protocol. It is currently still missing:
+protocol.  It is currently still missing:
 
 - Composing the setup message
 - Parsing the setup message
@@ -45,9 +45,9 @@ alternatively, using [`setup`][setup]:
 ~~~
 
 Autocrypt recommends using a new or separate key pair for signing and
-encrypting. If you wish to do so, call the `autocrypt-create-account`
-command. In case you want to manually configure your setup, customise
-the `autocrypt-accounts` option. Note that configuring a key is
+encrypting.  If you wish to do so, call the `autocrypt-create-account`
+command.  In case you want to manually configure your setup, customise
+the `autocrypt-accounts` option.  Note that configuring a key is
 necessary for `autocrypt.el` to function properly.
 
 Bug reports and patches should be sent to my [public inbox].
@@ -56,17 +56,17 @@ Extending `autocrypt.el`
 ------------------------
 
 Autocrypt.el uses a custom extension mechanism, comparable to
-vc-mode. Each time a "generic" function is invoked, either
+vc-mode.  Each time a "generic" function is invoked, either
 `autocrypt-backend-function` is used to return the right function or
 `autocrypt-backends` is used to find a function.
 
 Support for additional MUAs can be added to this package, but should
-preferably be part of the MUAs. An external MUA should either set
+preferably be part of the MUAs.  An external MUA should either set
 autocrypt-backend-function in every buffer it handles, or modify
 `autocrypt-backends` to define a backend.
 
 A backend is designated by a symbol.  This is used together with a
-generic command to check for a function. For example, given the
+generic command to check for a function.  For example, given the
 backend `gnus` and the command `get-header`, autocrypt would check if
 any of the following functions are defined:
 
