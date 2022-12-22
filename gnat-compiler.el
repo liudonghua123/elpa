@@ -782,11 +782,10 @@ to AdaCore ada_language_server in `exec-path', then in a gnat
 installation found in `exec-path'.  If NO-ERROR, return nil if
 server executable not found; otherwise signal user-error."
   (if gnat-lsp-server-exec
-      (progn
-        (setq gnat-lsp-server-exec (locate-file gnat-lsp-server-exec exec-path exec-suffixes))
-        (if (and gnat-lsp-server-exec
-            (file-readable-p gnat-lsp-server-exec))
-	    gnat-lsp-server-exec
+      (let ((tmp (locate-file gnat-lsp-server-exec exec-path exec-suffixes)))
+        (if (and tmp
+            (file-readable-p tmp))
+            (setq gnat-lsp-server-exec tmp)
 	  (user-error "gnat-lsp-server-exec '%s' not a readable file"
 		      gnat-lsp-server-exec)))
 
