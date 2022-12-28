@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'cl-lib)
 (require 'wisi-prj)
@@ -715,10 +715,10 @@ Prompt user if more than one."
     (wisi-case-adjust-identifier)
     (delete-char 1)))
 
-(defun gnat-context-clause ()
-  (if (fboundp 'ada-fix-context-clause);; in ada-mode
-      (ada-fix-context-clause)
-    (user-error "ada-fix-context-clause not defined; can't find context clause")))
+(defun gnat-context-clause-region ()
+  (if (fboundp 'ada-context-clause-region);; in ada-mode
+      (ada-context-clause-region)
+    (user-error "ada-context-clause-region not defined; can't find context clause")))
 
 (defun gnat-extend-with-clause (partial-parent-name child-name)
   "Assuming point is in a selected name, just before CHILD-NAME, add or
@@ -732,10 +732,10 @@ extend a with_clause to include CHILD-NAME."
     (skip-syntax-backward "w_.")
     (search-forward-regexp gnat-name-regexp parent-name-end t)
     (let ((parent-name (match-string 0))
-	  (context-clause (gnat-context-clause)))
+	  (context-clause (gnat-context-clause-region)))
       (goto-char (car context-clause))
       (if (search-forward-regexp (concat "^with " parent-name ";") (cdr context-clause) t)
-	  ;; found exisiting 'with' for parent; extend it
+	  ;; found existing 'with' for parent; extend it
 	  (progn
 	    (forward-char -1) ; skip back over semicolon
 	    (insert "." child-name))
@@ -1456,7 +1456,7 @@ server executable not found; otherwise signal user-error."
    ;;   foo.c:2: `TRUE' undeclared here (not in a function)
    ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
    ;;
-   ;; we can't handle secondary errors here, because a regexp can't distinquish "message" from "filename"
+   ;; we can't handle secondary errors here, because a regexp can't distinguish "message" from "filename"
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
 (eval-after-load 'ada-mode '(add-hook 'ada-mode-hook #'gnatprep-setup))
