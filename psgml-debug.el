@@ -1,6 +1,6 @@
 ;;; psgml-debug.el --- ???  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2017  Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022  Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -32,9 +32,9 @@
 
 ;;;; Debugging
 
-(define-key sgml-mode-map "\C-c," 'sgml-goto-cache)
-(define-key sgml-mode-map "\C-c\C-x" 'sgml-dump-tree)
-(define-key sgml-mode-map "\C-c."   'sgml-shortref-identify)
+(define-key sgml-mode-map "\C-c," #'sgml-goto-cache)
+(define-key sgml-mode-map "\C-c\C-x" #'sgml-dump-tree)
+(define-key sgml-mode-map "\C-c."   #'sgml-shortref-identify)
 
 (defun sgml-this-element ()
   (interactive)

@@ -1,6 +1,6 @@
 ;;; fum.el ---  -*- lexical-binding:t -*-
 
-;; Copyright (C)  1995, 2017 Free Software Foundation, Inc.
+;; Copyright (C)  1995-2022 Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; Version: $Id: fum.el,v 1.1 2000/04/12 16:44:26 lenst Exp $
@@ -42,7 +42,7 @@
     (erase-buffer)
     (cl-prettyexpand form)))
 
-(define-key emacs-lisp-mode-map "\C-cm" 'macroexpand-next)
+(define-key emacs-lisp-mode-map "\C-cm" #'macroexpand-next)
 
 (defun replace-grammar ()
   (interactive)
@@ -193,7 +193,7 @@ The check option can be `t', `nil', or a variable name."
 	  nil))))
 
 (defalias 'sgml-parse-nt-64 ;; character number
-  'sgml-parse-nt-56)
+  #'sgml-parse-nt-56)
 
 (defun sgml-parse-nt-76 (check)
   ;; minimum literal
@@ -202,7 +202,7 @@ The check option can be `t', `nil', or a variable name."
     (sgml-parse-minimum-literal)))
 
 (defalias 'sgml-parse-nt-74 ;; public identifier
-  'sgml-parse-nt-76)
+  #'sgml-parse-nt-76)
 
 (defun sgml-parse-nt-66 (check)
   ;; parameter literal

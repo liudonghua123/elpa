@@ -1,6 +1,6 @@
 ;;; psgml-edit.el --- Editing commands for SGML-mode with parsing support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1996, 2016-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
@@ -252,23 +252,26 @@ a list using attlist TO."
 
 ;;;; SGML mode: folding
 
-;; FIXME: Replace use of `selective-display' with overlays!
-
 (defun sgml-fold-region (beg end &optional unhide)
   "Hide (or if prefixarg unhide) region.
 If called from a program first two arguments are start and end of
 region. And optional third argument true unhides."
   (interactive "r\nP")
-  (setq selective-display t)
-  (with-silent-modifications
-    (subst-char-in-region beg end
-                          (if unhide ?\r ?\n)
-                          (if unhide ?\n ?\r)
-                          'noundo)))
+  (remove-overlays beg end 'invisible 'psgml-fold)
+  (unless unhide
+    ;; We use `front-advance' here because the invisible text begins at the
+    ;; very end of the heading, before the newline, so text inserted at FROM
+    ;; belongs to the heading rather than to the entry.
+    (let ((o (make-overlay beg end nil 'front-advance)))
+      (overlay-put o 'evaporate t)
+      (overlay-put o 'invisible 'psgml-fold)
+      ;; (overlay-put o 'isearch-open-invisible
+      ;;   	   (or outline-isearch-open-invisible-function
+      ;;   	       #'outline-isearch-open-invisible))
+      )))
 
 (defun sgml-fold-element ()
-  "Fold the lines comprising the current element, leaving the first line visible.
-This uses the selective display feature."
+  "Fold the lines comprising the current element, leaving the first line visible."
   (interactive)
   (sgml-parse-to-here)
   (cond ((and (eq sgml-current-tree sgml-top-tree) ; outside document element
@@ -297,8 +300,7 @@ This uses the selective display feature."
 			       (point)))))))
 
 (defun sgml-fold-subelement ()
-  "Fold all elements current elements content, leaving the first lines visible.
-This uses the selective display feature."
+  "Fold all elements current elements content, leaving the first lines visible."
   (interactive)
   (let* ((el (sgml-find-element-of (point)))
 	 (c (sgml-element-content el)))
@@ -1527,12 +1529,12 @@ Editing is done in a separate window."
 
 (defvar sgml-edit-attrib-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'sgml-edit-attrib-finish)
-    (define-key map "\C-c\C-d" 'sgml-edit-attrib-default)
-    (define-key map "\C-c\C-k" 'sgml-edit-attrib-abort)
-    (define-key map "\C-a"  'sgml-edit-attrib-field-start)
-    (define-key map "\C-e"  'sgml-edit-attrib-field-end)
-    (define-key map "\t"  'sgml-edit-attrib-next)
+    (define-key map "\C-c\C-c" #'sgml-edit-attrib-finish)
+    (define-key map "\C-c\C-d" #'sgml-edit-attrib-default)
+    (define-key map "\C-c\C-k" #'sgml-edit-attrib-abort)
+    (define-key map "\C-a"  #'sgml-edit-attrib-field-start)
+    (define-key map "\C-e"  #'sgml-edit-attrib-field-end)
+    (define-key map "\t"  #'sgml-edit-attrib-next)
     map))
 
 ;; used as only for #DEFAULT in attribute editing. Binds all normally inserting
@@ -1540,7 +1542,7 @@ Editing is done in a separate window."
 (defvar sgml-attr-default-keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map sgml-edit-attrib-mode-map)
-    (define-key map [remap self-insert-command] 'sgml-attr-clean-and-insert)
+    (define-key map [remap self-insert-command] #'sgml-attr-clean-and-insert)
     map))
 
 (put 'sgml-default 'local-map sgml-attr-default-keymap)

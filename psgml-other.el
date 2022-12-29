@@ -1,6 +1,6 @@
 ;;; psgml-other.el --- Part of SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 2016 Free Software Foundation, Inc
+;; Copyright (C) 1994-2022 Free Software Foundation, Inc
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; Part of psgml.el. Code not compatible with XEmacs.
+;; Part of psgml.el.
 
 
 ;;; Code:
@@ -86,7 +86,7 @@ if the item is selected."
   (setq menus (sgml-split-long-menus menus))
   (unless (cdr menus)
     (setq menus (list (car menus) '("---" "---"))))
-  (eval (car (x-popup-menu event (cons title menus)))))
+  (eval (car (x-popup-menu event (cons title menus))) t))
 
 
 ;;;; Insert with properties

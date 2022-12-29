@@ -1,7 +1,7 @@
 ;;; psgml-xpr.el --- Experimental additions for PSGML  -*- lexical-binding:t -*-
 ;; $Id: psgml-xpr.el,v 2.3 2005/02/27 17:15:19 lenst Exp $
 
-;; Copyright (C) 2003, 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; Keywords: languages
@@ -59,7 +59,7 @@
   (let ((sgml-psgml-pi-enable-outside-dtd t))
     (sgml-parse-to-here)))
 
-(define-key sgml-mode-map "\e\C-x" 'sgml-eval-psgml-pi)
+(define-key sgml-mode-map "\e\C-x" #'sgml-eval-psgml-pi)
 
 
 

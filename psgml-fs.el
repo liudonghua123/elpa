@@ -1,6 +1,6 @@
 ;;; psgml-fs.el --- Format a SGML-file according to a style file  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995, 2000, 2016  Free Software Foundation, Inc.
+;; Copyright (C) 1995-2022  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; Keywords:
@@ -211,7 +211,7 @@ The value can be the style-sheet list, or it can be a file name
 
 (defun fs-do-style (e style)
   (let ((fs-current-element e))
-    (let ((hang-from (eval (plist-get style 'hang-from))))
+    (let ((hang-from (eval (plist-get style 'hang-from) t)))
       (when hang-from
         (setq fs-hang-from
               (format "%s%s "
@@ -220,10 +220,10 @@ The value can be the style-sheet list, or it can be a file name
                        ? )
                       hang-from))))
     (let ((fs-char (nconc
-                    (cl-loop for st on style by 'cddr
-                          unless (memq (car st) fs-special-styles)
-                          collect (cons (car st)
-                                        (eval (cadr st))))
+                    (cl-loop for st on style by #'cddr
+                             unless (memq (car st) fs-special-styles)
+                             collect (cons (car st)
+                                           (eval (cadr st) t)))
                     fs-char)))
       (when (plist-get style 'block)
         (fs-para)
@@ -236,7 +236,7 @@ The value can be the style-sheet list, or it can be a file name
              (append (plist-get style 'sub-style)
                      fs-style)))
         (cond ((plist-get style 'text)
-               (let ((text (eval (plist-get style 'text))))
+               (let ((text (eval (plist-get style 'text) t)))
                  (when (stringp text)
                    (fs-paraform-data text))))
               (t
@@ -247,7 +247,7 @@ The value can be the style-sheet list, or it can be a file name
                                  (function fs-paraform-entity)))))
       (let ((title (plist-get style 'title)))
         (when title
-          (setq title (eval title))
+          (setq title (eval title t))
           (with-current-buffer fs-buffer
             (setq fs-title title))))
       (let ((after (plist-get style 'after)))

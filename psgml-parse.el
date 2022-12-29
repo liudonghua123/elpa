@@ -1,7 +1,7 @@
 ;;; psgml-parse.el --- Parser for SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 ;; $Id: psgml-parse.el,v 2.105 2008/06/21 16:13:51 lenst Exp $
 
-;; Copyright (C) 1994-1998, 2016-2019  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; Acknowledgment:
@@ -30,7 +30,7 @@
 ;;; Code:
 
 (require 'psgml)
-(require (if (featurep 'xemacs) 'psgml-lucid 'psgml-other))
+(require 'psgml-other)
 
 ;;; Interface to psgml-dtd
 (eval-and-compile
@@ -341,22 +341,6 @@ Applicable to XML.")
          (sgml-debug "Restoring buffer mod: %s" buffer-modified)))))
 
 (defvar mc-flag)
-
-(defun sgml-set-buffer-multibyte (flag)
-  (cond ((featurep 'xemacs)
-         flag)
-        (t
-         (set-buffer-multibyte
-          (if (eq flag 'default)
-              (default-value 'enable-multibyte-characters)
-            flag)))))
-;; Probably better.  -- fx
-;; (eval-and-compile
-;;   (if (fboundp 'set-buffer-multibyte)
-;;       (defalias 'sgml-set-buffer-multibyte
-;; 	(if (fboundp 'set-buffer-multibyte)
-;; 	    'set-buffer-multibyte
-;; 	  'identity))))
 
 
 ;;;; State machine
@@ -1200,7 +1184,7 @@ new compiled dtd will be created from file DTDFILE and parameter entity
 settings in ENTS."
   ;;(Assume the current buffer is a scratch buffer and is empty)
   (sgml-debug "Trying to load compiled DTD from %s..." cfile)
-  (sgml-set-buffer-multibyte nil)
+  (set-buffer-multibyte nil)
   (or (and (file-readable-p cfile)
 	   (let ((coding-system-for-read 'binary))
 	     ;; fifth arg to insert-file-contents is not available in early
@@ -2536,7 +2520,8 @@ overrides the entity type in entity look up."
 	       ;; An existing buffer may have been left unibyte by
 	       ;; processing a cdtd.
                ;; FIXME: looks strange, we haven't changed bufferw yet
-	       (sgml-set-buffer-multibyte t))
+	       ;;(set-buffer-multibyte t)
+	       )
     (setq sgml-scratch-buffer (generate-new-buffer " *entity*")))
   (let ((cb (current-buffer))
 	(dd default-directory)
@@ -2553,7 +2538,7 @@ overrides the entity type in entity look up."
       (set (make-local-variable 'sgml-scratch-buffer) nil))
     (setq sgml-last-entity-buffer (current-buffer))
     (erase-buffer)
-    (sgml-set-buffer-multibyte 'default)
+    (set-buffer-multibyte t)
     (setq default-directory dd)
     (set-visited-file-name nil t)
     (set (make-local-variable 'sgml-current-file) nil)

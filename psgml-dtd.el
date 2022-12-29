@@ -1,6 +1,6 @@
 ;;; psgml-dtd.el --- DTD parser for SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 2016  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
@@ -611,7 +611,7 @@ Case transformed for general names."
 	    (sgml-skip-ps)
 	    (let ((tn (sgml-parse-entity-type)))
 	      (setq type (or (car tn) 'text))
-	      (unless (eq (cdr tn) "")
+	      (unless (equal (cdr tn) "")
 		(setq notation (cdr tn))))
 	    extid)
 	   ((sgml-startnm-char-next)
@@ -997,7 +997,7 @@ FORMS should produce the binary coding of element in VAR."
 (defun sgml-write-dtd (dtd file)
   "Save the parsed DTD in FILE.
 Construct the binary coded DTD (bdtd) in the current buffer."
-  (sgml-set-buffer-multibyte nil)
+  (set-buffer-multibyte nil)
   (insert
    ";;; This file was created by psgml on " (current-time-string)
    " -*-coding:binary-*-\n"

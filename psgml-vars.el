@@ -1,6 +1,6 @@
 ;;; psgml-vars.el --- ???  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016  Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022  Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -28,15 +28,13 @@
   "If true, and sgml-auto-insert-required-elements also true,
 `sgml-insert-element' will insert a comment if there is an element required
 but there is more than one to choose from."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defcustom sgml-insert-end-tag-on-new-line nil
   "If true, `sgml-insert-element' will put the end-tag on a new line
 after the start-tag. Useful on slow terminals if you find the end-tag after
 the cursor irritating."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defcustom sgml-doctype nil
   "*If set, this should be the name of a file that contains the doctype
@@ -44,8 +42,7 @@ declaration to use.
 Setting this variable automatically makes it local to the current buffer."
   :tag "Doctype file"
   :type '(choice (const :tag "Off" nil)
-                 file)
-  :group 'psgml)
+                 file))
 
 (make-variable-buffer-local 'sgml-doctype)
 
@@ -56,19 +53,16 @@ entity is not found in the catalogs will a given system identifier be
 used. If the variable is non-nil and a system identifier is given, the
 system identifier will be used for the entity. If no system identifier
 is given the catalogs will searched."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defcustom sgml-range-indicator-max-length 9
   "*Maximum number of characters used from the first and last entry
 of a submenu to indicate the range of items in that menu."
-  :type 'integer
-  :group 'psgml)
+  :type 'integer)
 
 (defcustom sgml-default-doctype-name nil
   "*Document type name to use if no document type declaration is present."
-  :type '(choice (const :tag "Off" nil) string)
-  :group 'psgml)
+  :type '(choice (const :tag "Off" nil) string))
 
 
 (defcustom sgml-markup-faces
@@ -124,14 +118,12 @@ shortref- short reference"
   :type '(alist :key-type symbol
                 :value-type face)
   :options '(start-tag end-tag comment pi sgml doctype entity shortref
-                      ignored ms-start ms-end)
-  :group 'psgml)
+                      ignored ms-start ms-end))
 
 
 (defcustom sgml-set-face nil
   "*If non-nil, psgml will set the face of parsed markup."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 ;(put 'sgml-set-face 'sgml-desc "Set face of parsed markup")
 
 (defcustom sgml-auto-activate-dtd nil
@@ -139,14 +131,12 @@ shortref- short reference"
 Activation means either to parse the document type declaration or to
 load a previously saved parsed DTD.  The name of the activated DTD
 will be shown in the mode line."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 ;;(put 'sgml-auto-activate-dtd 'sgml-desc "Auto Activate DTD")
 
 (defcustom sgml-offer-save t
   "*If non-nil, ask about saving modified buffers before \\[sgml-validate] is run."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defvar sgml-parent-document nil
   "*How to handle the current file as part of a bigger document.
@@ -180,21 +170,18 @@ Setting this variable automatically makes it local to the current buffer.")
   "*If non-nil, the Tags menu will tag a region if the region is 
 considered active by emacs.  If nil, region must be active and
 transient-mark-mode must be on for the region to be tagged."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defcustom sgml-normalize-trims t
   "*If non-nil, sgml-normalize will trim off white space from end of element
 when adding end tag."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defcustom sgml-omittag t
   "*Set to non-nil, if you use OMITTAG YES.
 
 Setting this variable automatically makes it local to the current buffer."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (make-variable-buffer-local 'sgml-omittag)
 ;;(put 'sgml-omittag 'sgml-desc "OMITTAG")
@@ -203,8 +190,7 @@ Setting this variable automatically makes it local to the current buffer."
   "*Set to non-nil, if you use SHORTTAG YES.
 
 Setting this variable automatically makes it local to the current buffer."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (make-variable-buffer-local 'sgml-shorttag)
 ;(put 'sgml-shorttag 'sgml-desc "SHORTTAG")
@@ -213,8 +199,7 @@ Setting this variable automatically makes it local to the current buffer."
   "*Set to non-nil, if you use NAMECASE GENERAL YES.
 
 Setting this variable automatically makes it local to the current buffer."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (make-variable-buffer-local 'sgml-namecase-general)
 ;(put 'sgml-namecase-general 'sgml-desc "NAMECASE GENERAL")
@@ -226,7 +211,6 @@ This can be the symbol `lower' or `upper'.  Only effective if
 `sgml-namecase-general' is true."
   :type '(choice (const lower)
                  (const upper))
-  :group 'psgml
   )
 (put 'sgml-general-insert-case 'sgml-type '(lower upper))
 
@@ -234,8 +218,7 @@ This can be the symbol `lower' or `upper'.  Only effective if
 (defcustom sgml-insert-defaulted-attributes nil
   "*Controls whether defaulted attributes (not #FIXED) are inserted explicitly
 or not. nil means don't insert, t means insert."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 
 (defcustom sgml-minimize-attributes nil
@@ -247,8 +230,7 @@ Actually two things are done
 Setting this variable automatically makes it local to the current buffer."
   :type '(choice (const :tag "No" nil)
                  (const :tag "omit attribute name" t)
-                 (const :tag "omit attributes with default value" max))
-  :group 'psgml)
+                 (const :tag "omit attributes with default value" max)))
 
 (make-variable-buffer-local 'sgml-minimize-attributes)
 (put 'sgml-minimize-attributes 'sgml-type
@@ -257,16 +239,14 @@ Setting this variable automatically makes it local to the current buffer."
 (defcustom sgml-always-quote-attributes t
   "*Non-nil means quote all attribute values inserted after editing attributes.
 Setting this variable automatically makes it local to the current buffer."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (make-variable-buffer-local 'sgml-always-quote-attributes)
 
 (defcustom sgml-auto-insert-required-elements t
   "*If non-nil, automatically insert required elements in the content
 of an inserted element."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defvar sgml-balanced-tag-edit t
   "*If non-nil, context menu inserts start-end tag pairs.")
@@ -274,31 +254,26 @@ of an inserted element."
 (defcustom sgml-omittag-transparent (not sgml-balanced-tag-edit)
   "*If non-nil, will show legal tags inside elements with omitable start tags
 and legal tags beyond omitable end tags."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defcustom sgml-leave-point-after-insert nil
   "*If non-nil, the point will remain after inserted tag(s).
 If nil, the point will be placed before the inserted tag(s)."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defcustom sgml-warn-about-undefined-elements t
   "*If non-nil, print a warning when a tag for an undefined element is found."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defcustom sgml-warn-about-undefined-entities t
   "*If non-nil, print a warning when an undefined entity is found."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defcustom sgml-ignore-undefined-elements nil
   "*If non-nil, recover from an undefined element by ignoring the tag.
 If nil, recover from an undefined element by assuming it can occur any
 where and has content model ANY."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 
 (defcustom sgml-recompile-out-of-date-cdtd 'ask
   "*If non-nil, out of date compiled DTDs will be automatically recompiled.
@@ -309,8 +284,7 @@ date, thus in such case it can be useful to set this variable to
 `nil'."
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t)
-                 (const :tag "Ask" ask))
-  :group 'psgml)
+                 (const :tag "Ask" ask)))
 (put 'sgml-recompile-out-of-date-cdtd 'sgml-type '(("No" . nil)
 						   ("Yes" . t)
 						   ("Ask" . ask)))
@@ -318,24 +292,21 @@ date, thus in such case it can be useful to set this variable to
 (defcustom sgml-trace-entity-lookup nil
   "*If non-nil, log messages about catalog files used to look for
 external entities."
-  :type 'boolean
-  :group 'psgml) 
+  :type 'boolean) 
 
 (defcustom sgml-indent-step 2
   "*How much to increment indent for every element level.
 If nil, no indentation.
 Setting this variable automatically makes it local to the current buffer."
   :type '(choice (const :tag "None" nil)
-                 integer)
-  :group 'psgml)
+                 integer))
 (make-variable-buffer-local 'sgml-indent-step)
 (put 'sgml-indent-step 'sgml-type '(("None" . nil) 0 1 2 3 4 5 6 7 8))
 
 (defcustom sgml-indent-data nil
   "*If non-nil, indent in data/mixed context also.
 Setting this variable automatically makes it local to the current buffer."
-  :type 'boolean
-  :group 'psgml)
+  :type 'boolean)
 (make-variable-buffer-local 'sgml-indent-data)
 
 
@@ -346,8 +317,7 @@ listed individually.
 
 `sgml-exposed-tags' is local to each buffer in which it has been set;
 use `setq-default' to set it to a value that is shared among buffers."
-  :type '(repeat string)
-  :group 'psgml)
+  :type '(repeat string))
 (make-variable-buffer-local 'sgml-exposed-tags)
 (put 'sgml-exposed-tags 'sgml-type 'list)
 
@@ -375,7 +345,6 @@ Example:
      \"~/sgml/docbook.ced\"
      sgml-omittag nil sgml-shorttag t)))
 "
-  :group 'psgml
   :type '(repeat (list (string :tag "Menu entry")
                   (string :tag "Doctype")
                   (plist :tag "Options" :inline t)))
@@ -397,7 +366,6 @@ Example:
   ((\"Version1\" \"<![%Version1[\\r]]>\")
    (\"New page\"  \"<?NewPage>\"))
 "
-  :group 'psgml
   :type '(repeat (list (string :tag "Menu entry")
                   (choice string sexp)))
 )
@@ -408,11 +376,10 @@ Example:
 
 
 (defcustom sgml-content-indent-function
-  'sgml-indent-according-to-level
+  #'sgml-indent-according-to-level
   "*Function used to compute indentation level for element content.
 Function will be called with one argument, the element.
 Should return an integer."
-  :group 'psgml
   :type '(choice
           (const :tag "Indented according to nesting level"
                  sgml-indent-according-to-level)
@@ -424,11 +391,10 @@ Should return an integer."
 
 
 (defcustom sgml-attribute-indent-function
-  'sgml-indent-according-to-stag
+  #'sgml-indent-according-to-stag
   "*Function used to compute indetation level for attributes.
 Function will be called with one argument, the element.
 Should return an integer."
-  :group 'psgml
   :type '(choice
           (const :tag "Indented according to nesting level"
                  sgml-indent-according-to-level)

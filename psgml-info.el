@@ -1,6 +1,6 @@
 ;;; psgml-info.el --- ???  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1995, 2016  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
@@ -529,7 +529,7 @@
       (print-help-return-message))))
 
 
-(defalias 'sgml-general-dtd-info 'sgml-describe-dtd)
+(defalias 'sgml-general-dtd-info #'sgml-describe-dtd)
 
 
 (provide 'psgml-info)

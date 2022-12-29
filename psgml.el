@@ -1,12 +1,12 @@
 ;;; psgml.el --- SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2002, 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; 	James Clark <jjc@clark.com>
 ;; Maintainer: Lennart Staflin <lstaflin@gmail.com>
 ;; Keywords: languages
-;; Version: 1.3.4
+;; Version: 1.3.5
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -47,6 +47,11 @@
 ;;   unlimited lengths on names
 
 
+;;; News:
+
+;; Since 1.3.4:
+;; - Use overlays rather than the old `selective-diplay'.
+
 ;;; Code:
 
 (defconst psgml-maintainer-address "emacs-devel@gnu.org")
@@ -261,7 +266,7 @@ See `compilation-error-regexp-alist'.")
 
 (defvar sgml-show-context-function
   #'sgml-show-context-standard
-  "*Function to called to show context of and element.
+  "Function to called to show context of and element.
 Should return a string suitable form printing in the echo area.")
 
 (defconst sgml-file-options
@@ -408,16 +413,15 @@ Should return a string suitable form printing in the echo area.")
            (sgml-insert-markup ,text))))
 
 (defun sgml-insert-markup (text)
-  (let ((end (sgml-mouse-region))
-	before after
-	old-text)
-    (when end
-      (setq old-text (buffer-substring (point) end))
-      (delete-region (point) end))
-    (setq before (point))
+  (let* ((end (sgml-mouse-region))
+	 after
+	 (old-text
+	  (when end
+	    (delete-and-extract-region (point) end)))
+	 (before (point)))
     (if (stringp text)
 	(insert text)
-      (eval text))
+      (eval text t))
     (setq after (point))
     (goto-char before)
     (when (search-forward "\r" after t)
@@ -427,11 +431,6 @@ Should return a string suitable form printing in the echo area.")
 (defun sgml-mouse-region ()
   (let (start end)
     (cond
-     ((featurep 'xemacs)
-      (cond
-       ((null (mark-marker)) nil)
-       (t (setq start (region-beginning)
- 		end (region-end)))))
      ((and transient-mark-mode
 	   mark-active)
       (setq start (region-beginning)
@@ -518,63 +517,61 @@ Should return a string suitable form printing in the echo area.")
     (define-key map "\C-c\C-u" u-map)
 
     ;; Key commands
-    (define-key map "\t"    'sgml-indent-or-tab)
+    (define-key map "\t"    #'sgml-indent-or-tab)
     ;; (define-key map "<" 	  'sgml-insert-tag)
-    (define-key map ">"     'sgml-close-angle)
-    (define-key map "/"     'sgml-slash)
-    (define-key map "\C-c#"    'sgml-make-character-reference)
-    (define-key map "\C-c-"    'sgml-untag-element)
-    (define-key map "\C-c+"    'sgml-insert-attribute)
-    (define-key map "\C-c/"    'sgml-insert-end-tag)
-    (define-key map "\C-c<"    'sgml-insert-tag)
-    (define-key map "\C-c="    'sgml-change-element-name)
-    (define-key map "\C-c\C-a" 'sgml-edit-attributes)
-    (define-key map "\C-c\C-c" 'sgml-show-context)
-    (define-key map "\C-c\C-d" 'sgml-next-data-field)
-    (define-key map "\C-c\C-e" 'sgml-insert-element)
-    (define-key map "\C-c\C-f\C-e" 'sgml-fold-element)
-    (define-key map "\C-c\C-f\C-r" 'sgml-fold-region)
-    (define-key map "\C-c\C-f\C-s" 'sgml-fold-subelement)
-    (define-key map "\C-c\C-f\C-x" 'sgml-expand-element)
-    (define-key map "\C-c\C-i" 'sgml-add-element-to-element)
-    (define-key map "\C-c\C-k" 'sgml-kill-markup)
-    (define-key map "\C-c\r"   'sgml-split-element)
-    (define-key map "\C-c\C-n" 'sgml-up-element)
-    (define-key map "\C-c\C-o" 'sgml-next-trouble-spot)
-    (define-key map "\C-c\C-p" 'sgml-load-doctype)
-    (define-key map "\C-c\C-q" 'sgml-fill-element)
-    (define-key map "\C-c\C-r" 'sgml-tag-region)
-    (define-key map "\C-c\C-s" 'sgml-show-structure)
-    ;;(define-key map "\C-c\C-t" 'sgml-list-valid-tags)
-    (define-key map "\C-c\C-t" 'sgml-show-current-element-type)
-    (define-key map "\C-c\C-u\C-a" 'sgml-unfold-all)
-    (define-key map "\C-c\C-u\C-d" 'sgml-custom-dtd)
-    (define-key map "\C-c\C-u\C-e" 'sgml-unfold-element)
-    (define-key map "\C-c\C-u\C-l" 'sgml-unfold-line)
-    (define-key map "\C-c\C-u\C-m" 'sgml-custom-markup)
-    (define-key map "\C-c\C-v" 'sgml-validate)
-    (define-key map "\C-c\C-w" 'sgml-what-element)
-    (define-key map "\C-c\C-z" 'sgml-trim-and-leave-element)
+    (define-key map ">"     #'sgml-close-angle)
+    (define-key map "/"     #'sgml-slash)
+    (define-key map "\C-c#"    #'sgml-make-character-reference)
+    (define-key map "\C-c-"    #'sgml-untag-element)
+    (define-key map "\C-c+"    #'sgml-insert-attribute)
+    (define-key map "\C-c/"    #'sgml-insert-end-tag)
+    (define-key map "\C-c<"    #'sgml-insert-tag)
+    (define-key map "\C-c="    #'sgml-change-element-name)
+    (define-key map "\C-c\C-a" #'sgml-edit-attributes)
+    (define-key map "\C-c\C-c" #'sgml-show-context)
+    (define-key map "\C-c\C-d" #'sgml-next-data-field)
+    (define-key map "\C-c\C-e" #'sgml-insert-element)
+    (define-key map "\C-c\C-f\C-e" #'sgml-fold-element)
+    (define-key map "\C-c\C-f\C-r" #'sgml-fold-region)
+    (define-key map "\C-c\C-f\C-s" #'sgml-fold-subelement)
+    (define-key map "\C-c\C-f\C-x" #'sgml-expand-element)
+    (define-key map "\C-c\C-i" #'sgml-add-element-to-element)
+    (define-key map "\C-c\C-k" #'sgml-kill-markup)
+    (define-key map "\C-c\r"   #'sgml-split-element)
+    (define-key map "\C-c\C-n" #'sgml-up-element)
+    (define-key map "\C-c\C-o" #'sgml-next-trouble-spot)
+    (define-key map "\C-c\C-p" #'sgml-load-doctype)
+    (define-key map "\C-c\C-q" #'sgml-fill-element)
+    (define-key map "\C-c\C-r" #'sgml-tag-region)
+    (define-key map "\C-c\C-s" #'sgml-show-structure)
+    ;;(define-key map "\C-c\C-t" #'sgml-list-valid-tags)
+    (define-key map "\C-c\C-t" #'sgml-show-current-element-type)
+    (define-key map "\C-c\C-u\C-a" #'sgml-unfold-all)
+    (define-key map "\C-c\C-u\C-d" #'sgml-custom-dtd)
+    (define-key map "\C-c\C-u\C-e" #'sgml-unfold-element)
+    (define-key map "\C-c\C-u\C-l" #'sgml-unfold-line)
+    (define-key map "\C-c\C-u\C-m" #'sgml-custom-markup)
+    (define-key map "\C-c\C-v" #'sgml-validate)
+    (define-key map "\C-c\C-w" #'sgml-what-element)
+    (define-key map "\C-c\C-z" #'sgml-trim-and-leave-element)
 
-    (define-key map "\e\C-a"   'sgml-beginning-of-element)
-    (define-key map "\e\C-e"   'sgml-end-of-element)
-    (define-key map "\e\C-f"   'sgml-forward-element)
-    (define-key map "\e\C-b"   'sgml-backward-element)
-    (define-key map "\e\C-d"   'sgml-down-element)
-    (define-key map "\e\C-u"   'sgml-backward-up-element)
-    (define-key map "\e\C-k"   'sgml-kill-element)
-    (define-key map "\e\C-@"   'sgml-mark-element)
-    ;;(define-key map [?\M-\C-\ ] 'sgml-mark-element)
-    (define-key map [(meta control h)] 'sgml-mark-current-element)
-    (define-key map "\e\C-t"   'sgml-transpose-element)
-    (define-key map "\M-\t"    'sgml-complete)
+    (define-key map "\e\C-a"   #'sgml-beginning-of-element)
+    (define-key map "\e\C-e"   #'sgml-end-of-element)
+    (define-key map "\e\C-f"   #'sgml-forward-element)
+    (define-key map "\e\C-b"   #'sgml-backward-element)
+    (define-key map "\e\C-d"   #'sgml-down-element)
+    (define-key map "\e\C-u"   #'sgml-backward-up-element)
+    (define-key map "\e\C-k"   #'sgml-kill-element)
+    (define-key map "\e\C-@"   #'sgml-mark-element)
+    ;;(define-key map [?\M-\C-\ ] #'sgml-mark-element)
+    (define-key map [(meta control h)] #'sgml-mark-current-element)
+    (define-key map "\e\C-t"   #'sgml-transpose-element)
+    (define-key map "\M-\t"    #'sgml-complete)
 
-    (if (featurep 'xemacs)
-        (define-key map [button3] 'sgml-tags-menu)
-      (define-key map [?\M-\C-\ ] 'sgml-mark-element)
+    (define-key map [?\M-\C-\ ] #'sgml-mark-element)
 
-      ;;(define-key map [S-mouse-3] 'sgml-tags-menu)
-      (define-key map [S-mouse-3] 'sgml-right-menu))
+    ;;(define-key map [S-mouse-3] #'sgml-tags-menu)
+    (define-key map [S-mouse-3] #'sgml-right-menu)
 
     map)
   "Main keymap for PSGML mode.")
@@ -877,13 +874,13 @@ All bindings:
   (set-syntax-table sgml-mode-syntax-table)
   (set (make-local-variable 'comment-start) "<!-- ")
   (set (make-local-variable 'comment-end) " -->")
-  (set (make-local-variable 'comment-indent-function) 'sgml-comment-indent)
+  (set (make-local-variable 'comment-indent-function) #'sgml-comment-indent)
   ;; This will allow existing comments within declarations to be
   ;; recognized.  [Does not work well with auto-fill, Lst/940205]
   ;;(setq comment-start-skip "--[ \t]*")
   (set (make-local-variable 'comment-start-skip) "<!--[ \t]*")
   ;; Added for psgml:
-  (set (make-local-variable 'indent-line-function) 'sgml-indent-line)
+  (set (make-local-variable 'indent-line-function) #'sgml-indent-line)
   (when (set (make-local-variable 'sgml-default-dtd-file)
              (sgml-default-dtd-file))
     (unless (file-exists-p sgml-default-dtd-file)
@@ -895,11 +892,11 @@ All bindings:
     (make-local-variable 'text-property-default-nonsticky)
     ;; see `sgml-set-face-for':
     (add-to-list 'text-property-default-nonsticky '(face . t)))
+  (add-to-invisibility-spec '(psgml-fold . t))
   (add-hook 'post-command-hook #'sgml-command-post 'append 'local)
   (add-hook 'activate-menubar-hook #'sgml-update-all-options-menus
 	    nil 'local)
-  (add-hook 'which-func-functions #'sgml-current-element-name nil t)
-  (easy-menu-add sgml-main-menu))
+  (add-hook 'which-func-functions #'sgml-current-element-name nil t))
 
 ;; It would be nice to generalize the `auto-mode-interpreter-regexp'
 ;; machinery so that we could select xml-mode on the basis of the

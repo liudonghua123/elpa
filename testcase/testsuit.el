@@ -1,6 +1,6 @@
 ;;; testsuit.el --- Test Suite for PSGML  -*- lexical-binding:t -*-
 
-;; Copyright (C)  2017 Free Software Foundation, Inc.
+;; Copyright (C)  2017-2022 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -46,7 +46,7 @@
 (defun testsuit-pi-handler (string)
   (when (string-match "ASSERT\\>" string )
     (let ((form (car (read-from-string (substring string (match-end 0))))))
-      (cl-assert (eval form) nil
+      (cl-assert (eval form t) nil
                  "Assertion fail: %S" form))))
 
   
@@ -85,7 +85,7 @@
              (or (re-search-forward warning-pattern nil t)
                  (error "No %s warning" warning-pattern)))))
         (`assert
-         (or (eval (cadr test))
+         (or (eval (cadr test) t)
              (error "Fail: %s" (cadr test))))))
     (when (and sgml-warning-message-flag (not warning-expected))
       (error "Unexpected warnings")) ))
