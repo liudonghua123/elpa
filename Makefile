@@ -55,6 +55,7 @@ sync:
 	cp -p $(SOURCE_DIR)/lisp/tramp-cache.el tramp-cache.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-cmds.el tramp-cmds.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-compat.el tramp-compat.el
+	cp -p $(SOURCE_DIR)/lisp/tramp-container.el tramp-container.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-crypt.el tramp-crypt.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-ftp.el tramp-ftp.el
 	cp -p $(SOURCE_DIR)/lisp/tramp-fuse.el tramp-fuse.el
