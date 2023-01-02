@@ -484,7 +484,11 @@
   :auto-sync t)
  (modus-themes		:core ("etc/themes/modus-themes.el"
                                "etc/themes/modus-operandi-theme.el"
+                               "etc/themes/modus-operandi-deuteranopia-theme.el"
+                               "etc/themes/modus-operandi-tinted-theme.el"
                                "etc/themes/modus-vivendi-theme.el"
+                               "etc/themes/modus-vivendi-deuteranopia-theme.el"
+                               "etc/themes/modus-vivendi-tinted-theme.el"
                                "doc/misc/modus-themes.org"
                                "doc/misc/doclicense.texi")
   :doc "modus-themes.org")
