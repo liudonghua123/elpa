@@ -160,7 +160,7 @@
  (company-math		:url "https://github.com/vspinu/company-math.git"
   :auto-sync t)
  (company-statistics	:url "https://github.com/company-mode/company-statistics")
- (compat		:url "https://git.sr.ht/~pkal/compat"
+ (compat		:url "https://github.com/emacs-compat/compat"
   :doc "compat.texi"
   :auto-sync t)
  (consult		:url "https://github.com/minad/consult"
