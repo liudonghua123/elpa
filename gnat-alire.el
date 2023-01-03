@@ -1,6 +1,6 @@
 ;;; gnat-alire.el --- Support for building with Alire -*- lexical-binding:t -*-
 ;;
-;;; Copyright (C) 2012 - 2022  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2023  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -86,7 +86,7 @@
     ))
 
 ;;;###autoload
-(cl-defun create-alire-project (&key name gpr-file compile-env file-env xref-label)
+(cl-defun create-alire-prj (&key name gpr-file compile-env file-env xref-label)
   ;; We could use "alr exec -P -- echo" to get the project file (also
   ;; see https://github.com/alire-project/alire/issues/1151), but that
   ;; doesn't work when there are multiple project files listed in
@@ -114,6 +114,8 @@
 	   :gpr-file abs-gpr-file
 	   :run-buffer-name (gnat-run-buffer-name abs-gpr-file)))
 
+    (when (null xref-label)
+      (user-error "create-alire-prj: no xref backend specified; add :xref-label"))
     (setf (wisi-prj-xref project)
 	  (funcall (intern (format "create-%s-xref" (symbol-name xref-label)))))
 
