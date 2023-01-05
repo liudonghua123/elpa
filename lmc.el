@@ -76,16 +76,10 @@
 
 ;;; The LMC-Simulator
 
-(defvar lmc--pc 0 "Program counter for LMC.")
-(make-variable-buffer-local 'lmc--pc)
-
-(defvar lmc-acc 0 "Accumulator for LMC.")
-(make-variable-buffer-local 'lmc--acc)
-
 (defvar lmc-turbo nil
   "When non-nil, evaluate the code without extra delays.
-When nil, evaluation flashes the cursor at to help you see what's going on,
-which slows it down significantly.
+When nil, evaluation flashes the cursor at every instruction executed
+to help you see what's going on, which slows it down significantly.
 Also, when nil, evaluation is interrupted when the user hits a key.")
 
 ;; (defun lmc-check (cmds)
@@ -494,13 +488,13 @@ Also, when nil, evaluation is interrupted when the user hits a key.")
   )
 
 (defun lmc-set-pc (pc)
-  "Set the Program Counter."
+  "Set the Program Counter to PC."
   (interactive (list (read-number "New PC: " lmc-pc)))
   (setq lmc-pc pc)
   (lmc-update-pc))
 
 (defun lmc-set-acc (acc)
-  "Set the Accumulator."
+  "Set the Accumulator to ACC."
   (interactive (list (read-number "New Accumulator: " lmc-acc)))
   (setq lmc-acc (mod acc 1000)))
 
