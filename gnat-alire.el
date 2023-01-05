@@ -127,7 +127,7 @@
 (cl-defmethod wisi-prj-default ((project alire-prj))
   (let* ((gpr-file (gnat-compiler-gpr-file (wisi-prj-compiler project)))
          (default-directory (file-name-directory gpr-file)))
-    (create-alire-project
+    (create-alire-prj
      :name        (wisi-prj-name project)
      :gpr-file    gpr-file
      :compile-env (wisi-prj-compile-env project)

@@ -2,12 +2,12 @@
 ;;
 ;; GNAT is provided by AdaCore; see https://www.adacore.com/community
 ;;
-;;; Copyright (C) 2012 - 2022  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2023  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Version: 1.0.0
-;; package-requires: ((emacs "25.3") (wisi "4.1"))
+;; Version: 1.0.1
+;; package-requires: ((emacs "25.3") (wisi "4.2.0"))
 ;;
 ;; This file is part of GNU Emacs.
 ;;
