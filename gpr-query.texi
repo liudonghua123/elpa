@@ -2,7 +2,7 @@
 @settitle gpr-query
 
 @copying
-Copyright @copyright{} 2022  Free Software Foundation, Inc.
+Copyright @copyright{} 2022 - 2023  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -25,7 +25,7 @@ developing GNU and promoting software freedom.''
 
 @titlepage
 @sp 10
-@title gpr-query Version 1.0.1
+@title gpr-query Version 1.0.2
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -37,7 +37,8 @@ developing GNU and promoting software freedom.''
 @node Top, Overview, (dir), (dir)
 @top Top
 
-gpr-query Version 1.0.1
+gpr-query Version 1.0.2
+@end ifnottex
 
 @menu
 * Overview::
@@ -204,4 +205,4 @@ make -C xref install
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@end ifnottex
+@bye

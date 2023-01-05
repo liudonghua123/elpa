@@ -3,12 +3,12 @@
 ;; gpr-query supports Ada and any gcc language that supports the
 ;; AdaCore -fdump-xref switch (which includes C, C++).
 ;;
-;; Copyright (C) 2013 - 2022  Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2023  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Version: 1.0.1
-;; package-requires: ((emacs "25.3") (wisi "4.1") (gnat-compiler "1.0"))
+;; Version: 1.0.2
+;; package-requires: ((emacs "25.3") (wisi "4.2.0") (gnat-compiler "1.0.1"))
 
 ;; This file is part of GNU Emacs.
 

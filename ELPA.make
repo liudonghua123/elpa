@@ -35,7 +35,7 @@ autoloads : force
 	$(EMACS_EXE) -Q -batch --eval "(progn (setq generated-autoload-file (expand-file-name \"autoloads.el\"))(update-directory-autoloads \".\"))"
 
 %.info : %.texi
-	makeinfo $< -o ../$@
+	makeinfo $< -o $@
 
 clean : force
 	rm -rf gpr-query.info obj gpr_query$(EXE_EXT)

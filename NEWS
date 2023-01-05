@@ -6,6 +6,12 @@ Please send gpr-query bug reports to bug-gnu-emacs@gnu.org, with
 'gpr-query' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* gpr-query 1.0.2
+5 Jan 2023
+
+** Minor fixes.
+
 * gpr-query 1.0.1
+1 Nov 2022
 
 ** Split out from ada-mode

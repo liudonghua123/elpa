@@ -38,22 +38,16 @@ check emacs buglist
 tested in ada-mode; it uses the same test sources for multiple xref backends.
 
 compare:
-    ELPA.make pub
-
-    (setq package-load-list '(all))
-    (list-packages)
-        install previous gpr-query from public ELPA for diffs
-
-    (ediff-directories "~/.emacs.d/elpa/gpr-query-3.1.7" "/Projects/elpa/packages/gpr-query" nil)
-        ../org.emacs.gpr-query/NEWS
+    (ediff-directories "/Projects/elpa_release/gpr-query" "/Projects/elpa/packages/gpr-query" nil)
+        NEWS
             copyright date
             add release date
             add new features
 
-build in elpa; /Projects/elpa/packages/gpr-query/ELPA.make
+ELPA.make all
 
 Check copyright on files in elpa
-    c:/Projects/elpa/GNUMakefile check-all
+    ../../GNUMakefile check/gpr-query
     if any gpr-query files added to output, fix them (add or change to FSF)
 
 bump version
