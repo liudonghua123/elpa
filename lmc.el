@@ -1,6 +1,6 @@
 ;;; lmc.el --- Little Man Computer in Elisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2017  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.4
@@ -60,6 +60,11 @@
 ;; completion, mnemonic completion, jumping to a label, automatic indentation,
 ;; and code folding.
 
+;;; News:
+
+;; Since v1.4:
+;; - Removed old backward compatibility code.
+
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
@@ -82,27 +87,6 @@
 When nil, evaluation flashes the cursor at to help you see what's going on,
 which slows it down significantly.
 Also, when nil, evaluation is interrupted when the user hits a key.")
-
-;; Emacs-22 backward compatibility.
-(defmacro lmc--with-silent-modifications (&rest body)
-  (declare (debug t) (indent 0))
-  (if (fboundp 'with-silent-modifications)
-      `(with-silent-modifications ,@body)
-    (let ((modified (make-symbol "modified")))
-      `(let* ((,modified (buffer-modified-p))
-	      (buffer-undo-list t)
-	      (inhibit-read-only t)
-	      (inhibit-modification-hooks t)
-	      deactivate-mark
-	      ;; Avoid setting and removing file locks and checking
-	      ;; buffer's uptodate-ness w.r.t the underlying file.
-	      buffer-file-name
-	      buffer-file-truename)
-	 (unwind-protect
-	     (progn
-	       ,@body)
-	   (unless ,modified
-	     (restore-buffer-modified-p nil)))))))
 
 ;; (defun lmc-check (cmds)
 ;;   (dolist (cmd cmds)
@@ -551,17 +535,17 @@ Also, when nil, evaluation is interrupted when the user hits a key.")
         (error "Missing memory cell %S" addr)
       (let ((mb1 (match-beginning 1)))
         (when lmc-store-flash
-          (lmc--with-silent-modifications
+          (with-silent-modifications
            (put-text-property mb1 (point) 'face 'region))
           (lmc--sit-for 0.2))
         (let ((me1 (point)))
           (insert (format "  %03d" word)) (delete-region mb1 me1))
         (when lmc-store-flash
           (lmc--sit-for 0.1)
-          (lmc--with-silent-modifications
+          (with-silent-modifications
            (put-text-property mb1 (point) 'face 'region))
           (lmc--sit-for 0.1)
-          (lmc--with-silent-modifications
+          (with-silent-modifications
            (put-text-property mb1 (point) 'face nil))
           (lmc--sit-for 0.1))))))
 
