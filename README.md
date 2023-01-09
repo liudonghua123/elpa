@@ -34,7 +34,7 @@ inject headers using `message-mode` as follows:
 
 ~~~elisp
 (add-hook 'rmail-mode-hook #'autocrypt-mode)
-(add-hook 'message-mode #'autocrypt-mode)
+(add-hook 'message-mode-hook #'autocrypt-mode)
 ~~~
 
 alternatively, using [`setup`][setup]:
