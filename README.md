@@ -37,13 +37,6 @@ inject headers using `message-mode` as follows:
 (add-hook 'message-mode-hook #'autocrypt-mode)
 ~~~
 
-alternatively, using [`setup`][setup]:
-
-~~~elisp
-(setup (:package autocrypt)
-  (:hook-into rmail-mode message-mode))
-~~~
-
 Autocrypt recommends using a new or separate key pair for signing and
 encrypting.  If you wish to do so, call the `autocrypt-create-account`
 command.  In case you want to manually configure your setup, customise
@@ -87,5 +80,4 @@ Public Domain Dedication][cc0] license.
 [autocrypt]: https://autocrypt.org/
 [public inbox]: https://lists.sr.ht/~pkal/public-inbox
 [MELPA]: https://melpa.org/#/autocrypt
-[setup]: http://elpa.gnu.org/packages/setup.html
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
