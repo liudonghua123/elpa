@@ -1143,6 +1143,7 @@ Optionally provide extra parameters PARAMS, PARSER, METHOD, BUFFER or HEADERS."
     (define-key map (kbd "C-c C-q") #'zuul-quit-build)
     (define-key map (kbd "C-c C-s") #'zuul-switch-buildset)
     (define-key map (kbd "C-c C-r") #'zuul-run-build-command)
+    (define-key map (kbd "g") #'zuul-run-build-command)
     map))
 
 (define-derived-mode zuul-log-mode fundamental-mode "Zuul Log"
