@@ -1,9 +1,9 @@
-;;; nadvice.el --- Forward compatibility for Emacs-24.4's nadvice
+;;; nadvice.el --- Forward compatibility for Emacs-24.4's nadvice  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 0.3
+;; Version: 0.4
 ;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -33,6 +33,11 @@
 ;;
 ;; It was tested on Emacs-22 and I can't see any obvious reason why it
 ;; wouldn't work on older Emacsen.
+
+;;; News:
+
+;; Since 0.3:
+;; - Fix a bug when advising functions that do not take arguments.
 
 ;;; Code:
 
@@ -73,9 +78,15 @@
                                 ad-do-it)
                               (ad-get-args 0))))
                (t (error "This version of nadvice.el does not handle %S"
-                         where)))))
+                         where))))
+        ;; FIXME: Ideally the arglist here should just be nil,
+        ;; so that we reuse the original function's arglist, but
+        ;; if that original arglist is also nil, then we bump into a bug
+        ;; where (ad-set-args 0 nadvice--rest-arg) signals
+        ;; (error "ad-set-arguments: No argument at position 0 of `nil'")
+        (arglist (if (eq where :around) '(&rest _))))
     (ad-add-advice symbol
-                   `(,function nil t (advice lambda () ,body))
+                   `(,function nil t (advice lambda ,arglist ,body))
                    'around
                    nil)
     (ad-activate symbol)))
