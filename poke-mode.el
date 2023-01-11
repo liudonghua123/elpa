@@ -85,7 +85,7 @@
   '("pinned" "struct" "union" "else" "while" "until" "for" "in" "where" "if"
     "sizeof" "fun" "method" "type" "var" "unit" "break" "return"
     "as" "try" "catch" "raise" "any" "print" "printf" "isa"
-    "unmap" "big" "little" "load")
+    "unmap" "big" "little" "load" "computed")
   "List of the main keywords of the Poke language.")
 
 ;; from libpoke/pkl-lex.l
