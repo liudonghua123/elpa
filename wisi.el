@@ -7,7 +7,7 @@
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 4.2.0
+;; Version: 4.2.1
 ;; package-requires: ((emacs "25.3") (seq "2.20"))
 ;; URL: https://stephe-leake.org/ada/wisitoken.html
 ;;
