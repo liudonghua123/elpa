@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;
 ;;; History: see ada_mode.el
 
@@ -178,7 +178,7 @@ the expression."
 (make-obsolete-variable 'ada-indent-hanging-rel-exp "" "ada-mode 4.0.0")
 
 (defcustom ada-indent-after-trailing-comment t
- "If t, align comment lines imediately following a comment on the
+ "If t, align comment lines immediately following a comment on the
  same line as code with the preceding comment. Otherwise, ignore
  the preceding comment."
   :type 'boolean

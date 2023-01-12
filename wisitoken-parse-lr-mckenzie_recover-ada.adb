@@ -63,10 +63,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
    procedure Handle_In_Parse_Action_Fail
      (Super             : in out WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
       Shared_Parser     : in out Parser.Parser;
-      Parser_Index      : in              SAL.Peek_Type;
-
-      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
-      Config            : in              Configuration)
+      Parser_Index      : in     SAL.Peek_Type;
+      Local_Config_Heap : in out Config_Heaps.Heap_Type;
+      Config            : in     Configuration)
    with Pre => Config.In_Parse_Action_Status.Label /= Ok
    is
       use Syntax_Trees;
@@ -446,7 +445,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   Delete_Check
                     (Super, Shared_Parser, New_Config, (+END_ID, Tree.Element_ID (Keyword_Item.Token), +SEMICOLON_ID));
                else
-                  --  We don't need to delete the identifier|name ; it is missing and therefor empty.
+                  --  We don't need to delete the identifier|name ; it is missing and therefore empty.
                   Delete_Check (Super, Shared_Parser, New_Config, (+END_ID, +SEMICOLON_ID));
                end if;
 
@@ -581,6 +580,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
             case To_Token_Enum (Tree.Element_ID (Config.Error_Token)) is
+            when accept_statement_ID =>
+               Push_Back_Check
+                 (Super, Shared_Parser, New_Config,
+                  (+SEMICOLON_ID, +identifier_opt_ID, +END_ID),
+                  Push_Back_Undo_Reduce => True);
+
             when block_statement_ID =>
                Push_Back_Check
                  (Super, Shared_Parser, New_Config,
@@ -1156,7 +1161,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  d: There is a missing matching component_statement start
          --
          --  We can't reliably distinguish between a: and b:, so we do both. c:
-         --  is distinquished by the minimal action being 'reduce to name'. d:
+         --  is distinguished by the minimal action being 'reduce to name'. d:
          --  is distinguished by searching for an open matching
          --  component_statement start.
 

@@ -15,7 +15,7 @@
 --  General Public License for more details.
 --
 --  You should have received a copy of the GNU General Public License
---  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+--  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 with WisiToken.Syntax_Trees;
 package Ada_Annex_P_Process_Actions is
@@ -74,15 +74,15 @@ package Ada_Annex_P_Process_Actions is
          new String'("BEGIN"),
          new String'("DECLARE"),
          new String'("SOME"),
-         new String'("ELSE"),
          new String'("IF"),
-         new String'("THEN"),
          new String'("ELSIF"),
          new String'("REM"),
          new String'("ABS"),
          new String'("IN"),
          new String'("XOR"),
+         new String'("ELSE"),
          new String'("OR"),
+         new String'("THEN"),
          new String'("USE"),
          new String'("FOR"),
          new String'("NOT"),
@@ -547,15 +547,15 @@ package Ada_Annex_P_Process_Actions is
       BEGIN_ID,
       DECLARE_ID,
       SOME_ID,
-      ELSE_ID,
       IF_ID,
-      THEN_ID,
       ELSIF_ID,
       REM_ID,
       ABS_ID,
       IN_ID,
       XOR_ID,
+      ELSE_ID,
       OR_ID,
+      THEN_ID,
       USE_ID,
       FOR_ID,
       NOT_ID,
@@ -3723,7 +3723,6 @@ package Ada_Annex_P_Process_Actions is
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
-
    Partial_Parse_Active    : aliased Boolean := False;
    Partial_Parse_Byte_Goal : aliased WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 end Ada_Annex_P_Process_Actions;

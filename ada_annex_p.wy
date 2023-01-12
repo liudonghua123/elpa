@@ -6,7 +6,7 @@
 ;; Keywords: syntax
 ;;
 ;;  Copied from Ada Language Reference Manual Annex P
-;;  (http://www.ada-auth.org/standards/ada2x.html), minimal changes
+;;  (https://www.ada-auth.org/standards/ada2x.html), minimal changes
 ;;  made to conform with WisiToken requirements.
 
 ;;  Changes from Annex P:
@@ -32,37 +32,29 @@
 ;;
 ;; See ada_license.text for ARM Annex P copyright/license.
 ;;
-;; re2c lexer syntax: http://re2c.org/
+;; re2c lexer syntax: https://re2c.org/
 
 %meta_syntax EBNF
 
 %code copyright_license %{
-;;  Copyright (C) 2013 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2013 - 2022 Free Software Foundation, Inc.
 
-;;  This program is free software; you can redistribute it and/or
-;;  modify it under the terms of the GNU General Public License as
-;;  published by the Free Software Foundation; either version 3, or (at
-;;  your option) any later version.
-;;
-;;  This software is distributed in the hope that it will be useful,
-;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;;  General Public License for more details.
-;;
-;;  You should have received a copy of the GNU General Public License
-;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-}%
-
-%code actions spec post
-%{
-   Partial_Parse_Active    : aliased Boolean := False;
-   Partial_Parse_Byte_Goal : aliased WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
+--  This program is free software; you can redistribute it and/or
+--  modify it under the terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version.
+--
+--  This software is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--  General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 }%
 
 %generate LALR Ada_Emacs re2c Process
 %generate LR1 Ada_Emacs text_rep re2c Process
-
-%lr1_hash_table_size 124_087
 
 %language_runtime "Wisi.Ada"
 
@@ -117,9 +109,10 @@
   "'"
 tick : TICK_1 | TICK_2 ;
 
-;; Handle 0.0, (1..Length) and 0..16#10FFFF#
+;; Handle floating, fixed, exponent, special cases 0.0, (1..Length)
+;; and 0..16#10FFFF#
 %token <regexp> NUMERIC_LITERAL
-    %[ ([0-9])|([0-9_]+([.][0-9]+)?([eE[0-9_-]+)?)|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
+    %[ ([0-9])|([0-9_]+([.][0-9]+)?([eE][0-9_-]+)?)|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
   "1234567890"
 
 ;; Include ASCII control chars, except new-line and EOI, in whitespace, just
@@ -138,7 +131,7 @@ tick : TICK_1 | TICK_2 ;
 %non_grammar <comment-new-line> GNAT_PREP_END_IF "#end if"
 
 ;; skeleton placeholders. Also terminated by newline, EOI to avoid
-;; accidently commenting out multiple lines.
+;; accidentally commenting out multiple lines.
 %non_grammar <comment-one-line> PLACEHOLDER "{" "}"
 
 ;; git conflict marks. ada_mode-recover_conflict_marks.adb
@@ -692,7 +685,7 @@ interface_type_definition
 interface_list
   : name ;;:new; explicit list for action
     %((wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face]))%
-  | interface_list AND name ;;:new explicit list for action
+  | interface_list 'and' name ;;:new explicit list for action
     %((wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))%
   ;
 
@@ -1035,14 +1028,14 @@ iterated_element_association
                                ada-indent-broken]))%
   ;
 
-AND_relation_list ;;:new, split out from expression for action. FIXME: put back
+AND_relation_list ;;:new, split out from expression for action.
   : 'and' relation
   | AND_relation_list 'and' relation
   ;
 
 AND_THEN_relation_list
-  : 'and' THEN relation
-  | AND_THEN_relation_list 'and' THEN relation
+  : 'and' 'then' relation
+  | AND_THEN_relation_list 'and' 'then' relation
   ;
 
 OR_relation_list
@@ -1051,8 +1044,8 @@ OR_relation_list
   ;
 
 OR_ELSE_relation_list
-  : 'or' ELSE relation
-  | OR_ELSE_relation_list 'or' ELSE relation
+  : 'or' 'else' relation
+  | OR_ELSE_relation_list 'or' 'else' relation
   ;
 
 XOR_relation_list
@@ -1719,7 +1712,7 @@ extended_return_object_declaration
 
 extended_return_statement
   : 'return' extended_return_object_declaration ['do' handled_sequence_of_statements 'end' 'return'] ';'
-    ;; indent the same as a simple return statment
+    ;; indent the same as a simple return statement
     ;; test/ada_mode-nominal.adb
     ;; return B : Integer :=
     ;;   (Local_Function);
@@ -2367,7 +2360,8 @@ exception_handler_list ;;:new for pragma, action
   : exception_handler
   | pragma_g ;;:new for pragma
   | exception_handler_list exception_handler
-    %((wisi-motion-action [1 2]))%
+    %((wisi-statement-action [1 motion 2 motion])
+      (wisi-motion-action [1 2]))%
   ;
 
 handled_sequence_of_statements
@@ -2645,7 +2639,8 @@ aspect_mark_list
 aspect_specification
   : 'with' aspect_mark_list
     ;; test/ada_mode-recover_30.adb "--  comment after aspect_specification"
-    %((wisi-indent-action [nil [ada-indent-broken ada-indent-broken]]))%
+    ;; comment is indented by higher level.
+    %((wisi-indent-action [nil ada-indent-broken]))%
   ;
 
 aspect_mark : IDENTIFIER [tick IDENTIFIER] ; ;;:edited "class" changed

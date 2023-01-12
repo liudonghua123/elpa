@@ -14,7 +14,7 @@
 ;;  General Public License for more details.
 ;;
 ;;  You should have received a copy of the GNU General Public License
-;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'wisi-process-parse)
 
@@ -60,15 +60,15 @@
    BEGIN
    DECLARE
    SOME
-   ELSE
    IF
-   THEN
    ELSIF
    REM
    ABS
    IN
    XOR
+   ELSE
    OR
+   THEN
    USE
    FOR
    NOT
@@ -529,15 +529,15 @@
    (BEGIN . "begin")
    (DECLARE . "declare")
    (SOME . "some")
-   (ELSE . "else")
    (IF . "if")
-   (THEN . "then")
    (ELSIF . "elsif")
    (REM . "rem")
    (ABS . "abs")
    (IN . "in")
    (XOR . "xor")
+   (ELSE . "else")
    (OR . "or")
+   (THEN . "then")
    (USE . "use")
    (FOR . "for")
    (NOT . "not")
