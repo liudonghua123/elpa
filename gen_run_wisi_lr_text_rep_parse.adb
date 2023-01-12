@@ -20,35 +20,36 @@ pragma License (GPL);
 
 with Ada.Command_Line;
 with Ada.Directories;
-with GNATCOLL.Memory;
 with Run_Wisi_Common_Parse;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Run_Wisi_LR_Text_Rep_Parse
 is
-   Trace               : aliased WisiToken.Text_IO_Trace.Trace;
-   Parse_Data_Template : aliased Parse_Data_Type;
-begin
-   --  FIXME: report memory during lexer, parser create
-   --  WisiToken.Trace_Memory            := 1;
-   --  WisiToken.Trace_Incremental_Parse := 1;
-   GNATCOLL.Memory.Configure
-     (Activate_Monitor      => True,
-      Stack_Trace_Depth     => 0,
-      Reset_Content_On_Free => False);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
-   declare
-      Lexer : constant WisiToken.Lexer.Handle := Create_Lexer (Trace'Unchecked_Access);
-      --  No point in reporting lexer memory; it's very small
-      Parse_Table : constant WisiToken.Parse.LR.Parse_Table_Ptr := Create_Parse_Table
-        (Ada.Directories.Containing_Directory (Ada.Command_Line.Command_Name) & "/" & Text_Rep_File_Name);
+   Text_Rep_File_Name_Full : constant String := Ada.Directories.Containing_Directory
+     (Ada.Command_Line.Command_Name) & "/" & Text_Rep_File_Name;
+
+   function Factory return WisiToken.Parse.Base_Parser_Access
+   is begin
+      return new WisiToken.Parse.LR.Parser.Parser'
+        (Create_Parser
+           (Trace'Unchecked_Access,
+            User_Data                      => new Parse_Data_Type,
+            Language_Fixes                 => Language_Fixes,
+            Language_Matching_Begin_Tokens => Language_Matching_Begin_Tokens,
+            Language_String_ID_Set         => Language_String_ID_Set,
+            Text_Rep_File_Name             => Text_Rep_File_Name_Full));
+   end Factory;
+
+   procedure Free_Parser (Object : in out WisiToken.Parse.Base_Parser_Access)
+   is
+      LR_Parser : WisiToken.Parse.LR.Parser.Parser_Access := WisiToken.Parse.LR.Parser.Parser_Access (Object);
    begin
-      Trace.Put_Line ("parse table created");
-      WisiToken.Report_Memory (Trace, Prefix => True);
+      WisiToken.Parse.LR.Parser.Free (LR_Parser);
+      Object := null;
+   end Free_Parser;
 
-      Run_Wisi_Common_Parse.Parse_File
-        ((Descriptor, Lexer, Parse_Table,
-          Create_Productions, Partial_Parse_Active, Partial_Parse_Byte_Goal, Language_Fixes,
-          Language_Matching_Begin_Tokens, Language_String_ID_Set, Parse_Data_Template'Unchecked_Access),
-         Trace'Unchecked_Access);
-   end;
+begin
+   Run_Wisi_Common_Parse.Parse_File
+     (Factory'Unrestricted_Access, Free_Parser'Unrestricted_Access, Trace'Unchecked_Access);
 end Gen_Run_Wisi_LR_Text_Rep_Parse;

@@ -1,15 +1,15 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LR parser -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2022  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2023  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 4.0.0
+;; Version: 4.2.0
 ;; package-requires: ((emacs "25.3") (seq "2.20"))
-;; URL: http://stephe-leake.org/ada/wisitoken.html
+;; URL: https://stephe-leake.org/ada/wisitoken.html
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;
 
 ;;; Commentary:
@@ -127,14 +127,13 @@
   is no response from the parser after waiting this amount (in
   seconds)."
   :type 'float
-  :safe 'numberp)
+  :safe #'numberp)
 (make-variable-buffer-local 'wisi-process-time-out)
 
 (defcustom wisi-size-threshold most-positive-fixnum
   "Max size (in characters) for using wisi parser results for anything."
   :type 'integer
-  :group 'wisi
-  :safe 'integerp)
+  :safe #'integerp)
 (make-variable-buffer-local 'wisi-size-threshold)
 
 (defcustom wisi-indent-context-lines 0
@@ -142,27 +141,52 @@
 Increasing this will give better results when in the middle of a
 deeply nested statement, but worse in some situations."
   :type 'integer
-  :group 'wisi
-  :safe 'integerp)
+  :safe #'integerp)
+(make-variable-buffer-local 'wisi-indent-context-lines)
+
+(defcustom wisi-disable-completion nil
+  "When non-nil, `wisi-setup' does not enable use of wisi xref for completion.
+Useful when using wisi in parallel with eglot."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-completion)
+
+(defcustom wisi-disable-diagnostics nil
+  "When non-nil, `wisi-setup' does not enable reporting diagnostics.
+Useful when using wisi in parallel with eglot."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-diagnostics)
 
 (defcustom wisi-disable-face nil
-  "When non-nil, `wisi-setup' does not enable use of parser for font-lock.
-Useful when debugging parser or parser actions."
+  "When non-nil, `wisi-setup' does not enable use of parser for font-lock."
   :type 'boolean
-  :group 'wisi
-  :safe 'booleanp)
+  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-face)
 
-(defcustom wisi-incremental-parse-enable nil
-  "If non-nil, use incremental parse when possible."
+(defcustom wisi-disable-indent nil
+  "When non-nil, `wisi-setup' does not enable use of parser for indent."
   :type 'boolean
-  :group 'wisi
-  :safe 'booleanp)
+  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-indent)
+
+(defcustom wisi-disable-parser nil
+  "When non-nil, `wisi-setup' does not enable use of parser for any purpose."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-parser)
+
+(defcustom wisi-disable-statement nil
+  "When non-nil, the wisi parser should not be enabled for statement motion."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-disable-statement)
 
 (defcustom wisi-parse-full-background t
   "If non-nil, do initial full parse in background."
   :type 'boolean
-  :group 'wisi
-  :safe 'booleanp)
+  :safe #'booleanp)
+(make-variable-buffer-local 'wisi-parse-full-background)
 
 (defconst wisi-error-buffer-name "*wisi syntax errors*"
   "Name of buffer for displaying syntax errors.")
@@ -174,6 +198,29 @@ Useful when debugging parser or parser actions."
   "When non-nil, don't run the parser.
 Language code can set this non-nil when syntax is known to be
 invalid temporarily, or when making lots of changes.")
+
+;; wisi--change-* keep track of buffer modifications.
+;; If wisi--change-end comes before wisi--change-beg, it means there were
+;; no modifications.
+(defvar-local wisi--change-beg most-positive-fixnum
+  "First position where a change may have taken place.")
+
+(defvar-local wisi--change-end nil
+  "Marker pointing to the last position where a change may have taken place.")
+
+(defvar-local wisi--deleted-syntax nil
+  "Worst syntax class of characters deleted in changes.
+One of:
+nil - no deletions since reset
+0   - only whitespace or comment deleted
+2   - some other syntax deleted
+
+Set by `wisi-before-change', used and reset by `wisi--post-change'.")
+
+(defvar-local wisi--affected-text 0
+  "Cached text of range passed to `wisi-before-change',
+used by `wisi-after-change' to get byte count of actual
+deleted range.")
 
 (defun wisi-safe-marker-pos (pos)
   "Return an integer buffer position from POS, an integer or marker"
@@ -462,7 +509,6 @@ For debugging."
   (setq wisi--change-beg most-positive-fixnum)
   (setq wisi--change-end nil)
   (setq wisi--deleted-syntax nil)
-  (setq wisi-indenting-p nil)
 
   (setq wisi--cached-regions ;; necessary instead of wisi-invalidate after ediff-regions
 	(list
@@ -488,41 +534,9 @@ For debugging."
   (interactive)
   (wisi-force-parse)
   (when wisi-parser-shared
-    (wisi-parse-reset wisi-parser-shared)))
-
-;; wisi--change-* keep track of buffer modifications.
-;; If wisi--change-end comes before wisi--change-beg, it means there were
-;; no modifications.
-(defvar-local wisi--change-beg most-positive-fixnum
-  "First position where a change may have taken place.")
-
-(defvar-local wisi--change-end nil
-  "Marker pointing to the last position where a change may have taken place.")
-
-(defvar-local wisi--deleted-syntax nil
-  "Worst syntax class of characters deleted in changes.
-One of:
-nil - no deletions since reset
-0   - only whitespace or comment deleted
-2   - some other syntax deleted
-
-Set by `wisi-before-change', used and reset by `wisi--post-change'.")
-
-(defvar-local wisi-indenting-p nil
-  "Non-nil when `wisi-indent-region' is actively indenting.
-Used to ignore whitespace changes in before/after change hooks.")
-
-(defvar-local wisi--changes nil
-  "Cached list of args to wisi-after-change, for incremental parse.
-Each element is
-(INSERT-BEGIN-BYTE-POS INSERT-BEGIN-CHAR-POS
- INSERT-END-BYTE-POS INSERT-END-CHAR-POS
- DELETED-BYTE-COUNT DELETED-CHAR-COUNT INSERTED-TEXT)")
-
-(defvar-local wisi--affected-text 0
-  "Cached text of range passed to `wisi-before-change',
-used by `wisi-after-change' to get byte count of actual
-deleted range.")
+    (wisi-parse-reset wisi-parser-shared)
+    (when wisi-save-text-tree
+      (wisi-parse-save-text-tree-auto wisi-parser-shared t))))
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
@@ -531,37 +545,34 @@ deleted range.")
     (when wisi-incremental-parse-enable
       (setq wisi--affected-text (buffer-substring-no-properties begin end)))
 
-    (unless wisi-indenting-p
-      ;; We set wisi--change-beg, -end even if only inserting, so we
-      ;; don't have to do it again in wisi-after-change.
-      (setq wisi--change-beg (min wisi--change-beg begin))
+    (setq wisi--change-beg (min wisi--change-beg begin))
 
-      ;; `buffer-base-buffer' deals with edits in indirect buffers
-      ;; created by ediff-regions-*
+    ;; `buffer-base-buffer' deals with edits in indirect buffers
+    ;; created by ediff-regions-*
 
+    (cond
+     ((null wisi--change-end)
+      (setq wisi--change-end (make-marker))
+      (set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
+
+     ((> end wisi--change-end)
+      (set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
+     )
+
+    (unless (= begin end)
       (cond
-       ((null wisi--change-end)
-	(setq wisi--change-end (make-marker))
-	(set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
+       ((or (null wisi--deleted-syntax)
+	    (= 0 wisi--deleted-syntax))
+	(save-excursion
+	  (if (or (nth 4 (syntax-ppss begin)) ; in comment, moves point to begin
+		  (= end (skip-syntax-forward " " end)));; whitespace
+	      (setq wisi--deleted-syntax 0)
+	    (setq wisi--deleted-syntax 2))))
 
-       ((> end wisi--change-end)
-	(set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
-       )
-
-      (unless (= begin end)
-	(cond
-	 ((or (null wisi--deleted-syntax)
-	      (= 0 wisi--deleted-syntax))
-	  (save-excursion
-	    (if (or (nth 4 (syntax-ppss begin)) ; in comment, moves point to begin
-		    (= end (skip-syntax-forward " " end)));; whitespace
-		(setq wisi--deleted-syntax 0)
-	      (setq wisi--deleted-syntax 2))))
-
-	 (t
-	  ;; wisi--deleted-syntax is 2; no change.
-	  )
-	 )))
+       (t
+	;; wisi--deleted-syntax is 2; no change.
+	)
+       ))
     ))
 
 (defun wisi-after-change (begin end length)
@@ -864,14 +875,13 @@ Run the parser first if needed."
 
       (wisi-set-last-parse-region begin parse-end parse-action)
 
-      (unless (eq parse-action 'face)
-	(when (buffer-live-p wisi-error-buffer)
-	  (with-current-buffer wisi-error-buffer
-	    (setq buffer-read-only nil)
-	    (erase-buffer)
-	    (setq buffer-read-only t)
-	    (when (get-buffer-window wisi-error-buffer)
-	      (delete-window (get-buffer-window wisi-error-buffer))))))
+      (when (buffer-live-p wisi-error-buffer)
+	(with-current-buffer wisi-error-buffer
+	  (setq buffer-read-only nil)
+	  (erase-buffer)
+	  (setq buffer-read-only t)
+	  (when (get-buffer-window wisi-error-buffer)
+	    (delete-window (get-buffer-window wisi-error-buffer)))))
 
       (condition-case err
 	  (save-excursion
@@ -903,10 +913,7 @@ Run the parser first if needed."
 	(wisi-parse-error
 	 (cl-ecase parse-action
 	   (face
-	    ;; Caches set by failed elisp parse are ok, but some parse
-	    ;; failures return 'nil' in parse-region.
-	    (when (cdr parsed-region)
-	      (wisi--delete-face-cache (cdr parsed-region))))
+	    (wisi--delete-face-cache (car parsed-region)))
 
 	   (navigate
 	    ;; don't trust parse result
@@ -1049,10 +1056,9 @@ fails."
 
     (wisi-validate-cache parse-begin parse-end error-on-fail parse-action)))
 
-(defun wisi-fontify-region (begin end)
-  "For `jit-lock-functions'."
-  (with-silent-modifications
-    (remove-text-properties begin end '(font-lock-face nil)))
+(defun wisi-fontify-region (begin end &optional _contextual)
+  "For `jit-lock-register'."
+  (remove-text-properties begin end '(font-lock-face nil))
 
   (if wisi-parse-full-active
       ;; Record region to fontify when full parse is done.
@@ -1226,7 +1232,7 @@ Return start cache."
 
 (defun wisi-goto-statement-start ()
   "Move point to token at start of statement point is in or after.
-Return start cache."
+Return start cache (nil if point is before first statement)."
   (interactive)
   (wisi-validate-cache-current-statement t 'navigate)
   (wisi-goto-start (or (wisi-get-cache (point))
@@ -1509,30 +1515,28 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	  ;; wisi--get-cached-indent.
 	  (goto-char (1- end)) ;; end is exclusive
 	  (goto-char (line-beginning-position))
-	  (let ((wisi-indenting-p t))
-	    (while (and (not (bobp))
-			(or (and (= begin end) (= (point) end))
-			    (>= (point) begin)))
-	      (when (or indent-blank-lines (not (eolp)))
-		;; ’indent-region’ doesn’t indent an empty line; ’indent-line’ does
-		(let ((indent (if (bobp) 0 (wisi--get-cached-indent begin end))))
-		  (indent-line-to indent))
-		)
-	      (forward-line -1))
+	  (while (and (not (bobp))
+		      (or (and (= begin end) (= (point) end))
+			  (>= (point) begin)))
+	    (when (or indent-blank-lines (not (eolp)))
+	      ;; ’indent-region’ doesn’t indent an empty line; ’indent-line’ does
+	      (let ((indent (if (bobp) 0 (wisi--get-cached-indent begin end))))
+		(indent-line-to indent))
+	      )
+	    (forward-line -1))
 
-	    ;; Run wisi-indent-calculate-functions
-	    (when wisi-indent-calculate-functions
-	      (goto-char begin)
-	      (while (and (not (eobp))
-			  (< (point) end-mark))
-		(back-to-indentation)
-		(let ((indent
-		       (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
-		  (when indent
-		    (indent-line-to indent)))
+	  ;; Run wisi-indent-calculate-functions
+	  (when wisi-indent-calculate-functions
+	    (goto-char begin)
+	    (while (and (not (eobp))
+			(< (point) end-mark))
+	      (back-to-indentation)
+	      (let ((indent
+		     (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
+		(when indent
+		  (indent-line-to indent)))
 
-		(forward-line 1)))
-	    )
+	      (forward-line 1)))
 
 	  (when
 	      (and prev-indent-failed
@@ -1557,8 +1561,6 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
     ;; (1+ line-end-pos) is needed to compute indent for a line. It
     ;; can exceed (point-max); the parser must be able to handle that.
     ;;
-    ;; IMPROVEME: change parser 'indent' action to take lines, not
-    ;; buffer positions.
     (wisi-indent-region (line-beginning-position (1+ (- wisi-indent-context-lines))) (1+ (line-end-position)) t)
 
     (goto-char savep)
@@ -1740,9 +1742,9 @@ where the car is a list (FILE LINE COL)."
 (defun wisi-debug-keys ()
   "Add debug key definitions to `global-map'."
   (interactive)
-  (define-key global-map "\M-h" 'wisi-show-containing-or-previous-cache)
-  (define-key global-map "\M-i" 'wisi-show-indent)
-  (define-key global-map "\M-j" 'wisi-show-cache)
+  (define-key global-map "\M-h" #'wisi-show-containing-or-previous-cache)
+  (define-key global-map "\M-i" #'wisi-show-indent)
+  (define-key global-map "\M-j" #'wisi-show-cache)
   )
 
 (defun wisi-parse-buffer (&optional parse-action begin end)
@@ -1802,67 +1804,109 @@ where the car is a list (FILE LINE COL)."
       (message "previous %s" (wisi-backward-cache)))
     ))
 
+(defun wisi-replay-kbd-macro (macro)
+  "Replay keyboard macro MACRO into current buffer,
+with incremental parse after each key event."
+  (unless wisi-incremental-parse-enable
+    (user-error "wisi-incremental-parse-enable nil; use EMACS_SKIP_UNLESS"))
+  (let ((i 0))
+    (while (< i  (length macro))
+      (execute-kbd-macro (make-vector 1 (aref macro i)))
+      (save-excursion
+	(condition-case err
+	    (progn
+	      (wisi--check-change)
+	      (when wisi--changes
+		(wisi-parse-incremental wisi-parser-shared 'none)))
+	  (wisi-parse-error
+	   (when (< 0 wisi-debug)
+	     ;; allow continuing when parser throws parse-error
+	     (signal (car err) (cdr err))))))
+      (setq i (1+ i)))))
+
 ;;;;; setup
 
 (cl-defun wisi-setup (&key indent-calculate post-indent-fail parser)
   "Set up a buffer for parsing files with wisi."
-  (setq wisi-parser-shared parser)
-  (setq wisi-parser-local (make-wisi-parser-local))
-  (setq wisi--cached-regions
-	(list
-	 (cons 'face nil)
-	 (cons 'navigate nil)
-	 (cons 'indent nil)))
+  ;; wisi-disable-* should be set in a find-file-hook such as
+  ;; ada-eglot-setup, not in local variables.
+  (when (and (not wisi-disable-parser)
+	     parser
+	     ;; indirect buffers handled below.
+	     ;; We don't insist on (null wisi-parser-shared), so we can re-run ada-mode
+	     )
+    (setq wisi-parser-shared parser)
+    (setq wisi-parser-local (make-wisi-parser-local))
 
-  (setq wisi--parse-try
-	(list
-	 (cons 'face t)
-	 (cons 'navigate t)
-	 (cons 'indent t)))
+    (setq wisi--cached-regions
+	  (list
+	   (cons 'face nil)
+	   (cons 'navigate nil)
+	   (cons 'indent nil)))
 
-  (setq wisi--last-parse-region
-	(list
-	 (cons 'face nil)
-	 (cons 'navigate nil)
-	 (cons 'indent nil)))
+    (setq wisi--parse-try
+	  (list
+	   (cons 'face t)
+	   (cons 'navigate t)
+	   (cons 'indent t)))
 
-  (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))
-  (set (make-local-variable 'indent-line-function) #'wisi-indent-line)
-  (set (make-local-variable 'indent-region-function) #'wisi-indent-region)
-  (set (make-local-variable 'forward-sexp-function) #'wisi-forward-sexp)
+    (setq wisi--last-parse-region
+	  (list
+	   (cons 'face nil)
+	   (cons 'navigate nil)
+	   (cons 'indent nil)))
 
-  (setq wisi-post-indent-fail-hook post-indent-fail)
-  (setq wisi-indent-failed nil)
+    (setq wisi-post-indent-fail-hook post-indent-fail)
+    (setq wisi-indent-failed nil)
+    (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))
 
-  (add-hook 'before-change-functions #'wisi-before-change 'append t)
-  (add-hook 'after-change-functions #'wisi-after-change nil t)
-  (setq wisi--change-end (copy-marker (point-min) t))
+    (add-hook 'before-change-functions #'wisi-before-change 'append t)
+    (add-hook 'after-change-functions #'wisi-after-change nil t)
+    (setq wisi--change-end (copy-marker (point-min) t))
 
-  (add-hook 'kill-buffer-hook 'wisi-parse-kill-buf 90 t)
+    (add-hook 'kill-buffer-hook #'wisi-parse-kill-buf 90 t)
 
-  (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
+    (when (not wisi-disable-completion)
+      (add-hook 'completion-at-point-functions #'wisi-completion-at-point -90 t))
 
-  (add-hook 'completion-at-point-functions #'wisi-completion-at-point -90 t)
+    ;; wisi-disable-diagnostics is handled in wisi-process-parse.el
 
-  (add-hook 'hack-local-variables-hook 'wisi-post-local-vars nil t)
-  )
+    (when (not wisi-disable-face)
+      ;; font-lock complains about not working in indirect buffers,
+      ;; but we need to set all the local variables for mmm-mode.
+      (jit-lock-register #'wisi-fontify-region))
 
-(defun wisi-post-local-vars ()
-  "See wisi-setup."
-  (remove-hook 'hack-local-variables-hook #'wisi-post-local-vars)
+    (when (not wisi-disable-indent)
+      (setq-local indent-line-function #'wisi-indent-line)
+      (setq-local indent-region-function #'wisi-indent-region)
+      (setq-local comment-indent-function #'wisi-comment-indent))
 
-  (unless wisi-disable-face
-    (jit-lock-register #'wisi-fontify-region))
+    ;; wisi-disable-statement just affects whether to start the
+    ;; parser.
 
-  (when wisi-incremental-parse-enable
-    (when wisi-save-all-changes
-      (setf (wisi-parser-local-all-changes wisi-parser-local) nil))
+    (setq-local forward-sexp-function #'wisi-forward-sexp)
 
-    ;; We don't wait for this to complete here, so users can scroll
-    ;; around while the initial parse runs. font-lock will not work
-    ;; during that time (the parser is busy, the buffer is read-only).
-    (when (< 0 wisi-debug) (message "start initial full parse in %s" (current-buffer)))
-    (wisi-parse-incremental wisi-parser-shared 'none :full t :nowait wisi-parse-full-background)))
+    (when wisi-incremental-parse-enable
+      (when wisi-save-all-changes
+	(setf (wisi-parser-local-all-changes wisi-parser-local) nil))
+
+      (unless (buffer-base-buffer)
+	;; If are in an indirect buffer (ie mmm-temp-buffer), We need
+	;; to set all the local variables above, but _not_ start a
+	;; parse; that would duplicate and conflict with the parse in
+	;; the main buffer.
+
+	;; We don't wait for this to complete here, so users can scroll
+	;; around while the initial parse runs. font-lock will not work
+	;; during that time (the parser is busy, the buffer is read-only).
+	(when (< 0 wisi-debug) (message "starting initial full parse; parser %s buffer %s"
+					(wisi-process--parser-label parser)
+					(current-buffer)))
+	(wisi-parse-incremental wisi-parser-shared 'none :full t :nowait wisi-parse-full-background))
+
+      (when wisi-save-text-tree
+	(wisi-parse-save-text-tree-auto wisi-parser-shared t))
+      )))
 
 (provide 'wisi)
 ;;; wisi.el ends here

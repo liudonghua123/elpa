@@ -3,7 +3,7 @@
 --  Parser for Wisi grammar files, producing Ada source
 --  files for a parser.
 --
---  Copyright (C) 2012 - 2015, 2017 - 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2023 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -29,7 +29,6 @@ with Ada.Strings.Maps;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with System.Multiprocessors;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.BNF.Output_Ada;
 with WisiToken.BNF.Output_Ada_Common;
@@ -37,7 +36,6 @@ with WisiToken.BNF.Output_Ada_Emacs;
 with WisiToken.BNF.Output_Elisp_Common;
 with WisiToken.Generate.LR.LALR_Generate;
 with WisiToken.Generate.LR.LR1_Generate;
-with WisiToken.Generate.LR1_Items;
 with WisiToken.Generate.Packrat;
 with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
@@ -49,12 +47,14 @@ with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Main;
 procedure WisiToken.BNF.Generate
 is
+   use all type SAL.Base_Peek_Type;
+
    procedure Put_Usage
    is
       use Ada.Text_IO;
       First : Boolean := True;
    begin
-      Put_Line (Standard_Error, "version 3.0"); -- matches release version in Docs/wisitoken.html
+      Put_Line (Standard_Error, "version 4.1"); -- matches release version in Docs/wisitoken.html
       Put_Line (Standard_Error, "wisitoken-bnf-generate [options] {wisi grammar file}");
       Put_Line (Standard_Error, "Generate source code implementing a parser for the grammar.");
       New_Line (Standard_Error);
@@ -120,10 +120,6 @@ is
       Put_Line (Standard_Error, "  --ignore_conflicts; ignore excess/unknown conflicts");
       Put_Line (Standard_Error,
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
-      Put_Line (Standard_Error,
-                "  --task_count n; number of tasks used to compute LR1 items; 0 means CPU count." &
-                  " Default 1 unless %lr1_hash_table_size specified; then 0.");
-      Put_Line (Standard_Error, "  --lr1_hash_table_size n; default 113; bigger should be faster");
       Put_Line (Standard_Error, "verbosity keys:");
       Enable_Trace_Help;
    end Put_Usage;
@@ -134,14 +130,13 @@ is
    Output_BNF              : Boolean                          := False;
    Ignore_Conflicts        : Boolean                          := False;
    Test_Main               : Boolean                          := False;
-   Generate_Task_Count     : System.Multiprocessors.CPU_Range := 1;
-   Generate_Task_Count_Set : Boolean                          := False;
 
    Command_Generate_Set : Generate_Set_Access; -- override grammar file declarations
 
    Trace          : aliased WisiToken.Text_IO_Trace.Trace;
    Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser := Wisitoken_Grammar_Main.Create_Parser
+     (Trace'Unchecked_Access, Input_Data'Unchecked_Access);
    Log_File       : Ada.Text_IO.File_Type; -- not used
 
    procedure Use_Input_File (File_Name : in String)
@@ -150,11 +145,6 @@ is
       use Ada.Text_IO;
    begin
       Output_File_Name_Root := +Ada.Directories.Base_Name (File_Name) & Suffix;
-
-      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Grammar_Parser, Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
-         Wisitoken_Grammar_Main.Create_Parse_Table, Wisitoken_Grammar_Main.Create_Productions,
-         Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (File_Name);
 
@@ -245,16 +235,6 @@ begin
                Add (Command_Generate_Set, Tuple);
             end;
 
-         elsif Argument (Arg_Next) = "--lr1_hash_table_size" then
-            Arg_Next := Arg_Next + 1;
-
-            Input_Data.Language_Params.LR1_Hash_Table_Size := Positive'Value (Argument (Arg_Next));
-            if not Generate_Task_Count_Set then
-               Generate_Task_Count := 0;
-            end if;
-
-            Arg_Next := Arg_Next + 1;
-
          elsif Argument (Arg_Next) = "--output_bnf" then
             Output_BNF := True;
             Arg_Next   := Arg_Next + 1;
@@ -263,19 +243,6 @@ begin
             Arg_Next := Arg_Next + 1;
             Suffix   := +Argument (Arg_Next);
             Arg_Next := Arg_Next + 1;
-
-         elsif Argument (Arg_Next) = "--task_count" then
-            Arg_Next   := @ + 1;
-            Generate_Task_Count_Set := True;
-            declare
-               use System.Multiprocessors;
-            begin
-               Generate_Task_Count := CPU_Range'Value (Argument (Arg_Next));
-               if Generate_Task_Count = 0 then
-                  Generate_Task_Count := Number_Of_CPUs;
-               end if;
-            end;
-            Arg_Next   := @ + 1;
 
          elsif Argument (Arg_Next) = "--test_main" then
             Arg_Next  := Arg_Next + 1;
@@ -299,7 +266,7 @@ begin
    end if;
 
    begin
-      Grammar_Parser.Parse (Log_File); -- Execute_Actions only does meta phase
+      Grammar_Parser.Parse (Log_File);
    exception
    when WisiToken.Syntax_Error =>
       if Grammar_Parser.Tree.Parents_Set then
@@ -434,7 +401,7 @@ begin
                      Trace.Put_Line ("post-parse grammar file OTHER, bnf tree");
                   end if;
 
-                  WisiToken.Parse.LR.Parser_No_Recover.Execute_Actions
+                  WisiToken.Parse.Execute_Actions
                     (BNF_Tree, Grammar_Parser.Productions, Input_Data'Unchecked_Access);
                end if;
 
@@ -536,14 +503,8 @@ begin
                Parser => Tuple.Gen_Alg,
                Phase  => WisiToken_Grammar_Runtime.Other);
 
-            if Input_Data.Language_Params.LR1_Hash_Table_Size /=
-              WisiToken.Generate.LR1_Items.Item_Set_Trees.Default_Rows and
-              not Generate_Task_Count_Set
-            then
-               Generate_Task_Count := System.Multiprocessors.Number_Of_CPUs;
-            end if;
-
             declare
+               use all type WisiToken.Parse.LR.Parse_Table_Ptr;
                use Ada.Real_Time;
 
                Time_Start : Time;
@@ -564,9 +525,6 @@ begin
                Parse_Table_File_Name : constant String :=
                  (if Tuple.Gen_Alg in LALR .. Packrat_Proc
                   then -Output_File_Name_Root & "_" & To_Lower (Tuple.Gen_Alg'Image) &
-                    (if Tuple.Gen_Alg = LR1 and Test_Main
-                     then "_t" & Ada.Strings.Fixed.Trim (Generate_Task_Count'Image, Ada.Strings.Both)
-                     else "") &
                     (if Input_Data.If_Lexer_Present
                      then "_" & Lexer_Image (Input_Data.User_Lexer).all
                      else "") &
@@ -617,13 +575,14 @@ begin
                        (Generate_Data.Grammar,
                         Generate_Data.Descriptor.all,
                         Grammar_Parser.Tree.Lexer.File_Name,
+                        Input_Data.Language_Params.Error_Recover,
                         Generate_Data.Conflicts,
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
                         Include_Extra         => Test_Main,
                         Ignore_Conflicts      => Ignore_Conflicts,
-                        Partial_Recursion     => Input_Data.Language_Params.Partial_Recursion,
+                        Recursion_Strategy    => Input_Data.Language_Params.Recursion_Strategy,
                         Use_Cached_Recursions => not (Input_Data.If_Lexer_Present or Input_Data.If_Parser_Present),
                         Recursions            => Cached_Recursions);
 
@@ -658,15 +617,14 @@ begin
                        (Generate_Data.Grammar,
                         Generate_Data.Descriptor.all,
                         Grammar_Parser.Tree.Lexer.File_Name,
+                        Input_Data.Language_Params.Error_Recover,
                         Generate_Data.Conflicts,
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
                         Include_Extra         => Test_Main,
                         Ignore_Conflicts      => Ignore_Conflicts,
-                        Partial_Recursion     => Input_Data.Language_Params.Partial_Recursion,
-                        Task_Count            => Generate_Task_Count,
-                        Hash_Table_Size       => Input_Data.Language_Params.LR1_Hash_Table_Size,
+                        Recursion_Strategy    => Input_Data.Language_Params.Recursion_Strategy,
                         Use_Cached_Recursions => not (Input_Data.If_Lexer_Present or Input_Data.If_Parser_Present),
                         Recursions            => Cached_Recursions);
 
@@ -721,11 +679,14 @@ begin
 
                case Tuple.Gen_Alg is
                when LR_Generate_Algorithm =>
+                  pragma Assert
+                    (Generate_Data.LR_Parse_Table /= null and then
+                     Generate_Data.LR_Parse_Table.Error_Recover_Enabled = Input_Data.Language_Params.Error_Recover);
+
                   if Tuple.Text_Rep then
                      WisiToken.Generate.LR.Put_Text_Rep
                        (Generate_Data.LR_Parse_Table.all,
-                        Text_Rep_File_Name
-                          (-Output_File_Name_Root, Tuple, Generate_Task_Count, Input_Data.If_Lexer_Present, Test_Main));
+                        Text_Rep_File_Name (-Output_File_Name_Root, Tuple, Input_Data.If_Lexer_Present));
                   end if;
 
                when others =>
@@ -740,7 +701,7 @@ begin
 
                   WisiToken.BNF.Output_Ada
                     (Input_Data, Grammar_Parser.Tree.Lexer.File_Name, -Output_File_Name_Root, Generate_Data,
-                     Packrat_Data, Tuple, Test_Main, Multiple_Tuples, Generate_Task_Count);
+                     Packrat_Data, Tuple, Test_Main, Multiple_Tuples);
 
                when Ada_Emacs_Lang =>
                   if Trace_Generate > Outline then

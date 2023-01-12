@@ -23,6 +23,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Unchecked_Deallocation;
 with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
@@ -92,16 +93,12 @@ package WisiToken.Parse.LR.Parser is
       Max_Sequential_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
 
       Parsers : aliased Parser_Lists.List;
-
-      Partial_Parse_Active    : access Boolean;
-      Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
-      --  Used by In_Parse_Actions to terminate Partial_Parse.
    end record;
 
-   --  It is tempting to declare Finalize here, to free Parser.Table. But
-   --  Wisi.Parse_Context reuses the table between parser instances, so
-   --  we can't do that. Other applications must explicitly free
-   --  Parser.Table if they care.
+   type Parser_Access is access all Parser;
+
+   overriding procedure Finalize (Object : in out Parser);
+   --  Free Table.
 
    procedure New_Parser
      (Parser                         :    out LR.Parser.Parser;
@@ -129,14 +126,7 @@ package WisiToken.Parse.LR.Parser is
       Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List;
       Pre_Edited       : in     Boolean        := False);
 
-   overriding procedure Execute_Actions
-     (Parser              : in out LR.Parser.Parser;
-      Action_Region_Bytes : in     WisiToken.Buffer_Region);
-   --  Call Parser.User_Data.Insert_Token, Parser.User_Data.Delete_Token
-   --  on any tokens inserted/deleted by error recovery. Update
-   --  Parser.Line_Begin_Tokens to reflect error recovery. Then call
-   --  User_Data.Reduce and the grammar post parse actions on all
-   --  nonterms in the syntax tree that overlap Action_Region_Bytes, by
-   --  traversing the tree in depth-first order.
+   procedure Free is new Ada.Unchecked_Deallocation (Parser, Parser_Access);
+   --  Declared last to avoid freezing rules.
 
 end WisiToken.Parse.LR.Parser;

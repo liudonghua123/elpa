@@ -1,6 +1,6 @@
 ;;; wisi-skel.el --- Extensions skeleton  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987, 1993, 1994, 1996-2021  Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993, 1994, 1996-2022  Free Software Foundation, Inc.
 
 ;; Authors: Stephen Leake <stephen_leake@stephe-leake.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Design:
 ;;
@@ -26,6 +26,8 @@
 ;; name).
 
 (require 'skeleton)
+(require 'wisi)     ;For `wisi-inhibit-parse'.
+(require 'wisi-prj) ;For `wisi-auto-case' and `wisi-case-adjust-region'.
 
 (defvar-local wisi-skel-token-alist nil
   "Alist of (STRING . ELEMENT), used by `wisi-skel-expand'.
@@ -65,9 +67,9 @@ after AFTER-1. If AFTER-1 is a nested alist, add the new entry after AFTER-2."
 The prompt consists of the first COUNT keys from the alist,
 separated by `|', with trailing `...' if there are more keys."
   (if (>= count (length alist))
-      (concat (mapconcat 'car alist " | ") " : ")
+      (concat (mapconcat #'car alist " | ") " : ")
     (let ((alist-1 (butlast alist (- (length alist) count))))
-      (concat (mapconcat 'car alist-1 " | ") " | ... : "))
+      (concat (mapconcat #'car alist-1 " | ") " | ... : "))
   ))
 
 (defvar wisi-skel-test-input nil
@@ -76,7 +78,8 @@ separated by `|', with trailing `...' if there are more keys."
   )
 
 (defun wisi-skel-enable-parse ()
-  (setq wisi-inhibit-parse nil));
+  (setq wisi-inhibit-parse nil)
+  (remove-hook 'skeleton-end-hook #'wisi-skel-enable-parse t));
 
 (defun wisi-skel-expand (&optional name)
   "Expand the token or placeholder before point to a skeleton.
@@ -103,6 +106,8 @@ before that as the token."
 		       (downcase (buffer-substring-no-properties (point) end))))
 	 (skel (assoc-string token wisi-skel-token-alist))
 	 (handled nil))
+
+    (add-hook 'skeleton-end-hook #'wisi-skel-enable-parse 90 t)
 
     (if skel
 	(progn
@@ -190,9 +195,6 @@ before that as the token."
   "Move point to after previous placeholder."
   (interactive)
   (skip-syntax-backward "^!"))
-
-;;;###autoload
-(add-hook 'skeleton-end-hook #'wisi-skel-enable-parse 90)
 
 (provide 'wisi-skel)
 ;;; wisi-skel.el ends here
