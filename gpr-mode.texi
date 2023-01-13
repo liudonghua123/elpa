@@ -2,7 +2,7 @@
 @settitle gpr Mode
 
 @copying
-Copyright @copyright{} 2013, 2019  Free Software Foundation, Inc.
+Copyright @copyright{} 2013, 2019, 2022 - 2023  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -25,7 +25,7 @@ developing GNU and promoting software freedom.''
 
 @titlepage
 @sp 10
-@title gpr Mode
+@title gpr Mode 1.0
 @sp 2
 @subtitle An Emacs major mode for editing and navigating gpr files
 @sp 2
