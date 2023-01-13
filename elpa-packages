@@ -1,6 +1,6 @@
 ;; -*- lisp-data -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; List of packages that are maintained externally.
 ;; The list is made of elements of the form (NAME KIND URL OPTS...).
@@ -844,6 +844,8 @@
  ;;(wrap-search		:url "https://dataswamp.org/~incal/wrap-search.git"
  ;; :auto-sync t)
  (xclip			:url nil)
+ (xeft                  :url "https://git.sr.ht/~casouri/xeft"
+  :ignored-files ("*.gif"))
  (xelb			:url "https://github.com/ch11ng/xelb.git")
  (xpm			:url nil)
  (xr			:url "https://github.com/mattiase/xr"
