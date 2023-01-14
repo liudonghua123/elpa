@@ -845,6 +845,7 @@
  ;; :auto-sync t)
  (xclip			:url nil)
  (xeft                  :url "https://git.sr.ht/~casouri/xeft"
+  :auto-sync t
   :ignored-files ("*.gif"))
  (xelb			:url "https://github.com/ch11ng/xelb.git")
  (xpm			:url nil)
