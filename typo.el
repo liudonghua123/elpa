@@ -4,7 +4,8 @@
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/typo.el
-;; Version: $Id: typo.el,v 1.2 2023/01/15 12:42:07 oj14ozun Exp oj14ozun $
+;; Version: $Id: typo.el,v 1.3 2023/01/15 12:42:41 oj14ozun Exp oj14ozun $
+;; Package-Requires: ((emacs "27.1"))
 ;; Package-Version: 1
 ;; Keywords: convenience
 
