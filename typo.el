@@ -4,7 +4,7 @@
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/typo.el
-;; Version: $Id: typo.el,v 1.3 2023/01/15 12:42:41 oj14ozun Exp oj14ozun $
+;; Version: $Id: typo.el,v 1.4 2023/01/15 12:48:20 oj14ozun Exp oj14ozun $
 ;; Package-Requires: ((emacs "27.1"))
 ;; Package-Version: 1
 ;; Keywords: convenience
@@ -100,13 +100,13 @@ single-letter typos are searched."
 ;;;###autoload
 (defun typo-all-completions (string collection pred _point)
   "Generate all  versions of the STRING using COLLECTION.
-COLLECTION are as defined in `all-completions'."
+COLLECTION and PRED are as defined in `all-completions'."
   (typo-edits string collection pred))
 
 ;;;###autoload
 (defun typo-try-completion (string collection pred _point &optional _metadata)
   "Generate the most probable version of STRING using COLLECTION.
-COLLECTION are as defined in `try-completion'."
+COLLECTION and PRED are as defined in `try-completion'."
   (let* ((result (typo-edits string collection pred))
 	 (best (car result)))
     (dolist (other (cdr result))
