@@ -4,7 +4,7 @@
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/typo.el
-;; Version: $Id$
+;; Version: $Id: typo.el,v 1.1 2023/01/13 18:53:29 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Keywords: convenience
 
@@ -60,11 +60,11 @@
      (and (<= (string-distance ,word ,key) typo-level)
 	  (<= (- typo-shrink) (- (length ,word) (length ,key)) typo-expand)))))
 
-(defun typo-edits (word collection)
+(defun typo-edits (word collection pred)
   "Generate a list of all multi-edit typos of WORD.
-Only words that are in the COLLECTION will be returned.  The
-variable `typo-level' specifies how many single-letter typos are
-searched."
+Only words that are in the COLLECTION and satisfy PRED will be
+returned.  The variable `typo-level' specifies how many
+single-letter typos are searched."
   (let (new-words)
     (cond
      ((and (listp collection) (consp (car collection))) ;alist
@@ -94,19 +94,19 @@ searched."
        collection)
       new-words)
      ((functionp collection)
-      (typo-edits word (funcall collection "" #'always t))))))
+      (typo-edits word (funcall collection "" pred t) pred)))))
 
 ;;;###autoload
-(defun typo-all-completions (string collection _pred _point)
+(defun typo-all-completions (string collection pred _point)
   "Generate all  versions of the STRING using COLLECTION.
 COLLECTION are as defined in `all-completions'."
-  (typo-edits string collection))
+  (typo-edits string collection pred))
 
 ;;;###autoload
-(defun typo-try-completion (string collection _pred _point &optional _metadata)
+(defun typo-try-completion (string collection pred _point &optional _metadata)
   "Generate the most probable version of STRING using COLLECTION.
 COLLECTION are as defined in `try-completion'."
-  (let* ((result (typo-edits string collection))
+  (let* ((result (typo-edits string collection pred))
 	 (best (car result)))
     (dolist (other (cdr result))
       (when (< (string-distance string other)
