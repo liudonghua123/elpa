@@ -4,7 +4,7 @@
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/typo.el
-;; Version: $Id: typo.el,v 1.1 2023/01/13 18:53:29 oj14ozun Exp oj14ozun $
+;; Version: $Id: typo.el,v 1.2 2023/01/15 12:42:07 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Keywords: convenience
 
@@ -42,7 +42,7 @@
   "Completion style using typo analysis."
   :group 'minibuffer)
 
-(defcustom typo-level 16
+(defcustom typo-level 8
   "Number of edits from the current word to a completion."
   :type 'natnum)
 
