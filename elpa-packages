@@ -705,6 +705,10 @@
   :auto-sync t)
  (ssh-deploy		:url "https://github.com/cjohansson/emacs-ssh-deploy")
  (stream		:url nil)
+ (substitute		:url "https://git.sr.ht/~protesilaos/substitute"
+  :auto-sync t
+  :readme "README.md"
+  :ignored-files ("COPYING"))
  (svg			:core ("lisp/svg.el"))
  (svg-clock		:url nil)
  (svg-lib		:url "https://github.com/rougier/svg-lib"
