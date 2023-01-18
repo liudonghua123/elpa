@@ -4,7 +4,7 @@
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/typo.el
-;; Version: $Id: typo.el,v 1.4 2023/01/15 12:48:20 oj14ozun Exp oj14ozun $
+;; Version: $Id: typo.el,v 1.5 2023/01/15 12:49:56 oj14ozun Exp oj14ozun $
 ;; Package-Requires: ((emacs "27.1"))
 ;; Package-Version: 1
 ;; Keywords: convenience
@@ -68,6 +68,8 @@ returned.  The variable `typo-level' specifies how many
 single-letter typos are searched."
   (let (new-words)
     (cond
+     ((functionp collection)
+      (typo-edits word (funcall collection "" pred t) pred))
      ((and (listp collection) (consp (car collection))) ;alist
       (dolist (entry collection new-words)
 	(let ((key (car entry)))
@@ -93,9 +95,7 @@ single-letter typos are searched."
 	 (when (typo--test word atom)
 	   (push atom new-words)))
        collection)
-      new-words)
-     ((functionp collection)
-      (typo-edits word (funcall collection "" pred t) pred)))))
+      new-words))))
 
 ;;;###autoload
 (defun typo-all-completions (string collection pred _point)
