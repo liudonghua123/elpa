@@ -39,14 +39,14 @@
    line-start
    (or "jar:file://" "zipfile://")
    ;; match group 1, the jar file location
-   (group "/" (* not-newline) ".jar")
+   (group "/" (* not-newline) (or ".jar" ".zip"))
    ;; Delimiter between the jar and the file inside the jar
    (or "!" "::")
    ;; match the leading directory delimiter /,
-   ;; archvie mode expects none so it's outside match group 2
+   ;; archive mode expects none so it's outside match group 2
    (zero-or-one "/")
    ;; match group 2, the file within the archive
-   (group (* not-newline) "." (+ alphanumeric))
+   (group (* not-newline))
    line-end)
   "A regex for matching paths to a jar file and a file path into the jar file.
 Delimited by `!' for jar: schemes. Delimited by `::' for zipfile: schemes.")
