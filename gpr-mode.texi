@@ -23,21 +23,12 @@ developing GNU and promoting software freedom.''
 * gpr mode: (gpr-mode).         Emacs mode for editing and navigating gpr files (gnat project files).
 @end direntry
 
-@titlepage
-@sp 10
-@title gpr Mode 1.0
-@sp 2
-@subtitle An Emacs major mode for editing and navigating gpr files
-@sp 2
-@page
-@vskip 0pt plus 1filll
-@insertcopying
-@end titlepage
-
 @contents
 
 @ifnottex
 @node Top, Overview, (dir), (dir)
+
+gpr-mode Version 1.0
 @end ifnottex
 
 @menu
