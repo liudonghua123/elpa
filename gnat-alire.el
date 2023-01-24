@@ -98,31 +98,34 @@
   ;; it is only used for casing. We get GPR_PROJECT_PATH from the
   ;; Alire environment.
   "Return an initial wisi project for the current Alire workspace."
-  (let* ((default-directory (locate-dominating-file default-directory "alire.toml"))
-	 (abs-gpr-file (expand-file-name gpr-file))
-	 (project (make-alire-prj :name name
-                                  :compile-env compile-env
-                                  :file-env file-env
-                                  :xref-label xref-label)))
+  (let ((temp (locate-dominating-file default-directory "alire.toml")))
+    (when (null temp)
+      (user-error "no alire.toml found in or above %s" default-directory))
+    (let* ((default-directory temp)
+	   (abs-gpr-file (expand-file-name gpr-file))
+	   (project (make-alire-prj :name name
+                                    :compile-env compile-env
+                                    :file-env file-env
+                                    :xref-label xref-label)))
 
-    (alire-get-env project)
+      (alire-get-env project)
 
-    ;; We need a gnat-compiler to set compilation-search-path; this
-    ;; must run after alire-get-env because it uses GPR_PROJECT_PATH.
-    (setf (wisi-prj-compiler project)
-	  (create-gnat-compiler
-	   :gpr-file abs-gpr-file
-	   :run-buffer-name (gnat-run-buffer-name abs-gpr-file)))
+      ;; We need a gnat-compiler to set compilation-search-path; this
+      ;; must run after alire-get-env because it uses GPR_PROJECT_PATH.
+      (setf (wisi-prj-compiler project)
+	    (create-gnat-compiler
+	     :gpr-file abs-gpr-file
+	     :run-buffer-name (gnat-run-buffer-name abs-gpr-file)))
 
-    (when (null xref-label)
-      (user-error "create-alire-prj: no xref backend specified; add :xref-label"))
-    (setf (wisi-prj-xref project)
-	  (funcall (intern (format "create-%s-xref" (symbol-name xref-label)))))
+      (when (null xref-label)
+        (user-error "create-alire-prj: no xref backend specified; add :xref-label"))
+      (setf (wisi-prj-xref project)
+	    (funcall (intern (format "create-%s-xref" (symbol-name xref-label)))))
 
-    (wisi-compiler-parse-one (wisi-prj-compiler project) project "gpr_file" abs-gpr-file)
-    (wisi-xref-parse-one     (wisi-prj-xref project)     project "gpr_file" abs-gpr-file)
+      (wisi-compiler-parse-one (wisi-prj-compiler project) project "gpr_file" abs-gpr-file)
+      (wisi-xref-parse-one     (wisi-prj-xref project)     project "gpr_file" abs-gpr-file)
 
-    project))
+      project)))
 
 (cl-defmethod wisi-prj-default ((project alire-prj))
   (let* ((gpr-file (gnat-compiler-gpr-file (wisi-prj-compiler project)))
