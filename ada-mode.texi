@@ -23,21 +23,13 @@ developing GNU and promoting software freedom.''
 * Ada mode: (ada-mode).         Emacs mode for editing and navigating Ada code.
 @end direntry
 
-@titlepage
-@sp 10
-@title Ada Mode Version 8.0.3
-@page
-@vskip 0pt plus 1filll
-@insertcopying
-@end titlepage
-
 @contents
 
 @ifnottex
 @node Top, Overview, (dir), (dir)
 @top Top
 
-Ada Mode Version 8.0.3
+Ada Mode Version 8.0
 @end ifnottex
 
 @menu
