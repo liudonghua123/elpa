@@ -6,6 +6,11 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* wisi 4.2.2
+16 Jan 2023
+
+** Fix bug in wisi parser startup.
+
 * wisi 4.2.0
 3 Jan 2023
 
