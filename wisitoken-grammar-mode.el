@@ -1,12 +1,12 @@
 ;;; wisitoken-grammar-mode.el --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2017 - 2023  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
-;; Version: 1.2.0
-;; package-requires: ((wisi "3.1.1") (emacs "25.0") (mmm-mode "0.5.7"))
+;; Version: 1.3.0
+;; package-requires: ((wisi "4.2.2") (emacs "25.3") (mmm-mode "0.5.7"))
 ;; url: https://www.nongnu.org/ada-mode/
 
 ;; This file is part of GNU Emacs.
@@ -30,6 +30,7 @@
 
 (require 'cl-lib)
 (require 'mmm-mode)
+(require 'simple-indent-mode)
 (require 'xref)
 (require 'wisi)
 (require 'wisitoken_grammar_1-process)
@@ -42,8 +43,7 @@
 (defcustom wisitoken-grammar-process-parse-exec "wisitoken_grammar_mode_parse.exe"
   ;; wisitoken_grammar.gpr uses .exe even on non-windows.
   "Name of executable to use for external process wisitoken-grammar parser,"
-  :type 'string
-  :group 'wisitoken-grammar)
+  :type 'string)
 
 (defvar wisitoken-grammar-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -56,29 +56,41 @@
     ;; limit syntax-ppss, we can't set ?\' to string here; that sees
     ;; ?\' in 'code' and 'action' blocks. In addition, we prefer
     ;; font-lock-constant-face for tokens. So we handle ?\' in the
-    ;; parser.
+    ;; parser. Which means we also handle ?\" there, so:
+    ;;   %token <punctuation> DOUBLE_QUOTE '"'
+    ;; doesn't confuse syntax-ppss
+    (modify-syntax-entry ?\"  ".   " table) ;; punctuation; default is string quote
 
     table))
+
+(declare-function gnat-show-secondary-error "gnat-compiler.el" ())
 
 (defvar wisitoken-grammar-mode-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
 
     ;; comment-dwim is in global map on M-;
-    (define-key map "\C-c\C-f" 'wisi-show-parse-error)
-    (define-key map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
-    (define-key map [S-return] 'wisitoken-grammar-new-line)
-    (define-key map "\C-c`"    'ada-show-secondary-error)
+    (define-key map "\C-c\C-f" #'wisi-show-parse-error)
+    (define-key map "\C-c\C-i" #'wisi-indent-statement)
+    (define-key map "\C-c\C-m" #'wisitoken-grammar-mmm-parse)
+    (define-key map [S-return] #'wisitoken-grammar-new-line)
+    (define-key map "\C-c`"    #'gnat-show-secondary-error)
+    (define-key map "\C-c."    #'wisitoken-parse_table-conflict-goto)
     map
-  )  "Local keymap used for wisitoken-grammar mode.")
+  )
+  "Local keymap used for wisitoken-grammar mode.")
 
-(define-key emacs-lisp-mode-map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
+(define-key emacs-lisp-mode-map "\C-c\C-m" #'wisitoken-grammar-mmm-parse)
 
 (defvar wisitoken-grammar-mode-menu (make-sparse-keymap "Wisi-Grammar"))
 (easy-menu-define wisitoken-grammar-mode-menu wisitoken-grammar-mode-map "Menu keymap for Wisitoken Grammar mode"
   '("Wisi-Grammar"
     ["Goto declaration" xref-find-definitions t]
-    ["mmm-ify action"   wisitoken-grammar-mmm-parse t]))
+    ["mmm-ify action or code"   wisitoken-grammar-mmm-parse t]
+    ["insert mmm action or code"   mmm-insert-region t]
+    ["goto conflict in .parse_table" wisitoken-parse_table-conflict-goto]
+    ["convert tree-sitter conflict" wisitoken-grammar-tree-sitter-conflict]
+    ["clean conflict states" wisitoken-grammar-clean-conflicts]))
 
 (cl-defstruct (wisitoken-grammar-parser (:include wisi-process--parser))
   ;; no new slots
@@ -109,7 +121,7 @@
 		  ;; file-name can be nil during vc-resolve-conflict
 		  (line-number-at-pos start)
 		  start stop))
-	 (wisi-parser-parse-errors wisi--parser))
+	 (wisi-parser-local-parse-errors wisi-parser-local))
 
 	;; As of mmm version 0.5.7, mmm-parse-region calls
 	;; font-lock-ensure, which calls us. So we can't do
@@ -117,14 +129,17 @@
 	;; syntax-propertize.
 	)))
 
-(defun wisitoken-grammar-in-action-or-comment ()
+(defun wisitoken-grammar-in-action-comment-string ()
   ;; (info "(elisp) Parser State" "*info syntax-ppss*")
   (let* ((state (syntax-ppss))
 	 (paren-depth (nth 0 state))
 	 (done nil)
 	 (result nil))
+    ;; We disabled all string delimiters in
+    ;; wisitoken-grammar-mode-syntax-table, so we must rely on the
+    ;; face set by the parser to detect strings.
     (cond
-     ((nth 3 state)
+     ((eq font-lock-constant-face (get-text-property (point) 'font-lock-face))
       ;; in string
       t)
 
@@ -142,7 +157,9 @@
 		    result t)
 
 	    ;; else go up one level
-	    (setq state (syntax-ppss (1- (nth 1 state))))
+	    (if (null (nth 1 state))
+		(setq done t)
+	      (setq state (syntax-ppss (1- (nth 1 state)))))
 	    )))
       result)
      )))
@@ -151,9 +168,12 @@
   "Starting at BEGIN, search backward for a parse start point."
   (goto-char begin)
   (cond
-   ((wisi-search-backward-skip "^%[^({[]\\|:" #'wisitoken-grammar-in-action-or-comment)
+   ((wisi-search-backward-skip "^%[^({[\n]\\|:" #'wisitoken-grammar-in-action-comment-string)
     (when (looking-at ":")
       ;; Move back to before the nonterminal name
+      (when (= ?: (char-before))
+	;; in ::=
+	(backward-char 1))
       (forward-comment (- (line-number-at-pos (point))))
       (skip-syntax-backward "w_"))
     (point))
@@ -166,7 +186,7 @@
   "Starting at END, search forward for a parse end point."
   (goto-char end)
   (cond
-   ((wisi-search-forward-skip "^%\\|;$" #'wisitoken-grammar-in-action-or-comment)
+   ((wisi-search-forward-skip "^[%a-z]\\|;$" #'wisitoken-grammar-in-action-comment-string)
     (point))
 
    (t
@@ -189,6 +209,36 @@
       (when (and begin end)
 	(mmm-parse-region begin end)))
     ))
+
+(defun wisitoken-grammar-clean-conflicts ()
+  "Delete (nn, nn) from %conflict lines."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (search-forward "%conflict" nil t)
+      (goto-char (line-end-position))
+      (when (looking-back "(\\(:? *[0-9]+, \\)*[0-9]+)" (line-beginning-position))
+	(delete-region (match-beginning 0) (match-end 0))))))
+
+(defun wisitoken-grammar-tree-sitter-conflict ()
+  "Convert a tree-sitter conflict error message to a %conflict."
+  (interactive)
+  (let ((wy-buffer (current-buffer))
+	nonterms)
+    (pop-to-buffer next-error-last-buffer)
+    (search-backward "Add a conflict for these rules")
+    (looking-at "Add a conflict for these rules: \\(`[a-z_]+`\\(, `[a-z_]+`\\)\\)")
+    (setq nonterms (match-string 1))
+    (pop-to-buffer wy-buffer)
+    (insert (concat "\n%conflict " nonterms))
+    (goto-char (line-beginning-position))
+    (search-forward "`")
+    (delete-char -1)
+    (while (search-forward "`, `" (line-end-position) t)
+      (delete-char -4)
+      (insert " "))
+    (search-forward "`")
+    (delete-char -1)))
 
 (defun wisitoken-grammar-new-line ()
   "If in comment, insert new comment line.
@@ -224,7 +274,8 @@ Otherwise insert a plain new line."
       (wisi-next-name))))
 
 (defun wisitoken-grammar-add-log-current-function ()
-  "For `add-log-current-defun-function'; return name of current non-terminal or declaration."
+  "Return name of current non-terminal or declaration.
+For `add-log-current-defun-function'."
   ;; add-log-current-defun is typically called with point at the start
   ;; of an ediff change section, which is before the start of the
   ;; declaration of a new item. So go to the end of the current line
@@ -240,23 +291,31 @@ Otherwise insert a plain new line."
   ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
   ;; syntax-propertize-extend-region-functions is set to
   ;; syntax-propertize-wholelines by default.
-  (let ((inhibit-read-only t)
-	(inhibit-point-motion-hooks t))
-    (goto-char start)
-    (save-match-data
-      (while (re-search-forward
-	       "\\(%\\[\\)" ;; regexp begin
-	      end t)
-	(cond
-	 ((match-beginning 1)
-	  (let ((begin (match-beginning 1))
-		(end (search-forward "]%")))
-	    ;; allow single quotes in regexp to not mess up the rest
-	    ;; of the buffer
-	    (put-text-property begin end 'syntax-table '(11 . nil))
-	    ))
-	 ))
-      )))
+  ;; WORKAROUND: Something in mmm-mode causes fontification with the wrong
+  ;; syntax table; ' is string, comment-start is wrong, and a stray
+  ;; ' in a comment applies string face to lots of stuff in 'face
+  ;; text property. For some reason, comments remain ok.
+  (remove-text-properties start end '(face nil))
+
+  (goto-char start)
+  (save-match-data
+    (while (re-search-forward
+	    "\\(%\\[\\)" ;; regexp begin
+	    end t)
+      (cond
+       ((match-beginning 1)
+	;; FIXME: If `search-forward' matches on another line, then the
+        ;; `syntax-table' text property we apply on the next lines
+        ;; may be removed by subsequent calls to `syntax-propertize'
+        ;; starting after %[ but before ]%
+	(let ((begin (match-beginning 1))
+	      (end (search-forward "]%")))
+	  ;; allow single quotes in regexp to not mess up the rest
+	  ;; of the buffer
+	  (put-text-property begin end 'syntax-table '(11 . nil))
+	  ))
+       ))
+    ))
 
 ;;; mmm (multi-major-mode) integration
 
@@ -284,12 +343,14 @@ Otherwise insert a plain new line."
 	  (setq wisitoken-grammar-code-mode nil))
 
 	 ((string-equal (match-string 2) "Ada_Emacs")
+	  ;; We don't use ada-mode for these regions, because the wisi
+	  ;; parser does not work in a sub-mode.
 	  (setq wisitoken-grammar-action-mode 'emacs-lisp-mode)
-	  (setq wisitoken-grammar-code-mode 'ada-mode))
+	  (setq wisitoken-grammar-code-mode 'simple-indent-mode))
 
 	 ((string-equal (match-string 2) "Ada")
-	  (setq wisitoken-grammar-action-mode 'ada-mode)
-	  (setq wisitoken-grammar-code-mode 'ada-mode))
+	  (setq wisitoken-grammar-action-mode 'simple-indent-mode)
+	  (setq wisitoken-grammar-code-mode 'simple-indent-mode))
 
 	 (t
 	  (error "unrecognized output language %s" (match-string 2)))
@@ -304,15 +365,23 @@ Otherwise insert a plain new line."
     :match-submode wisitoken-grammar-mmm-action
     :face mmm-code-submode-face
     :front "%("
+    :include-front t ;; for lisp-indent-region; treat %() as containing parens
+    :front-match 0
+    :front-offset 1
     :back ")%"
-    :insert ((?a wisi-action nil @ "%(" @ "" _ "" @ ")%")))
+    :include-back t
+    :back-match 0
+    :back-offset -1 ;; so the trailing % is not red
+    :insert ((?a wisi-action nil @ "%(" @ "" _ "" @ ")%" @)))
    (wisi-code
     :match-submode wisitoken-grammar-mmm-code
     :face mmm-code-submode-face
     :front "%{"
     :back "}%"
-    :insert ((?a wisi-code nil @ "%{" @ "" _ "" @ "}%")))
+    :insert ((?c wisi-code nil @ "%{" @ "" _ "" @ "}%" @)))
    ))
+
+(put 'emacs-lisp-mode 'mmm-indent-narrow nil) ;; syntax-ppss is only valid on the entire buffer
 
 (add-to-list 'mmm-mode-ext-classes-alist '(wisitoken-grammar-mode nil wisi-action))
 (add-to-list 'mmm-mode-ext-classes-alist '(wisitoken-grammar-mode nil wisi-code))
@@ -346,8 +415,16 @@ Otherwise insert a plain new line."
     (string-match wisi-names-regexp identifier)
     (list (xref-make
 	 (match-string 1 identifier)
-	 (xref-make-file-location
-	  (buffer-file-name) (string-to-number (match-string 2 identifier)) 0)))
+	 (if (buffer-file-name)
+	     (xref-make-file-location
+	      (buffer-file-name) (string-to-number (match-string 2 identifier)) 0)
+	   ;; no file-name in a file version fetched from CM
+	   (xref-make-buffer-location
+	      (current-buffer)
+	      (save-excursion (goto-char (point-min))
+			      (forward-line (string-to-number (match-string 2 identifier)))
+			      (point)))
+	   )))
     ))
 
 ;;; debug
@@ -361,7 +438,8 @@ Otherwise insert a plain new line."
 ;;;###autoload
 (define-derived-mode wisitoken-grammar-mode prog-mode "Wisi"
   "A major mode for Wisi grammar files."
-  (set (make-local-variable 'syntax-propertize-function) 'wisitoken-grammar-syntax-propertize)
+  (set (make-local-variable 'syntax-propertize-function)
+       #'wisitoken-grammar-syntax-propertize)
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
@@ -374,8 +452,6 @@ Otherwise insert a plain new line."
   (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'add-log-current-defun-function)
        #'wisitoken-grammar-add-log-current-function)
-
-  (wisitoken-grammar-set-submodes)
 
   (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend
 	    nil ;; append
@@ -394,12 +470,16 @@ Otherwise insert a plain new line."
 	     :language-action-table [wisitoken-grammar-check-parens]
 	     )))
 
-  ;; Our wisi parser does not fontify comments and strings, so tell
-  ;; font-lock to do that.
+  ;; Our wisi parser does not fontify comments, so tell font-lock to
+  ;; do that.
   (setq font-lock-defaults
 	'(nil ;; keywords
 	  nil ;; keywords-only
 	  ))
+
+  ;; This must be after all local variables are set, so mmm-mode
+  ;; restores them properly.
+  (wisitoken-grammar-set-submodes)
   )
 
 ;;;###autoload

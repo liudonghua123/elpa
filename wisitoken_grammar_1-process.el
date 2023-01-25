@@ -1,7 +1,7 @@
-;;; wisitoken_grammar_1-process.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; wisitoken_grammar_1-process.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-
 ;;  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 
-;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -26,11 +26,19 @@
   [WHITESPACE
    NEW_LINE
    COMMENT
+   ACCEPT_I
    CODE
+   CONFLICT
+   CONFLICT_RESOLUTION
    END
+   ELSIF
    IF
+   IN
    KEYWORD
    NON_GRAMMAR
+   ON
+   REDUCE_I
+   SHIFT_I
    TOKEN
    RAW_CODE
    REGEXP
@@ -38,7 +46,6 @@
    BAR
    COLON
    COLON_COLON_EQUAL
-   COMMA
    EQUAL
    GREATER
    LEFT_BRACE
@@ -53,7 +60,6 @@
    RIGHT_BRACKET
    RIGHT_PAREN
    SEMICOLON
-   SLASH
    STAR
    NUMERIC_LITERAL
    IDENTIFIER
@@ -61,13 +67,17 @@
    STRING_LITERAL_2
    Wisi_EOI
    wisitoken_accept
-   declaration
+   regexp_string
+   conflict_item
+   conflict_item_list
    token_keyword_non_grammar
+   declaration
    identifier_list
-   declaration_item_list
+   IDENTIFIER_BAR_list
    declaration_item
+   declaration_item_list
+   nonterm_colon
    nonterminal
-   semicolon_opt
    rhs_list
    rhs
    rhs_attribute
@@ -80,7 +90,7 @@
    rhs_alternative_list
    compilation_unit
    compilation_unit_list
-   nonterminal_004
+   Wisi_SOI
    ])
 
 (defconst wisitoken_grammar_1-process-face-table
@@ -95,11 +105,19 @@
 
 (defconst wisitoken_grammar_1-process-repair-image
   '(
+   (ACCEPT_I . "accept_it")
    (CODE . "code")
+   (CONFLICT . "conflict")
+   (CONFLICT_RESOLUTION . "conflict_resolution")
    (END . "end")
+   (ELSIF . "elsif")
    (IF . "if")
+   (IN . "in")
    (KEYWORD . "keyword")
    (NON_GRAMMAR . "non_grammar")
+   (ON . "on")
+   (REDUCE_I . "reduce")
+   (SHIFT_I . "shift")
    (TOKEN . "token")
    (RAW_CODE . "}%")
    (REGEXP . "]%")
@@ -107,7 +125,6 @@
    (BAR . "|")
    (COLON . ":")
    (COLON_COLON_EQUAL . "::=")
-   (COMMA . ",")
    (EQUAL . "=")
    (GREATER . ">")
    (LEFT_BRACE . "{")
@@ -122,7 +139,6 @@
    (RIGHT_BRACKET . "]")
    (RIGHT_PAREN . ")")
    (SEMICOLON . ";")
-   (SLASH . "/")
    (STAR . "*")
    (NUMERIC_LITERAL . "1234567890")
    (IDENTIFIER . "bogus")

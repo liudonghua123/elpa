@@ -37,7 +37,7 @@ project WisiToken_Grammar is
 
    when "Off" =>
       for Object_Dir use "obj";
-      for Exec_Dir use ".";
+      for Exec_Dir use "bin";
    end case;
 
    for Languages use ("Ada", "C");
@@ -63,11 +63,6 @@ project WisiToken_Grammar is
       end case;
 
    end Compiler;
-
-   package Builder is
-      --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
-      for Executable_Suffix use ".exe";
-   end Builder;
 
    package Binder is
       for default_switches ("Ada") use ("-E"); -- symbolic traceback

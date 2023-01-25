@@ -1,8 +1,8 @@
---  generated parser support file.
+--  generated parser support file. -*- buffer-read-only:t  -*-
 --  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 --
 
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -25,12 +25,12 @@ with WisiToken.Syntax_Trees;
 with WisiToken.Parse.LR.Parser;
 package Wisitoken_Grammar_1_Process_Main is
 
-   procedure Create_Parser
-     (Parser                         :    out WisiToken.Parse.LR.Parser.Parser;
-      Language_Fixes                 : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;
-      Language_Matching_Begin_Tokens : in     WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
-      Language_String_ID_Set         : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
-      Trace                        : not null access WisiToken.Trace'Class;
-      User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);
+   function Create_Parser
+     (Trace      : in WisiToken.Trace_Access;
+      User_Data  : in WisiToken.Syntax_Trees.User_Data_Access;
+      Language_Fixes                 : in WisiToken.Parse.LR.Parser.Language_Fixes_Access;
+      Language_Matching_Begin_Tokens : in WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
+      Language_String_ID_Set         : in WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access)
+     return WisiToken.Parse.LR.Parser.Parser;
 
 end Wisitoken_Grammar_1_Process_Main;

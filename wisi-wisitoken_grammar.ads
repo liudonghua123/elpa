@@ -2,7 +2,7 @@
 --
 --  Wisitoken_grammar parser language-specific runtime
 --
---  Copyright (C) 2019 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2019 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -20,25 +20,30 @@ pragma License (Modified_GPL);
 package Wisi.WisiToken_Grammar is
 
    Language_Protocol_Version : constant String := "1";
+   --  Defines the data passed to Initialize in Params.
+   --
+   --  This value must match :language-protocol-version in
+   --  wisitoken-grammar-mode in wisitoken-grammar-mode.el
+   --
+   --  Only changes once per wisitoken-grammar-mode release. Increment as
+   --  soon as required, record new version in NEWS.
 
    type Parse_Data_Type is new Wisi.Parse_Data_Type with null record;
 
    overriding
-   procedure Initialize
-     (Data              : in out Parse_Data_Type;
-      Lexer             : in     WisiToken.Lexer.Handle;
-      Descriptor        : access constant WisiToken.Descriptor;
-      Base_Terminals    : in     WisiToken.Base_Token_Array_Access;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type;
-      Begin_Indent      : in     Integer;
-      Params            : in     String);
+   procedure Initialize (Data : in out Parse_Data_Type);
+
+   overriding
+   function Get_Token_IDs
+     (User_Data    : in     Parse_Data_Type;
+      Command_Line : in     String;
+      Last         : in out Integer)
+     return WisiToken.Token_ID_Arrays.Vector;
 
    procedure Check_Parens
-     (Data        : in out Wisi.Parse_Data_Type'Class;
-      Tree        : in     WisiToken.Syntax_Trees.Tree;
-      Tree_Tokens : in     WisiToken.Valid_Node_Index_Array;
-      Args        : in     Arg_Index_Array);
+     (Data    : in out Wisi.Parse_Data_Type'Class;
+      Tree    : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Args    : in     Arg_Index_Array);
 
 end Wisi.WisiToken_Grammar;
