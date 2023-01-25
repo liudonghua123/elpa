@@ -21,24 +21,8 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-if type alr; then
-    echo "building wisitoken-grammar-mode executables via Alire"
-    alr get emacs_gpr_mode~1.0.1
-    cd emacs_gpr_mode_*; alr build --release
-
-elif type gprbuild; then
-    echo "building wisitoken-grammar-mode executables via gnat compiler"
-
-    export GPR_PROJECT_PATH=`ls -d ../wisi-4.2.?`
-
-    gnatprep -DELPA="yes" wisitoken_grammar.gpr.gp wisitoken_grammar.gpr
-
-    gprbuild -p -j8 -P wisitoken_grammar.gpr
-    gprinstall -f -p -P wisitoken_grammar.gpr --install-name=wisitoken_grammar
-
-else
-    echo "neither Alire nor gnat compiler found"
-    return 1
-fi
+echo "building wisitoken-grammar-mode executables via Alire"
+alr get emacs_wisitoken_grammar_mode~1.3.0
+cd emacs_wisitoken_grammar_mode*; alr build --release
 
 # end of file

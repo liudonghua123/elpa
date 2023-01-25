@@ -14,19 +14,7 @@ fi
     
 echo "installing wisitoken-grammar-mode executables to" $PREFIX/bin
 
-# No need for gprinstall; we only need the executables
-
 mkdir -p $PREFIX/bin
-
-if type alr; then
-    cp emacs_gpr_mode*/bin/* $PREFIX/bin
-
-elif type gprbuild; then
-    cp bin/* $PREFIX/bin
-
-else
-    echo "neither Alire nor gnat compiler found"
-    return 1
-fi
+cp emacs_gpr_mode*/bin/* $PREFIX/bin
 
 # end of file.
