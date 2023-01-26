@@ -658,6 +658,10 @@
  (rnc-mode		:url nil)
  (rt-liberation		:url "https://git.savannah.nongnu.org/git/rtliber"
   :auto-sync t)
+ (ruby-end		:url "https://github.com/rejeep/ruby-end.el"
+  :ignored-files ("Makefile" "Cask" ".travis.yml" ".gitignore" "features")
+  :readme "README.markdown"
+  :auto-sync t)
  (rudel			:url nil) ;; Was bzr::bzr://rudel.bzr.sourceforge.net/bzrroot/rudel/trunk
  (satchel		:url "https://git.sr.ht/~theo/satchel"
   :ignored-files ("LICENSE")
