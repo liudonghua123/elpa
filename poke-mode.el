@@ -3,7 +3,7 @@
 ;; Copyright (C) 2020-2022  Free Software Foundation, Inc.
 
 ;; SMIE grammar and help from Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 0
+;; Version: 3.0
 ;; Author: Aurelien Aptel <aaptel@suse.com>
 ;; Maintainer: Jose E. Marchesi <jemarch@gnu.org>
 
