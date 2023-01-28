@@ -90,83 +90,9 @@ On Debian (alr publish --tar broken on Windows (alr version 1.2.1))
     cd ~/Downloads; wget https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_query-1.0.0.tgz
     # link is https://download.savannah.nongnu.org/releases/ada-mode/emacs_gpr_query-i.j.k.tgz
 
-update elpa:
-    (gpr-query-kill-all-sessions)
-    ELPA.make pub
-
-    # sometimes this is useful
-    # (ediff-directories "/Projects/org.emacs.gpr-query" "/Projects/elpa/packages/gpr-query" nil)
-
-    (dvc-state-multiple "/Projects/elpa/packages" t)
-    (dvc-push "/Projects/elpa")
-
-    ask for beta testers
-        edit notice below
-        ada-mode mailing list
-        comp.lang.ada
-
-    # 24 hrs for web repository to update
-
-after Gnu ELPA updated, test install from GNU ELPA
-    first install current version, to be sure upgrade requires new versions
-        ada-mode 7.1.5 should have required wisi 3.1.5
-
-    (list-packages)
-    5.1.8 crashed emacs for me
-    see 'build.sh; install.sh' above for compiling
-
-    also wisitoken-grammar-mode
-
-(dvc-state-one ".")
-ELPA.make tag zip
-
-in cygwin console for gpg prompts:
-    cd /Projects/org.emacs.gpr-query/build/
-    ls *.tar*
-    rm <old>.tar*
-    gpg -b *.tar.*
-
-    scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/gpr-query/
-
-publish on Alire
-    https://alire.ada.dev/
-
-create release branch
-
-post on:
-    emacs-ada-mode mailing list
-    c.l.a newsgroup
-    https://savannah.nongnu.org/news/submit.php?group_id=11631:
-
--------------------
-Gnu Emacs gpr-query 1.0 released.
--------------------
-
-Gnu Emacs gpr-query 1.0 is now available in GNU ELPA.
-
-See the NEWS files in ~/.emacs.d/elpa/gpr-query-7.1.6 and wisi-3.1.3,
-or at https://www.nongnu.org/gpr-query/, for more details.
-
-The required Ada code requires a manual compile step, after the normal
-list-packages installation ('install.sh' is new in this release):
-
-cd ~/.emacs.d/elpa/gpr-query-7.1.6
-./build.sh
-./install.sh
-
-If you are not using Alire, this requires AdaCore gnatcoll packages
-which you may not have installed; see gpr-query.info Installation for
-help in installing them.
--------------------
-
-mark fixed bugs
-    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
-    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=gpr-query
-    https://debbugs.gnu.org/Developer.html
-    email to nnn-close@debbugs.gnu.org
-        subject: copy from bug report
-        body: closed by ada-mode version 7.2.1
-        don't include Version: header; that's an Emacs version
-    debbugs updates summary page within half an hour; no emails
+test install from GNU ELPA
+    (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive-devel"))
+    (package-refresh-contents)
+    (package-install 'gpr-query)
 
 -- end of file
