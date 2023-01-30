@@ -433,11 +433,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (if (version< emacs-version "27.0")
-      (progn
-        (require 'cl) ;; Package cl is deprecated for Emacs27+
-        (require 'cl-macs))
-    (require 'cl-lib))
+    (require 'cl-lib)
   ;; Quiet byte-compiler about argument number changes due to advice functions,
   ;; as well as other warnings that's known to be not important.
   (setq byte-compile-warnings
@@ -1509,11 +1505,16 @@ fake cursor."
       (let ((last-nonmenu-event '(t))
             (use-dialog-box t)
             (use-file-dialog t)
-            ;; This option seems not working on some old GTK+ systems
-            (x-gtk-show-hidden-files brief-open-file-show-hidden-files))
+            x-gtk-show-hidden-files-bak)
+        (if (boundp 'x-gtk-show-hidden-files)
+            (setq x-gtk-show-hidden-files-bak x-gtk-show-hidden-files
+                  ;; This option seems not working on some old GTK+ systems
+                  x-gtk-show-hidden-files brief-open-file-show-hidden-files))
         (find-file (read-file-name
                     (format "Brief: open file in %S" default-directory)
-                    nil default-directory nil)))
+                    nil default-directory nil))
+        (if (boundp 'x-gtk-show-hidden-files)
+            (setq x-gtk-show-hidden-files x-gtk-show-hidden-files-bak)))
     (call-interactively #'find-file)))
 
 (defun brief-current-filename ()
@@ -7768,6 +7769,8 @@ matter if brief-mode is enabled or not."
 
 (cl-eval-when (compile eval load)
   (when (and (version<= "27.0" emacs-version)
+             ;; prevent compile failure before load
+             (boundp 'brief-replace-emacs-func:line-number-at-pos)
              brief-replace-emacs-func:line-number-at-pos)
      ;; Global replacement, no matter if Brief mode is enabled or not.
      ;; Notice that it dynamically overrides the `line-number-at-pos' function
