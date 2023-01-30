@@ -1,6 +1,6 @@
 ;;; tramp-sudoedit.el --- Functions for accessing under root permissions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -366,7 +366,8 @@ the result will be a local, non-Tramp, file name."
   ;; If DIR is not given, use `default-directory' or "/".
   (setq dir (or dir default-directory "/"))
   ;; Handle empty NAME.
-  (when (zerop (length name)) (setq name "."))
+  (when (string-empty-p name)
+    (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
     (setq name (tramp-compat-file-name-concat dir name)))
@@ -377,7 +378,7 @@ the result will be a local, non-Tramp, file name."
       ;; Tilde expansion if necessary.  We cannot accept "~/", because
       ;; under sudo "~/" is expanded to the local user home directory
       ;; but to the root home directory.
-      (when (zerop (length localname))
+      (when (tramp-string-empty-or-nil-p localname)
 	(setq localname "~"))
       (unless (file-name-absolute-p localname)
 	(setq localname (format "~%s/%s" user localname)))
@@ -387,7 +388,7 @@ the result will be a local, non-Tramp, file name."
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
-	  (when (zerop (length uname))
+	  (when (tramp-string-empty-or-nil-p uname)
 	    (setq uname user))
 	  (when (setq hname (tramp-get-home-directory v uname))
 	    (setq localname (concat hname fname)))))
@@ -476,11 +477,11 @@ the result will be a local, non-Tramp, file name."
      (with-tramp-file-property v localname "file-name-all-completions"
        (tramp-sudoedit-send-command
 	v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
-	(if (zerop (length localname))
+	(if (tramp-string-empty-or-nil-p localname)
 	    "" (tramp-compat-file-name-unquote localname)))
        (mapcar
 	(lambda (f)
-	  (if (file-directory-p (expand-file-name f directory))
+	  (if (ignore-errors (file-directory-p (expand-file-name f directory)))
 	      (file-name-as-directory f)
 	    f))
 	(delq
@@ -653,7 +654,10 @@ component is used as the target of the symlink."
     (let ((non-essential t))
       (when (and (tramp-tramp-file-p target)
 		 (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	(setq target (tramp-file-local-name (expand-file-name target)))))
+	(setq target (tramp-file-local-name (expand-file-name target))))
+      ;; There could be a cyclic link.
+      (tramp-flush-file-properties
+       v (expand-file-name target (tramp-file-local-name default-directory))))
 
     ;; If TARGET is still remote, quote it.
     (if (tramp-tramp-file-p target)

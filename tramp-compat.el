@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -119,7 +119,8 @@ NAME is unquoted."
              (localname (file-local-name name)))
 	(when (tramp-compat-file-name-quoted-p localname top)
 	  (setq
-	   localname (if (= (length localname) 2) "/" (substring localname 2))))
+	   localname
+	   (if (tramp-compat-length= localname 2) "/" (substring localname 2))))
 	(concat (file-remote-p name) localname)))))
 
 ;; `tramp-syntax' has changed its meaning in Emacs 26.1.  We still
@@ -326,6 +327,48 @@ CONDITION can also be a list of error conditions."
                          (car components))
 	         (cdr components)))))))
 
+;; Function `replace-regexp-in-region' is new in Emacs 28.1.
+(defalias 'tramp-compat-replace-regexp-in-region
+  (if (fboundp 'replace-regexp-in-region)
+      #'replace-regexp-in-region
+    (lambda (regexp replacement &optional start end)
+      (if start
+	  (when (< start (point-min))
+            (error "Start before start of buffer"))
+	(setq start (point)))
+      (if end
+	  (when (> end (point-max))
+            (error "End after end of buffer"))
+	(setq end (point-max)))
+      (save-excursion
+	(let ((matches 0)
+              (case-fold-search nil))
+	  (goto-char start)
+	  (while (re-search-forward regexp end t)
+            (replace-match replacement t)
+            (setq matches (1+ matches)))
+	  (and (not (zerop matches))
+               matches))))))
+
+;; `length<', `length>' and `length=' are added to Emacs 28.1.
+(defalias 'tramp-compat-length<
+  (if (fboundp 'length<)
+      #'length<
+    (lambda (sequence length)
+      (< (length sequence) length))))
+
+(defalias 'tramp-compat-length>
+  (if (fboundp 'length>)
+      #'length>
+    (lambda (sequence length)
+      (> (length sequence) length))))
+
+(defalias 'tramp-compat-length=
+  (if (fboundp 'length=)
+      #'length=
+    (lambda (sequence length)
+      (= (length sequence) length))))
+
 ;; `permission-denied' is introduced in Emacs 29.1.
 (defconst tramp-permission-denied
   (if (get 'permission-denied 'error-conditions) 'permission-denied 'file-error)
@@ -353,7 +396,7 @@ CONDITION can also be a list of error conditions."
       #'take
     (lambda (n list)
       (when (and (natnump n) (> n 0))
-	(if (>= n (length list))
+	(if (tramp-compat-length< list n)
 	    list (butlast list (- (length list) n)))))))
 
 ;; Function `ntake' is new in Emacs 29.1.
@@ -362,7 +405,7 @@ CONDITION can also be a list of error conditions."
       #'ntake
     (lambda (n list)
       (when (and (natnump n) (> n 0))
-	(if (>= n (length list))
+	(if (tramp-compat-length< list n)
 	    list (nbutlast list (- (length list) n)))))))
 
 ;; Function `string-equal-ignore-case' is new in Emacs 29.1.
@@ -381,29 +424,6 @@ CONDITION can also be a list of error conditions."
       (declare-function netrc-parse "netrc")
       (autoload 'netrc-parse "netrc")
       (netrc-parse file))))
-
-;; Function `replace-regexp-in-region' is new in Emacs 28.1.
-(defalias 'tramp-compat-replace-regexp-in-region
-  (if (fboundp 'replace-regexp-in-region)
-      #'replace-regexp-in-region
-    (lambda (regexp replacement &optional start end)
-      (if start
-	  (when (< start (point-min))
-            (error "Start before start of buffer"))
-	(setq start (point)))
-      (if end
-	  (when (> end (point-max))
-            (error "End after end of buffer"))
-	(setq end (point-max)))
-      (save-excursion
-	(let ((matches 0)
-              (case-fold-search nil))
-	  (goto-char start)
-	  (while (re-search-forward regexp end t)
-            (replace-match replacement t)
-            (setq matches (1+ matches)))
-	  (and (not (zerop matches))
-               matches))))))
 
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))

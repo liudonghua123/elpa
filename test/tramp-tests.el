@@ -1,6 +1,6 @@
 ;;; tramp-tests.el --- Tests of remote file access  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -166,6 +166,9 @@ A resource file is in the resource directory as per
   ;; Suppress nasty messages.
   (fset #'shell-command-sentinel #'ignore)
   ;; We do not want to be interrupted.
+  (fset #'tramp-action-yesno
+	(lambda (_proc vec)
+	  (tramp-send-string vec (concat "yes" tramp-local-end-of-line)) t))
   (eval-after-load 'tramp-gvfs
     '(fset 'tramp-gvfs-handler-askquestion
 	   (lambda (_message _choices) '(t nil 0)))))
@@ -3495,6 +3498,9 @@ This tests also `access-file', `file-readable-p',
 	     (access-file tmp-name1 "error")
 	     :type 'file-missing)
 
+	    (should-not (file-exists-p tmp-name1))
+	    (should-not (file-readable-p tmp-name1))
+	    (should-not (file-regular-p tmp-name1))
 	    ;; `file-ownership-preserved-p' should return t for
 	    ;; non-existing files.
 	    (when test-file-ownership-preserved-p
@@ -3579,7 +3585,7 @@ This tests also `access-file', `file-readable-p',
 	    (should (file-exists-p tmp-name1))
 	    (should (file-readable-p tmp-name1))
 	    (should-not (file-regular-p tmp-name1))
-	    (should-not (access-file tmp-name1 ""))
+	    (should-not (access-file tmp-name1 "error"))
 	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (setq attr (file-attributes tmp-name1))
@@ -3927,7 +3933,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (tramp--test-ignore-make-symbolic-link-error
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
+	    (should (file-regular-p tmp-name1))
 	    (make-symbolic-link tmp-name1 tmp-name2)
+	    (should (file-exists-p tmp-name2))
+	    (should (file-regular-p tmp-name2))
 	    (should
 	     (string-equal
 	      (funcall
@@ -3978,6 +3987,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (string-equal tmp-name1 (file-symlink-p tmp-name3))))
 	    ;; Check directory as newname.
 	    (make-directory tmp-name4)
+	    (should (file-directory-p tmp-name4))
+	    (should-not (file-regular-p tmp-name4))
 	    (when (tramp--test-expensive-test-p)
 	      (should-error
 	       (make-symbolic-link tmp-name1 tmp-name4)
@@ -3991,6 +4002,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (file-symlink-p tmp-name5)))
 	    ;; Check, that files in symlinked directories still work.
 	    (make-symbolic-link tmp-name4 tmp-name6)
+	    (should (file-symlink-p tmp-name6))
+	    (should-not (file-regular-p tmp-name6))
 	    (write-region "foo" nil (expand-file-name "foo" tmp-name6))
 	    (delete-file (expand-file-name "foo" tmp-name6))
 	    (should-not (file-exists-p (expand-file-name "foo" tmp-name4)))
@@ -4052,9 +4065,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (tramp--test-ignore-make-symbolic-link-error
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
+	    (should (file-regular-p tmp-name1))
 	    (should (string-equal tmp-name1 (file-truename tmp-name1)))
 	    (make-symbolic-link tmp-name1 tmp-name2)
 	    (should (file-symlink-p tmp-name2))
+	    (should (file-regular-p tmp-name2))
 	    (should-not (string-equal tmp-name2 (file-truename tmp-name2)))
 	    (should
 	     (string-equal (file-truename tmp-name1) (file-truename tmp-name2)))
@@ -4064,6 +4079,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (let ((default-directory ert-remote-temporary-file-directory))
 	      (make-symbolic-link (file-name-nondirectory tmp-name1) tmp-name2))
 	    (should (file-symlink-p tmp-name2))
+	    (should (file-regular-p tmp-name2))
 	    (should-not (string-equal tmp-name2 (file-truename tmp-name2)))
 	    (should
 	     (string-equal (file-truename tmp-name1) (file-truename tmp-name2)))
@@ -4079,6 +4095,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(if quoted #'tramp-compat-file-name-unquote #'identity) penguin)
 	       tmp-name2)
 	      (should (file-symlink-p tmp-name2))
+	      (should-not (file-regular-p tmp-name2))
 	      (should
 	       (string-equal
 		(file-truename tmp-name2)
@@ -4089,6 +4106,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (unless (tramp--test-windows-nt-p)
 	      (make-symbolic-link tmp-name1 tmp-name3)
 	      (should (file-symlink-p tmp-name3))
+	      (should-not (file-regular-p tmp-name3))
               (should-not (string-equal tmp-name3 (file-truename tmp-name3)))
 	      ;; `file-truename' returns a quoted file name for `tmp-name3'.
 	      ;; We must unquote it.
@@ -4117,6 +4135,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(make-symbolic-link
 		 tmp-name3
 		 (setq tmp-name3 (tramp--test-make-temp-name nil quoted))))
+	      (should-not (file-regular-p tmp-name2))
+	      (should-not (file-regular-p tmp-name3))
 	      (should
 	       (string-equal
 		(file-truename tmp-name2)
@@ -4147,6 +4167,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (tramp--test-ignore-make-symbolic-link-error
 	     (make-symbolic-link tmp-name2 tmp-name1)
 	     (should (file-symlink-p tmp-name1))
+	     (should-not (file-regular-p tmp-name1))
+	     (should-not (file-regular-p tmp-name2))
+	     (should
+	      (string-equal
+	       (file-truename tmp-name1)
+	       (file-truename tmp-name2)))
 	     (if (tramp--test-smb-p)
 		 ;; The symlink command of "smbclient" detects the
 		 ;; cycle already.
@@ -4154,9 +4180,15 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  (make-symbolic-link tmp-name1 tmp-name2)
 		  :type 'file-error)
 	       (make-symbolic-link tmp-name1 tmp-name2)
+	       (should (file-symlink-p tmp-name1))
 	       (should (file-symlink-p tmp-name2))
+	       (should-not (file-regular-p tmp-name1))
+	       (should-not (file-regular-p tmp-name2))
 	       (should-error
 		(file-truename tmp-name1)
+		:type 'file-error)
+	       (should-error
+		(file-truename tmp-name2)
 		:type 'file-error))))
 
 	;; Cleanup.
@@ -4515,17 +4547,17 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  (and (string-match-p tramp-ipv6-regexp host)
 		       tramp-postfix-ipv6-format)))
               ;; Complete method name.
-	      (unless (or (zerop (length method))
-                          (zerop (length tramp-method-regexp)))
+	      (unless (or (tramp-string-empty-or-nil-p method)
+                          (string-empty-p tramp-method-regexp))
 	        (should
 	         (member
 		  (concat prefix-format method tramp-postfix-method-format)
 		  (file-name-all-completions
                    (concat prefix-format (substring method 0 1)) "/"))))
               ;; Complete host name.
-	      (unless (or (zerop (length method))
-                          (zerop (length tramp-method-regexp))
-                          (zerop (length host))
+	      (unless (or (tramp-string-empty-or-nil-p method)
+                          (string-empty-p tramp-method-regexp)
+                          (tramp-string-empty-or-nil-p host)
 			  (tramp--test-gvfs-p method))
 	        (should
 	         (member
@@ -4851,8 +4883,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
 
-      ;; Disabled process filter.  "sshfs" does not cooperate.
-      (unless (tramp--test-sshfs-p)
+      ;; Disabled process filter.  It doesn't work reliable.
+      (unless t
 	(unwind-protect
 	    (with-temp-buffer
 	    (setq command '("cat")
@@ -4903,13 +4935,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (while (accept-process-output proc 0 nil t))))
 		(should
 		 (string-match-p
-		  (if (and (memq process-connection-type '(nil pipe))
-                           (not (tramp--test-macos-p)))
-                      ;; On macOS, there is always newline conversion.
-		      ;; "telnet" converts \r to <CR><NUL> if `crlf'
-		      ;; flag is FALSE.  See telnet(1) man page.
-		      (rx "66\n6F\n6F\n0D" (? "\n00") "\n0A\n")
-		    (rx "66\n6F\n6F\n0A" (? "\n00") "\n0A\n"))
+                  ;; On macOS, there is always newline conversion.
+		  ;; "telnet" converts \r to <CR><NUL> if `crlf'
+		  ;; flag is FALSE.  See telnet(1) man page.
+		  (rx "66\n" "6F\n" "6F\n" (| "0D\n" "0A\n") (? "00\n") "0A\n")
 		  (buffer-string))))
 
 	    ;; Cleanup.
@@ -5058,8 +5087,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
 
-      ;; Disabled process filter.  "sshfs" does not cooperate.
-      (unless (tramp--test-sshfs-p)
+      ;; Disabled process filter.  It doesn't work reliable.
+      (unless t
 	(unwind-protect
 	    (with-temp-buffer
 	      (setq command '("cat")
@@ -5215,14 +5244,10 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		      (while (accept-process-output proc 0 nil t))))
 		  (should
 		   (string-match-p
-		    (if (and (memq (or connection-type process-connection-type)
-			           '(nil pipe))
-                             (not (tramp--test-macos-p)))
-                        ;; On macOS, there is always newline conversion.
-			;; "telnet" converts \r to <CR><NUL> if `crlf'
-			;; flag is FALSE.  See telnet(1) man page.
-			(rx "66\n6F\n6F\n0D" (? "\n00") "\n0A\n")
-		      (rx "66\n6F\n6F\n0A" (? "\n00") "\n0A\n"))
+                    ;; On macOS, there is always newline conversion.
+		    ;; "telnet" converts \r to <CR><NUL> if `crlf'
+		    ;; flag is FALSE.  See telnet(1) man page.
+		    (rx "66\n" "6F\n" "6F\n" (| "0D\n" "0A\n") (? "00\n") "0A\n")
 		    (buffer-string))))
 
 	      ;; Cleanup.
@@ -5399,7 +5424,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (when-let ((default-directory ert-remote-temporary-file-directory)
              (mi (memory-info)))
     (should (consp mi))
-    (should (= (length mi) 4))
+    (should (tramp-compat-length= mi 4))
     (dotimes (i (length mi))
       (should (natnump (nth i mi))))))
 
@@ -5504,7 +5529,7 @@ INPUT, if non-nil, is a string sent to the process."
 	       (format "%s\n" (file-name-nondirectory tmp-name)))
 	      (should
 	       (string-match-p
-		;; Some shells echo, for example the "adb" or "docker" methods.
+		;; Some shells echo, for example the "adb" or container methods.
 		(tramp-compat-rx
 		 bos (** 1 2 (literal (file-name-nondirectory tmp-name)) "\n")
 		 eos)
@@ -5978,7 +6003,8 @@ INPUT, if non-nil, is a string sent to the process."
           ;; We make a super long `tramp-remote-path'.
           (make-directory tmp-name)
           (should (file-directory-p tmp-name))
-          (while (< (length (mapconcat #'identity orig-exec-path ":")) 5000)
+          (while (tramp-compat-length<
+		  (mapconcat #'identity orig-exec-path ":") 5000)
             (let ((dir (make-temp-file (file-name-as-directory tmp-name) 'dir)))
               (should (file-directory-p dir))
               (setq tramp-remote-path
@@ -5994,9 +6020,10 @@ INPUT, if non-nil, is a string sent to the process."
           ;; Ignore trailing newline.
 	  (setq path (substring (shell-command-to-string "echo $PATH") nil -1))
 	  ;; The shell doesn't handle such long strings.
-	  (when (<= (length path)
-		    (tramp-get-connection-property
-		     tramp-test-vec "pipe-buf" 4096))
+	  (unless (tramp-compat-length>
+		   path
+		   (tramp-get-connection-property
+		    tramp-test-vec "pipe-buf" 4096))
 	    ;; The last element of `exec-path' is `exec-directory'.
             (should
 	     (string-equal
@@ -6637,11 +6664,12 @@ This is used in tests which we don't want to tag
   "Check, whether the remote directory is encrypted."
   (tramp-crypt-file-name-p ert-remote-temporary-file-directory))
 
-(defun tramp--test-docker-p ()
-  "Check, whether the docker method is used.
+(defun tramp--test-container-p ()
+  "Check, whether a container method is used.
 This does not support some special file names."
-  (string-equal
-   "docker" (file-remote-p ert-remote-temporary-file-directory 'method)))
+  (string-match-p
+   (rx bol (| "docker" "podman") eol)
+   (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-expensive-test-p ()
   "Whether expensive tests are run.
@@ -7026,7 +7054,7 @@ This requires restrictions of file name syntax."
   (let ((files
 	 (list
 	  (cond ((or (tramp--test-ange-ftp-p)
-		     (tramp--test-docker-p)
+		     (tramp--test-container-p)
 		     (tramp--test-gvfs-p)
 		     (tramp--test-rclone-p)
 		     (tramp--test-sudoedit-p)
@@ -7084,7 +7112,7 @@ This requires restrictions of file name syntax."
   "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 620s
-  (skip-unless (not (tramp--test-docker-p)))
+  (skip-unless (not (tramp--test-container-p)))
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
   (skip-unless (not (tramp--test-ksh-p)))
@@ -7121,6 +7149,9 @@ This requires restrictions of file name syntax."
 	  ;; Use all available language specific snippets.
 	  (lambda (x)
 	    (and
+	     ;; The "Oriya" and "Odia" languages use some problematic
+	     ;; composition characters.
+	     (not (member (car x) '("Oriya" "Odia")))
              (stringp (setq x (eval (get-language-info (car x) 'sample-text) t)))
 	     ;; Filter out strings which use unencodable characters.
 	     (not (and (or (tramp--test-gvfs-p) (tramp--test-smb-p))
@@ -7155,7 +7186,7 @@ This requires restrictions of file name syntax."
   (when-let ((fsi (with-no-warnings
 		    (file-system-info ert-remote-temporary-file-directory))))
     (should (consp fsi))
-    (should (= (length fsi) 3))
+    (should (tramp-compat-length= fsi 3))
     (dotimes (i (length fsi))
       (should (natnump (or (nth i fsi) 0))))))
 
@@ -7213,7 +7244,7 @@ process sentinels.  They shall not disturb each other."
   ;; remote processes in Emacs.  That doesn't work for tramp-adb.el.
   (when (tramp--test-adb-p)
     (skip-unless (tramp--test-emacs27-p)))
-  (skip-unless (not (tramp--test-docker-p)))
+  (skip-unless (not (tramp--test-container-p)))
   (skip-unless (not (tramp--test-telnet-p)))
   (skip-unless (not (tramp--test-sshfs-p)))
   (skip-unless (not (tramp--test-windows-nt-p)))
@@ -7518,7 +7549,7 @@ process sentinels.  They shall not disturb each other."
 	  ert-remote-temporary-file-directory)))
     (should
      (string-match-p
-      (rx "Tramp loaded: t" (+ (any "\n\r")))
+      (rx "Tramp loaded: t" (+ (any "\r\n")))
       (shell-command-to-string
        (format
 	"%s -batch -Q -L %s --eval %s"
@@ -7546,9 +7577,9 @@ process sentinels.  They shall not disturb each other."
       (should
        (string-match-p
 	(tramp-compat-rx
-	 "Tramp loaded: nil" (+ (any "\n\r"))
-	 "Tramp loaded: nil" (+ (any "\n\r"))
-	 "Tramp loaded: " (literal (symbol-name tm)) (+ (any "\n\r")))
+	 "Tramp loaded: nil" (+ (any "\r\n"))
+	 "Tramp loaded: nil" (+ (any "\r\n"))
+	 "Tramp loaded: " (literal (symbol-name tm)) (+ (any "\r\n")))
 	(shell-command-to-string
 	 (format
 	  "%s -batch -Q -L %s --eval %s"
@@ -7703,6 +7734,8 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * file-equal-p (partly done in `tramp-test21-file-links')
 ;; * file-in-directory-p
 ;; * file-name-case-insensitive-p
+;; * memory-info
+;; * tramp-get-home-directory
 ;; * tramp-get-remote-gid
 ;; * tramp-get-remote-groups
 ;; * tramp-get-remote-uid
@@ -7711,6 +7744,9 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Work on skipped tests.  Make a comment, when it is impossible.
 ;; * Revisit expensive tests, once problems in `tramp-error' are solved.
 ;; * Fix `tramp-test06-directory-file-name' for "ftp".
+;; * Check, why a process filter t doesn't work in
+;;   `tramp-test29-start-file-process' and
+;;   `tramp-test30-make-process'.
 ;; * Implement `tramp-test31-interrupt-process' and
 ;;   `tramp-test31-signal-process' for "adb", "sshfs" and for direct
 ;;   async processes.  Check, why they don't run stable.

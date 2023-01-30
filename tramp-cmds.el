@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -127,7 +127,7 @@ When called interactively, a Tramp connection has to be selected."
 		 (or (not keep-processes)
 		     (eq key (tramp-get-process vec))))
 	(tramp-flush-connection-properties key)
-	(delete-process key)))
+	(ignore-errors (delete-process key))))
 
     ;; Remove buffers.
     (dolist
