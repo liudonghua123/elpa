@@ -457,7 +457,6 @@
 ;; backward compatibility issues.
 ;;(require 'replace)
 
-;;;###autoload
 (defconst brief-version "5.88.22"
   "Current version of this Brief editor mode/emulator.")
 
@@ -502,7 +501,7 @@
   ;; Define macros for all cases, byte-compilation, interpreting, or loading.
   (if (and (version< emacs-version "25.1")
            ;; in case some backward compatibility layer already loaded
-           (not (fboundp #'save-mark-and-excursion)))
+           (not (fboundp 'save-mark-and-excursion)))
       (defmacro save-mark-and-excursion (&rest body)
         "A backward compatibility macro for Emacs version below 25.1.
 This macro behaves exactly like `save-excursion' before Emacs 25.1.
@@ -513,7 +512,7 @@ After Emacs 25.1 `save-excursion' no longer save mark and point."
   (unless (boundp 'inhibit-message)
     (defvar inhibit-message nil))
 
-  (unless (fboundp #'process-live-p)
+  (unless (fboundp 'process-live-p)
     ;; Copy&paste from Emacs26 for older Emacs
     (defun process-live-p (process)
       "Returns non-nil if PROCESS is alive.
@@ -527,12 +526,12 @@ process."
   ;; Backward compatibility functions for Emacs23
   (when (version< emacs-version "24.0")
 
-    (if (and (not (fboundp #'x-get-selection-value))
-             (fboundp #'x-get-selection))
+    (if (and (not (fboundp 'x-get-selection-value))
+             (fboundp 'x-get-selection))
       (defun x-get-selection-value ()
         (x-get-selection 'PRIMARY)))
 
-    (unless (fboundp #'file-equal-p)
+    (unless (fboundp 'file-equal-p)
       ;; Code copy&pasted from Emacs26 files.el for Emacs-23 backward compatibility
       (defun file-equal-p (file1 file2)
         "Return non-nil if files FILE1 and FILE2 name the same file.
@@ -546,7 +545,7 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
                    (setq f2-attr (file-attributes (file-truename file2)))
                    (equal f1-attr f2-attr)))))))
 
-    (unless (fboundp #'read-char-choice)
+    (unless (fboundp 'read-char-choice)
       (defun read-char-choice (prompt chars &optional inhibit-keyboard-quit)
         (let ((inhibit-quit inhibit-keyboard-quit)
               c)
@@ -583,28 +582,28 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
     ;; Also try to prevent cases that someone write his own compatibility codes
     (if (brief-is-winnt)
         (progn
-          (unless (fboundp #'gui-get-selection)
+          (unless (fboundp 'gui-get-selection)
             (setq brief-selection-op-legacy t)
             (defalias 'gui-get-selection #'w32-get-clipboard-data))
-          (unless (fboundp #'gui-set-selection)
+          (unless (fboundp 'gui-set-selection)
             (defun gui-set-selection (_type data)
               (w32-set-selection data)))
-          (unless (fboundp #'gui-backend-get-selection)
+          (unless (fboundp 'gui-backend-get-selection)
             (defun gui-backend-get-selection (_selection-symbol _target-type)
               (w32-get-clipboard-data)))
-          (unless (fboundp #'gui-backend-set-selection)
+          (unless (fboundp 'gui-backend-set-selection)
             (defun gui-backend-set-selection (_selection value)
               (w32-set-selection value))))
 
-      (unless (fboundp #'gui-get-selection)
+      (unless (fboundp 'gui-get-selection)
         (setq brief-selection-op-legacy t)
         (defalias 'gui-get-selection #'x-get-selection))
-      (unless (fboundp #'gui-set-selection)
+      (unless (fboundp 'gui-set-selection)
         (defalias 'gui-set-selection #'x-set-selection))
-      (unless (fboundp #'gui-backend-get-selection)
+      (unless (fboundp 'gui-backend-get-selection)
         (defun gui-backend-get-selection (selection-symbol target-type)
           (x-get-selection selection-symbol target-type)))
-      (unless (fboundp #'gui-backend-set-selection)
+      (unless (fboundp 'gui-backend-set-selection)
         (defun gui-backend-set-selection (selection value)
           (x-set-selection selection value))))))
 
@@ -612,13 +611,13 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
   ;; Backward compatibility for Emacs versions without `defvar-local', which
   ;; might not have `make-variable-buffer-local' defined so use
   ;; `make-local-variable' here.
-  (unless (fboundp #'defvar-local)
+  (unless (fboundp 'defvar-local)
     (defmacro defvar-local (var val &optional doc)
       `(progn
          (defvar ,var ,val ,doc)
          (make-local-variable ',var))))
 
-  (unless (fboundp #'window-body-width) ;; Emacs23
+  (unless (fboundp 'window-body-width) ;; Emacs23
     (defmacro window-body-width ()
       `(window-width))))
 
@@ -1260,17 +1259,17 @@ slowdown factor; otherwise, return 1.0."
 ;; so we need to set up aliases for the functions.
 
 (defalias 'brief-set-clipboard
-  (if (fboundp #'clipboard-kill-ring-save)
+  (if (fboundp 'clipboard-kill-ring-save)
       'clipboard-kill-ring-save
     'copy-primary-selection))
 
 (defalias 'brief-kill-region
-  (if (fboundp #'clipboard-kill-region)
+  (if (fboundp 'clipboard-kill-region)
       'clipboard-kill-region
     'kill-primary-selection))
 
 (defalias 'brief-yank-clipboard
-  (if (fboundp #'clipboard-yank)
+  (if (fboundp 'clipboard-yank)
       'clipboard-yank
     'yank-clipboard-selection))
 
@@ -1317,7 +1316,7 @@ it calls `buffer-menu' instead."
   (interactive)
   ;; Doing calibration here won't work, the measured delay is very low here.
   ;; (call-interactively #'brief-calibration)
-  (if (fboundp #'ibuffer-make-column-filename) ;; preferred buffer mode
+  (if (fboundp 'ibuffer-make-column-filename) ;; preferred buffer mode
       (let ((search-str (ibuffer-make-column-filename (current-buffer) nil))
             (pos -1))
         (if (zerop (length search-str))
@@ -1395,7 +1394,7 @@ modified."
               (call-interactively (pop brief-latest-killed-buffer-info))
               ;; restore cursor position relative to window
               (and (setq item (pop brief-latest-killed-buffer-info))
-                   (fboundp #'undo-window-pos)
+                   (fboundp 'undo-window-pos)
                    (apply #'undo-window-pos item nil))
               ;; restore `linum-mode' or `nlinum-mode' if packages loaded
               (and (setq item (pop brief-latest-killed-buffer-info))
@@ -1410,7 +1409,7 @@ modified."
                    (boundp 'display-line-numbers-mode)
                    (call-interactively #'display-line-numbers-mode))
               (and (setq item (pop brief-latest-killed-buffer-info))
-                   (fboundp #'text-scale-mode)
+                   (fboundp 'text-scale-mode)
                    (boundp 'text-scale-mode-amount)
                    ;; The above (defvar text-scale-mode-amount) fail to fix
                    ;; the warning described above, hence we delay it to run-time
@@ -1427,7 +1426,7 @@ modified."
                     buffer-undo-list
                     (point)
                     buffer-file-name))
-        (push (if (fboundp #'undo-window-pos)
+        (push (if (fboundp 'undo-window-pos)
                   (brief-current-row-visual))
               latest-killed-buffer-info)
         ;; Run-time detection of `linum-mode', `nlinum-mode' and
@@ -1442,7 +1441,7 @@ modified."
                   display-line-numbers-mode)
               latest-killed-buffer-info)
         (push (and (boundp 'text-scale-mode-amount)
-                   (fboundp #'text-scale-mode)
+                   (fboundp 'text-scale-mode)
                    text-scale-mode-amount)
               latest-killed-buffer-info)
         (setq latest-killed-buffer-info
@@ -1709,7 +1708,7 @@ example, add the following into .emacs:
   ;; If not prefixed, try to switch to a existing window that containing the
   ;; bookmarked file/buffer in order to keep current window/buffer intact.
   (and (boundp 'bookmarks-already-loaded)
-       (fboundp #'bookmark-maybe-load-default-file)
+       (fboundp 'bookmark-maybe-load-default-file)
        (or bookmarks-already-loaded (bookmark-maybe-load-default-file)))
 
   ;; Prefixed jump (C-u) won't switch frame/buffer.
@@ -1721,7 +1720,7 @@ example, add the following into .emacs:
           (bookmark-jump-wrapper bookmark
                                  'switch-to-buffer
                                  (brief-use-region))
-          (if (fboundp #'bmkp-light-bookmark)
+          (if (fboundp 'bmkp-light-bookmark)
               (bmkp-light-bookmark (bookmark-get-bookmark bookmark)))
           (message "Jump to bookmark %S" bookmark))
       (error (message (format "Bookmark %S not existed." bookmark))))))
@@ -1779,9 +1778,9 @@ example, add the following into .emacs:
         (bookmark-set arg)
         (setq bmk (bookmark-get-bookmark arg))
         ;; Support `bookmark+-1' from EmacsWiki
-        (and (fboundp #'bmkp-make-bookmark-savable)
+        (and (fboundp 'bmkp-make-bookmark-savable)
              (bmkp-make-bookmark-savable bmk))
-        (and (fboundp #'bmkp-light-bookmark)
+        (and (fboundp 'bmkp-light-bookmark)
              (bmkp-light-bookmark bmk))
         (message (concat "Brief bookmark #" arg " set")))
 
@@ -2064,7 +2063,7 @@ compilation won't be counted in."
   "Compute scaled text width according to current font scaling.
 Convert a width of char units into a text-scaled char width units,
 Ex. `window-hscroll'."
-  (if (fboundp #'default-font-width)
+  (if (fboundp 'default-font-width)
       (/ (* width (frame-char-width)) (default-font-width))
     ;; For Emacs version<=24. A not exact value but close to.
     (round (/ width
@@ -2076,7 +2075,7 @@ Ex. `window-hscroll'."
   "Reverse operation of `brief-text-scaled-width'.
 Convert a width of text-scaled char unit back to units of
 `frame-char-width'."
-  (if (fboundp #'default-font-width)
+  (if (fboundp 'default-font-width)
       (/ (* width (default-font-width)) (frame-char-width))
     ;; For Emacs version<=24. A not exact value but close to.
     (round (* width
@@ -2086,7 +2085,7 @@ Convert a width of text-scaled char unit back to units of
 
 (defun brief-text-scaled-char-width ()
   "Text scaled char width."
-  (if (fboundp #'default-font-width)
+  (if (fboundp 'default-font-width)
       (default-font-width)
     (round (* (frame-char-width)
               (or (and (boundp 'text-scale-mode-remapping)
@@ -2095,7 +2094,7 @@ Convert a width of text-scaled char unit back to units of
 
 (defun brief-text-scaled-char-height ()
   "Text scaled char height."
-  (if (fboundp #'default-font-height)
+  (if (fboundp 'default-font-height)
       (default-font-height)
     (round (* (frame-char-height)
               (or (and (boundp 'text-scale-mode-remapping)
@@ -3332,7 +3331,7 @@ program."
 
                (default-process-coding-system coding-system)
 
-               (proc (if (not (fboundp #'make-process))
+               (proc (if (not (fboundp 'make-process))
                          ;; Emacs <= v24
                          (let ((proc
                                 (apply
@@ -3464,7 +3463,7 @@ program."
                                 ;; ;; This `sit-for' allows message buffer updating
                                 (sit-for (* 0.01 (brief-slowdown-factor))))))
 
-                          (if (not (fboundp #'make-process))
+                          (if (not (fboundp 'make-process))
                               ;; Wait till process sentinel reached which means
                               ;; the process status changed for some reason.
                               ;; Usually for process exited.  Only Emacs<=24
@@ -4008,7 +4007,7 @@ able to restore it back if we have no backups.")
   (let ((result nil))
     (if (or (brief-is-x)
             (brief-is-terminal))
-        (if (fboundp #'gui-get-selection)
+        (if (fboundp 'gui-get-selection)
             ;; Here we choose primary only since we consider primary is in sync
             ;; with clipboard when editing with Brief mode
             (if brief-terminal-getclip-when-check-existence
@@ -4036,7 +4035,7 @@ able to restore it back if we have no backups.")
            (and clipdata
                 (setq brief-last-selected-text clipdata))))))
 
-;;(if (fboundp #'w32-selection-exists-p)
+;;(if (fboundp 'w32-selection-exists-p)
 ;;    (defun brief-get-clipboard-selection ()
 ;;      "Function to get system clipboard text on X or MS-WIN systems."
 ;;      (and (brief-is-winnt)
@@ -4107,7 +4106,7 @@ able to restore it back if we have no backups.")
 
       (unless (zerop (length text))
         ;;(x-set-selection brief-X-selection-target text)
-        (if (fboundp #'gui-select-text)
+        (if (fboundp 'gui-select-text)
             (gui-select-text text) ;; -> `brief-gui-select-text'
           (x-select-text text));;)
         ;;(setq x-select-enable-primary t)
@@ -4298,7 +4297,7 @@ restored, otherwise NIL."
       ;; yanked on different cursors so grabbing a shared Xselection is not
       ;; correct here.
       (let ((clip-select (or (brief-restore-clipboard-selection)
-                             (if (and (fboundp #'gui-get-selection)
+                             (if (and (fboundp 'gui-get-selection)
                                       (not (brief-is-winnt)))
                                  ;; Here we don't invoke `gui-selection-value'
                                  ;; as it favors 'CLIPBOARD over 'PRIMARY.
@@ -4353,7 +4352,7 @@ restored, otherwise NIL."
   ;; 06/21/2005 ins function
   "Toggle buffer read only status ON/OFF."
   (interactive)
-  (if (fboundp #'read-only-mode) ;; above Emacs23
+  (if (fboundp 'read-only-mode) ;; above Emacs23
       (if buffer-read-only
           (read-only-mode -1)
         (read-only-mode 1))
@@ -4419,7 +4418,7 @@ ARG behaves the same as `beginning-of-line'."
     (set-mark newmark)))
 
 ;; ;; 04/15/'08 add function for `brief-kill-line'
-(unless (fboundp #'move-to-column)
+(unless (fboundp 'move-to-column)
   (defun move-to-column (column
                          &optional insert-white) ;; [06/12/2008] ins &optional
     "Goto column number in current line.
@@ -4806,7 +4805,7 @@ To copy exactly 4 lines use C-4 as prefix instead of a single \\[universal-argum
 
       ;; Clear the region after the operation is complete
       ;; XEmacs does this automatically, Emacs doesn't.
-      (if (fboundp #'deactivate-mark)
+      (if (fboundp 'deactivate-mark)
           (deactivate-mark)))))
 
 ;;
@@ -6181,7 +6180,7 @@ be treated as current word, otherwise a search region."
       (progn
         (if (brief-line-region-active) ;; for Emacs
             (call-interactively #'cua-delete-region)
-          (if (fboundp #'cua-delete-rectangle) ;; it does not exist in Emacs 24.3
+          (if (fboundp 'cua-delete-rectangle) ;; it does not exist in Emacs 24.3
               (call-interactively #'cua-delete-rectangle)
             (call-interactively #'cua-delete-region)))
         (brief-restore-clipboard-selection))
@@ -6701,7 +6700,7 @@ global buffer list instead of a per-window/frame buffer list."
   (let ((curr     (current-buffer))
         (fskipbuf (if current-prefix-arg
                       #'bury-buffer
-                    (or (and (fboundp #'switch-to-prev-buffer)
+                    (or (and (fboundp 'switch-to-prev-buffer)
                              #'switch-to-prev-buffer)
                         #'previous-buffer))))
     (while (progn
@@ -6721,7 +6720,7 @@ global buffer list instead of a per-window/frame buffer list."
     (let ((curr (current-buffer)))
       (while (progn
                (call-interactively
-                (or (and (fboundp #'switch-to-next-buffer)
+                (or (and (fboundp 'switch-to-next-buffer)
                          #'switch-to-next-buffer)
                     #'next-buffer))
                (and (brief-is-unwanted-buffer (buffer-name))
@@ -7342,7 +7341,7 @@ toggle brief-mode."
           (cua-mode (if brief-backup-cua-mode 1 -1))
           ;; restore scroll-bar-mode if customized to do so
           (if (and brief-turn-off-scroll-bar-mode
-                   (fboundp #'scroll-bar-mode))
+                   (fboundp 'scroll-bar-mode))
               (scroll-bar-mode (if brief-backup-scroll-bar-mode 1 -1)))
 
           (if (and (brief-is-winnt)
@@ -7404,7 +7403,7 @@ toggle brief-mode."
       (cua-mode 1)
       ;; Disable `scroll-bar-mode' if customized to do so
       (when (and brief-turn-off-scroll-bar-mode
-                 (fboundp #'scroll-bar-mode))
+                 (fboundp 'scroll-bar-mode))
         (setq brief-backup-scroll-bar-mode scroll-bar-mode)
         (scroll-bar-mode -1))
 
@@ -7481,7 +7480,7 @@ toggle brief-mode."
       ;; will still work fine but some region/rectangle marking functions won't
       ;; work quite as nicely.
 
-      (if (fboundp #'transient-mark-mode)
+      (if (fboundp 'transient-mark-mode)
           (transient-mark-mode 1))
 
       (if brief-load-scroll-lock
@@ -7536,7 +7535,7 @@ toggle brief-mode."
      ;; exists in `emulation-mode-map-alists'. In `cua--keymap-alist', the
      ;; `cua--cua-keys-keymap' was listed near the head so it got higher priority.
 
-     (when (and (fboundp #'cua-paste)
+     (when (and (fboundp 'cua-paste)
                 (boundp 'cua--cua-keys-keymap))
        (define-key cua--cua-keys-keymap [remap yank] #'brief-yank)
        (define-key cua--cua-keys-keymap [(control v)] #'brief-yank))))
@@ -7768,8 +7767,8 @@ matter if brief-mode is enabled or not."
   :set   #'brief-set:brief-replace-emacs-func:line-number-at-pos)
 
 (cl-eval-when (compile eval load)
-  (when (and (version<= "27.0" emacs-version)
-             ;; prevent compile failure before load
+  (when (and (>= emacs-major-version 27)
+             ;; prevent failure before load
              (boundp 'brief-replace-emacs-func:line-number-at-pos)
              brief-replace-emacs-func:line-number-at-pos)
      ;; Global replacement, no matter if Brief mode is enabled or not.
@@ -7798,10 +7797,8 @@ This function is used by the quick launcher 'b' script."
         scroll-conservatively 101)
   (setq hscroll-margin 1           ;; set horizontal scroll not jumppy
         hscroll-step 1)
-  (when (and brief-turn-off-scroll-bar-mode
-             (fboundp #'scroll-bar-mode))
-    (scroll-bar-mode -1)             ;; small border without scroll bar
-    (setq-default scroll-bar-mode -1))
+  (if brief-turn-off-scroll-bar-mode
+      (scroll-bar-mode -1))        ;; small border without scroll bar
   ;; Enable brief mode
   (brief-mode 1))
 
