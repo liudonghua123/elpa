@@ -711,8 +711,9 @@
  (stream		:url nil)
  (substitute		:url "https://git.sr.ht/~protesilaos/substitute"
   :auto-sync t
+  :doc "README.org"
   :readme "README.md"
-  :ignored-files ("COPYING"))
+  :ignored-files ("COPYING" "doclicense.texi"))
  (svg			:core ("lisp/svg.el"))
  (svg-clock		:url nil)
  (svg-lib		:url "https://github.com/rougier/svg-lib"
