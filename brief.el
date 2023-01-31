@@ -5,7 +5,7 @@
 ;; Author:       Luke Lee <luke.yx.lee@gmail.com>
 ;; Maintainer:   Luke Lee <luke.yx.lee@gmail.com>
 ;; Keywords:     brief, emulations, crisp
-;; Version:      5.88.22
+;; Version:      5.88.22.1
 ;; Package-Requires: ((nadvice "0.3") (cl-lib "0.5"))
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -457,7 +457,7 @@
 ;; backward compatibility issues.
 ;;(require 'replace)
 
-(defconst brief-version "5.88.22"
+(defconst brief-version "5.88.22.1"
   "Current version of this Brief editor mode/emulator.")
 
 ;;
