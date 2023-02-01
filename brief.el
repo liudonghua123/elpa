@@ -5,7 +5,7 @@
 ;; Author:       Luke Lee <luke.yx.lee@gmail.com>
 ;; Maintainer:   Luke Lee <luke.yx.lee@gmail.com>
 ;; Keywords:     brief, emulations, crisp
-;; Version:      5.88.22.1
+;; Version:      5.88.22.2
 ;; Package-Requires: ((nadvice "0.3") (cl-lib "0.5"))
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -433,7 +433,7 @@
 ;;; Code:
 
 (eval-when-compile
-    (require 'cl-lib)
+  (require 'cl-lib)
   ;; Quiet byte-compiler about argument number changes due to advice functions,
   ;; as well as other warnings that's known to be not important.
   (setq byte-compile-warnings
@@ -452,12 +452,13 @@
 ;; Relies on `cua-rectangle-mark-mode' to perform rectangle operations.
 (require 'cua-base)
 (require 'cua-rect)
+(require 'nadvice) ;; for older Emacs like 24.2
 ;; "replace" package is Emacs26 only, for `query-replace', it's autoloaded
 ;; so we don't need to "require" it explicitly, otherwise it will cause
 ;; backward compatibility issues.
 ;;(require 'replace)
 
-(defconst brief-version "5.88.22.1"
+(defconst brief-version "5.88.22.2"
   "Current version of this Brief editor mode/emulator.")
 
 ;;
@@ -2028,7 +2029,7 @@ compilation won't be counted in."
           (dolist (_ (window-list))
             (if (eq window curr)
                 (throw 'break nil))
-            (incf count 1)
+            (cl-incf count 1)
             (setf curr (next-window curr))))
         (if (eq window curr)
             (other-window count)))))
@@ -2195,7 +2196,7 @@ newlines between them."
                 (while (re-search-forward "[\n\C-m]" nil t 64)
                   (setq done (+ 64 done)))
                 (while (re-search-forward "[\n\C-m]" nil t 1)
-                  (incf done))
+                  (cl-incf done))
                 done)
             (setq done
                   (- (buffer-size) (forward-line (buffer-size))))
@@ -2335,7 +2336,7 @@ This is the number of newlines between them."
         ;;       (setq lines (+ lines (car l))
         ;;             l (cdr l)))
         (while (> c 0)
-          (decf c)
+          (cl-decf c)
           (setq lines (+ lines (car l))
                 l (cdr l)))
         ;; ;; Verification
@@ -2413,15 +2414,15 @@ out the internal delta value of the current window."
     ;; Increment at most 3 on X and 2 on Y directions, at the size of a
     ;; block cursor.
     (and (not (eq curr (window-at (+ xdelta left) (+ ydelta top))))
-         (incf xdelta) ;; x+1
+         (cl-incf xdelta) ;; x+1
          (not (eq curr (window-at (+ xdelta left) (+ ydelta top))))
-         (incf ydelta) ;; y+1
+         (cl-incf ydelta) ;; y+1
          (not (eq curr (window-at (+ xdelta left) (+ ydelta top))))
-         (incf xdelta) ;; x+2 !
+         (cl-incf xdelta) ;; x+2 !
          (not (eq curr (window-at (+ xdelta left) (+ ydelta top))))
-         (incf ydelta) ;; y+2 !
+         (cl-incf ydelta) ;; y+2 !
          (not (eq curr (window-at (+ xdelta left) (+ ydelta top))))
-         (incf xdelta) ;; x+3 ?!
+         (cl-incf xdelta) ;; x+3 ?!
          (not (eq curr (window-at (+ xdelta left) (+ ydelta top))))
          (error ;; No, not trying y+3, it's an error
           "Either this window system or this code has a big problem"))
@@ -3244,7 +3245,7 @@ This is used in `brief-external-get-selection'")
 Also indicate the status change of the external helper process.  For
 Emacs <= v24 this is required before getting all the output of the
 external helper process."
-  (incf brief-external-process-status-changed)
+  (cl-incf brief-external-process-status-changed)
   ;;(message "brief--external-clipboard-sentinel %S %S %d"
   ;;         (process-exit-status proc) event
   ;;         brief-external-process-status-changed)
@@ -3426,7 +3427,7 @@ program."
                             (accept-process-output proc
                                                    (* 0.01
                                                       (brief-slowdown-factor)))
-                            (incf count)
+                            (cl-incf count)
 
                             (when (zerop (logand count #xf))
                               ;; 0.01 * 15 = 0.15 second each iteration.
@@ -3766,7 +3767,7 @@ This function does not support native Win32/Win64."
                     (accept-process-output)
                     ;;(sit-for 0.01 t)
                     )
-                  (incf count)
+                  (cl-incf count)
                   (setq databeg dataend
                         dataend (+ dataend blocksize)))
 
@@ -5284,7 +5285,7 @@ there, press \\[keyboard-quit] to cancel the rectangle."
                                  (line-end-position)
                                  (+ (point) width))
                             noerror 1)
-                           (and (incf cnt)
+                           (and (cl-incf cnt)
                                 (= cnt count)
                                 (throw 'found (point)))
                          (forward-line 1)
@@ -5557,7 +5558,7 @@ cursor there, press \\[keyboard-quit] to cancel the rectangle."
                                  (line-beginning-position)
                                  (- (point) width))
                             noerror 1)
-                           (and (incf cnt)
+                           (and (cl-incf cnt)
                                 (= cnt count)
                                 (throw 'found (point)))
                          (if (= lastline
