@@ -497,7 +497,8 @@
  (muse			:url "https://github.com/alexott/muse") ;FIXME: Not nearly in-sync
  (myers			:url nil)
  (nadvice		:url nil)
- (nameless		:url "https://github.com/Malabarba/Nameless")
+ (nameless		:url "https://github.com/Malabarba/Nameless"
+  :auto-sync t)
  (names			:url "https://github.com/Malabarba/names")
  (nano-agenda		:url "https://github.com/rougier/nano-agenda"
   :auto-sync t)
@@ -637,13 +638,18 @@
  (rcirc-menu		:url nil)
  (realgud             	:url "https://github.com/realgud/realgud"
   :auto-sync t)
- (realgud-ipdb        	:url "https://github.com/realgud/realgud-ipdb")
- (realgud-jdb         	:url "https://github.com/realgud/realgud-jdb")
+ (realgud-ipdb        	:url "https://github.com/realgud/realgud-ipdb"
+  :auto-sync t)
+ (realgud-jdb         	:url "https://github.com/realgud/realgud-jdb"
+  :auto-sync t)
  (realgud-lldb        	:url "https://github.com/realgud/realgud-lldb"
   :auto-sync t)
- (realgud-node-debug  	:url "https://github.com/realgud/realgud-node-debug")
- (realgud-node-inspect 	:url "https://github.com/realgud/realgud-node-inspect")
- (realgud-trepan-ni   	:url "https://github.com/realgud/realgud-trepan-ni")
+ (realgud-node-debug  	:url "https://github.com/realgud/realgud-node-debug"
+  :auto-sync t)
+ (realgud-node-inspect 	:url "https://github.com/realgud/realgud-node-inspect"
+  :auto-sync t)
+ (realgud-trepan-ni   	:url "https://github.com/realgud/realgud-trepan-ni"
+  :auto-sync t)
  (rec-mode		:url "https://git.savannah.gnu.org/git/recutils/rec-mode.git"
   :auto-sync t)
  (register-list		:url nil)
