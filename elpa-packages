@@ -482,16 +482,12 @@
  (mmm-mode		:url "https://github.com/purcell/mmm-mode.git"
   :doc "mmm.texi"
   :auto-sync t)
- (modus-themes		:core ("etc/themes/modus-themes.el"
-                               "etc/themes/modus-operandi-theme.el"
-                               "etc/themes/modus-operandi-deuteranopia-theme.el"
-                               "etc/themes/modus-operandi-tinted-theme.el"
-                               "etc/themes/modus-vivendi-theme.el"
-                               "etc/themes/modus-vivendi-deuteranopia-theme.el"
-                               "etc/themes/modus-vivendi-tinted-theme.el"
-                               "doc/misc/modus-themes.org"
-                               "doc/misc/doclicense.texi")
-  :doc "modus-themes.org")
+ (modus-themes		:url "https://git.sr.ht/~protesilaos/modus-themes"
+  :auto-sync t
+  :doc "doc/modus-themes.org"
+  :readme "README.md"
+  :news "CHANGELOG.org"
+  :ignored-files ("COPYING" "doclicense.texi"))
  (multi-mode		:url nil)
  (multishell		:url "https://github.com/kenmanheimer/EmacsMultishell")
  (muse			:url "https://github.com/alexott/muse") ;FIXME: Not nearly in-sync
