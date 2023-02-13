@@ -91,6 +91,11 @@
   :auto-sync nil)
  (beacon		:url "https://github.com/Malabarba/beacon"
   :auto-sync t)
+ (beframe		:url "https://git.sr.ht/~protesilaos/beframe"
+  :auto-sync t
+  :doc "README.org"
+  :readme "README.md"
+  :ignored-files ("COPYING" "doclicense.texi"))
  (bind-key		:core "lisp/use-package/bind-key.el")
  (blist			:url "https://gitlab.com/mmemmew/blist"
   :doc "blist.texinfo"
