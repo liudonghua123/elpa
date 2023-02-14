@@ -80,6 +80,7 @@
  (aumix-mode		:url nil)
  (auto-correct		:url nil)
  (auto-overlays		:url "http://www.dr-qubit.org/git/predictive.git"
+  :manual-sync t ;; The upstream doesn't exist any more!
   :doc "docs/auto-overlay-manual.texinfo")
  (avy			:url "https://github.com/abo-abo/avy"
   ;; FIXME: Avy diverged https://github.com/abo-abo/avy/issues/344
@@ -233,7 +234,9 @@
   :auto-sync t)
  (devdocs		:url "https://github.com/astoff/devdocs.el"
   :auto-sync t)
- (dict-tree		:url "http://www.dr-qubit.org/git/predictive.git")
+ (dict-tree		:url "http://www.dr-qubit.org/git/predictive.git"
+  :manual-sync t ;; The upstream doesn't exist any more!
+  )
  (diff-hl		:url "https://github.com/dgutov/diff-hl.git"
   :auto-sync t)
  (diffview            	:url "https://github.com/mgalgs/diffview-mode.git")
@@ -376,7 +379,9 @@
  (guess-language	:url "https://github.com/tmalsburg/guess-language.el")
  (hcel			:url "https://g.ypei.me/hc.el.git"
   :auto-sync t)
- (heap			:url "http://www.dr-qubit.org/git/predictive.git")
+ (heap			:url "http://www.dr-qubit.org/git/predictive.git"
+  :manual-sync t ;; The upstream doesn't exist any more!
+  )
  (hiddenquote		:url "https://gitlab.com/mauroaranda/hiddenquote/hiddenquote"
   :auto-sync t)
  (highlight-escape-sequences
@@ -639,7 +644,9 @@
   :auto-sync t)
  (python		:core "lisp/progmodes/python.el")
  (quarter-plane		:url nil)
- (queue			:url "http://www.dr-qubit.org/git/predictive.git")
+ (queue			:url "http://www.dr-qubit.org/git/predictive.git"
+  :manual-sync t ;; The upstream doesn't exist any more!
+  )
  ;; (rails-routes	:url "https://github.com/otavioschwanck/emacs-rails-routes")
  (rainbow-mode		:url nil)
  (rbit			:url nil)
@@ -743,7 +750,9 @@
  (system-packages	:url "https://gitlab.com/jabranham/system-packages"
   :auto-sync t)
  (systemd		:url nil)
- (tNFA			:url "http://www.dr-qubit.org/git/predictive.git")
+ (tNFA			:url "http://www.dr-qubit.org/git/predictive.git"
+  :manual-sync t ;; The upstream doesn't exist any more!
+  )
  (taxy                	:url "https://github.com/alphapapa/taxy.el.git"
   :doc "taxy.info"
   :ignored-files ("images")
@@ -793,7 +802,9 @@
   :news "CHANGELOG"
   :doc "docs/transient.texi")
  (transient-cycles    	:url nil)
- (trie			:url "http://www.dr-qubit.org/git/predictive.git")
+ (trie			:url "http://www.dr-qubit.org/git/predictive.git"
+  :manual-sync t ;; The upstream doesn't exist any more!
+  )
  (triples		:url "https://github.com/ahyatt/triples"
   :readme "README.org"
   :auto-sync t)
