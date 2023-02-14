@@ -76,7 +76,7 @@
   :auto-sync t)
  (auctex		:url "https://git.savannah.gnu.org/git/auctex.git"
   ;; AUCTeX is currently sync'd manually and elpa.git isn't quite a mirror :-(
-  :auto-sync nil)
+  :manual-sync t)
  (aumix-mode		:url nil)
  (auto-correct		:url nil)
  (auto-overlays		:url "http://www.dr-qubit.org/git/predictive.git"
@@ -90,7 +90,7 @@
   :doc "doc/bbdb.texi"
   ;; The BBDB branch in elpa.git is managed directly by hand, with
   ;; a "parallel" history to that of the upstream.
-  :auto-sync nil)
+  :manual-sync t)
  (beacon		:url "https://github.com/Malabarba/beacon"
   :auto-sync t)
  (beframe		:url "https://git.sr.ht/~protesilaos/beframe"
@@ -143,7 +143,7 @@
  (chess			:url "https://github.com/jwiegley/emacs-chess.git"
   :doc "chess.texi"
   ;; FIXME: The two versions are badly out of sync.
-  :auto-sync nil)
+  :manual-sync t)
  (cl-generic		:url nil)
  (cl-lib		:url nil)
  ;; The `cl-print' code doesn't try to work outside of Emacs any more.
@@ -304,7 +304,9 @@
   :auto-sync t)
  (engrave-faces		:url "https://github.com/tecosaur/engrave-faces.git"
   :auto-sync t)
- (enwc			:url "hg::https://hg.savannah.nongnu.org/hgweb/enwc/")
+ (enwc			:url "hg::https://hg.savannah.nongnu.org/hgweb/enwc/"
+  ;; The Hg<->Git bridge wasn't working well enough last time I tried.
+  :manual-sync t)
  (epoch-view		:url nil)
  (erc			:core ("lisp/erc/"
                                "doc/emacs/doclicense.texi"
@@ -542,7 +544,7 @@
   :auto-sync t)
  (org-edna		:url "bzr::https://bzr.savannah.gnu.org/r/org-edna-el"
   ;; The Bzr<->Git bridge wasn't working well enough last time I tried.
-  :auto-sync nil)
+  :manual-sync t)
  ;; FIXME: Waiting for copyright paperwork from Brandon Webster.
  ;;(org-drill		:url "https://gitlab.com/phillord/org-drill"
  ;; :auto-sync t)
@@ -574,7 +576,9 @@
   :ignored-files ("LICENSE"))
  (other-frame-window	:url nil)
  (pabbrev             	:url "https://github.com/phillord/pabbrev.git")
- (paced			:url "bzr::bzr://bzr.savannah.nongnu.org/paced-el/trunk")
+ (paced			:url "bzr::bzr://bzr.savannah.nongnu.org/paced-el/trunk"
+  ;; The Bzr<->Git bridge wasn't working well enough last time I tried.
+  :manual-sync t)
  (package-fixes		:url nil)
  (parsec              	:url "https://github.com/cute-jumper/parsec.el.git")
  (parser-generator	:url "https://github.com/cjohansson/emacs-parser-generator"
@@ -593,7 +597,7 @@
  (phps-mode		:url "https://github.com/cjohansson/emacs-phps-mode"
   ;; Christian Johansson works on a private Git and pushes to both Github
   ;; and elpa.git anyway, so there's no need to auto-sync.
-  :auto-sync nil)
+  :manual-sync t)
  (pinentry		:url "https://github.com/ueno/pinentry-el.git")
  (plz                 	:url "https://github.com/alphapapa/plz.el.git"
   :ignored-files ("LICENSE")
@@ -783,7 +787,7 @@
  (tramp-theme		:url nil)
  (transcribe		:url nil)
  (transient		:url "https://github.com/magit/transient"
-  :auto-sync nil ;;Prefers manual control.
+  :manual-sync t ;;Author prefers manual control.
   :lisp-dir "lisp"
   :renames (("docs/" ""))
   :news "CHANGELOG"
