@@ -81,8 +81,10 @@
  (auto-correct		:url nil)
  (auto-overlays		:url "http://www.dr-qubit.org/git/predictive.git"
   :doc "docs/auto-overlay-manual.texinfo")
- ;; FIXME: Avy diverged https://github.com/abo-abo/avy/issues/344
- (avy			:url "https://github.com/abo-abo/avy")
+ (avy			:url "https://github.com/abo-abo/avy"
+  ;; FIXME: Avy diverged https://github.com/abo-abo/avy/issues/344
+  :merge t
+  :auto-sync t)
  (bbdb			:url "https://git.savannah.nongnu.org/git/bbdb.git"
   :lisp-dir "lisp"
   :doc "doc/bbdb.texi"
@@ -114,7 +116,8 @@
   :auto-sync t)
  (buffer-expose		:url "https://github.com/clemera/buffer-expose")
  ;; FIXME: https://github.com/Malabarba/elisp-bug-hunter/issues/31
- (bug-hunter		:url "https://github.com/Malabarba/elisp-bug-hunter")
+ (bug-hunter		:url "https://github.com/Malabarba/elisp-bug-hunter"
+  :auto-sync t)
  ;; (cc-mode		:core ("lisp/progmodes/cc-align.el"
  ;;                            "lisp/progmodes/cc-awk.el"
  ;;                            "lisp/progmodes/cc-bytecomp.el"
@@ -178,7 +181,8 @@
   :readme "readme.org"
   :auto-sync t)
  ;; FIXME: https://github.com/jacksonrayhamilton/context-coloring/issues/9
- (context-coloring	:url "https://github.com/jacksonrayhamilton/context-coloring.git")
+ (context-coloring	:url "https://github.com/jacksonrayhamilton/context-coloring.git"
+  :auto-sync t)
  (corfu			:url "https://github.com/minad/corfu"
   :doc "README.org"
   :renames (("extensions/" ""))
