@@ -415,11 +415,16 @@
   :auto-sync t)
  (iterators		:url nil)
  (ivy			:url "https://github.com/abo-abo/swiper"
+  :manual-sync t
   :renames (("doc/" ""))
   :doc "doc/ivy.texi")
- (ivy-avy		:url "https://github.com/abo-abo/swiper")
+ (ivy-avy		:url "https://github.com/abo-abo/swiper"
+  :manual-sync t
+  )
  (ivy-explorer        	:url "https://github.com/clemera/ivy-explorer")
- (ivy-hydra		:url "https://github.com/abo-abo/swiper")
+ (ivy-hydra		:url "https://github.com/abo-abo/swiper"
+  :manual-sync t
+  )
  (ivy-posframe		:url "https://github.com/tumashu/ivy-posframe"
   :auto-sync t)
  (jarchive		:url "https://git.sr.ht/~dannyfreeman/jarchive"
@@ -742,7 +747,9 @@
   :auto-sync t)
  (svg-tag-mode		:url "https://github.com/rougier/svg-tag-mode"
   :auto-sync t)
- (swiper		:url "https://github.com/abo-abo/swiper")
+ (swiper		:url "https://github.com/abo-abo/swiper"
+  :manual-sync t
+  )
  (sxhkdrc-mode		:url "https://git.sr.ht/~protesilaos/sxhkdrc-mode"
   :auto-sync t
   :readme "README.md"
