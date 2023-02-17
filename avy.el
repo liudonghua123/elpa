@@ -1,6 +1,6 @@
 ;;; avy.el --- Jump to arbitrary positions in visible text and select text quickly. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2020  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
@@ -395,7 +395,7 @@ SEQ-LEN is how many elements of KEYS it takes to identify a match."
 
 (defvar avy-command nil
   "Store the current command symbol.
-E.g. 'avy-goto-line or 'avy-goto-char.")
+E.g. `avy-goto-line' or `avy-goto-char'.")
 
 (defun avy-tree (lst keys)
   "Coerce LST into a balanced tree.
@@ -602,7 +602,7 @@ multiple DISPLAY-FN invocations."
             (cl-incf path-len)
             (setq tmp-alist (avy--path-alist-1 lst path-len keys)))
           (while (>= (cl-decf num-remaining) 0)
-            (push (mapconcat 'string (caar tmp-alist) nil) (cdr (last words)))
+            (push (mapconcat #'string (caar tmp-alist) nil) (cdr (last words)))
             (setq tmp-alist (cdr tmp-alist)))))
       (dolist (x lst)
         (push (cons (string-to-list (pop words)) x) alist))
@@ -900,7 +900,7 @@ multiple OVERLAY-FN invocations."
                     res)))
        res))))
 
-(define-obsolete-function-alias 'avy--process 'avy-process
+(define-obsolete-function-alias 'avy--process #'avy-process
   "0.4.0")
 
 (defvar avy--overlays-back nil
@@ -1668,15 +1668,18 @@ When BOTTOM-UP is non-nil, display avy candidates from top to bottom"
 (define-minor-mode avy-linum-mode
   "Minor mode that uses avy hints for `linum-mode'."
   :group 'avy
+  ;; FIXME: `linum-mode' was obsoleted in Emacs-29.1.  Not sure if we
+  ;; can/should adapt this to `nlinum-mode'.
   (if avy-linum-mode
       (progn
         (require 'linum)
-        (advice-add 'linum-update-window :around 'avy--linum-update-window)
+        (declare-function linum-mode "linum" (&optional arg))
+        (advice-add 'linum-update-window :override #'avy--linum-update-window)
         (linum-mode 1))
-    (advice-remove 'linum-update-window 'avy--linum-update-window)
+    (advice-remove 'linum-update-window #'avy--linum-update-window)
     (linum-mode -1)))
 
-(defun avy--linum-update-window (_ win)
+(defun avy--linum-update-window (win)
   "Update line numbers for the portion visible in window WIN."
   (goto-char (window-start win))
   (let ((line (line-number-at-pos))
@@ -1717,10 +1720,7 @@ When BOTTOM-UP is non-nil, display avy candidates from top to bottom"
             (overlay-put ov 'before-string
                          (propertize " " 'display `((margin left-margin) ,str)))
             (overlay-put ov 'linum-str str))))
-      ;; Text may contain those nasty intangible properties, but that
-      ;; shouldn't prevent us from counting those lines.
-      (let ((inhibit-point-motion-hooks t))
-        (forward-line))
+      (forward-line)
       (setq line (1+ line)))
     (when (display-graphic-p)
       (setq width (ceiling
@@ -2045,7 +2045,7 @@ newline."
 (defun avy-setup-default ()
   "Setup the default shortcuts."
   (eval-after-load "isearch"
-    '(define-key isearch-mode-map (kbd "C-'") 'avy-isearch)))
+    '(define-key isearch-mode-map (kbd "C-'") #'avy-isearch)))
 
 (defcustom avy-timeout-seconds 0.5
   "How many seconds to wait for the second char."
