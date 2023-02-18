@@ -240,7 +240,8 @@
   :doc "embark.texi"
   :ignored-files ("embark-consult.el" "avy-embark-collect.el"))
  (embark-consult	:url "https://github.com/oantolin/embark"
-  :ignored-files ("embark.el" "embark.texi" "avy-embark-collect.el"))
+  :ignored-files ("embark.el" "embark.texi" "avy-embark-collect.el"
+                  "embark-org.el"))
  (ement			:url "https://github.com/alphapapa/ement.el.git"
   :release-branch "stable"
   :doc "README.org")
