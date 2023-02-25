@@ -652,8 +652,7 @@
   )
  (triples		:url "https://github.com/ahyatt/triples"
   :readme "README.org")
- ;; FIXME: Waiting for copyright cleanups.
- ;;(trinary		:url "https://github.com/emacs-elsa/trinary-logic")
+ (trinary		:url "https://github.com/emacs-elsa/trinary-logic")
  ;; FIXME: The upstream of `undo-tree' has diverged.  I tried to
  ;; contact Toby but he's quite busy.  He mentioned thinking of using the
  ;; `elpa.git` branch as the official upstream.
