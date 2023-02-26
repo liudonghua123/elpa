@@ -1251,20 +1251,13 @@ component is used as the target of the symlink."
 
 (defun tramp-sh-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
-  ;; `file-exists-p' is used as predicate in file name completion.
-  ;; We don't want to run it when `non-essential' is t, or there is
-  ;; no connection process yet.
-  (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name (expand-file-name filename) nil
-      (with-tramp-file-property v localname "file-exists-p"
-	(if (tramp-file-property-p v localname "file-attributes")
-	    (not (null (tramp-get-file-property v localname "file-attributes")))
-	  (tramp-send-command-and-check
-	   v
-	   (format
-	    "%s %s"
-	    (tramp-get-file-exists-command v)
-	    (tramp-shell-quote-argument localname))))))))
+  (tramp-skeleton-file-exists-p filename
+    (tramp-send-command-and-check
+     v
+     (format
+      "%s %s"
+      (tramp-get-file-exists-command v)
+      (tramp-shell-quote-argument localname)))))
 
 (defun tramp-sh-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
@@ -3090,13 +3083,20 @@ implementation will be used."
 			      (process-put p 'remote-pid pid)
 			      (tramp-set-connection-property
 			       p "remote-pid" pid))
-			    ;; Disable carriage return to newline
-			    ;; translation.  This does not work on
-			    ;; macOS, see Bug#50748.
-			    (when (and (memq connection-type '(nil pipe))
-				       (not
-					(tramp-check-remote-uname v "Darwin")))
-			      (tramp-send-command v "stty -icrnl"))
+			    (when (memq connection-type '(nil pipe))
+			      ;; Disable carriage return to newline
+			      ;; translation.  This does not work on
+			      ;; macOS, see Bug#50748.
+			      ;; We must also disable buffering,
+			      ;; otherwise strings larger than 4096
+			      ;; bytes, sent by the process, could
+			      ;; block, see termios(3) and Bug#61341.
+			      ;; FIXME: Shall we rather use "stty raw"?
+			      (if (tramp-check-remote-uname v "Darwin")
+				  (tramp-send-command
+				   v "stty -icanon min 1 time 0")
+				(tramp-send-command
+				 v "stty -icrnl -icanon min 1 time 0")))
 			    ;; `tramp-maybe-open-connection' and
 			    ;; `tramp-send-command-and-read' could
 			    ;; have trashed the connection buffer.

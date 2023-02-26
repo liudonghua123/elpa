@@ -441,6 +441,8 @@ See `tramp-methods' for a list of possibilities for METHOD."
 (defconst tramp-default-method-marker "-"
   "Marker for default method in remote file names.")
 
+(add-to-list 'tramp-methods `(,tramp-default-method-marker))
+
 (defcustom tramp-default-user nil
   "Default user to use for transferring files.
 It is nil by default; otherwise settings in configuration files like
@@ -1218,9 +1220,12 @@ The `ftp' syntax does not support methods.")
      (? (regexp tramp-completion-method-regexp)
 	;; Method separator, user name and host name.
 	(? (regexp tramp-postfix-method-regexp)
-	   ;; This is a little bit lax, but it serves.
-	   (? (regexp tramp-host-regexp))))
-
+	   (? (regexp tramp-user-regexp)
+	      (regexp tramp-postfix-user-regexp))
+	   (? (| (regexp tramp-host-regexp) ;; This includes a user.
+                 (: (regexp tramp-prefix-ipv6-regexp)
+		    (? (regexp tramp-ipv6-regexp)
+		       (? (regexp tramp-postfix-ipv6-regexp))))))))
      eos)))
 
 (defvar tramp-completion-file-name-regexp
@@ -1437,9 +1442,13 @@ This shouldn't be set explicitly.  It is let-bound, for example
 during direct remote copying with scp.")
 
 (defconst tramp-completion-file-name-handler-alist
-  '((file-name-all-completions
+  '((expand-file-name . tramp-completion-handle-expand-file-name)
+    (file-exists-p . tramp-completion-handle-file-exists-p)
+    (file-name-all-completions
      . tramp-completion-handle-file-name-all-completions)
-    (file-name-completion . tramp-completion-handle-file-name-completion))
+    (file-name-completion . tramp-completion-handle-file-name-completion)
+    (file-name-directory . tramp-completion-handle-file-name-directory)
+    (file-name-nondirectory . tramp-completion-handle-file-name-nondirectory))
   "Alist of completion handler functions.
 Used for file names matching `tramp-completion-file-name-regexp'.
 Operations not mentioned here will be handled by Tramp's file
@@ -1731,7 +1740,6 @@ default values are used."
 		     :port port :localname localname :hop hop))
 	  ;; The method must be known.
 	  (unless (or nodefault non-essential
-		      (string-equal method tramp-default-method-marker)
 		      (assoc method tramp-methods))
 	    (tramp-user-error
 	     v "Method `%s' is not known." method))
@@ -2796,7 +2804,7 @@ Fall back to normal file name handler if no Tramp file name handler exists."
   "Invoke Tramp file name completion handler for OPERATION and ARGS.
 Falls back to normal file name handler if no Tramp file name handler exists."
   (if-let
-      ((fn (and tramp-mode
+      ((fn (and tramp-mode minibuffer-completing-file-name
 		(assoc operation tramp-completion-file-name-handler-alist))))
       (save-match-data (apply (cdr fn) args))
     (tramp-run-real-handler operation args)))
@@ -2969,6 +2977,75 @@ not in completion mode."
         (and vec (process-live-p (get-process (tramp-buffer-name vec))))
 	(not non-essential))))
 
+(defun tramp-completion-handle-expand-file-name (filename &optional directory)
+  "Like `expand-file-name' for partial Tramp files."
+  ;; We need special handling only when a method is needed.  Then we
+  ;; check, whether DIRECTORY is "/method:" or "/[method/".
+  (let ((dir (or directory default-directory "/")))
+    (cond
+     ((file-name-absolute-p filename) filename)
+     ((and (eq tramp-syntax 'simplified)
+           (string-match-p
+	    (tramp-compat-rx (regexp tramp-postfix-host-regexp) eos) dir))
+      (concat dir filename))
+     ((string-match-p
+       (tramp-compat-rx
+	bos (regexp tramp-prefix-regexp)
+	(* (regexp tramp-remote-file-name-spec-regexp)
+	   (regexp tramp-postfix-hop-regexp))
+	(? (regexp tramp-method-regexp) (regexp tramp-postfix-method-regexp)
+	   (? (regexp tramp-user-regexp) (regexp tramp-postfix-user-regexp)))
+	eos)
+       dir)
+      (concat dir filename))
+     (t (tramp-run-real-handler #'expand-file-name (list filename directory))))))
+
+(defun tramp-completion-handle-file-exists-p (filename)
+  "Like `file-exists-p' for partial Tramp files."
+  ;; We need special handling only when a method is needed.  Then we
+  ;; regard all files "/method:" or "/[method/" as existent, if
+  ;; "method" is a valid Tramp method.  And we regard all files
+  ;; "/method:user@", "/user@" or "/[method/user@" as existent, if
+  ;; "user@" is a valid file name completion.  Host completion is
+  ;; performed in the respective backen operation.
+  (or (and (cond
+            ;; Completion styles like `flex' and `substring' check for
+            ;; the file name "/".  This does exist.
+            ((string-equal filename "/"))
+            ;; Is it a valid method?
+            ((and (not (string-empty-p tramp-postfix-method-format))
+                  (string-match
+	           (tramp-compat-rx
+	            (regexp tramp-prefix-regexp)
+		    (* (regexp tramp-remote-file-name-spec-regexp)
+		       (regexp tramp-postfix-hop-regexp))
+	            (group-n 9 (regexp tramp-method-regexp))
+	            (? (regexp tramp-postfix-method-regexp))
+                    eos)
+                   filename))
+             (assoc (match-string 9 filename) tramp-methods))
+            ;; Is it a valid user?
+            ((string-match
+	      (tramp-compat-rx
+               (regexp tramp-prefix-regexp)
+	       (* (regexp tramp-remote-file-name-spec-regexp)
+		  (regexp tramp-postfix-hop-regexp))
+               (group-n 10
+		 (regexp tramp-method-regexp)
+		 (regexp tramp-postfix-method-regexp))
+	       (group-n 11
+		 (regexp tramp-user-regexp)
+		 (regexp tramp-postfix-user-regexp))
+               eos)
+              filename)
+	     (member
+	      (match-string 11 filename)
+	      (file-name-all-completions
+	       "" (concat tramp-prefix-format (match-string 10 filename))))))
+	   t)
+
+      (tramp-run-real-handler #'file-exists-p (list filename))))
+
 ;; Method, host name and user name completion.
 ;; `tramp-completion-dissect-file-name' returns a list of
 ;; `tramp-file-name' structures.  For all of them we return possible
@@ -3042,11 +3119,12 @@ not in completion mode."
 	 result1)))
 
     ;; Complete local parts.
-    (append
-     result1
-     (ignore-errors
-       (tramp-run-real-handler
-	#'file-name-all-completions (list filename directory))))))
+    (delete-dups
+     (append
+      result1
+      (ignore-errors
+        (tramp-run-real-handler
+	 #'file-name-all-completions (list filename directory)))))))
 
 ;; Method, host name and user name completion for a file.
 (defun tramp-completion-handle-file-name-completion
@@ -3203,6 +3281,47 @@ PARTIAL-USER must match USER, PARTIAL-HOST must match HOST."
 
   (unless (zerop (+ (length user) (length host)))
     (tramp-completion-make-tramp-file-name method user host nil)))
+
+(defun tramp-completion-handle-file-name-directory (filename)
+  "Like `file-name-directory' for partial Tramp files."
+  ;; We need special handling only when a method is needed.  Then we
+  ;; return "/method:" or "/[method/", if "method" is a valid Tramp
+  ;; method.  In the `separate' file name syntax, we return "/[" when
+  ;; `filename' is "/[string" w/o a trailing method separator "/".
+  (cond
+   ((string-match
+     (tramp-compat-rx
+      (group (regexp tramp-prefix-regexp)
+	     (* (regexp tramp-remote-file-name-spec-regexp)
+		(regexp tramp-postfix-hop-regexp)))
+      (? (regexp tramp-completion-method-regexp)) eos)
+     filename)
+    (match-string 1 filename))
+   ((and (string-match
+          (tramp-compat-rx
+	   (group
+	    (regexp tramp-prefix-regexp)
+	    (* (regexp tramp-remote-file-name-spec-regexp)
+	       (regexp tramp-postfix-hop-regexp))
+            (group (regexp tramp-method-regexp))
+	    (regexp tramp-postfix-method-regexp)
+	    (? (regexp tramp-user-regexp)
+	       (regexp tramp-postfix-user-regexp)))
+	   (? (| (regexp tramp-host-regexp)
+                 (: (regexp tramp-prefix-ipv6-regexp)
+		    (? (regexp tramp-ipv6-regexp)
+		       (? (regexp tramp-postfix-ipv6-regexp))))))
+	   eos)
+          filename)
+         ;; Is it a valid method?
+	 (or (tramp-string-empty-or-nil-p (match-string 2 filename))
+             (assoc (match-string 2 filename) tramp-methods)))
+    (match-string 1 filename))
+   (t (tramp-run-real-handler #'file-name-directory (list filename)))))
+
+(defun tramp-completion-handle-file-name-nondirectory (filename)
+  "Like `file-name-nondirectory' for partial Tramp files."
+  (tramp-compat-string-replace (file-name-directory filename) "" filename))
 
 (defun tramp-parse-default-user-host (method)
   "Return a list of (user host) tuples allowed to access for METHOD.
@@ -3528,6 +3647,25 @@ BODY is the backend specific code."
 	(tramp-error
 	 (tramp-dissect-file-name ,directory) 'file-missing ,directory)
       nil)))
+
+(defmacro tramp-skeleton-file-exists-p (filename &rest body)
+  "Skeleton for `tramp-*-handle-file-exists-p'.
+BODY is the backend specific code."
+  (declare (indent 1) (debug t))
+  ;; `file-exists-p' is used as predicate in file name completion.
+  `(or (and minibuffer-completing-file-name
+	    (file-name-absolute-p ,filename)
+	    (tramp-string-empty-or-nil-p
+	     (tramp-file-name-localname (tramp-dissect-file-name ,filename))))
+       ;; We don't want to run it when `non-essential' is t, or there
+       ;; is no connection process yet.
+       (when (tramp-connectable-p ,filename)
+	 (with-parsed-tramp-file-name (expand-file-name ,filename) nil
+	   (with-tramp-file-property v localname "file-exists-p"
+	     (if (tramp-file-property-p v localname "file-attributes")
+		 (not
+		  (null (tramp-get-file-property v localname "file-attributes")))
+	       ,@body))))))
 
 (defmacro tramp-skeleton-file-local-copy (filename &rest body)
   "Skeleton for `tramp-*-handle-file-local-copy'.
@@ -3865,13 +4003,8 @@ Let-bind it when necessary.")
 
 (defun tramp-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
-  ;; `file-exists-p' is used as predicate in file name completion.
-  ;; We don't want to run it when `non-essential' is t, or there is
-  ;; no connection process yet.
-  (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name (expand-file-name filename) nil
-      (with-tramp-file-property v localname "file-exists-p"
-	(not (null (file-attributes filename)))))))
+  (tramp-skeleton-file-exists-p filename
+    (not (null (file-attributes filename)))))
 
 (defun tramp-handle-file-in-directory-p (filename directory)
   "Like `file-in-directory-p' for Tramp files."
