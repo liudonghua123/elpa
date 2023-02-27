@@ -462,7 +462,7 @@ entire command."
     (insert (documentation (symbol-function 'shell-command+) 'raw))
     (dolist (feature shell-command+-features)
       (if (fboundp 'make-separator-line)
-          (insert "\n" (make-separator-line) "\n")
+          (insert "\n\n" (make-separator-line) "\n")
         (newline 2))
       (insert
        (let ((doc (get feature 'shell-command+-docstring)))
