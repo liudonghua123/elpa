@@ -4,7 +4,7 @@
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/typo.el
-;; Version: $Id: typo.el,v 1.6 2023/01/18 19:34:42 oj14ozun Exp oj14ozun $
+;; Version: $Id: typo.el,v 1.7 2023/02/27 17:45:54 oj14ozun Exp oj14ozun $
 ;; Package-Requires: ((emacs "27.1"))
 ;; Package-Version: 1
 ;; Keywords: convenience
@@ -43,7 +43,7 @@
   "Completion style using typo analysis."
   :group 'minibuffer)
 
-(defcustom typo-level 8
+(defcustom typo-level #'sqrt
   "Number of edits from the current word to a completion.
 Optionally this option may also be a function, that takes a
 number (indicating the length of the input) and returns a number
