@@ -4,7 +4,7 @@
 
 ;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/typo.el
-;; Version: $Id: typo.el,v 1.5 2023/01/15 12:49:56 oj14ozun Exp oj14ozun $
+;; Version: $Id: typo.el,v 1.6 2023/01/18 19:34:42 oj14ozun Exp oj14ozun $
 ;; Package-Requires: ((emacs "27.1"))
 ;; Package-Version: 1
 ;; Keywords: convenience
@@ -44,8 +44,11 @@
   :group 'minibuffer)
 
 (defcustom typo-level 8
-  "Number of edits from the current word to a completion."
-  :type 'natnum)
+  "Number of edits from the current word to a completion.
+Optionally this option may also be a function, that takes a
+number (indicating the length of the input) and returns a number
+indicating the maximal number of permitted typos."
+  :type '(choice function natnum))
 
 (defcustom typo-shrink 1
   "Number of characters a word may shrink."
@@ -58,8 +61,20 @@
 (define-inline typo--test (word key)
   (inline-letevals (word key)
     (inline-quote
-     (and (<= (string-distance ,word ,key) typo-level)
-	  (<= (- typo-shrink) (- (length ,word) (length ,key)) typo-expand)))))
+     (let* ((len-word (length ,word))
+	    (len-key (length ,key))
+	    (typo-level
+	     (cond
+	      ((functionp typo-level)
+	       (ceiling (funcall typo-level len-word)))
+	      ((natnump typo-level)
+	       typo-level)
+	      ((error "Invalid `typo-level' %S" typo-level)))))
+       (and (<= (- typo-shrink)
+		(- len-word len-key)
+		typo-expand)
+	    (<= (string-distance ,word ,key)
+		typo-level))))))
 
 (defun typo-edits (word collection pred)
   "Generate a list of all multi-edit typos of WORD.
