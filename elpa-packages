@@ -354,6 +354,7 @@
   :ignored-files ("LICENSE"))
  (javaimp		:url nil)
  (jgraph-mode		:url nil)
+ (jit-spell		:url "https://github.com/astoff/jit-spell")
  (js2-mode		:url "https://github.com/mooz/js2-mode.git")
  (json-mode		:url nil)
  (jsonrpc		:core "lisp/jsonrpc.el")
@@ -572,10 +573,6 @@
  (smalltalk-mode	:url nil) ;; Was "git://git.sv.gnu.org/smalltalk"
  (smart-yank		:url nil)
  (sml-mode		:url nil)
- (standard-themes		:url "https://git.sr.ht/~protesilaos/standard-themes"
-  :doc "README.org"
-  :news "CHANGELOG.org"
-  :ignored-files ("COPYING" "doclicense.texi"))
  (so-long		:core "lisp/so-long.el")
  (soap-client		:core ("lisp/net/soap-client.el" "lisp/net/soap-inspect.el"))
  (sokoban		:url nil)
@@ -589,6 +586,10 @@
   :ignored-files ("LICENSE")
   :lisp-dir "lisp")
  (ssh-deploy		:url "https://github.com/cjohansson/emacs-ssh-deploy")
+ (standard-themes		:url "https://git.sr.ht/~protesilaos/standard-themes"
+  :doc "README.org"
+  :news "CHANGELOG.org"
+  :ignored-files ("COPYING" "doclicense.texi"))
  (stream		:url nil)
  (substitute		:url "https://git.sr.ht/~protesilaos/substitute"
   :doc "README.org"
@@ -650,9 +651,9 @@
  (trie			:url "http://www.dr-qubit.org/git/predictive.git"
   :manual-sync t ;; The upstream doesn't exist any more!
   )
+ (trinary		:url "https://github.com/emacs-elsa/trinary-logic")
  (triples		:url "https://github.com/ahyatt/triples"
   :readme "README.org")
- (trinary		:url "https://github.com/emacs-elsa/trinary-logic")
  ;; FIXME: The upstream of `undo-tree' has diverged.  I tried to
  ;; contact Toby but he's quite busy.  He mentioned thinking of using the
  ;; `elpa.git` branch as the official upstream.
