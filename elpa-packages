@@ -83,6 +83,8 @@
   ;; a "parallel" history to that of the upstream.
   :manual-sync t)
  (beacon		:url "https://github.com/Malabarba/beacon")
+ (beardbolt		:url "https://github.com/joaotavora/beardbolt"
+  :readme "README.md")
  (beframe		:url "https://git.sr.ht/~protesilaos/beframe"
   :doc "README.org"
   :readme "README.md"
@@ -187,6 +189,9 @@
   :doc "README.org"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
+ (denote-menu		:url "https://github.com/namilus/denote-menu"
+  :doc "README.org"
+  :ignored-files ("COPYING"))
  (detached		:url "https://git.sr.ht/~niklaseklund/detached.el"
   :news "CHANGELOG.org"
   :readme "README.md")
