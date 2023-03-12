@@ -1,6 +1,6 @@
 ;;; poke-mode.el --- Major mode for editing Poke programs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2022  Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023  Free Software Foundation, Inc.
 
 ;; SMIE grammar and help from Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 3.0
@@ -58,7 +58,7 @@
 
 (defface poke-type-constructor-offset
   '((t (:inherit poke-unit)))
-  "Face used to highlight offset type constructors")
+  "Face used to highlight offset type constructors.")
 
 (defface poke-function
   '((t (:inherit font-lock-function-name-face)))
@@ -131,7 +131,7 @@
 
 (defvar poke-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "\C-c/") 'smie-close-block)
+    (define-key map (kbd "C-c /") #'smie-close-block)
     map)
   "Keymap used in `poke-mode'.")
 
@@ -294,22 +294,24 @@
       (assoc "+") (assoc "-")))))
 
 (defun poke--smie-forward-token ()
+  "Move one token ahead in a Poke buffer."
   (let ((case-fold-search nil)
-        (token (smie-default-forward-token)))
+        (token (smie-default-forward-token))
+	(lbp (line-beginning-position)))
     (cond
      ;; Handle if-(, while-(, for-(, catch-(
      ((and (or (equal token "") (not token)) (looking-at "("))
       (cond
-       ((looking-back "if[ \t\n]*")
+       ((looking-back "if[ \t\n]*" lbp)
         (forward-char 1)
         "if-(")
-       ((looking-back "while[ \t\n]*")
+       ((looking-back "while[ \t\n]*" lbp)
         (forward-char 1)
         "while-(")
-       ((looking-back "for[ \t\n]*")
+       ((looking-back "for[ \t\n]*" lbp)
         (forward-char 1)
         "for-(")
-       ((looking-back "catch[ \t\n]*")
+       ((looking-back "catch[ \t\n]*" lbp)
         (forward-char 1)
         "catch-(")
        (t
@@ -318,20 +320,20 @@
      ((and (or (equal token "") (not token)) (looking-at ")"))
       (condition-case nil
           (let ((entity (save-excursion
-                         (forward-char 1)
-                         (let ((forward-sexp-function nil))
-                           (backward-sexp))
-                         (cond
-                          ((looking-back "if[ \t\n]*")
-                           "if-)")
-                          ((looking-back "while[ \t\n]*")
-                           "while-)")
-                          ((looking-back "for[ \t\n]*")
-                           "for-)")
-                          ((looking-back "catch[ \t\n]*")
-                           "catch-)")
-                          (t
-                           nil)))))
+                          (forward-char 1)
+                          (let ((forward-sexp-function nil))
+                            (backward-sexp))
+                          (cond
+                           ((looking-back "if[ \t\n]*" lbp)
+                            "if-)")
+                           ((looking-back "while[ \t\n]*" lbp)
+                            "while-)")
+                           ((looking-back "for[ \t\n]*" lbp)
+                            "for-)")
+                           ((looking-back "catch[ \t\n]*" lbp)
+                            "catch-)")
+                           (t
+                            nil)))))
             (when entity
               (forward-char 1)
               entity))
@@ -341,6 +343,7 @@
       token))))
 
 (defun poke--smie-backward-token ()
+  "Move back one token in a Poke buffer."
   (forward-comment (- (point)))
   (cond
    ;; Don't merge ":" or ";" with some preceding punctuation such as ">".
@@ -349,38 +352,39 @@
     (string (char-after)))
    (t
     (let ((case-fold-search nil)
-          (token (smie-default-backward-token)))
+          (token (smie-default-backward-token))
+	  (lbp (line-beginning-position)))
       (cond
        ;; Handle if-(
-       ((and (or (equal token "") (not token)) (looking-back "if[ \t\n]*("))
+       ((and (or (equal token "") (not token)) (looking-back "if[ \t\n]*(" lbp))
         (forward-char -1)
         "if-(")
        ;; Handle while-(
-       ((and (or (equal token "") (not token)) (looking-back "while[ \t\n]*("))
+       ((and (or (equal token "") (not token)) (looking-back "while[ \t\n]*(" lbp))
         (forward-char -1)
         "while-(")
        ;; Handle for-(
-       ((and (or (equal token "") (not token)) (looking-back "for[ \t\n]*("))
+       ((and (or (equal token "") (not token)) (looking-back "for[ \t\n]*(" lbp))
         (forward-char -1)
         "for-(")
        ;; Handle catch-(
-       ((and (or (equal token "") (not token)) (looking-back "catch[ \t\n]*("))
+       ((and (or (equal token "") (not token)) (looking-back "catch[ \t\n]*(" lbp))
         (forward-char -1)
         "catch-(")
        ;; Handle if-), while-), for-), catch-)
-       ((and (or (equal token "") (not token)) (looking-back ")"))
+       ((and (or (equal token "") (not token)) (looking-back ")" lbp))
         (condition-case nil
             (let ((entity (save-excursion
                             (let ((forward-sexp-function nil))
                               (backward-sexp))
                             (cond
-                             ((looking-back "if[ \t\n]*")
+                             ((looking-back "if[ \t\n]*" lbp)
                               "if-)")
-                             ((looking-back "while[ \t\n]*")
+                             ((looking-back "while[ \t\n]*" lbp)
                               "while-)")
-                             ((looking-back "for[ \t\n]*")
+                             ((looking-back "for[ \t\n]*" lbp)
                               "for-)")
-                             ((looking-back "catch[ \t\n]*")
+                             ((looking-back "catch[ \t\n]*" lbp)
                               "catch-)")
                              (t
                               nil)))))
@@ -393,6 +397,8 @@
         token))))))
 
 (defun poke-smie-rules (token kind)
+  "Provide indentation rules for SMIE.
+For more details on TOKEN and KIND see `smie-rules-function'."
   (pcase (cons token kind)
     (`(:elem . basic) poke-indent-basic)
     ;; (`(:list-intro . "=") t)
