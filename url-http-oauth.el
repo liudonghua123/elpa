@@ -1,4 +1,4 @@
-;;; url-http-oauth.el --- Add OAuth 2.0 authentication support to URL library -*- lexical-binding: t -*-
+;;; url-http-oauth.el --- OAuth 2.0 for URL library -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2023 Free Software Foundation, Inc.
 
