@@ -50,7 +50,8 @@
 ;; catches on, authorize-url and access-token-url can be made
 ;; optional, and their values retrieved automatically.  But from what
 ;; I can tell RFC 8414 is not consistently implemented yet.
-(defun url-http-oauth-register-provider (url authorize-url access-token-url)
+(defun url-http-oauth-register-provider (url authorize-url access-token-url
+                                             client-identifier scope)
   "Register URL as an OAuth 2.0 provider.
 URL will be accessed by Emacs with a suitable \"Authorization\"
 header containing \"Bearer <token>\".  AUTHORIZE-URL and
@@ -61,10 +62,97 @@ either URL structures or URL strings."
     (setq url-http-oauth--registered-oauth-urls
           (make-hash-table :test #'equal)))
   (let ((key (url-http-oauth-url-string url))
-        (authorize (url-http-oauth-url-object authorize-url))
-        (access-token (url-http-oauth-url-object access-token-url)))
-    (puthash key (list authorize access-token)
+        (authorize (url-http-oauth-url-string authorize-url))
+        (access-token (url-http-oauth-url-string access-token-url)))
+    (puthash key (list authorize access-token client-identifier scope)
              url-http-oauth--registered-oauth-urls)))
+
+
+(defun url-http-oauth-get-access-token (url code)
+  "Get an access token for URL using CODE."
+  (let* ((url-request-method "POST")
+         (key-url (url-http-oauth-url-string url))
+         (url-list (gethash key-url url-http-oauth--registered-oauth-urls))
+         (access-token-url (nth 1 url-list))
+         (client-identifier (nth 2 url-list))
+         (client-secret
+          (auth-info-password (car (auth-source-search :host access-token-url
+                                                       :user client-identifier
+                                                       :max 1))))
+         (authorization (concat "Basic "
+                                (base64-encode-string
+                                 (format "%s:%s" client-identifier
+                                         client-secret)
+                                 t)))
+	 (url-request-extra-headers
+	  (list (cons "Content-Type" "application/x-www-form-urlencoded")
+                (cons "Authorization" authorization)))
+	 (url-request-data
+	  (mm-url-encode-www-form-urlencoded
+           (list (cons "grant_type" "authorization_code")
+                 (cons "code" code)))))
+    (url-retrieve access-token-url
+                  (lambda (status arguments)
+                    (let ((event (plist-get status :error)))
+                      (if event
+                          (error "Failed to get token: %s" event)
+                        (goto-char (point-min))
+                        (re-search-forward "\n\n")
+                        (let* ((grant (json-parse-buffer))
+                               (type (gethash "token_type" grant)))
+                          (unless (equal type "bearer" )
+                            (error "Unrecognized token type: %s" type))
+                          (auth-source-search :host key-url
+                                              :secret (gethash "access_token")
+                                              :expiry (gethash "expires_in")
+                                              :create t))))))))
+
+;; FIXME: why doesn't the authentication get saved?
+;; (funcall (plist-get (car (auth-source-search :host "https://meta.sr.ht/query" :secret "example" :expiry 86399 :create t)) :save-function))
+(defun url-http-oauth-extract-authorization-code (url)
+  "Extract the value of the code parameter in URL."
+  (let ((filename (url-filename (url-generic-parse-url url)))
+        (query-index (string-search "?" filename)))
+    (unless query-index
+      (error "Expected a URL with a query component after a `?' character"))
+    (let* ((query (substring filename (1+ query-index)))
+           (code
+            (catch 'found
+              (dolist (parameter (string-split query "&" t))
+                (let ((pair (split-string parameter "=")))
+                  (when (equal (car pair) "code")
+                    (throw 'found (cadr pair))))))))
+      (unless code
+        (error "Could not find code in pasted URL"))
+      code)))
+
+(defun url-http-oauth-get-authorization-code (url)
+  "Prompt the user with the authorization endpoint for URL."
+  (let* ((key-url (url-http-oauth-url-string url))
+         (url-list
+          (gethash key-url url-http-oauth--registered-oauth-urls)))
+    (unless url-list
+      (error "%s is not registered with url-http-oauth" key-url))
+    (let* ((response-url
+            (read-from-minibuffer
+             (format "Browse to %s and paste the redirected code URL: "
+                     (concat (nth 0 url-list)
+                             "?"
+                             (mm-url-encode-www-form-urlencoded
+                              (list (cons "client_id" (nth 2 url-list))
+                                    (cons "response_type" "code")
+                                    (cons "scope" (nth 3 url-list))))))))
+           (code (url-http-oauth-extract-authorization-code response-url)))
+      (url-http-oauth-get-access-token url code))))
+
+(defvar url-http-oauth-testval nil "Test value.")
+(setq url-http-oauth-testval nil)
+(setq url-http-oauth-testval (url-http-oauth-authorize "https://meta.sr.ht/query"))
+
+;; works: (auth-source-search :max 1 :host "https://meta.sr.ht/oauth2/access-token")
+(defvar url-http-oauth-fulltokenbuf nil "Test buf.")
+(setq url-http-oauth-fulltokenbuf
+      (url-http-oauth-get-access-token "https://meta.sr.ht/query" "eb869898585b6e21cf016dc0126d48e8"))
 
 ;;; Public function called by `url-get-authentication'.
 ;;;###autoload
