@@ -545,7 +545,9 @@
  (realgud-lldb        	:url "https://github.com/realgud/realgud-lldb")
  (realgud-node-debug  	:url "https://github.com/realgud/realgud-node-debug")
  (realgud-node-inspect 	:url "https://github.com/realgud/realgud-node-inspect")
+ (realgud-pdbpp   	:url "https://github.com/realgud/realgud-pdbpp")
  (realgud-trepan-ni   	:url "https://github.com/realgud/realgud-trepan-ni")
+ (realgud-trepan-xpy   	:url "https://github.com/realgud/realgud-trepan-xpy")
  (rec-mode		:url "https://git.savannah.gnu.org/git/recutils/rec-mode.git")
  (register-list		:url nil)
  (relint		:url "https://github.com/mattiase/relint"
