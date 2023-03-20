@@ -33,6 +33,11 @@
 (require 'url-http)
 (require 'epg)
 
+(defgroup openpgp '()
+  "Client for keys.openpgpg.org."
+  :prefix "openpgp-"
+  :group 'epg)
+
 (defcustom openpgp-keyserver "keys.openpgp.org"
   "Domain of keyserver to use.
 
