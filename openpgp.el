@@ -177,32 +177,5 @@ key."
 	 (out (shell-command-to-string cmd)))
     (openpgp-upload-key-string email out)))
 
-;;; Mail Client Support
-
-(with-eval-after-load 'rmail
-  (defun openpgp-rmail-fetch-key ()
-    "Fetch key for the sender of the current message."
-    (interactive)
-    (when (or (null rmail-current-message)
-	      (zerop rmail-current-message))
-      (error "There is no message to fetch a key for"))
-    (let ((email (or (mail-fetch-field "mail-reply-to" nil t)
-		     (mail-fetch-field "reply-to" nil t)
-		     (mail-fetch-field "from"))))
-      (when (yes-or-no-p (format "Attempt to fetch key for %s? " email))
-	(openpgp-fetch-key-by-email email)))))
-
-(with-eval-after-load 'mu4e
-  (defun openpgp-mu4e-fetch-key ()
-    "Fetch key for the sender of the current message."
-    (interactive)
-    (let ((msg (mu4e-message-at-point 'noerror)))
-      (unless msg
-	(error "There is no message to fetch a key for"))
-      (let ((email (or (mu4e-message-field msg :reply-to)
-		       (mu4e-message-field msg :from))))
-	(when (yes-or-no-p (format "Attempt to fetch key for %s? " email))
-	  (openpgp-fetch-key-by-email email))))))
-
 (provide 'openpgp)
 ;;; openpgp.el ends here
