@@ -1,10 +1,14 @@
 Completion style using typo analysis
 ====================================
 
-Find here the source for typo.el, a completion style based on "typo
+Find here the source for typo.el, an [Emacs] [completion style] based on "typo
 analysis", that is to say it adds the suggestion to complete a prompt
 to the [closest string] within a bounded number of edits.
 
+[Emacs]:
+	https://www.gnu.org/software/emacs/
+[completion style]:
+	https://www.gnu.org/software/emacs/manual/html_node/emacs/Completion-Styles.html
 [closest string]:
 	https://en.wikipedia.org/wiki/Levenshtein_distance
 
