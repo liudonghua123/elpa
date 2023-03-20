@@ -1,0 +1,5 @@
+*.elc
+*~
+\#*\#
+/typo-pkg.el
+/typo-autoloads.el
