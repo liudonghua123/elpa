@@ -57,6 +57,13 @@ indicating the maximal number of permitted typos."
   "Number of characters a word may expand."
   :type 'natnum)
 
+(defcustom typo-support-all-completions t
+  "Non-nil means enable support for `all-completions'.
+When enabled typo-based completion will also be applied to the
+*Completions* buffer (or analogous concepts in other completion
+frameworks)."
+  :type 'boolean)
+
 (define-inline typo--test (word key)
   (inline-letevals (word key)
     (inline-quote
@@ -115,7 +122,8 @@ single-letter typos are searched."
 (defun typo-all-completions (string collection pred _point)
   "Generate all  versions of the STRING using COLLECTION.
 COLLECTION and PRED are as defined in `all-completions'."
-  (typo-edits string collection pred))
+  (and typo-support-all-completions
+       (typo-edits string collection pred)))
 
 ;;;###autoload
 (defun typo-try-completion (string collection pred _point &optional _metadata)
