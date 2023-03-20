@@ -42,7 +42,8 @@
   "Domain of keyserver to use.
 
 NOTE: currently the default value is the only working keyserver,
-as federation hasn't been implemented yet.")
+as federation hasn't been implemented yet."
+  :type 'string)
 
  ;; FETCHING KEYS
 
