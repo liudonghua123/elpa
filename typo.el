@@ -2,11 +2,10 @@
 
 ;; Copyright (C) 2021, 2022, 2023  Philip Kaludercic
 
-;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/typo.el
-;; Version: $Id: typo.el,v 1.7 2023/02/27 17:45:54 oj14ozun Exp oj14ozun $
+;; Author: Philip Kaludercic <philipk@posteo.net>
+;; URL: https://git.sr.ht/~pkal/typo/
+;; Version: 1.0.0
 ;; Package-Requires: ((emacs "27.1"))
-;; Package-Version: 1
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or modify
