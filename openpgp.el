@@ -45,7 +45,7 @@ NOTE: currently the default value is the only working keyserver,
 as federation hasn't been implemented yet."
   :type 'string)
 
- ;; FETCHING KEYS
+;;; Fetching Keys
 
 (defsubst openpgp--api-url (endpoint &optional arg)
   "Construct VKS request querying ENDPOINT.
@@ -82,7 +82,7 @@ URL, if non-nil."
   (url-retrieve (openpgp--api-url "by-email" (url-hexify-string email))
 		#'openpgp--process-key))
 
- ;; UPLOADING KEYS
+;;; Uploading Keys
 
 (defun openpgp--key-ids ()
   (let* ((keys (epg-list-keys (epg-make-context)))
@@ -177,7 +177,7 @@ key."
 	 (out (shell-command-to-string cmd)))
     (openpgp-upload-key-string email out)))
 
- ;; MAIL CLIENT SUPPORT
+;;; Mail Client Support
 
 (with-eval-after-load 'rmail
   (defun openpgp-rmail-fetch-key ()
