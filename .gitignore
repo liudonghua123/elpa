@@ -1,0 +1,5 @@
+*.elc
+*~
+\#*\#
+/site-lisp-pkg.el
+/site-lisp-autoloads.el
