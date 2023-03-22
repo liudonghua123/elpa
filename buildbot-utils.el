@@ -47,4 +47,8 @@
                        attr)
                "&"))
 
+(defun buildbot-format-epoch-time (epoch)
+  (format-time-string "%Y-%m-%d %a %H:%M:%S %Z" (encode-time
+                                                 (decode-time epoch))))
+
 (provide 'buildbot-utils)

@@ -55,6 +55,9 @@
               (buildbot-api-change (list (cons 'revision revision))))
    0))
 
+(defun buildbot-get-build-by-buildid (buildid)
+  (buildbot-api-build (list (cons 'buildid buildid))))
+
 (defun buildbot-get-builds-by-revision (revision)
   (alist-get 'builds (buildbot-get-change-by-revision revision)))
 
