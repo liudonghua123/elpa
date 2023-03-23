@@ -10,7 +10,7 @@
 (defun buildbot-api-logs (stepid)
   (buildbot-url-fetch-json
    (format
-    "%s/api/v2/steps/%s/logs"
+    "%s/api/v2/steps/%d/logs"
     buildbot-host stepid)))
 
 (defun buildbot-api-builders ()
@@ -45,6 +45,9 @@
    (lambda (builder)
      (= (alist-get 'builderid builder) builderid))
    buildbot-builders))
+
+(defun buildbot-get-logs-by-stepid (stepid)
+  (alist-get 'logs (buildbot-api-logs stepid)))
 
 (defun buildbot-get-builder-name-by-id (id)
   (alist-get 'name (buildbot-builder-by-id id)))

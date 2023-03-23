@@ -51,4 +51,13 @@
   (format-time-string "%Y-%m-%d %a %H:%M:%S %Z" (encode-time
                                                  (decode-time epoch))))
 
+
+(defun buildbot-build-status (build)
+  (let ((state (alist-get 'state_string build)))
+    (cond ((equal state "build successful")
+           'success)
+          ((string-suffix-p "(failure)" state)
+           'failure)
+          (t 'pending))))
+
 (provide 'buildbot-utils)

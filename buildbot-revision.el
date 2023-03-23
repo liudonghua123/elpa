@@ -1,14 +1,12 @@
 ;; -*- lexical-binding: t; -*-
 (require 'buildbot-client)
+(require 'buildbot-view)
 
 (defvar-local buildbot-revision-revision-id nil)
 (defvar-local buildbot-revision-info nil)
-(defvar buildbot-revision-header-regex "^\\[.*\\]$")
 
-(define-derived-mode buildbot-revision-mode special-mode "Buildbot revision"
+(define-derived-mode buildbot-revision-mode buildbot-view-mode "Buildbot revision"
   "Buildbot view for a revision")
-
-(define-key buildbot-revision-mode-map "g" 'buildbot-revision-reload)
 
 (defun buildbot-revision-buffer-name (revision)
   (concat "*buildbot revision " revision "*"))
@@ -41,57 +39,46 @@
 (defun buildbot-revision-reload ()
   (interactive)
   (buildbot-revision-update))
+(define-key buildbot-revision-mode-map "g" 'buildbot-revision-reload)
 
 (defun buildbot-revision-format (revision-info builds)
   (concat
-   (buildbot-revision-format-info revision-info)
+   (buildbot-view-format-revision-info revision-info)
    "\n"
    (string-join
-    (mapcar 'buildbot-revision-format-build builds)
+    (mapcar 'buildbot-view-format-build builds)
     "\n")))
 
 (defun buildbot-revision-get-info (change)
   (list (cons 'revision (alist-get 'revision change))
         (cons 'author (alist-get 'author change))
         (cons 'created-at (buildbot-format-epoch-time
-                     (alist-get 'created_at
-                                (alist-get 'sourcestamp change))))
-        (cons 'comments (alist-get 'comments change))))
+                           (alist-get 'created_at
+                                      (alist-get 'sourcestamp change))))
+        (cons 'comments (alist-get 'comments change))
+        (cons 'build-stats (buildbot-revision-get-build-stats
+                            (alist-get 'builds change)))))
 
-(defun buildbot-revision-format-info (info)
-  (format
-   "commit %s\nAuthor: %s\nDate: %s\n\n%s"
-   (alist-get 'revision info)
-   (alist-get 'author info)
-   (alist-get 'created-at info)
-   (alist-get 'comments info)))
+(defun buildbot-revision-get-build-stats (builds)
+  (let ((results '((success . 0)
+                   (failure . 0)
+                   (pending . 0)))
+        status)
+    (seq-do
+     (lambda (build)
+       (setq status (buildbot-build-status build))
+       (setf (alist-get status results)
+             (1+ (alist-get status results))))
+     builds)
+    results))
 
-(defun buildbot-revision-next-header (n)
-  (interactive "p")
-  (dotimes (_ n)
-    (end-of-line 1)
-    (re-search-forward buildbot-revision-header-regex)
-    (beginning-of-line 1)))
-(define-key buildbot-revision-mode-map "n" 'buildbot-revision-next-header)
-
-(defun buildbot-revision-previous-header (n)
-  (interactive "p")
-  (beginning-of-line 1)
-  (unless (looking-at buildbot-revision-header-regex)
-    (re-search-backward buildbot-revision-header-regex))
-  (dotimes (_ n)
-    (re-search-backward buildbot-revision-header-regex)))
-(define-key buildbot-revision-mode-map "p" 'buildbot-revision-previous-header)
-
-(defun buildbot-revision-format-build (build)
-  (propertize
-   (format "\n[%s %s]\n%s"
-           (buildbot-get-builder-name-by-id (alist-get 'builderid build))
-           (alist-get 'state_string build)
-           (string-join
-            (mapcar (lambda (test) (alist-get 'test_name test))
-                    (alist-get 'failed_tests build))
-            "\n"))
-   'buildid (alist-get 'id build)))
+(defun buildbot-revision-open-build ()
+  (interactive)
+  (let ((build (get-text-property (point) 'build)))
+    (unless build
+      (error "Not at a build"))
+    (buildbot-build-load build buildbot-revision-info)))
+(define-key buildbot-revision-mode-map (kbd "<return>")
+  'buildbot-revision-open-build)
 
 (provide 'buildbot-revision)
