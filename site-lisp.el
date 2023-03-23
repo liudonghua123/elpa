@@ -90,7 +90,7 @@ of the list."
 
 ;;;###autoload
 (defcustom site-lisp-directory
-  (locate-user-emacs-file "site-lisp")
+  (file-name-as-directory (locate-user-emacs-file "site-lisp"))
   "Directory use for site-local Lisp code.
 If this directory doesn't exist, nothing is done."
   :set (lambda (var val)
