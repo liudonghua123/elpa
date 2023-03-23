@@ -43,9 +43,12 @@
   "Combine multiple Xref backends."
   :group 'xref)
 
-(defcustom xref-union-excluded-backends '()
-  "List of Xref backend not combine."
-  :type '(repeat sexp))
+(defcustom xref-union-excluded-backends #'ignore
+  "Predicate to exclude backends in `xref-union-mode'.
+The function is invoked with a single argument, the backend.  If
+a non-nil value is returned, the backend will not be added to the
+union backend, otherwise it will be."
+  :type 'function)
 
 
 ;;;; Xref interface
@@ -113,7 +116,7 @@ PATTERN is specified in `xref-backend-apropos'."
        'xref-backend-functions
        (lambda (b)
          (setq b (funcall b))
-         (unless (and b (member b xref-union-excluded-backends))
+         (when (and b (funcall xref-union-excluded-backends b))
            (push b backends))
          nil))
       (setq xref-union--current (cons 'union backends))
