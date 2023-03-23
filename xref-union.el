@@ -106,12 +106,18 @@ PATTERN is specified in `xref-backend-apropos'."
   (when xref-union--current
     (remove-hook 'xref-backend-functions xref-union--current))
   (when xref-union-mode
-    (thread-last
-      xref-union-excluded-backends
-      (seq-difference xref-backend-functions)
-      (cons 'union)
-      (setq xref-union--current)
-      (add-hook 'xref-backend-functions))))
+    (let (backends)
+      ;; Collect all (local and global) functions in
+      ;; `xref-backend-functions' into a local list.
+      (run-hook-wrapped
+       'xref-backend-functions
+       (lambda (b)
+         (setq b (funcall b))
+         (unless (and b (member b xref-union-excluded-backends))
+           (push b backends))
+         nil))
+      (setq xref-union--current (cons 'union backends))
+      (add-hook 'xref-backend-functions xref-union--current))))
 
 ;; LocalWords: backend backends
 
