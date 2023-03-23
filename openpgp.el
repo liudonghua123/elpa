@@ -1,9 +1,13 @@
 ;;; openpgp.el --- Client for keys.openpgp.org       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023  Philip Kaludercic
+;; Copyright (C) 2020, 2023  Philip Kaludercic
 
-;; Author: Philip Kaludercic
-;; Keywords: mail
+;; Author: Philip Kaludercic <philipk@posteo.net>
+;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
+;; URL: https://git.sr.ht/~pkal/openpgp/
+;; Version: 1.0.0
+;; Package-Requires: ((emacs "24.4"))
+;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
