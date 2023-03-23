@@ -68,8 +68,8 @@ of the list."
     (dolist (dir (cons dir (directory-files dir t "^[^.]")))
       (when (file-directory-p dir)
         (add-to-list 'load-path dir)
-        (site-lisp-generate-autoloads dir autoload-file)
-        (byte-recompile-directory dir)))
+        (site-lisp-generate-autoloads dir autoload-file)))
+    (byte-recompile-directory dir)
     (load autoload-file nil t)))
 
 (defun site-lisp-unprepare (dir)
