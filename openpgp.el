@@ -61,6 +61,8 @@ URL, if non-nil."
 	  (if arg (concat "/" arg) "")))
 
 (defun openpgp--process-key (status)
+  "Callback function for `url-retrieve' for receiving a key.
+STATUS is a plist described in the docstring for `url-retrieve'."
   (when (plist-get status :error)
     (error "Request failed: %s"
 	   (caddr (assq (caddr (plist-get status :error))
@@ -89,6 +91,7 @@ URL, if non-nil."
 ;;; Uploading Keys
 
 (defun openpgp--key-ids ()
+  "Generate a list of KEY ids."
   (let* ((keys (epg-list-keys (epg-make-context)))
 	 (uids (mapcan #'epg-key-user-id-list keys))
 	 (ids (mapcar #'epg-user-id-string uids))
@@ -96,6 +99,9 @@ URL, if non-nil."
     (mapcan (lambda (addr) (and (car addr) (cdr addr))) addr)))
 
 (defun openpgp--verify-callback (status email)
+  "Callback function for `url-retrieve' for verifying a key.
+STATUS is a plist described in the docstring for `url-retrieve'.
+EMAIL is the email address being verified."
   (when (plist-get status :error)
     (error "Request failed: %s"
 	   (caddr (assq (caddr (plist-get status :error))
@@ -130,6 +136,9 @@ TOKEN should be supplied by a previous \"upload-key\" request."
 		  (list email))))
 
 (defun openpgp--upload-callback (status email)
+  "Callback function for `url-retrieve' for uploading a key.
+STATUS is a plist described in the docstring for `url-retrieve'.
+EMAIL is the email address being uploaded."
   (when (plist-get status :error)
     (error "Request failed: %s"
 	   (caddr (assq (caddr (plist-get status :error))
