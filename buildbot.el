@@ -4,7 +4,6 @@
 
 (require 'buildbot-client)
 (defvar buildbot-builders (buildbot-get-all-builders))
-(require 'buildbot-revision)
-(require 'buildbot-build)
+(require 'buildbot-view)
 
 (provide 'buildbot)
