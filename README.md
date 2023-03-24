@@ -26,8 +26,7 @@ integration is welcomed.
 How to use
 ----------
 
-This package is published on [MELPA], but there is an intention to
-eventually move over to GNU ELPA.
+This package is distributed on [GNU ELPA].
 
 One might configure `autocrypt.el` to read headers using Rmail and
 inject headers using `message-mode` as follows:
@@ -79,5 +78,5 @@ Public Domain Dedication][cc0] license.
 
 [autocrypt]: https://autocrypt.org/
 [public inbox]: https://lists.sr.ht/~pkal/public-inbox
-[MELPA]: https://melpa.org/#/autocrypt
+[GNU ELPA]: https://elpa.gnu.org/packages/autocrypt.html
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
