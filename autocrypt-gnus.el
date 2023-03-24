@@ -19,6 +19,8 @@
 ;;; Code:
 
 (require 'gnus)
+(require 'gnus-art)
+(require 'mm-decode)
 (require 'autocrypt)
 
 ;;;###autoload
@@ -33,6 +35,23 @@
 (defun autocrypt-gnus--get-header (header)
   "Return value for HEADER from current message."
   (gnus-fetch-original-field header))
+
+(defun autocrypt-gnus--get-part (index)
+  "Return the INDEX'th part of the message as a string."
+  (save-window-excursion
+    (let ((content nil))
+      (condition-case nil
+          (gnus-article-part-wrapper
+           (1+ index)
+           (lambda (&optional handle _arg _event)
+             (unless handle
+               (gnus-article-jump-to-part (1+ index))
+               (setq handle (get-text-property (point) 'gnus-data)))
+             (with-temp-buffer
+               (mm-insert-part handle)
+               (setq content (buffer-string)))))
+        (error))
+      content)))
 
 (provide 'autocrypt-gnus)
 
