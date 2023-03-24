@@ -127,7 +127,7 @@ This function must accept one argument, a symbol designating the
 command (`install', `get-header', ...) and returns a function
 with the right signature.")
 
-(defsubst autocrypt-find-function (command silent)
+(defun autocrypt-find-function (command silent)
   "Return a function for handling COMMAND.
 If SILENT is non-nil, return nil when no implementation could be
 found."
@@ -221,7 +221,7 @@ the buffer it is being invoked in.  See `autocrypt-backends' and
 ;;;; Internal Functions
 
 ;; https://autocrypt.org/level1.html#e-mail-address-canonicalization
-(defsubst autocrypt-canonicalise (addr)
+(defun autocrypt-canonicalise (addr)
   "Return a canonical form of email address ADDR."
   ;; "[...] Other canonicalization efforts are considered for later
   ;; specification versions."
