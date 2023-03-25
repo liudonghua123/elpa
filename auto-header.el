@@ -1,6 +1,6 @@
 ;;; auto-header.el --- Automatically find the right headers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022, 2023  Philip Kaludercic
+;; Copyright (C) 2022, 2023  Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
