@@ -1,6 +1,6 @@
 ;;; site-lisp.el --- Manage site-lisp directories  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021, 2022, 2023  Philip Kaludercic
+;; Copyright (C) 2021, 2022, 2023  Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
@@ -67,6 +67,7 @@ of the list."
         (autoload-file (expand-file-name site-lisp-autoload-file dir)))
     (dolist (dir (cons dir (directory-files dir t "^[^.]")))
       (when (file-directory-p dir)
+        (message "Site-lisp: %s" dir)
         (add-to-list 'load-path dir)
         (site-lisp-generate-autoloads dir autoload-file)))
     (byte-recompile-directory dir)
@@ -98,6 +99,7 @@ If this directory doesn't exist, nothing is done."
            (site-lisp-unprepare site-lisp-directory))
          (site-lisp-prepare val)
          (custom-set-default var val))
+  :initialize #'custom-initialize-default
   :type 'directory)
 
 (defun site-lisp-reload ()
