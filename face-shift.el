@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019, 2021, 2023  Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
-;; Version: 0.2.0
+;; Version: 0.2.1
 ;; Keywords: faces
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://git.sr.ht/~pkal/face-shift
