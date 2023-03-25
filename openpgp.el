@@ -1,6 +1,6 @@
 ;;; openpgp.el --- Client for keys.openpgp.org       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020, 2023  Philip Kaludercic
+;; Copyright (C) 2020, 2023  Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
