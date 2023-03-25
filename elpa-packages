@@ -69,6 +69,7 @@
   ;; AUCTeX is currently sync'd manually and elpa.git isn't quite a mirror :-(
   :manual-sync t)
  (aumix-mode		:url nil)
+ (auto-header           :url "https://git.sr.ht/~pkal/auto-header")
  (auto-correct		:url nil)
  (auto-overlays		:url "http://www.dr-qubit.org/git/predictive.git"
   :manual-sync t ;; The upstream doesn't exist any more!
