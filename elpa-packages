@@ -666,6 +666,7 @@
  ;; FIXME: The upstream of `undo-tree' has diverged.  I tried to
  ;; contact Toby but he's quite busy.  He mentioned thinking of using the
  ;; `elpa.git` branch as the official upstream.
+ (typo                  :url "https://git.sr.ht/~pkal/typo")
  (undo-tree		:url "https://gitlab.com/tsc25/undo-tree")
  (uni-confusables 	:url nil
   :readme "README.md")
