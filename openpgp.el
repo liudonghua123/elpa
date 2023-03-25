@@ -71,18 +71,21 @@ STATUS is a plist described in the docstring for `url-retrieve'."
   (forward-line)
   (epa-import-armor-in-region (point) (point-max)))
 
+;;;###autoload
 (defun openpgp-fetch-key-by-fingerprint (fingerprint)
   "Query key via FINGERPRINT and add to keychain."
   (let ((fingerprint (string-remove-prefix "0X" (upcase fingerprint))))
     (url-retrieve (openpgp--api-url "by-fingerprint" fingerprint)
 		  #'openpgp--process-key)))
 
+;;;###autoload
 (defun openpgp-fetch-key-by-keyid (keyid)
   "Query key via KEYID and add to keychain."
   (let ((keyid (string-remove-prefix "0X" (upcase keyid))))
     (url-retrieve (openpgp--api-url "by-keyid" keyid)
 		  #'openpgp--process-key)))
 
+;;;###autoload
 (defun openpgp-fetch-key-by-email (email)
   "Query key via EMAIL and add to keychain."
   (url-retrieve (openpgp--api-url "by-email" (url-hexify-string email))
@@ -172,6 +175,7 @@ key."
 		  #'openpgp--upload-callback
 		  (list email))))
 
+;;;###autoload
 (defun openpgp-upload-key-file (email key-file)
   "Upload key from KEY-FILE for address EMAIL."
   (interactive (list (completing-read "Email: " (openpgp--key-ids)
@@ -181,6 +185,7 @@ key."
     (insert-file-contents key-file)
     (openpgp-upload-key-string email (buffer-string))))
 
+;;;###autoload
 (defun openpgp-upload-key (email)
   "Upload public key for address EMAIL using gpg."
   (interactive (list (completing-read "Email: " (openpgp--key-ids)
