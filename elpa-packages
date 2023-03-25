@@ -577,6 +577,7 @@
  (shell-quasiquote	:url nil)
  (shen-mode		:url nil)
  (sisu-mode		:url nil)
+ (site-lisp             :url "https://git.sr.ht/~pkal/site-lisp")
  (sketch-mode		:url "https://github.com/dalanicolai/sketch-mode")
  (slime-volleyball	:url nil)
  (sm-c-mode 		:url nil)
