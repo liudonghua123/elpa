@@ -1,5 +1,7 @@
 ;;; autocrypt.el --- Autocrypt implementation -*- lexical-binding:t -*-
 
+;; Copyright (C) 2020-2023  Free Software Foundation, Inc.
+
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
 ;; Version: 0.4.0

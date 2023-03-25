@@ -1,5 +1,7 @@
 ;;; autocrypt-message.el --- Autocrypt for message-mode -*- lexical-binding:t -*-
 
+;; Copyright (C) 2020-2023  Free Software Foundation, Inc.
+
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 
 ;; This program is free software; you can redistribute it and/or modify

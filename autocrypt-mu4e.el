@@ -1,5 +1,7 @@
 ;;; autocrypt-mu4e.el --- Autocrypt for mu4e -*- lexical-binding:t -*-
 
+;; Copyright (C) 2020-2023  Free Software Foundation, Inc.
+
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 
 ;; This program is free software; you can redistribute it and/or modify
