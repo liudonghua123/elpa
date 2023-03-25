@@ -1,6 +1,6 @@
 ;;; typo.el --- Completion style using typo analysis -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021, 2022, 2023  Philip Kaludercic
+;; Copyright (C) 2021, 2022, 2023  Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
