@@ -1,11 +1,11 @@
 ;;; auto-header.el --- Automatically find the right headers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022  Philip Kaludercic
+;; Copyright (C) 2022, 2023  Philip Kaludercic
 
-;; Author: Philip Kaludercic <philip.kaludercic@fau.de>
-;; Version: $Id: auto-header.el,v 1.18 2022/06/13 19:48:18 oj14ozun Exp oj14ozun $
-;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/auto-header.el
-;; Package-Version: 1
+;; Author: Philip Kaludercic <philipk@posteo.net>
+;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
+;; URL: https://git.sr.ht/~pkal/auto-header
+;; Version: 0.1.0
 ;; Keywords: c
 
 ;; This program is free software; you can redistribute it and/or modify
