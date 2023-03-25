@@ -73,6 +73,7 @@
  (auto-overlays		:url "http://www.dr-qubit.org/git/predictive.git"
   :manual-sync t ;; The upstream doesn't exist any more!
   :doc "docs/auto-overlay-manual.texinfo")
+ (autocrypt             :url "https://git.sr.ht/~pkal/autocrypt")
  (avy			:url "https://github.com/abo-abo/avy"
   ;; FIXME: Avy diverged https://github.com/abo-abo/avy/issues/344
   :merge t)
