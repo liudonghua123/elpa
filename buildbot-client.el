@@ -31,8 +31,9 @@
     "%s/api/v2/builds/%s/steps"
     buildbot-host buildid)))
 
-(defun buildbot-format-log-url (logid)
-  (format "%s/api/v2/logs/%s/raw" buildbot-host logid))
+(defun buildbot-api-log-raw (logid)
+  (buildbot-url-fetch-raw
+   (format "%s/api/v2/logs/%d/raw" buildbot-host logid)))
 
 (defun buildbot-api-recent-changes (limit)
   (buildbot-api-change (list (cons 'order "-changeid") (cons 'limit limit))))

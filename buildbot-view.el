@@ -5,10 +5,6 @@
 ;; 'revision, 'build, 'step, or 'log
 (defvar-local buildbot-view-type nil)
 (defvar-local buildbot-view-data nil)
-;; (defvar-local buildbot-view-revision-id nil)
-;; (defvar-local buildbot-view-revision-info nil)
-;; (defvar-local buildbot-view-build nil)
-;; (defvar-local buildbot-view-step nil)
 
 (define-derived-mode buildbot-view-mode special-mode "Buildbot view"
   "Buildbot view, a base mode")
@@ -121,26 +117,42 @@
    (buildbot-view-format-build build)
    "\n"
    (buildbot-view-format-step step)
+   "\n"
    (string-join
     (mapcar 'buildbot-view-format-log logs)
     "\n")))
 
+(defun buildbot-log-format (revision-info build step log log-text)
+  (concat
+   (buildbot-view-format-revision-info revision-info)
+   "\n"
+   (buildbot-view-format-build build)
+   "\n"
+   (buildbot-view-format-step step)
+   "\n"
+   (buildbot-view-format-log log)
+   "\n"
+   log-text))
+
 (defun buildbot-view-buffer-name (type data)
   (pcase type
-    ('revision (format "*buildbot revision %s"
+    ('revision (format "*buildbot revision %s*"
                        (alist-get 'revision-id data)))
-    ('build (format "*buildbot build %d"
+    ('build (format "*buildbot build %d*"
                     (alist-get 'id (alist-get 'build data))))
-    ('step (format "*buildbot step %d"
-                   (alist-get 'stepid (alist-get 'step data))))))
+    ('step (format "*buildbot step %d*"
+                   (alist-get 'stepid (alist-get 'step data))))
+    ('log (format "*buildbot log %d*"
+                   (alist-get 'logid (alist-get 'log data))))))
 
-(defun buildbot-view-load (type data)
+(defun buildbot-view-open (type data &optional force)
   (let ((buffer-name (buildbot-view-buffer-name type data)))
-    (with-current-buffer (get-buffer-create buffer-name)
-      (buildbot-view-mode)
-      (setq buildbot-view-type type
-            buildbot-view-data data)
-      (buildbot-view-update))
+    (when (or force (not (get-buffer buffer-name)))
+      (with-current-buffer (get-buffer-create buffer-name)
+        (buildbot-view-mode)
+        (setq buildbot-view-type type
+              buildbot-view-data data)
+        (buildbot-view-update)))
     (switch-to-buffer buffer-name)))
 
 (defun buildbot-view-reload ()
@@ -181,25 +193,38 @@
                 (alist-get 'step buildbot-view-data)
                 (buildbot-get-logs-by-stepid
                  (alist-get 'stepid
-                            (alist-get 'step buildbot-view-data)))))))
+                            (alist-get 'step buildbot-view-data))))))
+      ('log
+       (insert (buildbot-log-format
+                (alist-get 'revision-info buildbot-view-data)
+                (alist-get 'build buildbot-view-data)
+                (alist-get 'step buildbot-view-data)
+                (alist-get 'log buildbot-view-data)
+                (buildbot-api-log-raw
+                 (alist-get 'logid
+                            (alist-get 'log buildbot-view-data)))))))
     (goto-char (point-min))))
 
-(defun buildbot-view-open-thing-at-point ()
-  (interactive)
+(defun buildbot-view-open-thing-at-point (force)
+  (interactive "P")
   (let ((data (copy-tree buildbot-view-data)))
     (pcase (get-text-property (point) 'type)
       ('revision
        (setf (alist-get 'revision-id data)
              (get-text-property (point) 'revision-id))
-       (buildbot-view-load 'revision data))
+       (buildbot-view-open 'revision data))
       ('build
        (setf (alist-get 'build data)
              (get-text-property (point) 'build))
-       (buildbot-view-load 'build data))
+       (buildbot-view-open 'build data))
       ('step
        (setf (alist-get 'step data)
              (get-text-property (point) 'step))
-       (buildbot-view-load 'step data)))))
+       (buildbot-view-open 'step data))
+      ('log
+       (setf (alist-get 'log data)
+             (get-text-property (point) 'log))
+       (buildbot-view-open 'log data)))))
 (define-key buildbot-view-mode-map (kbd "<return>")
   'buildbot-view-open-thing-at-point)
 
