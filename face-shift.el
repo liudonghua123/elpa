@@ -1,6 +1,6 @@
 ;;; face-shift.el --- Shift the colour of certain faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019, 2021, 2023  Philip Kaludercic
+;; Copyright (C) 2019, 2021, 2023  Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Version: 0.2.0
