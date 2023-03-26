@@ -451,7 +451,7 @@
  (objed        		:url "https://github.com/clemera/objed")
  (omn-mode            	:url nil)
  (on-screen           	:url "https://github.com/michael-heerdegen/on-screen.el.git")
- (openpgp               :urk "https://git.sr.ht/~pkal/openpgp")
+ (openpgp               :url "https://git.sr.ht/~pkal/openpgp")
  (orderless		:url "https://github.com/oantolin/orderless"
   :doc "orderless.texi"
   :readme "README.org")
