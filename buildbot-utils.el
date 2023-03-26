@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (defun buildbot-parse-http-header (text)
   (let ((status) (fields))
     (with-temp-buffer
@@ -85,5 +86,57 @@
           ((string-suffix-p "(failure)" state)
            'failure)
           (t 'pending))))
+
+(defun buildbot-step-guess-status (step)
+  (let ((state (alist-get 'state_string step)))
+    (cond ((string-suffix-p "(warnings)" state)
+           'pending)
+          ((string-suffix-p "(failure)" state)
+           'failure)
+          ((string-suffix-p "done" state)
+           'success)
+          ((string-suffix-p "ing" state)
+           'pending)
+          ((string-suffix-p "finished" state)
+           'success)
+          (t 'success))))
+
+(defun buildbot-status-face (status)
+  (pcase status
+    ('success 'success)
+    ('failure 'error)
+    (_ 'warning)))
+
+(defun buildbot-get-build-stats (builds)
+  (let ((results (copy-tree '((success . 0)
+                              (failure . 0)
+                              (pending . 0))))
+        (status))
+    (seq-do
+     (lambda (build)
+       (setq status (buildbot-build-status build))
+       (setf (alist-get status results)
+             (1+ (alist-get status results))))
+     builds)
+    results))
+
+(defun buildbot-get-info-and-builds (changes)
+  "Get revision-info and builds from a set of changes of the same revision.
+
+Concat all builds."
+  (let* ((builds (seq-mapcat
+                  (lambda (change)
+                    (alist-get 'builds change))
+                  changes))
+         (first-change (elt changes 0))
+         (info (list
+                (assq 'revision first-change)
+                (assq 'author first-change)
+                (cons 'created-at
+                      (buildbot-format-epoch-time
+                       (alist-get 'when_timestamp first-change)))
+                (assq 'comments first-change)
+                (cons 'build-stats (buildbot-get-build-stats builds)))))
+    `((revision-info . ,info) (builds . ,builds))))
 
 (provide 'buildbot-utils)

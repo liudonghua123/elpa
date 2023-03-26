@@ -35,7 +35,7 @@
   (buildbot-url-fetch-raw
    (format "%s/api/v2/logs/%d/raw" buildbot-host logid)))
 
-(defun buildbot-api-recent-changes (limit)
+(defun buildbot-get-recent-changes (limit)
   (buildbot-api-change (list (cons 'order "-changeid") (cons 'limit limit))))
 
 (defun buildbot-get-all-builders ()
@@ -53,11 +53,9 @@
 (defun buildbot-get-builder-name-by-id (id)
   (alist-get 'name (buildbot-builder-by-id id)))
 
-(defun buildbot-get-change-by-revision (revision)
-  (elt
-   (alist-get 'changes
-              (buildbot-api-change (list (cons 'revision revision))))
-   0))
+(defun buildbot-get-changes-by-revision (revision)
+  (alist-get 'changes
+             (buildbot-api-change (list (cons 'revision revision)))))
 
 (defun buildbot-get-build-by-buildid (buildid)
   (buildbot-api-build (list (cons 'buildid buildid))))
@@ -81,5 +79,11 @@
 
 (defun buildbot-get-logs-by-stepid (stepid)
   (alist-get 'logs (buildbot-api-logs stepid)))
+
+(defun buildbot-get-changes-by-branch (branch-name limit)
+  (alist-get 'changes
+             (buildbot-api-change
+              (cons `(branch . ,branch-name)
+                    (when limit `((limit . ,limit)))))))
 
 (provide 'buildbot-client)

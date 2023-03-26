@@ -2,6 +2,7 @@
 (require 'buildbot-utils)
 
 (defvar buildbot-view-header-regex "^\\[.*\\]$")
+(defvar buildbot-view-branch-change-limit 10)
 ;; 'revision, 'build, 'step, or 'log
 (defvar-local buildbot-view-type nil)
 (defvar-local buildbot-view-data nil)
@@ -44,11 +45,17 @@
           (alist-get 'failure stats)
           (alist-get 'pending stats)))
 
+(defun buildbot-view-format-state-string (state-string)
+  (propertize state-string
+              'face (buildbot-get-face-for-state-string (state-string))))
+
 (defun buildbot-view-format-build (build)
   (propertize
-   (format "\n[%s %s]\n%s"
+   (format "\n[%s | %s]\n%s"
            (buildbot-get-builder-name-by-id (alist-get 'builderid build))
-           (alist-get 'state_string build)
+           (propertize (alist-get 'state_string build)
+                       'face (buildbot-status-face
+                              (buildbot-build-status build)))
            (string-join
             (mapcar (lambda (test) (alist-get 'test_name test))
                     (alist-get 'failed_tests build))
@@ -57,10 +64,13 @@
 
 (defun buildbot-view-format-step (step)
   (propertize
-   (format "\n[%d %s %s]\n"
+   (format "\n[%d. %s | %s]\n"
            (alist-get 'number step)
            (alist-get 'name step)
-           (alist-get 'state_string step))
+           (propertize
+            (alist-get 'state_string step)
+            'face (buildbot-status-face
+                   (buildbot-step-guess-status step))))
    'step step 'type 'step))
 
 (defun buildbot-view-format-log (log)
@@ -77,28 +87,32 @@
     (mapcar 'buildbot-view-format-build builds)
     "\n")))
 
-(defun buildbot-revision-get-info (change)
-  (list (cons 'revision (alist-get 'revision change))
-        (cons 'author (alist-get 'author change))
-        (cons 'created-at (buildbot-format-epoch-time
-                           (alist-get 'created_at
-                                      (alist-get 'sourcestamp change))))
-        (cons 'comments (alist-get 'comments change))
-        (cons 'build-stats (buildbot-revision-get-build-stats
-                            (alist-get 'builds change)))))
+;; (defun buildbot-revision-get-info (change)
+;;   (list (cons 'revision (alist-get 'revision change))
+;;         (cons 'author (alist-get 'author change))
+;;         (cons 'created-at (buildbot-format-epoch-time
+;;                            (alist-get 'when_timestamp change)))
+;;         (cons 'comments (alist-get 'comments change))
+;;         (cons 'build-stats (buildbot-revision-get-build-stats
+;;                             (alist-get 'builds change)))))
 
-(defun buildbot-revision-get-build-stats (builds)
-  (let ((results '((success . 0)
-                   (failure . 0)
-                   (pending . 0)))
-        status)
-    (seq-do
-     (lambda (build)
-       (setq status (buildbot-build-status build))
-       (setf (alist-get status results)
-             (1+ (alist-get status results))))
-     builds)
-    results))
+(defun buildbot-view-format-branch (branch-name)
+  (propertize
+   (format "[Branch %s]" branch-name)
+   'branch-name branch-name))
+
+(defun buildbot-branch-format (branch-name changes)
+  (concat
+   (buildbot-view-format-branch branch-name)
+   "\n\n"
+   (string-join
+    (mapcar (lambda (change)
+              (buildbot-view-format-revision-info
+               (alist-get 'revision-info
+                          (buildbot-get-info-and-builds
+                           (list change)))))
+            changes)
+    "\n\n")))
 
 (defun buildbot-build-format (revision-info build steps)
   (concat
@@ -136,6 +150,7 @@
 
 (defun buildbot-view-buffer-name (type data)
   (pcase type
+    ('branch (format "*buildbot branch %s*" (alist-get 'branch-name data)))
     ('revision (format "*buildbot revision %s*"
                        (alist-get 'revision-id data)))
     ('build (format "*buildbot build %d*"
@@ -162,7 +177,11 @@
 
 (defun buildbot-view-revision-open (revision-id)
   (interactive "sRevision (commit hash): ")
-  (buildbot-view-load 'revision `((revision-id . ,revision-id))))
+  (buildbot-view-open 'revision `((revision-id . ,revision-id))))
+
+(defun buildbot-view-branch-open (branch-name)
+  (interactive "sBranch name: ")
+  (buildbot-view-open 'branch `((branch-name . ,branch-name))))
 
 (defun buildbot-view-update ()
   (unless (derived-mode-p 'buildbot-view-mode)
@@ -170,15 +189,22 @@
   (let ((inhibit-read-only t))
     (erase-buffer)
     (pcase buildbot-view-type
+      ('branch
+       (insert (buildbot-branch-format
+                (alist-get 'branch-name buildbot-view-data)
+                (buildbot-get-changes-by-branch
+                 (alist-get 'branch-name buildbot-view-data)
+                 buildbot-view-branch-change-limit))))
       ('revision
-       (let ((change
-              (buildbot-get-change-by-revision
-               (alist-get 'revision-id buildbot-view-data))))
+       (let ((info-and-builds
+              (buildbot-get-info-and-builds
+               (buildbot-get-changes-by-revision
+                (alist-get 'revision-id buildbot-view-data)))))
          (setf (alist-get 'revision-info buildbot-view-data)
-               (buildbot-revision-get-info change))
+               (alist-get 'revision-info info-and-builds))
          (insert (buildbot-revision-format
                   (alist-get 'revision-info buildbot-view-data)
-                  (alist-get 'builds change)))))
+                  (alist-get 'builds info-and-builds)))))
       ('build
        (insert (buildbot-build-format
                 (alist-get 'revision-info buildbot-view-data)
@@ -209,22 +235,26 @@
   (interactive "P")
   (let ((data (copy-tree buildbot-view-data)))
     (pcase (get-text-property (point) 'type)
+      ('branch
+       (setf (alist-get 'branch-name data)
+             (get-text-property (point) 'branch-name))
+       (buildbot-view-open 'branch data force))
       ('revision
        (setf (alist-get 'revision-id data)
              (get-text-property (point) 'revision-id))
-       (buildbot-view-open 'revision data))
+       (buildbot-view-open 'revision data force))
       ('build
        (setf (alist-get 'build data)
              (get-text-property (point) 'build))
-       (buildbot-view-open 'build data))
+       (buildbot-view-open 'build data force))
       ('step
        (setf (alist-get 'step data)
              (get-text-property (point) 'step))
-       (buildbot-view-open 'step data))
+       (buildbot-view-open 'step data force))
       ('log
        (setf (alist-get 'log data)
              (get-text-property (point) 'log))
-       (buildbot-view-open 'log data)))))
+       (buildbot-view-open 'log data force)))))
 (define-key buildbot-view-mode-map (kbd "<return>")
   'buildbot-view-open-thing-at-point)
 
