@@ -30,13 +30,11 @@
 (defun buildbot-view-format-revision-info (revision-info)
   (propertize
    (format
-    "[commit %s]\nAuthor: %s\nDate: %s\n\n%s\n\n%s"
+    "[Commit %s]\nAuthor: %s\nDate: %s\n\n%s"
     (alist-get 'revision revision-info)
     (alist-get 'author revision-info)
     (alist-get 'created-at revision-info)
-    (alist-get 'comments revision-info)
-    (buildbot-view-format-build-stats
-     (alist-get 'build-stats revision-info)))
+    (alist-get 'comments revision-info))
    'revision-id (alist-get 'revision revision-info) 'type 'revision))
 
 (defun buildbot-view-format-build-stats (stats)
@@ -62,6 +60,19 @@
             "\n"))
    'build build 'type 'build))
 
+(defun buildbot-view-format-change-info (change-info &optional no-branch)
+  (concat
+   (unless no-branch
+     (concat (buildbot-view-format-branch (alist-get 'branch change-info))
+             "\n"))
+   (buildbot-view-format-build-stats (alist-get 'build-stats change-info))
+   "\n"
+   (string-join
+    (mapcar
+     'buildbot-view-format-build
+     (alist-get 'builds change-info))
+    "\n")))
+
 (defun buildbot-view-format-step (step)
   (propertize
    (format "\n[%d. %s | %s]\n"
@@ -79,12 +90,15 @@
            (alist-get 'name log))
    'log log 'type 'log))
 
-(defun buildbot-revision-format (revision-info builds)
+(defun buildbot-revision-format (revision-and-changes-info &optional no-branch)
   (concat
-   (buildbot-view-format-revision-info revision-info)
-   "\n"
+   (buildbot-view-format-revision-info
+    (alist-get 'revision-info revision-and-changes-info))
+   "\n\n"
    (string-join
-    (mapcar 'buildbot-view-format-build builds)
+    (mapcar (lambda (change-info)
+              (buildbot-view-format-change-info change-info no-branch))
+            (alist-get 'changes-info revision-and-changes-info))
     "\n")))
 
 ;; (defun buildbot-revision-get-info (change)
@@ -96,21 +110,21 @@
 ;;         (cons 'build-stats (buildbot-revision-get-build-stats
 ;;                             (alist-get 'builds change)))))
 
-(defun buildbot-view-format-branch (branch-name)
+(defun buildbot-view-format-branch (branch)
   (propertize
-   (format "[Branch %s]" branch-name)
-   'branch-name branch-name))
+   (format "[Branch %s]" branch)
+   'branch branch
+   'type 'branch))
 
-(defun buildbot-branch-format (branch-name changes)
+(defun buildbot-branch-format (branch changes)
   (concat
-   (buildbot-view-format-branch branch-name)
+   (buildbot-view-format-branch branch)
    "\n\n"
    (string-join
     (mapcar (lambda (change)
-              (buildbot-view-format-revision-info
-               (alist-get 'revision-info
-                          (buildbot-get-info-and-builds
-                           (list change)))))
+              (buildbot-revision-format
+               (buildbot-get-revision-and-changes-info (list change))
+               t))
             changes)
     "\n\n")))
 
@@ -150,7 +164,7 @@
 
 (defun buildbot-view-buffer-name (type data)
   (pcase type
-    ('branch (format "*buildbot branch %s*" (alist-get 'branch-name data)))
+    ('branch (format "*buildbot branch %s*" (alist-get 'branch data)))
     ('revision (format "*buildbot revision %s*"
                        (alist-get 'revision-id data)))
     ('build (format "*buildbot build %d*"
@@ -179,9 +193,9 @@
   (interactive "sRevision (commit hash): ")
   (buildbot-view-open 'revision `((revision-id . ,revision-id))))
 
-(defun buildbot-view-branch-open (branch-name)
+(defun buildbot-view-branch-open (branch)
   (interactive "sBranch name: ")
-  (buildbot-view-open 'branch `((branch-name . ,branch-name))))
+  (buildbot-view-open 'branch `((branch . ,branch))))
 
 (defun buildbot-view-update ()
   (unless (derived-mode-p 'buildbot-view-mode)
@@ -191,20 +205,18 @@
     (pcase buildbot-view-type
       ('branch
        (insert (buildbot-branch-format
-                (alist-get 'branch-name buildbot-view-data)
+                (alist-get 'branch buildbot-view-data)
                 (buildbot-get-changes-by-branch
-                 (alist-get 'branch-name buildbot-view-data)
+                 (alist-get 'branch buildbot-view-data)
                  buildbot-view-branch-change-limit))))
       ('revision
-       (let ((info-and-builds
-              (buildbot-get-info-and-builds
+       (let ((revision-and-changes-info
+              (buildbot-get-revision-and-changes-info
                (buildbot-get-changes-by-revision
                 (alist-get 'revision-id buildbot-view-data)))))
          (setf (alist-get 'revision-info buildbot-view-data)
-               (alist-get 'revision-info info-and-builds))
-         (insert (buildbot-revision-format
-                  (alist-get 'revision-info buildbot-view-data)
-                  (alist-get 'builds info-and-builds)))))
+               (alist-get 'revision-info revision-and-changes-info))
+         (insert (buildbot-revision-format revision-and-changes-info))))
       ('build
        (insert (buildbot-build-format
                 (alist-get 'revision-info buildbot-view-data)
@@ -236,8 +248,8 @@
   (let ((data (copy-tree buildbot-view-data)))
     (pcase (get-text-property (point) 'type)
       ('branch
-       (setf (alist-get 'branch-name data)
-             (get-text-property (point) 'branch-name))
+       (setf (alist-get 'branch data)
+             (get-text-property (point) 'branch))
        (buildbot-view-open 'branch data force))
       ('revision
        (setf (alist-get 'revision-id data)

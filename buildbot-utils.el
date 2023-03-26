@@ -120,23 +120,27 @@
      builds)
     results))
 
-(defun buildbot-get-info-and-builds (changes)
+(defun buildbot-get-revision-and-changes-info (changes)
   "Get revision-info and builds from a set of changes of the same revision.
 
 Concat all builds."
-  (let* ((builds (seq-mapcat
-                  (lambda (change)
-                    (alist-get 'builds change))
+  (let* ((changes-info
+          (mapcar (lambda (change)
+                    (list
+                     (assq 'branch change)
+                     (assq 'builds change)
+                     (cons 'build-stats
+                           (buildbot-get-build-stats
+                            (alist-get 'builds change)))))
                   changes))
          (first-change (elt changes 0))
-         (info (list
+         (revision-info (list
                 (assq 'revision first-change)
                 (assq 'author first-change)
                 (cons 'created-at
                       (buildbot-format-epoch-time
                        (alist-get 'when_timestamp first-change)))
-                (assq 'comments first-change)
-                (cons 'build-stats (buildbot-get-build-stats builds)))))
-    `((revision-info . ,info) (builds . ,builds))))
+                (assq 'comments first-change))))
+    `((revision-info . ,revision-info) (changes-info . ,changes-info))))
 
 (provide 'buildbot-utils)
