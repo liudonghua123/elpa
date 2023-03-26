@@ -120,7 +120,9 @@
  ;;                            "doc/misc/cc-mode.texi"
  ;;                      :doc "cc-mode.texi"))
  (cape			:url "https://github.com/minad/cape"
-  :doc "README.org")
+  :doc "README.org"
+  :news "CHANGELOG.org"
+  :ignored-files ("LICENSE"))
  (capf-autosuggest	:url "https://repo.or.cz/emacs-capf-autosuggest.git")
  (caps-lock		:url nil)
  (captain		:url nil)
@@ -151,8 +153,8 @@
   :doc "compat.texi")
  (consult		:url "https://github.com/minad/consult"
   :doc "README.org"
-  :ignored-files ("images")
-  :news "CHANGELOG.org")
+  :news "CHANGELOG.org"
+  :ignored-files ("LICENSE"))
  (consult-recoll	:url "https://codeberg.org/jao/consult-recoll"
   :ignored-files ("license")
   :readme "readme.org")
@@ -160,10 +162,9 @@
  (context-coloring	:url "https://github.com/jacksonrayhamilton/context-coloring.git")
  (corfu			:url "https://github.com/minad/corfu"
   :doc "README.org"
+  :news "CHANGELOG.org"
+  :ignored-files ("LICENSE")
   :renames (("extensions/" "")))
- ;; Merged into `corfu' (issue #178) instead of added as a separate package.
- ;;(corfu-doc		:url "https://github.com/galeo/corfu-doc"
- ;; :ignored-files ("LICENSE"))
  (coterm		:url "https://repo.or.cz/emacs-coterm.git")
  (counsel		:url "https://github.com/abo-abo/swiper")
  (cpio-mode		:url "https://github.com/dlewan/cpio-mode")
@@ -362,6 +363,8 @@
  (javaimp		:url nil)
  (jgraph-mode		:url nil)
  (jinx			:url "https://github.com/minad/jinx"
+  :doc "README.org"
+  :news "CHANGELOG.org"
   :ignored-files ("LICENSE"))
  (jit-spell		:url "https://github.com/astoff/jit-spell")
  (js2-mode		:url "https://github.com/mooz/js2-mode.git")
@@ -402,7 +405,9 @@
  ;;  :doc "m-buffer-doc.org")
  (map			:core "lisp/emacs-lisp/map.el")
  (marginalia		:url "https://github.com/minad/marginalia"
-  :doc "README.org")
+  :doc "README.org"
+  :news "CHANGELOG.org"
+  :ignored-files ("LICENSE"))
  (markchars		:url nil)
  (math-symbol-lists 	:url "https://github.com/vspinu/math-symbol-lists.git")
  (mct			:url "https://gitlab.com/protesilaos/mct"
@@ -464,7 +469,9 @@
  ;; FIXME: Waiting for copyright paperwork from Brandon Webster.
  ;;(org-drill		:url "https://gitlab.com/phillord/org-drill")
  (org-modern		:url "https://github.com/minad/org-modern"
-  :doc "README.org")
+  :doc "README.org"
+  :news "CHANGELOG.org"
+  :ignored-files ("LICENSE"))
  (org-notify		:url "https://github.com/p-m/org-notify"
   ;; FIXME: Upstream diverged; https://github.com/p-m/org-notify/issues/9
   ;; :merge t
@@ -483,6 +490,7 @@
  (osc			:url nil)
  (osm			:url "https://github.com/minad/osm"
   :doc "README.org"
+  :news "CHANGELOG.org"
   :ignored-files ("LICENSE"))
  (other-frame-window	:url nil)
  (pabbrev             	:url "https://github.com/phillord/pabbrev.git")
@@ -631,7 +639,9 @@
   :doc "taxy-magit-section.info")
  (temp-buffer-browse  	:url "https://github.com/leoliu/temp-buffer-browse")
  (tempel		:url "https://github.com/minad/tempel"
-  :doc "README.org")
+  :doc "README.org"
+  :news "CHANGELOG.org"
+  :ignored-files ("LICENSE"))
  (test-simple         	:url "https://github.com/rocky/emacs-test-simple")
  (timerfunctions	:url nil)
  (tiny			:url "https://github.com/abo-abo/tiny")
@@ -699,7 +709,8 @@
  (verilog-mode		:core "lisp/progmodes/verilog-mode.el")
  (vertico		:url "https://github.com/minad/vertico"
   :doc "README.org"
-  :ignored-files ("*.svg")
+  :doc "CHANGELOG.org"
+  :ignored-files ("LICENSE")
   :renames (("extensions/" "")))
  (vertico-posframe	:url "https://github.com/tumashu/vertico-posframe")
  (vigenere 		:url nil)
