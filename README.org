@@ -1,8 +1,7 @@
 #+title: buildbot.el
 
-buildbot.el is a buildbot client for emacs. Features:
-
-- Shows views for branches, revisions, builds, steps, logs
+buildbot.el is a buildbot client for emacs. It shows views for
+branches, revisions, builds, steps, and logs.
 
 * Install
 
@@ -31,10 +30,10 @@ After that, require buildbot and set the host and builders.
 * Use
 
 There are two entry points:
-- ~buildbot-revision-open~ prompts for a revision id (e.g. commit hash
-  in git), and opens a view of the revision, including builds
+- ~M-x buildbot-revision-open~ prompts for a revision id (e.g. commit
+  hash in git), and opens a view of the revision, including builds
   associated with changes associated with the revision.
-- ~buildbot-branch-open~ prompts for a branch name, and opens up a
+- ~M-x buildbot-branch-open~ prompts for a branch name, and opens up a
   view of revisions of this branch.
 
 * TODOs
