@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 (require 'buildbot-utils)
+(require 'buildbot-client)
 
 (defvar buildbot-view-header-regex "^\\[.*\\]$")
 (defvar buildbot-view-branch-change-limit 10)
@@ -42,10 +43,6 @@
           (alist-get 'success stats)
           (alist-get 'failure stats)
           (alist-get 'pending stats)))
-
-(defun buildbot-view-format-state-string (state-string)
-  (propertize state-string
-              'face (buildbot-get-face-for-state-string (state-string))))
 
 (defun buildbot-view-format-build (build)
   (propertize

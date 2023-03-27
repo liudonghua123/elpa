@@ -1,6 +1,9 @@
 ;; -*- lexical-binding: t; -*-
 (require 'buildbot-utils)
 
+(defvar buildbot-host)
+(defvar buildbot-builders)
+
 (defun buildbot-api-change (attr)
   (buildbot-url-fetch-json
    (format
@@ -60,25 +63,8 @@
 (defun buildbot-get-build-by-buildid (buildid)
   (buildbot-api-build (list (cons 'buildid buildid))))
 
-(defun buildbot-get-builds-by-revision (revision)
-  (alist-get 'builds (buildbot-get-change-by-revision revision)))
-
-(defun buildbot-get-failed-builds-by-revision (revision)
-  (seq-filter
-   (lambda (build)
-     (not (equal (alist-get 'state_string build) "build successful")))
-   (buildbot-get-builds-by-revision revision)))
-
-(defun buildbot-format-builds-by-revision (revision)
-  (mapcar
-   'buildbot-format-build
-   (buildbot-get-builds-by-revision revision)))
-
 (defun buildbot-get-steps-by-buildid (buildid)
   (alist-get 'steps (buildbot-api-step buildid)))
-
-(defun buildbot-get-logs-by-stepid (stepid)
-  (alist-get 'logs (buildbot-api-logs stepid)))
 
 (defun buildbot-get-changes-by-branch (branch-name limit)
   (alist-get 'changes

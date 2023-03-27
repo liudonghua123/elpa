@@ -1,4 +1,7 @@
 ;; -*- lexical-binding: t; -*-
+
+(defvar buildbot-client-buffer-name "*buildbot api*")
+
 (defun buildbot-parse-http-header (text)
   (let ((status) (fields))
     (with-temp-buffer
