@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <~pkal/public-inbox@lists.sr.ht>
 ;; URL: https://git.sr.ht/~pkal/auto-header
-;; Version: 0.1.1
+;; Version: 0.1.2
 ;; Keywords: c
 
 ;; This program is free software; you can redistribute it and/or modify
