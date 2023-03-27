@@ -37,6 +37,17 @@
     (beginning-of-line 1)))
 (define-key buildbot-view-mode-map "n" 'buildbot-view-next-header)
 
+(defun buildbot-view-next-header-same-thing (n)
+  (interactive "p")
+  (when-let
+      ((type (get-text-property (point) 'type)))
+    (dotimes (_ n)
+      (buildbot-view-next-header 1)
+      (while (not (eq (get-text-property (point) 'type) type))
+        (buildbot-view-next-header 1)))))
+(define-key buildbot-view-mode-map (kbd "M-n")
+  'buildbot-view-next-header-same-thing)
+
 (defun buildbot-view-previous-header (n)
   (interactive "p")
   (beginning-of-line 1)
@@ -45,6 +56,17 @@
   (dotimes (_ n)
     (re-search-backward buildbot-view-header-regex)))
 (define-key buildbot-view-mode-map "p" 'buildbot-view-previous-header)
+
+(defun buildbot-view-previous-header-same-thing (n)
+  (interactive "p")
+  (when-let
+      ((type (get-text-property (point) 'type)))
+    (dotimes (_ n)
+      (buildbot-view-previous-header 1)
+      (while (not (eq (get-text-property (point) 'type) type))
+        (buildbot-view-previous-header 1)))))
+(define-key buildbot-view-mode-map (kbd "M-p")
+  'buildbot-view-previous-header-same-thing)
 
 (defun buildbot-view-format-revision-info (revision-info)
   (propertize
