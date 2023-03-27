@@ -1,0 +1,49 @@
+#+title: buildbot.el
+
+buildbot.el is a buildbot client for emacs. Features:
+
+- Shows views for branches, revisions, builds, steps, logs
+
+* Install
+
+** Manual install
+
+Clone this repo, and add to load path (assuming you clone to
+~~/.emacs.d~):
+
+#+begin_src sh
+cd ~/.emacs.d
+git clone https://g.ypei.me/buildbot.el.git
+#+end_src
+
+#+begin_src elisp
+(add-to-list 'load-path "~/.emacs.d/buildbot.el")
+#+end_src
+
+After that, require buildbot and set the host and builders.
+
+#+begin_src elisp
+(require 'buildbot)
+(setq buildbot-host "https://buildbot.mariadb.org")
+(setq buildbot-builders (buildbot-get-all-builders))
+#+end_src
+
+* Use
+
+There are two entry points:
+- ~buildbot-revision-open~ prompts for a revision id (e.g. commit hash
+  in git), and opens a view of the revision, including builds
+  associated with changes associated with the revision.
+- ~buildbot-branch-open~ prompts for a branch name, and opens up a
+  view of revisions of this branch.
+
+* TODOs
+
+- org link integration.
+- older buildbot api.
+
+* Contact and Copyright
+
+~buildbot.el~ is maintained by Yuchen Pei <id@ypei.org> and covered by
+[[https://www.gnu.org/licenses/agpl-3.0.en.html][GNU AGPLv3+]].  You may find the license text in a file named
+COPYING.agpl3 in the project tree.

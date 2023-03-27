@@ -1,4 +1,22 @@
-;; -*- lexical-binding: t; -*-
+;;; buildbot-view.el --- buildbot.el UI -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2023  Free Software Foundation, Inc.
+;; 
+;; This file is part of buildbot.el.
+;; 
+;; buildbot.el is free software: you can redistribute it and/or modify it under
+;; the terms of the GNU Affero General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; buildbot.el is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General
+;; Public License for more details.
+;; 
+;; You should have received a copy of the GNU Affero General Public
+;; License along with buildbot.el.  If not, see <https://www.gnu.org/licenses/>.
+
 (require 'buildbot-utils)
 (require 'buildbot-client)
 
@@ -8,8 +26,8 @@
 (defvar-local buildbot-view-type nil)
 (defvar-local buildbot-view-data nil)
 
-(define-derived-mode buildbot-view-mode special-mode "Buildbot view"
-  "Buildbot view, a base mode")
+(define-derived-mode buildbot-view-mode special-mode "Buildbot"
+  "buildbot.el is a Buildbot client for emacs.")
 
 (defun buildbot-view-next-header (n)
   (interactive "p")
@@ -31,7 +49,7 @@
 (defun buildbot-view-format-revision-info (revision-info)
   (propertize
    (format
-    "[Commit %s]\nAuthor: %s\nDate: %s\n\n%s"
+    "[Revision %s]\nAuthor: %s\nDate: %s\n\n%s"
     (alist-get 'revision revision-info)
     (alist-get 'author revision-info)
     (alist-get 'created-at revision-info)
@@ -186,11 +204,13 @@
   (buildbot-view-update))
 (define-key buildbot-view-mode-map "g" 'buildbot-view-reload)
 
-(defun buildbot-view-revision-open (revision-id)
-  (interactive "sRevision (commit hash): ")
+;;;###autoload
+(defun buildbot-revision-open (revision-id)
+  (interactive "sRevision (e.g. commit hash): ")
   (buildbot-view-open 'revision `((revision-id . ,revision-id))))
 
-(defun buildbot-view-branch-open (branch)
+;;;###autoload
+(defun buildbot-branch-open (branch)
   (interactive "sBranch name: ")
   (buildbot-view-open 'branch `((branch . ,branch))))
 
