@@ -166,7 +166,9 @@
   :ignored-files ("LICENSE")
   :renames (("extensions/" "")))
  (coterm		:url "https://repo.or.cz/emacs-coterm.git")
- (counsel		:url "https://github.com/abo-abo/swiper")
+ (counsel		:url "https://github.com/abo-abo/swiper"
+  :manual-sync t
+  )
  (cpio-mode		:url "https://github.com/dlewan/cpio-mode")
  (cpupower		:url "https://gitlab.com/steve-emacs-stuff/cpupower-el")
  (crdt			:url "https://code.librehq.com/qhong/crdt.el")
