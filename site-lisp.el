@@ -32,6 +32,10 @@
 ;; Use `site-lisp-reload' after adding a new script to avoid
 ;; restarting Emacs.
 
+;;; News:
+
+;; * Allow `site-lisp-directory' to be a list of directories.
+
 ;;; Code:
 
 (require 'seq)
@@ -63,31 +67,35 @@ The result should be stored in FILE."
 If DIR is a list, the function will be applied to every element
 of the list."
   (interactive "DPrepare: ")
-  (let ((backup-inhibited t)
-        (autoload-file (expand-file-name site-lisp-autoload-file dir)))
-    (dolist (dir (cons dir (directory-files dir t "^[^.]")))
-      (when (file-directory-p dir)
-        (message "Site-lisp: %s" dir)
-        (add-to-list 'load-path dir)
-        (site-lisp-generate-autoloads dir autoload-file)))
-    (byte-recompile-directory dir)
-    (load autoload-file nil t)))
+  (if (listp dir)
+      (mapc #'site-lisp-unprepare dir)
+    (let ((backup-inhibited t)
+          (autoload-file (expand-file-name site-lisp-autoload-file dir)))
+      (dolist (dir (cons dir (directory-files dir t "^[^.]")))
+        (when (file-directory-p dir)
+          (message "Site-lisp: %s" dir)
+          (add-to-list 'load-path dir)
+          (site-lisp-generate-autoloads dir autoload-file)))
+      (byte-recompile-directory dir)
+      (load autoload-file nil t))))
 
 (defun site-lisp-unprepare (dir)
   "Remove every directory in DIR from `load-path'.
 If DIR is a list, the function will be applied to every element
 of the list."
   (interactive "DUnprepare: ")
-  (dolist (sub-dir (directory-files dir t "^[^.]"))
-    (when (seq-find (apply-partially #'file-equal-p sub-dir)
-                    load-path)
-      (when (memq dir load-path)
-        (setq load-path (delq dir load-path))
-        (dolist (ent (alist-get sub-dir load-history
-                                nil nil #'file-equal-p))
-          (when (eq (car-safe ent) 'provide)
-            (with-demoted-errors "Error while unloading: %S"
-              (unload-feature (cdr ent)))))))))
+  (if (listp dir)
+      (mapc #'site-lisp-unprepare dir)
+    (dolist (sub-dir (directory-files dir t "^[^.]"))
+      (when (seq-find (apply-partially #'file-equal-p sub-dir)
+                      load-path)
+        (when (memq dir load-path)
+          (setq load-path (delq dir load-path))
+          (dolist (ent (alist-get sub-dir load-history
+                                  nil nil #'file-equal-p))
+            (when (eq (car-safe ent) 'provide)
+              (with-demoted-errors "Error while unloading: %S"
+                (unload-feature (cdr ent))))))))))
 
 ;;;###autoload
 (defcustom site-lisp-directory
@@ -100,12 +108,14 @@ If this directory doesn't exist, nothing is done."
          (site-lisp-prepare val)
          (custom-set-default var val))
   :initialize #'custom-initialize-default
-  :type 'directory)
+  :type '(choice (repeat directory) directory))
 
 (defun site-lisp-reload ()
   "Reload the contents of `site-lisp-directory'."
   (interactive)
-  (unless (file-directory-p site-lisp-directory)
+  (unless (if (listp site-lisp-directory)
+              (seq-every-p #'file-directory-p site-lisp-directory)
+            (file-directory-p site-lisp-directory))
     (user-error "%s is not an existing directory"
                 site-lisp-directory))
   (site-lisp-prepare site-lisp-directory))
