@@ -30,7 +30,7 @@ All you should need is to require `site-lisp` or call
 
 or for example after Emacs has initialised:
 
-	(add-hook 'after-init-hook #'site-lisp-reload)
+	(add-hook 'after-init-hook #'site-lisp-initialise)
 
 Contribute
 ----------
