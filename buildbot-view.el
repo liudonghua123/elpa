@@ -229,6 +229,15 @@
   (interactive "sBranch name: ")
   (buildbot-view-open 'branch `((branch . ,branch))))
 
+;;;###autoload
+(defun buildbot-builder-open (builder-name)
+  (interactive (list (completing-read
+                      "Builder name: "
+                      (mapcar
+                       (lambda (builder) (alist-get 'name builder))
+                       buildbot-builders))))
+  (buildbot-view-open 'builder `((builder . ,builder))))
+
 (defun buildbot-view-update ()
   (unless (derived-mode-p 'buildbot-view-mode)
     (error "Not in buildbot view mode"))

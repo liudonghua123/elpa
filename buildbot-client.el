@@ -46,6 +46,12 @@
     "%s/api/v2/builders"
     buildbot-host)))
 
+(defun buildbot-api-builders-builds (builder-id attr)
+  (buildbot-url-fetch-json
+   (format
+    "%s/api/v2/builders/%d/builds?%s"
+    buildbot-host builder-id (buildbot-format-attr attr))))
+
 (defun buildbot-api-build (attr)
   (buildbot-url-fetch-json
    (format
@@ -62,6 +68,12 @@
   (buildbot-url-fetch-raw
    (format "%s/api/v2/logs/%d/raw" buildbot-host logid)))
 
+(defun buildbot-get-recent-builds-by-builder (builder-id limit)
+  (alist-get 'builds
+             (buildbot-api-builders-builds
+              builder-id
+              `((limit . ,limit) (order . "-number") (property . "revision")))))
+
 (defun buildbot-get-recent-changes (limit)
   (buildbot-api-change (list (cons 'order "-changeid") (cons 'limit limit))))
 
@@ -72,6 +84,12 @@
   (cl-find-if
    (lambda (builder)
      (= (alist-get 'builderid builder) builderid))
+   buildbot-builders))
+
+(defun buildbot-builder-by-name (name)
+  (cl-find-if
+   (lambda (builder)
+     (equal (alist-get 'name builder) name))
    buildbot-builders))
 
 (defun buildbot-get-logs-by-stepid (stepid)
