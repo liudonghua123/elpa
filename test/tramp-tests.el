@@ -4589,6 +4589,13 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (should (equal (file-name-completion "foo" tmp-name) t))
 	      (should (equal (file-name-completion "b" tmp-name) "bo"))
 	      (should-not (file-name-completion "a" tmp-name))
+	      ;; `file-name-completion' should not err out if
+	      ;; directory does not exist.  (Bug#61890)
+	      ;; Ange-FTP does not support this.
+	      (unless (tramp--test-ange-ftp-p)
+		(should-not
+		 (file-name-completion
+		  "a" (tramp-compat-file-name-concat tmp-name "fuzz"))))
 	      ;; Ange-FTP does not support predicates.
 	      (unless (tramp--test-ange-ftp-p)
 		(should
@@ -4633,6 +4640,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-directory tmp-name 'recursive)))))))
+
+(tramp--test-deftest-with-perl tramp-test26-file-name-completion)
+
+(tramp--test-deftest-with-ls tramp-test26-file-name-completion)
 
 ;; This test is inspired by Bug#51386, Bug#52758, Bug#53513, Bug#54042
 ;; and Bug#60505.
@@ -6005,6 +6016,8 @@ INPUT, if non-nil, is a string sent to the process."
 	 (enable-remote-dir-locals t)
          (inhibit-message t)
 	 kill-buffer-query-functions
+	 (clpa connection-local-profile-alist)
+	 (clca connection-local-criteria-alist)
 	 connection-local-profile-alist connection-local-criteria-alist)
     (unwind-protect
 	(progn
@@ -6053,6 +6066,9 @@ INPUT, if non-nil, is a string sent to the process."
 	    (kill-buffer (current-buffer))))
 
       ;; Cleanup.
+      (custom-set-variables
+       `(connection-local-profile-alist ',clpa now)
+       `(connection-local-criteria-alist ',clca now))
       (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test34-explicit-shell-file-name ()
@@ -6067,6 +6083,8 @@ INPUT, if non-nil, is a string sent to the process."
 
   (let ((default-directory ert-remote-temporary-file-directory)
 	explicit-shell-file-name kill-buffer-query-functions
+	(clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist)
 	connection-local-profile-alist connection-local-criteria-alist)
     (unwind-protect
 	(progn
@@ -6101,6 +6119,9 @@ INPUT, if non-nil, is a string sent to the process."
 
       ;; Cleanup.
       (put 'explicit-shell-file-name 'permanent-local nil)
+      (custom-set-variables
+       `(connection-local-profile-alist ',clpa now)
+       `(connection-local-criteria-alist ',clca now))
       (kill-buffer "*shell*"))))
 
 ;; `exec-path' was introduced in Emacs 27.1.  `executable-find' has

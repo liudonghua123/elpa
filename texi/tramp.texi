@@ -1236,6 +1236,7 @@ syntax requires a leading volume (share) name, for example:
 
 @item @option{dav}
 @item @option{davs}
+@cindex WebDAV
 @cindex method @option{dav}
 @cindex method @option{davs}
 @cindex @option{dav} method
@@ -1492,8 +1493,10 @@ access and it has the most reasonable security protocols, use
 @end example
 
 If @option{ssh} is unavailable for whatever reason, look for other
-obvious options.  For MS Windows, try the @option{plink} method.  For
-Kerberos, try @option{krlogin}.
+obvious options.  For MS Windows, try the @option{plink}
+method@footnote{This shouldn't be needed with recent @code{OpenSSH}
+versions for MS Windows.  Use method @option{sshx}.}.  For Kerberos,
+try @option{krlogin}.
 
 For editing local files as @option{su} or @option{sudo} methods, try
 the shortened syntax of @samp{root}:
@@ -2369,10 +2372,11 @@ This uses also the settings in @code{tramp-sh-extra-args}.
 @vindex RemoteCommand@r{, ssh option}
 @strong{Note}: If you use an @option{ssh}-based method for connection,
 do @emph{not} set the @option{RemoteCommand} option in your
-@command{ssh} configuration, for example to @command{screen}.  On the
-other hand, some @option{ssh}-based methods, like @option{sshx} or
-@option{scpx}, silently overwrite a @option{RemoteCommand} option of
-the configuration file.
+@command{ssh} configuration to something like @command{screen}.  If
+used, @option{RemoteCommand} must open an interactive shell on the
+remote host.  On the other hand, some @option{ssh}-based methods, like
+@option{sshx} or @option{scpx}, silently overwrite a
+@option{RemoteCommand} option of the configuration file.
 
 
 @subsection Other remote shell setup hints
@@ -2717,6 +2721,7 @@ entry, @option{Seconds between keepalives} option.  Set this to 5.
 There is no counter which could be set.
 
 
+@anchor{Using ssh connection sharing}
 @subsection Using ssh connection sharing
 
 @vindex ControlPath@r{, ssh option}
@@ -2747,19 +2752,32 @@ Note how @samp{%r}, @samp{%h} and @samp{%p} must be encoded as
 @samp{%%r}, @samp{%%h} and @samp{%%p}.
 
 @vindex tramp-use-ssh-controlmaster-options
-If the @file{~/.ssh/config} file is configured appropriately for the
-above behavior, then any changes to @command{ssh} can be suppressed
-with this @code{nil} setting:
+Using a predefined string in @code{tramp-ssh-controlmaster-options},
+or puzzling an own string, happens only when user option
+@code{tramp-use-ssh-controlmaster-options} is set to @code{t}.  If the
+@file{~/.ssh/config} file is configured appropriately for the above
+behavior, then any changes to @command{ssh} can be suppressed with
+this @code{nil} setting:
 
 @lisp
 (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
 @end lisp
 
+Sometimes, it is not possible to use OpenSSH's @option{ControlMaster}
+option for remote processes.  This could result in concurrent access
+to the OpenSSH socket when reading data by different processes, which
+could block Emacs.  In this case, setting
+@code{tramp-use-ssh-controlmaster-options} to @code{suppress} disables
+shared access.  It is not needed to set this user option permanently
+to @code{suppress}, binding the user option prior calling
+@code{make-process} is sufficient.  @value{tramp} does this for
+esxample for compilation processes on its own.
+
 @vindex ProxyCommand@r{, ssh option}
 @vindex ProxyJump@r{, ssh option}
-This should also be set to @code{nil} if you use the
-@option{ProxyCommand} or @option{ProxyJump} options in your
-@command{ssh} configuration.
+@code{tramp-use-ssh-controlmaster-options} should also be set to
+@code{nil} or @code{suppress} if you use the @option{ProxyCommand} or
+@option{ProxyJump} options in your @command{ssh} configuration.
 
 In order to use the @option{ControlMaster} option, @value{tramp} must
 check whether the @command{ssh} client supports this option.  This is
@@ -2836,10 +2854,18 @@ When @value{tramp} uses direct remote copying, password caches are not
 consulted.
 
 
-@subsection Issues with Cygwin ssh
+@subsection Issues with Cygwin and MS Windows ssh
 @cindex cygwin, issues
+@cindex ms Windows, issues
 
 This section is incomplete.  Please share your solutions.
+
+@cindex ms windows and @command{ssh}
+@cindex ms windows and @command{ssh-agent}
+
+MS Windows' @command{ssh} does not open a remote TTY@.  Use the method
+@option{sshx} or @option{scpx} instead.  Furthermore, it cannot read a
+passphrase for ssh private keys.  Use the MS @code{ssh-agent}.
 
 @cindex method @option{sshx} with cygwin
 @cindex @option{sshx} method with cygwin
@@ -2880,13 +2906,15 @@ Windows file names to Cygwin file names.
 @cindex @env{SSH_AUTH_SOCK} and emacs on ms windows
 @vindex SSH_AUTH_SOCK@r{, environment variable}
 
-When using the @command{ssh-agent} on MS Windows for password-less
-interaction, @option{ssh} methods depend on the environment variable
-@env{SSH_AUTH_SOCK}.  But this variable is not set when Emacs is
-started from a Desktop shortcut and authentication fails.
+When using the cygwin @command{ssh-agent} on MS Windows for
+password-less interaction, @option{ssh} methods depend on the
+environment variable @env{SSH_AUTH_SOCK}.  But this variable is not
+set when Emacs is started from a Desktop shortcut and authentication
+fails.
 
-One workaround is to use an MS Windows based SSH Agent, such as
-@command{Pageant}.  It is part of the PuTTY Suite of tools.
+One workaround is to use an MS Windows based SSH Agent, such as the
+native MS @command{ssh-agent} or @command{Pageant}.  The latter is
+part of the PuTTY Suite of tools.
 
 The fallback is to start Emacs from a shell.
 
@@ -4277,7 +4305,8 @@ In order to gain even more performance, it is recommended to bind
 @code{start-file-process}.  Furthermore, you might set
 @code{tramp-use-ssh-controlmaster-options} to @code{nil} in order to
 bypass @value{tramp}'s handling of the @option{ControlMaster} options,
-and use your own settings in @file{~/.ssh/config}.
+and use your own settings in @file{~/.ssh/config}, @ref{Using ssh
+connection sharing}.
 
 
 @node Cleanup remote connections
