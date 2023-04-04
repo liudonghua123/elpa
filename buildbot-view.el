@@ -196,7 +196,7 @@
   (concat
    (buildbot-view-format-revision-info revision-info)
    "\n"
-   (buildbot-view-format-build build)
+   (buildbot-view-format-build (alist-get 'revision revision-info) build)
    "\n"
    (buildbot-view-format-step step)
    "\n"
@@ -208,7 +208,7 @@
   (concat
    (buildbot-view-format-revision-info revision-info)
    "\n"
-   (buildbot-view-format-build build)
+   (buildbot-view-format-build (alist-get 'revision revision-info) build)
    "\n"
    (buildbot-view-format-step step)
    "\n"
