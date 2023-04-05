@@ -110,6 +110,7 @@ If this directory doesn't exist, nothing is done."
   :initialize #'custom-initialize-default
   :type '(choice (repeat directory) directory))
 
+;;;###autoload
 (defun site-lisp-reload ()
   "Reload the contents of `site-lisp-directory'."
   (interactive)
