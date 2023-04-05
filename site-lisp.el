@@ -124,7 +124,5 @@ If this directory doesn't exist, nothing is done."
 ;;;###autoload
 (defalias 'site-lisp-initialise #'site-lisp-reload)
 
-(add-hook 'after-init-hook #'site-lisp-reload)
-
 (provide 'site-lisp)
 ;;; site-lisp.el ends here
