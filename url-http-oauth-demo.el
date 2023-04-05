@@ -36,14 +36,49 @@
 ;;; Register "https://meta.sr.ht/query" as needing OAuth 2.0 for
 ;;; authentication.
 ;;;###autoload
-(url-http-oauth-register-provider "https://meta.sr.ht/query"
+(url-http-oauth-register-resource "https://meta.sr.ht/query"
                                   "https://meta.sr.ht/oauth2/authorize"
                                   "https://meta.sr.ht/oauth2/access-token"
                                   "107ba4a9-2a96-4420-8818-84ec1f112405"
                                   "meta.sr.ht/PROFILE:RO")
 
-;; FIXME: Make an authenticated API call using "meta.sr.ht/PROFILE:RO"
-;; to prove the OAuth 2.0 procedure was successful.
+;;;###autoload
+(defun url-http-oauth-demo-get-api-version ()
+  "Asynchronously retrieve the Sourcehut GraphQL API version.
+Print the HTTP status and response in *Messages*."
+  (interactive)
+  (let ((url-request-method "POST")
+        (url-request-extra-headers
+	 (list (cons "Content-Type" "application/json")
+               (cons "Authorization" "Bearer abcd")))
+        (url-request-data
+         "{\"query\": \"{ version { major, minor, patch } }\"}"))
+    (url-retrieve "https://meta.sr.ht/query"
+                  (lambda (status)
+                    (message "%S, %S"
+                             status (buffer-string))))))
+
+;;;###autoload
+(defun url-http-oauth-demo-get-profile-name ()
+  "Asynchronously retrieve the Sourcehut profile name.
+Print the result to *Messages*."
+  (interactive)
+  (let ((url-request-method "POST")
+        (url-request-extra-headers
+	 (list (cons "Content-Type" "application/json")))
+        (url-request-data
+         "{\"query\": \"{ me { canonicalName } }\"}"))
+    (url-retrieve "https://meta.sr.ht/query"
+                  (lambda (status)
+                    (message "STR: %s" (buffer-string))
+                    (goto-char (point-min))
+                    (re-search-forward "\n\n")
+                    
+                    (let* ((result (json-parse-buffer))
+                           ;;(me (gethash "me" result))
+                           ;;(name me)
+                           )
+                      (message "%S" result))))))
 
 (provide 'url-http-oauth-demo)
 
