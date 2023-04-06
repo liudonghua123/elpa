@@ -46,7 +46,8 @@
 (defun autocrypt-gnus--get-part (index)
   "Return the INDEX'th part of the message as a string."
   (save-window-excursion
-    (let ((content nil))
+    (let ((gnus-inhibit-mime-unbuttonizing t)
+          (content nil))
       (condition-case nil
           (gnus-article-part-wrapper
            (1+ index)
