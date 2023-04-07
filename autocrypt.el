@@ -88,7 +88,7 @@ process \"Autocrypt-Gossip\" headers when received."
 ;;;; Data Structures
 
 ;; https://autocrypt.org/level1.html#communication-peers
-(cl-defstruct autocrypt-peer
+(cl-defstruct (autocrypt-peer (:constructor autocrypt-make-peer))
   last-seen
   timestamp
   pubkey
@@ -384,7 +384,7 @@ Argument DATE contains the time value of the \"From\" tag."
                                        date))
                 (setf (autocrypt-peer-gossip-timestamp date)
                       (autocrypt-peer-gossip-key (caddr datum)))
-              (push (cons addr (make-autocrypt-peer
+              (push (cons addr (autocrypt-make-peer
                                 :gossip-timestamp date
                                 :gossip-key (caddr datum)))
                     autocrypt-peers))))
@@ -406,7 +406,7 @@ Argument DATE contains the time value of the \"From\" tag."
                 preference (cadr parse)
                 keydata (caddr parse)
                 peer (or (cdr (assoc addr autocrypt-peers))
-                         (make-autocrypt-peer
+                         (autocrypt-make-peer
                           :last-seen date
                           :timestamp date
                           :pubkey keydata
