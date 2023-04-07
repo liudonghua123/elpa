@@ -40,9 +40,9 @@ options if you find the completion to be too restrictive or invasive.
 Contribute
 ----------
 
-As typo.el is distribed as part of [GNU ELPA], and therefore requires
-a [copyright assignment] to the [FSF], for all non-trivial code
-contributions.
+As typo.el is distributed as part of [GNU ELPA], and therefore
+requires a [copyright assignment] to the [FSF], for all non-trivial
+code contributions.
 
 [copyright assignment]:
 	https://www.gnu.org/software/emacs/manual/html_node/emacs/Copyright-Assignment.html
