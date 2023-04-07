@@ -33,7 +33,7 @@ will emit a warning when used with other major modes.
 Contribute
 ----------
 
-As auto-header.el is distribed as part of [GNU ELPA], and therefore
+As auto-header.el is distributed as part of [GNU ELPA], and therefore
 requires a [copyright assignment] to the [FSF], for all non-trivial
 code contributions.
 
