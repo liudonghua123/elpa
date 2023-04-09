@@ -630,6 +630,8 @@
  (swiper		:url "https://github.com/abo-abo/swiper"
   :manual-sync t
   )
+ (switchy-window	:url "https://git.sr.ht/~tsdh/switchy-window"
+  :readme "README.md")
  (sxhkdrc-mode		:url "https://git.sr.ht/~protesilaos/sxhkdrc-mode"
   :readme "README.md"
   :ignored-files ("COPYING"))
