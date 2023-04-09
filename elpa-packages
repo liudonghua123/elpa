@@ -631,8 +631,7 @@
   :manual-sync t
   )
  (switchy-window	:url "https://git.sr.ht/~tsdh/switchy-window"
-  :readme "README.md"
-  :ignored-files ("LICENSE" "Makefile"))
+  :readme "README.md")
  (sxhkdrc-mode		:url "https://git.sr.ht/~protesilaos/sxhkdrc-mode"
   :readme "README.md"
   :ignored-files ("COPYING"))
