@@ -70,7 +70,7 @@ final candidate is either through simple keyboard character inputs or
 through powerful regular expressions.
 #+TEXINFO: @end ifnottex
 
-Copyright (C) 2015--2021 Free Software Foundation, Inc.
+Copyright (C) 2015--2023 Free Software Foundation, Inc.
 
 #+BEGIN_QUOTE
 Permission is granted to copy, distribute and/or modify this document
@@ -140,8 +140,7 @@ discoverability.
 Install Ivy automatically through Emacs's package manager, or manually
 from Ivy's development repository.
 
-Emacs 24.3 is the oldest version to run Ivy. Emacs 24.4 is the oldest
-version that runs Ivy with fancy faces display.
+Emacs 24.5 is the oldest version to run Ivy.
 
 ** Installing from Emacs Package Manager
 :PROPERTIES:
@@ -820,7 +819,7 @@ installed.
 - User Option =ivy-display-style= ::
      Specifies highlighting candidates in the minibuffer.
 
-     The default setting is ='fancy= in Emacs versions 24.4 or newer.
+     The default setting is =fancy=.
 
      Set =ivy-display-style= to =nil= for a plain minibuffer.
 
