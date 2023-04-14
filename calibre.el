@@ -33,6 +33,11 @@
   "Interact with a Calibre library."
   :group 'calibre)
 
+(defcustom calibre-calibredb-executable "calibre"
+  "The calibredb executable to use."
+  :type 'string
+  :package-version '("calibre" . "0.1.0"))
+
 (defcustom calibre-library-dir "~/Documents/Calibre"
   "The root directory of the Calibre library."
   :type 'directory
