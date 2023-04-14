@@ -23,12 +23,16 @@
 ;;; Commentary:
 ;;
 ;; This package demonstrates an OAuth 2.0 flow for Sourcehut using the
-;; built-in GNU Emacs URL library and the GNU ELPA url-http-oauth
-;; package.
+;; built-in GNU Emacs URL library and the url-http-oauth package.
 ;;
 ;; Installation:
 ;;
 ;; M-x package-install RET url-http-oauth-demo RET
+;;
+;; Usage:
+;;
+;; M-x url-http-oauth-demo-get-profile-name RET
+;; M-: (url-http-oauth-demo-get-profile-name) RET
 
 ;;; Code:
 (require 'url-http-oauth)
@@ -40,44 +44,42 @@
                                   "https://meta.sr.ht/oauth2/authorize"
                                   "https://meta.sr.ht/oauth2/access-token"
                                   "107ba4a9-2a96-4420-8818-84ec1f112405"
-                                  "meta.sr.ht/PROFILE:RO"
                                   'prompt)
-
-;;;###autoload
-(defun url-http-oauth-demo-get-api-version ()
-  "Asynchronously retrieve the Sourcehut GraphQL API version.
-Print the HTTP status and response in *Messages*."
-  (interactive)
-  (let ((url-request-method "POST")
-        (url-request-extra-headers
-         (list (cons "Content-Type" "application/json")
-               (cons "Authorization" "Bearer abcd")))
-        (url-request-data
-         "{\"query\": \"{ version { major, minor, patch } }\"}"))
-    (url-retrieve "https://meta.sr.ht/query"
-                  (lambda (status)
-                    (message "GET-API-VERSION: %S, %S"
-                             status (buffer-string))))))
 
 ;;;###autoload
 (defun url-http-oauth-demo-get-profile-name ()
   "Asynchronously retrieve the Sourcehut profile name.
-Print the result to *Messages*."
+Print the result to *Messages*.  Return the name."
   (interactive)
   (let ((url-request-method "POST")
         (url-request-extra-headers
          (list (cons "Content-Type" "application/json")))
         (url-request-data
          "{\"query\": \"{ me { canonicalName } }\"}"))
-    (with-current-buffer (url-retrieve-synchronously "https://meta.sr.ht/query")
-      (message "GET-PROFILE-NAME: %s" (buffer-string))
+    (with-current-buffer
+        (url-retrieve-synchronously
+         (url-parse-make-urlobj
+          "https"             ; type
+          "fitzsim"           ; user
+          nil                 ; password, resolved by url-http-oauth
+          "meta.sr.ht"        ; host
+          443                 ; port
+          (concat "/query"    ; path
+                  "?"         ; scope:
+                  (url-build-query-string
+                   (list
+                    (list "scope" "meta.sr.ht/PROFILE:RO"))))
+          nil nil t))
       (goto-char (point-min))
       (re-search-forward "\n\n")
-      (let* ((result (json-parse-buffer))
-             ;;(me (gethash "me" result))
-             ;;(name me)
-             )
-        (message "GET-PROFILE-NAME PARSED: %S" result)))))
+      (message "%s" (buffer-substring (point) (point-max)))
+      (gethash
+       "canonicalName"
+       (gethash
+        "me"
+        (gethash
+         "data"
+         (json-parse-buffer)))))))
 
 (provide 'url-http-oauth-demo)
 
