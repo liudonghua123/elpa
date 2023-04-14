@@ -31,11 +31,7 @@
 (require 'url-auth)
 (require 'url-http)
 (require 'url-util)
-(require 'mm-url)
 
-;; For evaluation during development:
-;; (setq url-http-oauth--registered-oauth-urls nil)
-;; (message "%S" url-http-oauth--registered-oauth-urls)
 (defvar url-http-oauth--registered-oauth-urls nil
   "A hash table mapping URL strings to lists of OAuth 2.0 configuration.")
 
@@ -50,18 +46,25 @@
 (defun url-http-oauth-configuration (url)
   "Return a configuration list if URL needs OAuth 2.0, nil otherwise.
 URL is either a URL object or a URL string."
-  (let ((key (url-http-oauth-url-string url)))
-    (gethash key url-http-oauth--registered-oauth-urls)))
+  (when url-http-oauth--registered-oauth-urls
+    (let* ((url-no-query (url-parse-make-urlobj
+                          (url-type url)
+                          nil nil
+                          (url-host url)
+                          (url-portspec url)
+                          (car (url-path-and-query url))
+                          nil nil t))
+           (key (url-http-oauth-url-string url-no-query)))
+      (gethash key url-http-oauth--registered-oauth-urls))))
 
 ;; Maybe if RFC 8414, "OAuth 2.0 Authorization Server Metadata",
 ;; catches on, authorization-url and access-token-url can be made
-;; optional, and their values retrieved automatically.  But from what
-;; I can tell RFC 8414 is not consistently implemented yet.
+;; optional and their values retrieved automatically.  As of early
+;; 2023, RFC 8414 is not consistently implemented yet.
 (defun url-http-oauth-register-resource (url
                                          authorization-url
                                          access-token-url
                                          client-identifier
-                                         scope
                                          &optional
                                          client-secret-required)
   "Tell Emacs that to access URL, it needs to use OAuth 2.0.
@@ -69,19 +72,17 @@ URL will be accessed by Emacs's `url' library with a suitable
 \"Authorization\" header containing \"Bearer <token>\".
 AUTHORIZATION-URL and ACCESS-TOKEN-URL will be used to acquire
 <token> and save it to the user's `auth-source' file.  URL,
-AUTHORIZATION-URL and ACCESS-TOKEN-URL are either URL objects or
-URL strings.  CLIENT-IDENTIFIER is a string identifying an Emacs
-library or mode to the server.  SCOPE is a string defining the
-permissions that the Emacs library or mode is requesting.
-CLIENT-SECRET-REQUIRED is the symbol `prompt' if a client secret
-is required, nil otherwise."
+AUTHORIZATION-URL and ACCESS-TOKEN-URL are either objects or
+strings.  CLIENT-IDENTIFIER is a string identifying an Emacs
+library or mode to the server.  CLIENT-SECRET-REQUIRED is the
+symbol `prompt' if a client secret is required, nil otherwise."
   (unless url-http-oauth--registered-oauth-urls
     (setq url-http-oauth--registered-oauth-urls
           (make-hash-table :test #'equal)))
   (let ((key (url-http-oauth-url-string url))
         (authorization (url-http-oauth-url-string authorization-url))
-        (access-token (url-http-oauth-url-string access-token-url)))
-    (puthash key (list authorization access-token client-identifier scope
+        (access-token-object (url-http-oauth-url-object access-token-url)))
+    (puthash key (list authorization access-token-object client-identifier
                        (cond
                         ((eq client-secret-required 'prompt) 'prompt)
                         ((eq client-secret-required nil) nil)
@@ -89,148 +90,158 @@ is required, nil otherwise."
                             "Unrecognized client-secret-required value"))))
              url-http-oauth--registered-oauth-urls)))
 
-;; (car (auth-source-search :host "https://meta.sr.ht/oauth2/access-token" :login "107ba4a9-2a96-4420-8818-84ec1f112405" :max 1))
+(defun url-http-oauth-unregister-resource (url)
+  "Tell Emacs not to use OAuth 2.0 when accessing URL.
+URL is either an objects or a string."
+  (when url-http-oauth--registered-oauth-urls
+    (remhash (url-http-oauth-url-string url)
+             url-http-oauth--registered-oauth-urls)))
 
 (defvar url-http-response-status)
+(defvar auth-source-creation-prompts)
 
-(defun url-http-oauth-get-access-token (url code)
+(defun url-http-oauth-port (url)
+  "Return port of URL object.
+Assume an HTTPS URL that does not specify a port uses 443."
+  (or (url-port url) (when (string= "https" (url-type url)) 443)))
+
+(defun url-http-oauth-get-access-token-grant (url code)
   "Get an access token for URL using CODE."
   (let* ((url-request-method "POST")
-         (key-url (url-http-oauth-url-string url))
-         (url-list (url-http-oauth-configuration key-url))
-         (access-token-url (nth 1 url-list))
+         (url-list (url-http-oauth-configuration url))
+         (access-token-object (nth 1 url-list))
          (client-identifier (nth 2 url-list))
-         (client-secret-required (nth 4 url-list))
-         (client-secret-current (when client-secret-required
-                                  (auth-info-password
-                                   (car (auth-source-search
-                                         :host access-token-url
-                                         ;; FIXME: Why doesn't :user
-                                         ;; work here, but :login
-                                         ;; does?
-                                         :login client-identifier
-                                         :max 1)))))
-         (client-secret-read (unless client-secret-current
-                               (when client-secret-required
-                                 (read-from-minibuffer
-                                  (format "Client secret for %s at %s: "
-                                          client-identifier key-url)))))
+         (client-secret-required (nth 3 url-list))
+         (auth-result
+          (when client-secret-required
+            (car (let ((auth-source-creation-prompts
+                        '((secret . "Client secret for %u at %h")))
+                       ;; Do not cache nil result.
+                       (auth-source-do-cache nil))
+                   (auth-source-search
+                    :user client-identifier
+                    :host (url-host access-token-object)
+                    :port (url-http-oauth-port access-token-object)
+                    :path (url-filename access-token-object)
+                    :create '(path)
+                    :max 1)))))
+         (client-secret (auth-info-password auth-result))
+         (save-function (plist-get auth-result :save-function))
          (authorization (concat
                          "Basic "
                          (base64-encode-string
-                          (format "%s:%s" client-identifier
-                                  (or client-secret-current client-secret-read
-                                      ;; FIXME what to do if not required?
-                                      ""))
+                          (if client-secret
+                              (format "%s:%s" client-identifier client-secret)
+                            ;; FIXME: what to do if client-secret not required?
+                            (format "%s" client-identifier))
                           t)))
          (url-request-extra-headers
           (list (cons "Content-Type" "application/x-www-form-urlencoded")
                 (cons "Authorization" authorization)))
          (url-request-data
-          (mm-url-encode-www-form-urlencoded
-           (list (cons "grant_type" "authorization_code")
-                 (cons "code" code)))))
-    (with-current-buffer (url-retrieve-synchronously access-token-url)
+          (url-build-query-string
+           (list (list "grant_type" "authorization_code")
+                 (list "code" code)))))
+    (with-current-buffer (url-retrieve-synchronously access-token-object)
       (if (eq 'OK (car (alist-get url-http-response-status url-http-codes)))
           (progn
-            (message "BUFFER-STRING: %s" (buffer-string)) ; FIXME: remove after testing.
             (goto-char (point-min))
             (re-search-forward "\n\n")
             (let* ((grant (json-parse-buffer))
                    (type (gethash "token_type" grant)))
-              (message "GRANT: %S" grant) ; FIXME: remove after testing.
               (unless (equal type "bearer" )
                 (error "Unrecognized token type %s for %s at %s" type
-                       client-identifier key-url))
+                       client-identifier (url-http-oauth-url-string url)))
               ;; Success, so save client secret, if necessary.
-              (when (and (not client-secret-current)
-                         client-secret-read)
-                (let* ((auth-result (auth-source-search
-                                     :host access-token-url
-                                     ;; FIXME: Why does :user here get
-                                     ;; translated to "login" in
-                                     ;; authinfo.gpg?
-                                     :user client-identifier
-                                     :secret client-secret-read
-                                     :create t))
-                       (save-function (plist-get (car auth-result)
-                                                 :save-function)))
-                  (if (functionp save-function)
-                      (funcall save-function)
-                    (warn "Saving client secret for %s at %s failed"
-                          client-identifier key-url))))
-              ;; Return access token string.
-              (gethash "access_token" grant)))
+              (when (functionp save-function)
+                (funcall save-function))
+              ;; Return grant object.
+              grant))
         (error "url-http-oauth: Failed to get access token with %s"
                (buffer-string))))))
 
+(defun url-http-oauth-expiry-string (grant)
+  "Return as a string a number representing the expiry time of GRANT.
+The time is in seconds since the epoch."
+  (format-time-string "%s" (time-add nil (gethash "expires_in" grant))))
+
 (defun url-http-oauth-extract-authorization-code (url)
   "Extract the value of the code parameter in URL."
-  (let* ((filename (url-filename (url-generic-parse-url url)))
-         (query-index (string-search "?" filename)))
-    (unless query-index
-      (error "Expected a URL with a query component after a `?' character"))
-    (let* ((query (substring filename (1+ query-index)))
-           (code
-            (catch 'found
-              (dolist (parameter (string-split query "&" t))
-                (let ((pair (split-string parameter "=")))
-                  (when (equal (car pair) "code")
-                    (throw 'found (cadr pair))))))))
+  (let ((query (cdr (url-path-and-query (url-generic-parse-url url)))))
+    (unless query
+      (error "url-http-oauth: Expected URL with query component"))
+    (let ((code (cadr (assoc "code" (url-parse-query-string query)))))
       (unless code
-        (error "Could not find code in pasted URL"))
+        (error "url-http-oauth: Failed to find code in query component"))
       code)))
 
 (defun url-http-oauth-get-bearer (url)
-  "Prompt the user with the authorization endpoint for URL."
-  (let* ((key-url (url-http-oauth-url-string url))
+  "Prompt the user with the authorization endpoint for URL.
+URL is a parsed object."
+  (let* ((path-and-query (url-path-and-query url))
+         (path (car path-and-query))
+         (query (cdr path-and-query))
+         (scope (cadr (assoc "scope" (url-parse-query-string query))))
          (bearer-current (auth-info-password
-                          (car (auth-source-search
-                                :host key-url
-                                :user user-login-name
-                                :max 1)))))
+                          (car
+                           (let ((auth-source-do-cache nil))
+                             (auth-source-search
+                              :user (url-user url)
+                              :host (url-host url)
+                              :port (url-http-oauth-port url)
+                              :path path
+                              :scope scope
+                              :max 1))))))
     (or bearer-current
-        (let ((url-list (url-http-oauth-configuration key-url)))
+        (let ((url-list (url-http-oauth-configuration url)))
           (unless url-list
-            (error "%s is not registered with url-http-oauth" key-url))
+            (error "%s is not registered with url-http-oauth"
+                   (url-http-oauth-url-string url)))
           (let* ((response-url
                   (read-from-minibuffer
                    (format "Browse to %s and paste the redirected code URL: "
                            (concat (nth 0 url-list)
                                    "?"
-                                   (mm-url-encode-www-form-urlencoded
-                                    (list (cons "client_id" (nth 2 url-list))
-                                          (cons "response_type" "code")
-                                          ;; FIXME: Add :expiry support to
-                                          ;; auth-source?
-                                          (cons "scope" (nth 3 url-list))))))))
-                 (code (url-http-oauth-extract-authorization-code response-url)))
-            (let ((bearer-got (url-http-oauth-get-access-token url code)))
+                                   (url-build-query-string
+                                    (list (list "client_id" (nth 2 url-list))
+                                          (list "response_type" "code")
+                                          (list "scope" scope)))))))
+                 (code
+                  (url-http-oauth-extract-authorization-code response-url)))
+            (let* ((grant (url-http-oauth-get-access-token-grant url code))
+                   (bearer-retrieved (gethash "access_token" grant))
+                   (auth-result (let ((auth-source-do-cache nil))
+                                  (auth-source-search
+                                   :user (url-user url)
+                                   :host (url-host url)
+                                   :port (url-http-oauth-port url)
+                                   :path path
+                                   :scope (if (string= (gethash "scope" grant)
+                                                       scope)
+                                              scope
+                                            (error
+                                             (concat "url-http-oauth:"
+                                                     " Returned scope did not"
+                                                     " match requested scope")))
+                                   :expiry (url-http-oauth-expiry-string grant)
+                                   :secret bearer-retrieved
+                                   :create '(path scope expiry)
+                                   :max 1)))
+                   (save-function (plist-get (car auth-result) :save-function)))
               ;; Success, so save bearer.
-              (message "BEARER GOT: %s" bearer-got)
-              (let* ((auth-result (auth-source-search
-                                   :host key-url
-                                   ;; FIXME: Maybe support multiple
-                                   ;; different :user values?
-                                   :user user-login-name
-                                   :secret bearer-got
-                                   :create t))
-                     (save-function (plist-get (car auth-result)
-                                               :save-function)))
-                (if (functionp save-function)
-                    (funcall save-function)
-                  (warn "Saving bearer for %s failed" key-url)))
-              bearer-got))))))
+              (when (functionp save-function)
+                (funcall save-function))
+              bearer-retrieved))))))
 
 ;;; Public function called by `url-get-authentication'.
 ;;;###autoload
 (defun url-oauth-auth (url &optional _prompt _overwrite _realm _args)
   "Return an OAuth 2.0 HTTP authorization header.
-URL is an object representing a parsed URL."
-  ;; Do nothing for now.
+URL is an object representing a parsed URL.  It should specify a
+user, and contain a \"scope\" query argument representing the
+permissions that the caller is requesting."
   (when (url-http-oauth-configuration url)
     (let ((bearer (url-http-oauth-get-bearer url)))
-      (message "BEARER: %s" bearer)
       (concat "Bearer " bearer))))
 
 ;;; Register `url-oauth-auth' HTTP authentication method.
