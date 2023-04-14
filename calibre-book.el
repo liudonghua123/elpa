@@ -109,14 +109,20 @@ ENTRY is a list of the form:
   "Return list suitable as a value of `tabulated-list-entries'.
 BOOK is a `calibre-book'."
   (list book
-        (with-slots (id title authors series series-index tags formats) book
-          `[,(int-to-string id)
-            ,title
-            ,(string-join authors ", ")
-            ,(if (not series) "" series)
-            ,(if series (format "%.1f" series-index) "")
-            ,(string-join tags ", ")
-            ,(string-join (mapcar (lambda (f) (upcase (symbol-name f))) formats) ", ")])))
+        (with-slots (id title authors publishers series series-index tags formats) book
+          (vconcat (mapcar (lambda (x)
+                             (let ((column (car x))
+                                   (width (cdr x)))
+                               (cl-case column
+                                 (id (format (format "%%%ds" width) id))
+                                 (title title)
+                                 (authors (string-join authors ", "))
+                                 (publishers (string-join publishers ", "))
+                                 (series (if (not series) "" series))
+                                 (series-index (if series (format "%.1f" series-index) ""))
+                                 (tags (string-join tags ", "))
+                                 (formats (string-join (mapcar (lambda (f) (upcase (symbol-name f))) formats) ", ")))))
+                           calibre-library-columns)))))
 
 (defun calibre-book--file (book format)
   "Return the path to BOOK in FORMAT."

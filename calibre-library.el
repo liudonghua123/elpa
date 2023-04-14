@@ -97,6 +97,25 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
   (interactive (list (tabulated-list-get-id)) calibre-library-mode)
   (find-file (calibre-book--file book (calibre-book--pick-format book))))
 
+(defun calibre-library--header-format ()
+  (vconcat
+   (mapcar (lambda (x)
+             (let ((column (car x))
+                   (width (cdr x)))
+               (cl-case column
+                 (id `("ID" ,width (lambda (a b)
+                                     (< (calibre-book-id (car a))
+                                        (calibre-book-id (car b))))))
+                 (title `("Title" ,width))
+                 (authors `("Author(s)" ,width))
+                 (publishers `("Publisher(s)" ,width))
+                 (series `("Series" ,width (lambda (a b)
+                                             (calibre-book-sort-by-series (car a) (car b)))))
+                 (series-index `("#" ,width))
+                 (tags `("Tags" ,width))
+                 (formats `("Formats" ,width)))))
+           calibre-library-columns)))
+
 (defvar-keymap calibre-library-mode-map
   :doc "Local keymap for Calibre Library buffers."
   :parent tabulated-list-mode-map
@@ -110,16 +129,7 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
 
 (define-derived-mode calibre-library-mode tabulated-list-mode
   (setf tabulated-list-padding 2
-        tabulated-list-format
-        [("ID" 4 (lambda (a b)
-                   (< (calibre-book-id (car a)) (calibre-book-id (car b)))))
-         ("Title" 35 t)
-         ("Author(s)" 20 t)
-         ("Series" 15 (lambda (a b)
-                        (calibre-book-sort-by-series (car a) (car b))))
-         ("#" 3 nil)
-         ("Tags" 10 nil)
-         ("Formats" 10 nil)])
+        tabulated-list-format (calibre-library--header-format))
   (tabulated-list-init-header))
 
 ;;;###autoload
