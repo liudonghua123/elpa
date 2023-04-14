@@ -37,6 +37,9 @@
    (authors :initarg :authors
             :type list
             :documentation "The authors of the book.")
+   (publishers :initarg :publishers
+               :type list
+               :documentation "The publishers of the book.")
    (series :initarg :series
            :initform nil
            :type (or string null)
@@ -75,6 +78,7 @@ for private functions."
 (calibre-book--slot id)
 (calibre-book--slot title)
 (calibre-book--slot authors)
+(calibre-book--slot publishers)
 (calibre-book--slot series)
 (calibre-book--slot series-index)
 (calibre-book--slot tags)
@@ -90,6 +94,7 @@ ENTRY is a list of the form:
     (calibre-book :id id
                   :title title
                   :authors (calibre-db--get-book-authors id)
+                  :publishers (calibre-db--get-book-publishers id)
                   :series series
                   :series-index series-index
                   :timestamp (calibre-parse-timestamp timestamp)

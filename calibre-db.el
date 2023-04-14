@@ -48,6 +48,14 @@ FROM authors
 INNER JOIN books_authors_link al ON authors.id = al.author
 WHERE al.book = ?" `[,id])))
 
+(defun calibre-db--get-book-publishers (id)
+  "Return a list of publishers for the book identified by ID."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT publishers.name
+FROM publishers
+INNER JOIN books_publishers_link pl ON publishers.id = pl.publisher
+WHERE pl.book = ?" `[,id])))
+
 (defun calibre-db--get-book-file-name (id)
   "Return the file name, sans extension, of the book identified by ID."
   (car (car (sqlite-select (calibre--db)
