@@ -40,7 +40,8 @@
                                   "https://meta.sr.ht/oauth2/authorize"
                                   "https://meta.sr.ht/oauth2/access-token"
                                   "107ba4a9-2a96-4420-8818-84ec1f112405"
-                                  "meta.sr.ht/PROFILE:RO")
+                                  "meta.sr.ht/PROFILE:RO"
+                                  'prompt)
 
 ;;;###autoload
 (defun url-http-oauth-demo-get-api-version ()
@@ -49,13 +50,13 @@ Print the HTTP status and response in *Messages*."
   (interactive)
   (let ((url-request-method "POST")
         (url-request-extra-headers
-	 (list (cons "Content-Type" "application/json")
+         (list (cons "Content-Type" "application/json")
                (cons "Authorization" "Bearer abcd")))
         (url-request-data
          "{\"query\": \"{ version { major, minor, patch } }\"}"))
     (url-retrieve "https://meta.sr.ht/query"
                   (lambda (status)
-                    (message "%S, %S"
+                    (message "GET-API-VERSION: %S, %S"
                              status (buffer-string))))))
 
 ;;;###autoload
@@ -65,20 +66,18 @@ Print the result to *Messages*."
   (interactive)
   (let ((url-request-method "POST")
         (url-request-extra-headers
-	 (list (cons "Content-Type" "application/json")))
+         (list (cons "Content-Type" "application/json")))
         (url-request-data
          "{\"query\": \"{ me { canonicalName } }\"}"))
-    (url-retrieve "https://meta.sr.ht/query"
-                  (lambda (status)
-                    (message "STR: %s" (buffer-string))
-                    (goto-char (point-min))
-                    (re-search-forward "\n\n")
-                    
-                    (let* ((result (json-parse-buffer))
-                           ;;(me (gethash "me" result))
-                           ;;(name me)
-                           )
-                      (message "%S" result))))))
+    (with-current-buffer (url-retrieve-synchronously "https://meta.sr.ht/query")
+      (message "GET-PROFILE-NAME: %s" (buffer-string))
+      (goto-char (point-min))
+      (re-search-forward "\n\n")
+      (let* ((result (json-parse-buffer))
+             ;;(me (gethash "me" result))
+             ;;(name me)
+             )
+        (message "GET-PROFILE-NAME PARSED: %S" result)))))
 
 (provide 'url-http-oauth-demo)
 
