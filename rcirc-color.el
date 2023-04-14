@@ -1,6 +1,6 @@
 ;;; rcirc-color.el --- color nicks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005-2022  Free Software Foundation, Inc.
+;; Copyright (C) 2005-2023  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
@@ -165,10 +165,7 @@ commands."
   (if (not nick)
       (let (names)
         (maphash (lambda (key value)
-                   (add-text-properties
-                    0 (length key)
-                    `(face (,value) help-echo ,(cdr value))
-                    key)
+                   (add-text-properties 0 (length key) `(face (,value)) key)
                    (setq names (cons key names)))
                  rcirc-color-mapping)
         (rcirc-print process (rcirc-nick process) "NOTICE" target
