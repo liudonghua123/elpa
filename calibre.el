@@ -39,12 +39,12 @@
   :set (lambda (symbol value)
          (set-default symbol value)
          (setf calibre--db nil))
-  :package-version '("calibre" . "0.1"))
+  :package-version '("calibre" . "0.1.0"))
 
 (defcustom calibre-format-preferences '(pdf epub)
   "The preference order of file formats."
   :type '(repeat symbol :tag "Format")
-  :package-version '("calibre" . "0.1"))
+  :package-version '("calibre" . "0.1.0"))
 
 (defvar calibre--books nil)
 (defun calibre--books (&optional force)
