@@ -32,6 +32,41 @@
                       (calibre--books)))
         (tabulated-list-print))))
 
+;;;###autoload
+(defun calibre-library-add-book (file)
+  "Add FILE to the Calibre library."
+  (interactive "f")
+  (unless (executable-find "calibredb"))
+  (calibre-add-books (list file)))
+
+(defun calibre-library-add-books (files)
+  "Add FILES to the Calibre library."
+  (calibre-library--execute `("add" ,@(mapcar #'expand-file-name files))))
+
+(defun calibre-remove-books (books)
+  "Remove BOOKS from the Calibre library."
+  (let ((ids (mapcar #'int-to-string (mapcar #'calibre-book-id books))))
+    (calibre-library--execute `("remove" ,(string-join ids ",")))))
+
+(defun calibre-library--process-sentinel (_ event)
+  "Process filter for Calibre library operations.
+EVENT is the process event, see Info node
+`(elisp)Sentinels'"
+  (if (string= event "finished\n")
+      (if (get-buffer calibre-library-buffer)
+          (calibre-library--refresh))
+    (error "Calibre process failed %S" event)))
+
+(cl-defun calibre-library--execute (args &optional (sentinel #'calibre-library--process-sentinel))
+  "Execute calibredb with arguments ARGS.
+ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
+  (if (not (executable-find calibre-calibredb-executable))
+      (error "Could not find calibredb")
+    (make-process
+     :name "calibre"
+     :command `("calibredb" "--with-library" ,calibre-library-dir ,@args)
+     :sentinel sentinel)))
+
 (defun calibre-library-mark-remove (&optional _num)
   "Mark a book for removal and move to the next line."
   (interactive "p" calibre-library-mode)
