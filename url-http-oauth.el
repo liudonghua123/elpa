@@ -61,7 +61,9 @@ URL is either a URL object or a URL string."
                                          authorization-url
                                          access-token-url
                                          client-identifier
-                                         scope)
+                                         scope
+                                         &optional
+                                         client-secret-required)
   "Tell Emacs that to access URL, it needs to use OAuth 2.0.
 URL will be accessed by Emacs's `url' library with a suitable
 \"Authorization\" header containing \"Bearer <token>\".
@@ -70,17 +72,27 @@ AUTHORIZATION-URL and ACCESS-TOKEN-URL will be used to acquire
 AUTHORIZATION-URL and ACCESS-TOKEN-URL are either URL objects or
 URL strings.  CLIENT-IDENTIFIER is a string identifying an Emacs
 library or mode to the server.  SCOPE is a string defining the
-permissions that the Emacs library or mode is requesting."
+permissions that the Emacs library or mode is requesting.
+CLIENT-SECRET-REQUIRED is the symbol `prompt' if a client secret
+is required, nil otherwise."
   (unless url-http-oauth--registered-oauth-urls
     (setq url-http-oauth--registered-oauth-urls
           (make-hash-table :test #'equal)))
   (let ((key (url-http-oauth-url-string url))
         (authorization (url-http-oauth-url-string authorization-url))
         (access-token (url-http-oauth-url-string access-token-url)))
-    (puthash key (list authorization access-token client-identifier scope)
+    (puthash key (list authorization access-token client-identifier scope
+                       (cond
+                        ((eq client-secret-required 'prompt) 'prompt)
+                        ((eq client-secret-required nil) nil)
+                        (t (error
+                            "Unrecognized client-secret-required value"))))
              url-http-oauth--registered-oauth-urls)))
 
-;; (car (auth-source-search :host "https://meta.sr.ht/oauth2/access-token" :user "107ba4a9-2a96-4420-8818-84ec1f112405" :max 1))
+;; (car (auth-source-search :host "https://meta.sr.ht/oauth2/access-token" :login "107ba4a9-2a96-4420-8818-84ec1f112405" :max 1))
+
+(defvar url-http-response-status)
+
 (defun url-http-oauth-get-access-token (url code)
   "Get an access token for URL using CODE."
   (let* ((url-request-method "POST")
@@ -88,16 +100,29 @@ permissions that the Emacs library or mode is requesting."
          (url-list (url-http-oauth-configuration key-url))
          (access-token-url (nth 1 url-list))
          (client-identifier (nth 2 url-list))
-         (client-secret
-          (auth-info-password
-           (car (auth-source-search :host access-token-url
-                                    :user client-identifier
-                                    :max 1))))
-         (authorization (concat "Basic "
-                                (base64-encode-string
-                                 (format "%s:%s" client-identifier
-                                         client-secret)
-                                 t)))
+         (client-secret-required (nth 4 url-list))
+         (client-secret-current (when client-secret-required
+                                  (auth-info-password
+                                   (car (auth-source-search
+                                         :host access-token-url
+                                         ;; FIXME: Why doesn't :user
+                                         ;; work here, but :login
+                                         ;; does?
+                                         :login client-identifier
+                                         :max 1)))))
+         (client-secret-read (unless client-secret-current
+                               (when client-secret-required
+                                 (read-from-minibuffer
+                                  (format "Client secret for %s at %s: "
+                                          client-identifier key-url)))))
+         (authorization (concat
+                         "Basic "
+                         (base64-encode-string
+                          (format "%s:%s" client-identifier
+                                  (or client-secret-current client-secret-read
+                                      ;; FIXME what to do if not required?
+                                      ""))
+                          t)))
          (url-request-extra-headers
           (list (cons "Content-Type" "application/x-www-form-urlencoded")
                 (cons "Authorization" authorization)))
@@ -122,15 +147,38 @@ permissions that the Emacs library or mode is requesting."
     ;;                        :expiry (gethash "expires_in" grant)
     ;;                        :create t))))))
     (with-current-buffer (url-retrieve-synchronously access-token-url)
-      (message "BUFFER-STRING: %s" (buffer-string))
-      (goto-char (point-min))
-      (re-search-forward "\n\n")
-      (let* ((grant (json-parse-buffer))
-             (type (gethash "token_type" grant)))
-        (message "GRANT: %S" grant)
-        (unless (equal type "bearer" )
-          (error "Unrecognized token type: %s" type))
-        (gethash "access_token" grant)))))
+      (if (eq 'OK (car (alist-get url-http-response-status url-http-codes)))
+          (progn
+            (message "BUFFER-STRING: %s" (buffer-string)) ; FIXME: remove after testing.
+            (goto-char (point-min))
+            (re-search-forward "\n\n")
+            (let* ((grant (json-parse-buffer))
+                   (type (gethash "token_type" grant)))
+              (message "GRANT: %S" grant) ; FIXME: remove after testing.
+              (unless (equal type "bearer" )
+                (error "Unrecognized token type %s for %s at %s" type
+                       client-identifier key-url))
+              ;; Success, so save client secret, if necessary.
+              (when (and (not client-secret-current)
+                         client-secret-read)
+                (let* ((auth-result (auth-source-search
+                                     :host access-token-url
+                                     ;; FIXME: Why does :user here get
+                                     ;; translated to "login" in
+                                     ;; authinfo.gpg?
+                                     :user client-identifier
+                                     :secret client-secret-read
+                                     :create t))
+                       (save-function (plist-get (car auth-result)
+                                                 :save-function)))
+                  (if (functionp save-function)
+                      (funcall save-function)
+                    (warn "Saving client secret for %s at %s failed"
+                          client-identifier key-url))))
+              ;; Return access token string.
+              (gethash "access_token" grant)))
+        (error "url-http-oauth: Failed to get access token with %s"
+               (buffer-string))))))
 
 (defun url-http-oauth-extract-authorization-code (url)
   "Extract the value of the code parameter in URL."
@@ -170,6 +218,11 @@ permissions that the Emacs library or mode is requesting."
       ;; FIXME: why doesn't the authentication get saved?
       ;; (funcall (plist-get (car (auth-source-search :host "https://meta.sr.ht/query" :secret "example" :expiry 86399 :create t)) :save-function))
       )))
+
+;; (setq fitzsim-banana (auth-source-search :host "banana" :secret "orange3" :create t))
+
+;; Works, but need 
+;; (when (functionp (plist-get (car fitzsim-banana) :save-function)) (funcall (plist-get (car fitzsim-banana) :save-function)))
 
 ;;(defvar url-http-oauth-testval nil "Test value.")
 ;;(setq url-http-oauth-testval nil)
