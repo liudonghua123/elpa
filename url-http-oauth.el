@@ -26,13 +26,17 @@
 ;; Installation:
 ;;
 ;; M-x package-install RET url-http-oauth RET
+;;
+;; Usage:
+;;
+;; See url-http-oauth-demo.el.
 
 ;;; Code:
 (require 'url-auth)
 (require 'url-http)
 (require 'url-util)
 
-(defvar url-http-oauth--registered-oauth-urls nil
+(defvar url-http-oauth--interposed nil
   "A hash table mapping URL strings to lists of OAuth 2.0 configuration.")
 
 (defun url-http-oauth-url-string (url)
@@ -46,7 +50,7 @@
 (defun url-http-oauth-configuration (url)
   "Return a configuration list if URL needs OAuth 2.0, nil otherwise.
 URL is either a URL object or a URL string."
-  (when url-http-oauth--registered-oauth-urls
+  (when url-http-oauth--interposed
     (let* ((url-no-query (url-parse-make-urlobj
                           (url-type url)
                           nil nil
@@ -55,19 +59,19 @@ URL is either a URL object or a URL string."
                           (car (url-path-and-query url))
                           nil nil t))
            (key (url-http-oauth-url-string url-no-query)))
-      (gethash key url-http-oauth--registered-oauth-urls))))
+      (gethash key url-http-oauth--interposed))))
 
 ;; Maybe if RFC 8414, "OAuth 2.0 Authorization Server Metadata",
 ;; catches on, authorization-url and access-token-url can be made
 ;; optional and their values retrieved automatically.  As of early
 ;; 2023, RFC 8414 is not consistently implemented yet.
-(defun url-http-oauth-register-resource (url
-                                         authorization-url
-                                         access-token-url
-                                         client-identifier
-                                         &optional
-                                         client-secret-required)
-  "Tell Emacs that to access URL, it needs to use OAuth 2.0.
+(defun url-http-oauth-interpose (url
+                                 authorization-url
+                                 access-token-url
+                                 client-identifier
+                                 &optional
+                                 client-secret-required)
+  "Arrange for Emacs to use OAuth 2.0 to access URL.
 URL will be accessed by Emacs's `url' library with a suitable
 \"Authorization\" header containing \"Bearer <token>\".
 AUTHORIZATION-URL and ACCESS-TOKEN-URL will be used to acquire
@@ -76,9 +80,8 @@ AUTHORIZATION-URL and ACCESS-TOKEN-URL are either objects or
 strings.  CLIENT-IDENTIFIER is a string identifying an Emacs
 library or mode to the server.  CLIENT-SECRET-REQUIRED is the
 symbol `prompt' if a client secret is required, nil otherwise."
-  (unless url-http-oauth--registered-oauth-urls
-    (setq url-http-oauth--registered-oauth-urls
-          (make-hash-table :test #'equal)))
+  (unless url-http-oauth--interposed
+    (setq url-http-oauth--interposed (make-hash-table :test #'equal)))
   (let ((key (url-http-oauth-url-string url))
         (authorization (url-http-oauth-url-string authorization-url))
         (access-token-object (url-http-oauth-url-object access-token-url)))
@@ -88,14 +91,14 @@ symbol `prompt' if a client secret is required, nil otherwise."
                         ((eq client-secret-required nil) nil)
                         (t (error
                             "Unrecognized client-secret-required value"))))
-             url-http-oauth--registered-oauth-urls)))
+             url-http-oauth--interposed)))
 
-(defun url-http-oauth-unregister-resource (url)
-  "Tell Emacs not to use OAuth 2.0 when accessing URL.
+(defun url-http-oauth-ignore (url)
+  "Arrange for Emacs not to use OAuth 2.0 when accessing URL.
+This function does the opposite of `url-http-oauth-interpose'.
 URL is either an objects or a string."
-  (when url-http-oauth--registered-oauth-urls
-    (remhash (url-http-oauth-url-string url)
-             url-http-oauth--registered-oauth-urls)))
+  (when url-http-oauth--interposed
+    (remhash (url-http-oauth-url-string url) url-http-oauth--interposed)))
 
 (defvar url-http-response-status)
 (defvar auth-source-creation-prompts)
@@ -195,7 +198,7 @@ URL is a parsed object."
     (or bearer-current
         (let ((url-list (url-http-oauth-configuration url)))
           (unless url-list
-            (error "%s is not registered with url-http-oauth"
+            (error "%s is not interposed by url-http-oauth"
                    (url-http-oauth-url-string url)))
           (let* ((response-url
                   (read-from-minibuffer
