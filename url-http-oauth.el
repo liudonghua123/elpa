@@ -130,22 +130,6 @@ is required, nil otherwise."
           (mm-url-encode-www-form-urlencoded
            (list (cons "grant_type" "authorization_code")
                  (cons "code" code)))))
-    ;; (url-retrieve access-token-url
-    ;;               (lambda (status)
-    ;;                 (let ((event (plist-get status :error)))
-    ;;                   (if event
-    ;;                       (error "Failed to get token: %s" event)
-    ;;                     (goto-char (point-min))
-    ;;                     (re-search-forward "\n\n")
-    ;;                     (let* ((grant (json-parse-buffer))
-    ;;                            (type (gethash "token_type" grant)))
-    ;;                       (unless (equal type "bearer" )
-    ;;                         (error "Unrecognized token type: %s" type))
-    ;;                       (auth-source-search
-    ;;                        :host key-url
-    ;;                        :secret (gethash "access_token" grant)
-    ;;                        :expiry (gethash "expires_in" grant)
-    ;;                        :create t))))))
     (with-current-buffer (url-retrieve-synchronously access-token-url)
       (if (eq 'OK (car (alist-get url-http-response-status url-http-codes)))
           (progn
@@ -200,37 +184,43 @@ is required, nil otherwise."
 (defun url-http-oauth-get-bearer (url)
   "Prompt the user with the authorization endpoint for URL."
   (let* ((key-url (url-http-oauth-url-string url))
-         (url-list (url-http-oauth-configuration key-url)))
-    (unless url-list
-      (error "%s is not registered with url-http-oauth" key-url))
-    (let* ((response-url
-            (read-from-minibuffer
-             (format "Browse to %s and paste the redirected code URL: "
-                     (concat (nth 0 url-list)
-                             "?"
-                             (mm-url-encode-www-form-urlencoded
-                              (list (cons "client_id" (nth 2 url-list))
-                                    (cons "response_type" "code")
-                                    ;; FIXME: expiry?
-                                    (cons "scope" (nth 3 url-list))))))))
-           (code (url-http-oauth-extract-authorization-code response-url)))
-      (url-http-oauth-get-access-token url code)
-      ;; FIXME: why doesn't the authentication get saved?
-      ;; (funcall (plist-get (car (auth-source-search :host "https://meta.sr.ht/query" :secret "example" :expiry 86399 :create t)) :save-function))
-      )))
-
-;; (setq fitzsim-banana (auth-source-search :host "banana" :secret "orange3" :create t))
-
-;; Works, but need 
-;; (when (functionp (plist-get (car fitzsim-banana) :save-function)) (funcall (plist-get (car fitzsim-banana) :save-function)))
-
-;;(defvar url-http-oauth-testval nil "Test value.")
-;;(setq url-http-oauth-testval nil)
-;;(setq url-http-oauth-testval (url-http-oauth-get-authorization-code "https://meta.sr.ht/query"))
-
-;; works: (auth-source-search :max 1 :host "https://meta.sr.ht/oauth2/access-token")
-;; (defvar url-http-oauth-fulltokenbuf nil "Test buf.")
-;; (setq url-http-oauth-fulltokenbuf (url-http-oauth-get-access-token "https://meta.sr.ht/query" "eb869898585b6e21cf016dc0126d48e8"))
+         (bearer-current (auth-info-password
+                          (car (auth-source-search
+                                :host key-url
+                                :user user-login-name
+                                :max 1)))))
+    (or bearer-current
+        (let ((url-list (url-http-oauth-configuration key-url)))
+          (unless url-list
+            (error "%s is not registered with url-http-oauth" key-url))
+          (let* ((response-url
+                  (read-from-minibuffer
+                   (format "Browse to %s and paste the redirected code URL: "
+                           (concat (nth 0 url-list)
+                                   "?"
+                                   (mm-url-encode-www-form-urlencoded
+                                    (list (cons "client_id" (nth 2 url-list))
+                                          (cons "response_type" "code")
+                                          ;; FIXME: Add :expiry support to
+                                          ;; auth-source?
+                                          (cons "scope" (nth 3 url-list))))))))
+                 (code (url-http-oauth-extract-authorization-code response-url)))
+            (let ((bearer-got (url-http-oauth-get-access-token url code)))
+              ;; Success, so save bearer.
+              (message "BEARER GOT: %s" bearer-got)
+              (let* ((auth-result (auth-source-search
+                                   :host key-url
+                                   ;; FIXME: Maybe support multiple
+                                   ;; different :user values?
+                                   :user user-login-name
+                                   :secret bearer-got
+                                   :create t))
+                     (save-function (plist-get (car auth-result)
+                                               :save-function)))
+                (if (functionp save-function)
+                    (funcall save-function)
+                  (warn "Saving bearer for %s failed" key-url)))
+              bearer-got))))))
 
 ;;; Public function called by `url-get-authentication'.
 ;;;###autoload
