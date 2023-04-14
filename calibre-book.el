@@ -131,5 +131,18 @@ BOOK is a `calibre-book'."
   (car (seq-intersection calibre-format-preferences
                          (calibre-book-formats book))))
 
+(defun calibre-book-sort-by-series (a b)
+  "Return t if A should appear before B when sorting by series."
+  (if (not (calibre-book-series a))
+      t
+    (if (not (calibre-book-series b))
+        nil
+      (cl-case (compare-strings (calibre-book-series a) nil nil
+                                  (calibre-book-series b) nil nil)
+          (-1 t)
+          ((eq t) (> (calibre-book-series-index a)
+                     (calibre-book-series-index b)))
+          (1 nil)))))
+
 (provide 'calibre-book)
 ;;; calibre-book.el ends here
