@@ -65,7 +65,7 @@ EVENT is the process event, see Info node
 `(elisp)Sentinels'"
   (if (string= event "finished\n")
       (if (get-buffer calibre-library-buffer)
-          (calibre-library--refresh))
+          (calibre-library--refresh t))
     (error "Calibre process failed %S" event)))
 
 (cl-defun calibre-library--execute (args &optional (sentinel #'calibre-library--process-sentinel))
