@@ -27,13 +27,14 @@
 
 (defconst calibre-library-buffer "*Library*")
 
-(defun calibre-library--refresh ()
-  "Refresh the contents of the library buffer with BOOKS."
+(defun calibre-library--refresh (&optional force)
+  "Refresh the contents of the library buffer.
+If FORCE is non-nil fetch book data from the database."
   (let* ((buffer (get-buffer calibre-library-buffer)))
       (with-current-buffer buffer
         (setf tabulated-list-entries
               (mapcar #'calibre-book--print-info
-                      (calibre--books)))
+                      (calibre--books force)))
         (tabulated-list-print))))
 
 ;;;###autoload
@@ -146,11 +147,10 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
 (defun calibre-library ()
   "List all books in Calibre Library `calibrary-dir'."
   (interactive)
-  (calibre--books t)
   (let ((buffer (get-buffer-create calibre-library-buffer)))
     (with-current-buffer buffer
       (calibre-library-mode)
-      (calibre-library--refresh)
+      (calibre-library--refresh t)
       (display-buffer buffer))))
 
 (provide 'calibre-library)
