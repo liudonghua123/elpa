@@ -1,4 +1,4 @@
-;;; calibre-book.el --- Create and manage lisp representations of books -*- lexical-binding:t -*-
+;;; calibre-book.el --- Create and manage Lisp representations of books -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2023  Kjartan Oli Agustsson
 
@@ -21,6 +21,8 @@
 ;; along with calibre.el.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+;; Functions for creating and accessing the values of Lisp
+;; representations of books
 
 ;;; Code:
 (require 'eieio)

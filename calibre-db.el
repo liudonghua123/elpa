@@ -20,6 +20,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with calibre.el.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;; Fetch data from the library database.
 
 ;;; Code:
 (defvar calibre--db nil)
