@@ -37,7 +37,7 @@
   "Add FILE to the Calibre library."
   (interactive "f")
   (unless (executable-find "calibredb"))
-  (calibre-add-books (list file)))
+  (calibre-library-add-books (list file)))
 
 (defun calibre-library-add-books (files)
   "Add FILES to the Calibre library."
@@ -122,7 +122,7 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
   "d" #'calibre-library-mark-remove
   "u" #'calibre-library-mark-unmark
   "x" #'calibre-library-execute
-  "a" #'calibre-add-book
+  "a" #'calibre-library-add-book
   "v" #'calibre-view-book
   "e" #'calibre-edit-book
   "RET" #'calibre-library-open-book)
