@@ -1,6 +1,6 @@
 (define-package
   "calibre"
-  "0.1.0"
+  "1.0.0"
   "Interact with Calibre libraries from Emacs"
   '((emacs "29.1.0"))
   :authors '(("Kjartan Oli Agustsson" . "kjartanoli@disroot.org"))
