@@ -134,8 +134,6 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
   "u" #'calibre-library-mark-unmark
   "x" #'calibre-library-execute
   "a" #'calibre-library-add-book
-  "v" #'calibre-view-book
-  "e" #'calibre-edit-book
   "RET" #'calibre-library-open-book)
 
 (define-derived-mode calibre-library-mode tabulated-list-mode
