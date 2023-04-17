@@ -28,6 +28,8 @@
 (require 'eieio)
 
 (require 'calibre-util)
+(require 'calibre-db)
+(require 'calibre)
 
 (defclass calibre-book ()
   ((id :initarg :id

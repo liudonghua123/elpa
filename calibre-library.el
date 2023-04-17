@@ -23,6 +23,7 @@
 ;; open books in Emacs.
 
 ;;; Code:
+(require 'dired)
 (require 'calibre-book)
 
 (defconst calibre-library-buffer "*Library*")

@@ -26,8 +26,9 @@
 ;; associated with each book, and read them, all from within Emacs.
 
 ;;; Code:
-(require 'calibre-book)
 (require 'calibre-db)
+
+(declare-function calibre-library--refresh "calibre-library.el")
 
 (defgroup calibre nil
   "Interact with a Calibre library."
@@ -71,6 +72,14 @@ column should have."
                                    (directory :tag "Location")))
   :package-version '("calibre" . "0.1.0"))
 
+(defvar calibre--books nil)
+(defun calibre--books (&optional force)
+  "Return the in memory list of books.
+If FORCE is non-nil the list is refreshed from the database."
+  (when (or force (not calibre--books))
+    (setf calibre--books (calibre-db--get-books)))
+  calibre--books)
+
 (defun calibre--library-names ()
   "Return a list of the names of defined libraries."
   (mapcar #'car calibre-libraries))
@@ -100,14 +109,6 @@ If no library is active, prompt the user to select one."
   "The preference order of file formats."
   :type '(repeat symbol :tag "Format")
   :package-version '("calibre" . "0.1.0"))
-
-(defvar calibre--books nil)
-(defun calibre--books (&optional force)
-  "Return the in memory list of books.
-If FORCE is non-nil the list is refreshed from the database."
-  (when (or force (not calibre--books))
-    (setf calibre--books (calibre-db--get-books)))
-  calibre--books)
 
 (provide 'calibre)
 ;;; calibre.el ends here

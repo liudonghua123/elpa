@@ -24,6 +24,9 @@
 ;; Fetch data from the library database.
 
 ;;; Code:
+(declare-function calibre--library "calibre.el")
+(declare-function calibre-make-book "calibre-book.el")
+
 (defvar calibre--db nil)
 (defun calibre--db ()
   "Return the metadata database."
