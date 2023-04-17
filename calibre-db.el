@@ -28,19 +28,26 @@
 (defun calibre--db ()
   "Return the metadata database."
   (unless calibre--db
-    (setf calibre--db
-          (sqlite-open
-           (file-name-concat calibre-library-dir "metadata.db"))))
+    (let ((file-name (file-name-concat (calibre--library) "metadata.db")))
+      (if (not (file-exists-p file-name))
+          (progn
+            (display-warning 'calibre (format "Metedata database %s does not exist.  Add some books to the library to create it." file-name))
+            (setf calibre--db nil))
+        (setf calibre--db
+              (sqlite-open
+               file-name)))))
   calibre--db)
 
 (defun calibre-db--get-books ()
   "Return all books in the Calibre library `calibre-library-dir'."
-  (mapcar #'calibre-make-book
-          (sqlite-select (calibre--db)
-                         "SELECT books.id, title, series.name, series_index, timestamp, pubdate, last_modified, path
+  (if (not (calibre--db))
+      nil
+    (mapcar #'calibre-make-book
+            (sqlite-select (calibre--db)
+                           "SELECT books.id, title, series.name, series_index, timestamp, pubdate, last_modified, path
 FROM books
 LEFT JOIN books_series_link sl ON books.id = sl.book
-LEFT JOIN series ON sl.series = series.id;")))
+LEFT JOIN series ON sl.series = series.id;"))))
 
 (defun calibre-db--get-book-authors (id)
   "Return a list of authors for the book identified by ID."

@@ -130,7 +130,7 @@ BOOK is a `calibre-book'."
   "Return the path to BOOK in FORMAT."
   (with-slots (path file-name) book
     (message "%S" file-name)
-    (file-name-concat calibre-library-dir
+    (file-name-concat (calibre--library)
                       path
                       (message "%s.%s" file-name format))))
 
