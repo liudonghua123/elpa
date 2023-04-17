@@ -36,7 +36,6 @@
 (defun calibre-library-add-book (file)
   "Add FILE to the Calibre library."
   (interactive "f")
-  (unless (executable-find "calibredb"))
   (calibre-library-add-books (list file)))
 
 (defun calibre-library-add-books (files)
