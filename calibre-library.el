@@ -43,6 +43,13 @@
   "Add FILES to the Calibre library."
   (calibre-library--execute `("add" ,@(mapcar #'expand-file-name files))))
 
+;;;###autoload
+(defun calibre-dired-add ()
+  "Add marked files to the Calibre library."
+    (interactive)
+    (if (derived-mode-p 'dired-mode)
+        (calibre-library-add-books (dired-get-marked-files))))
+
 (defun calibre-remove-books (books)
   "Remove BOOKS from the Calibre library."
   (let ((ids (mapcar #'int-to-string (mapcar #'calibre-book-id books))))
