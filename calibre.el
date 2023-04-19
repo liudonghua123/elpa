@@ -27,8 +27,7 @@
 
 ;;; Code:
 (require 'calibre-db)
-
-(declare-function calibre-library--refresh "calibre-library.el")
+(require 'calibre-book)
 
 (defgroup calibre nil
   "Interact with a Calibre library."
@@ -72,38 +71,9 @@ column should have."
                                    (directory :tag "Location")))
   :package-version '("calibre" . "0.1.0"))
 
-(defvar calibre--books nil)
-(defun calibre--books (&optional force)
-  "Return the in memory list of books.
-If FORCE is non-nil the list is refreshed from the database."
-  (when (or force (not calibre--books))
-    (setf calibre--books (calibre-db--get-books)))
-  calibre--books)
-
 (defun calibre--library-names ()
   "Return a list of the names of defined libraries."
   (mapcar #'car calibre-libraries))
-
-(defvar calibre--library nil
-  "The active library.")
-
-(defun calibre-select-library (&optional library)
-  "Prompt the user to select a library from `calibre-libraries'.
-If LIBRARY is non-nil, select that instead."
-  (interactive)
-  (setf calibre--library (if library
-                            library
-                           (completing-read "Library: " (calibre--library-names) nil t))
-        calibre--db nil
-        calibre--books nil)
-  (calibre-library--refresh t))
-
-(defun calibre--library ()
-  "Return the active library.
-If no library is active, prompt the user to select one."
-  (unless calibre--library
-    (calibre-select-library))
-  (alist-get calibre--library calibre-libraries nil nil #'string=))
 
 (defcustom calibre-format-preferences '(pdf epub)
   "The preference order of file formats."

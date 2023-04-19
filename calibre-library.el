@@ -24,19 +24,7 @@
 
 ;;; Code:
 (require 'dired)
-(require 'calibre-book)
-
-(defconst calibre-library-buffer "*Library*")
-
-(defun calibre-library--refresh (&optional force)
-  "Refresh the contents of the library buffer.
-If FORCE is non-nil fetch book data from the database."
-  (let* ((buffer (get-buffer calibre-library-buffer)))
-      (with-current-buffer buffer
-        (setf tabulated-list-entries
-              (mapcar #'calibre-book--print-info
-                      (calibre--books force)))
-        (tabulated-list-print))))
+(require 'calibre-util)
 
 ;;;###autoload
 (defun calibre-library-add-book (file)
@@ -55,7 +43,7 @@ If FORCE is non-nil fetch book data from the database."
     (if (derived-mode-p 'dired-mode)
         (calibre-library-add-books (dired-get-marked-files))))
 
-(defun calibre-remove-books (books)
+(defun calibre-library-remove-books (books)
   "Remove BOOKS from the Calibre library."
   (let ((ids (mapcar #'int-to-string (mapcar #'calibre-book-id books))))
     (calibre-library--execute `("remove" ,(string-join ids ",")))))
@@ -100,7 +88,7 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
         (cl-case mark
           (?\D (push (tabulated-list-get-id) remove-list)))
         (forward-line)))
-    (when remove-list (calibre-remove-books remove-list)))
+    (when remove-list (calibre-library-remove-books remove-list)))
   (calibre--books t)
   (calibre-library--refresh))
 

@@ -26,10 +26,14 @@
 
 ;;; Code:
 (require 'eieio)
+(require 'parse-time)
 
-(require 'calibre-util)
 (require 'calibre-db)
-(require 'calibre)
+
+(defun calibre-parse-timestamp (timestamp)
+  "Return a Lisp timestamp from TIMESTAMP.
+TIMESTAMP is a string of the form YYYY-MM-DD HH:MM:SS.xxxxxx+00:00."
+  (parse-iso8601-time-string (string-replace " " "T" timestamp)))
 
 (defclass calibre-book ()
   ((id :initarg :id
@@ -109,32 +113,11 @@ ENTRY is a list of the form:
                   :path path
                   :file-name (calibre-db--get-book-file-name id))))
 
-(defun calibre-book--print-info (book)
-  "Return list suitable as a value of `tabulated-list-entries'.
-BOOK is a `calibre-book'."
-  (list book
-        (with-slots (id title authors publishers series series-index tags formats) book
-          (vconcat (mapcar (lambda (x)
-                             (let ((column (car x))
-                                   (width (cdr x)))
-                               (cl-case column
-                                 (id (format (format "%%%ds" width) id))
-                                 (title title)
-                                 (authors (string-join authors ", "))
-                                 (publishers (string-join publishers ", "))
-                                 (series (if (not series) "" series))
-                                 (series-index (if series (format "%.1f" series-index) ""))
-                                 (tags (string-join tags ", "))
-                                 (formats (string-join (mapcar (lambda (f) (upcase (symbol-name f))) formats) ", ")))))
-                           calibre-library-columns)))))
-
-(defun calibre-book--file (book format)
-  "Return the path to BOOK in FORMAT."
-  (with-slots (path file-name) book
-    (message "%S" file-name)
-    (file-name-concat (calibre--library)
-                      path
-                      (message "%s.%s" file-name format))))
+(defcustom calibre-format-preferences '(pdf epub)
+  "The preference order of file formats."
+  :type '(repeat symbol :tag "Format")
+  :package-version '("calibre" . "0.1.0")
+  :group 'calibre)
 
 (defun calibre-book--pick-format (book)
   "Return the preferred format for BOOK."
