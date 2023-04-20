@@ -36,11 +36,6 @@
   "Interact with a Calibre library."
   :group 'emacs)
 
-(defcustom calibre-format-preferences '(pdf epub)
-  "The preference order of file formats."
-  :type '(repeat (symbol :tag "Format"))
-  :package-version '("calibre" . "0.1.0"))
-
 (defcustom calibre-calibredb-executable "calibre"
   "The calibredb executable to use."
   :type 'string
