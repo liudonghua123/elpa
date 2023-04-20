@@ -37,7 +37,7 @@
 (require 'url-util)
 
 (defvar url-http-oauth--interposed nil
-  "A hash table mapping URL strings to lists of OAuth 2.0 configuration.")
+  "A hash table mapping URL strings to lists of OAuth 2.0 settings.")
 
 (defun url-http-oauth-url-string (url)
   "Ensure URL is a string."
@@ -47,8 +47,8 @@
   "Ensure URL is a parsed URL object."
   (if (stringp url) (url-generic-parse-url url) url))
 
-(defun url-http-oauth-configuration (url)
-  "Return a configuration list if URL needs OAuth 2.0, nil otherwise.
+(defun url-http-oauth-settings (url)
+  "Return a settings list if URL needs OAuth 2.0, nil otherwise.
 URL is either a URL object or a URL string."
   (when url-http-oauth--interposed
     (let* ((url-no-query (url-parse-make-urlobj
@@ -65,14 +65,9 @@ URL is either a URL object or a URL string."
 ;; catches on, authorization-url and access-token-url can be made
 ;; optional and their values retrieved automatically.  As of early
 ;; 2023, RFC 8414 is not consistently implemented yet.
-(defun url-http-oauth-interpose (url
-                                 authorization-url
-                                 access-token-url
-                                 client-identifier
-                                 scope
-                                 &optional
-                                 client-secret-required)
-  "Arrange for Emacs to use OAuth 2.0 to access URL.
+(defun url-http-oauth-interpose (url-settings)
+  "Arrange for Emacs to use OAuth 2.0 to access a URL using URL-SETTINGS.
+URL-SETTINGS is an alist with fields whose descriptions follow.
 URL will be accessed by Emacs's `url' library with a suitable
 \"Authorization\" header containing \"Bearer <token>\".
 AUTHORIZATION-URL and ACCESS-TOKEN-URL will be used to acquire
@@ -81,20 +76,19 @@ AUTHORIZATION-URL and ACCESS-TOKEN-URL are either objects or
 strings.  CLIENT-IDENTIFIER is a string identifying an Emacs
 library or mode to the server.  SCOPE is a string defining the
 -permissions that the Emacs library or mode is requesting.
-CLIENT-SECRET-REQUIRED is the symbol `prompt' if a client secret
-is required, nil otherwise."
+CLIENT-SECRET-METHOD is the symbol `prompt' if a client secret is
+required, nil otherwise.  Extra fields are allowed in
+URL-SETTINGS, in which case they will be appended verbatim to the
+authorization URL's query arguments."
   (unless url-http-oauth--interposed
     (setq url-http-oauth--interposed (make-hash-table :test #'equal)))
-  (let ((key (url-http-oauth-url-string url))
-        (authorization (url-http-oauth-url-string authorization-url))
-        (access-token-object (url-http-oauth-url-object access-token-url)))
-    (puthash key (list authorization access-token-object client-identifier scope
-                       (cond
-                        ((eq client-secret-required 'prompt) 'prompt)
-                        ((eq client-secret-required nil) nil)
-                        (t (error
-                            "Unrecognized client-secret-required value"))))
-             url-http-oauth--interposed)))
+  (let* ((url (cadr (assoc "url" url-settings)))
+         (key (url-http-oauth-url-string url))
+         (client-secret-method
+          (cadr (assoc "client-secret-method" url-settings))))
+    (unless (or (eq client-secret-method 'prompt) (eq client-secret-method nil))
+      (error "Unrecognized client-secret-method value"))
+    (puthash key url-settings url-http-oauth--interposed)))
 
 (defun url-http-oauth-uninterpose (url)
   "Arrange for Emacs not to use OAuth 2.0 when accessing URL.
@@ -114,13 +108,15 @@ Assume an HTTPS URL that does not specify a port uses 443."
 (defun url-http-oauth-get-access-token-grant (url code)
   "Get an access token for URL using CODE."
   (let* ((url-request-method "POST")
-         (url-list (url-http-oauth-configuration url))
-         (access-token-object (nth 1 url-list))
-         (client-identifier (nth 2 url-list))
-         (scope (nth 3 url-list))
-         (client-secret-required (nth 4 url-list))
+         (url-settings (url-http-oauth-settings url))
+         (access-token-object
+          (url-http-oauth-url-object
+           (cadr (assoc "access-token-endpoint" url-settings))))
+         (client-identifier (cadr (assoc "client-identifier" url-settings)))
+         (scope (cadr (assoc "scope" url-settings)))
+         (client-secret-method (cadr (assoc "client-secret-method" url-settings)))
          (auth-result
-          (when client-secret-required
+          (when client-secret-method
             (car (let ((auth-source-creation-prompts
                         '((secret . "Client secret for %u at %h")))
                        ;; Do not cache nil result.
@@ -135,17 +131,18 @@ Assume an HTTPS URL that does not specify a port uses 443."
                     :max 1)))))
          (client-secret (auth-info-password auth-result))
          (save-function (plist-get auth-result :save-function))
-         (authorization (concat
-                         "Basic "
-                         (base64-encode-string
-                          (if client-secret
-                              (format "%s:%s" client-identifier client-secret)
-                            ;; FIXME: what to do if client-secret not required?
-                            (format "%s" client-identifier))
-                          t)))
+         (authorization (when client-secret
+                          (concat
+                           "Basic "
+                           (base64-encode-string
+                            (format "%s:%s" client-identifier client-secret)
+                            t))))
          (url-request-extra-headers
-          (list (cons "Content-Type" "application/x-www-form-urlencoded")
-                (cons "Authorization" authorization)))
+          (if authorization
+              (list (cons "Content-Type" "application/x-www-form-urlencoded")
+                    (cons "Authorization" authorization))
+            ;; client-secret-method was nil; no authorization required.
+            (list (cons "Content-Type" "application/x-www-form-urlencoded"))))
          (url-request-data
           (url-build-query-string
            (list (list "grant_type" "authorization_code")
@@ -186,10 +183,10 @@ The time is in seconds since the epoch."
 (defun url-http-oauth-get-bearer (url)
   "Prompt the user with the authorization endpoint for URL.
 URL is a parsed object."
-  (let* ((url-list (url-http-oauth-configuration url))
+  (let* ((url-settings (url-http-oauth-settings url))
          (path-and-query (url-path-and-query url))
          (path (car path-and-query))
-         (scope (nth 3 url-list))
+         (scope (cadr (assoc "scope" url-settings)))
          (bearer-current (auth-info-password
                           (car
                            (let ((auth-source-do-cache nil))
@@ -200,17 +197,20 @@ URL is a parsed object."
                               :path path
                               :scope scope
                               :max 1))))))
-    (unless url-list
+    (unless url-settings
       (error "%s is not interposed by url-http-oauth"
              (url-http-oauth-url-string url)))
     (or bearer-current
         (let* ((response-url
                 (read-from-minibuffer
                  (format "Browse to %s and paste the redirected code URL: "
-                         (concat (nth 0 url-list)
+                         (concat (cadr (assoc "authorization-endpoint"
+                                              url-settings))
                                  "?"
                                  (url-build-query-string
-                                  (list (list "client_id" (nth 2 url-list))
+                                  (list (list "client_id"
+                                              (cadr (assoc "client-identifier"
+                                                           url-settings)))
                                         (list "response_type" "code")
                                         (list "scope" scope)))))))
                (code
@@ -247,7 +247,7 @@ URL is a parsed object."
 URL is an object representing a parsed URL.  It should specify a
 user, and contain a \"scope\" query argument representing the
 permissions that the caller is requesting."
-  (when (url-http-oauth-configuration url)
+  (when (url-http-oauth-settings url)
     (let ((bearer (url-http-oauth-get-bearer url)))
       (concat "Bearer " bearer))))
 
