@@ -118,6 +118,9 @@
  ;; or by the Emacs library developer, at
  ;; "https://meta.sr.ht/oauth2/client-registration".
  "107ba4a9-2a96-4420-8818-84ec1f112405"
+ ;; This is the list of features to which Emacs is requesting the
+ ;; server grant it access.
+ "meta.sr.ht/PROFILE:RO"
  ;; This is the client secret, which will be generated as part of
  ;; client registration, at
  ;; "https://meta.sr.ht/oauth2/client-registration".  If the user
@@ -145,16 +148,12 @@ Print the result to *Messages*.  Return the name."
     (with-current-buffer
         (url-retrieve-synchronously
          (url-parse-make-urlobj
-          "https"             ; type
-          "fitzsim"           ; user
-          nil                 ; password, resolved by url-http-oauth
-          "meta.sr.ht"        ; host
-          443                 ; port
-          (concat "/query"    ; path
-                  "?"         ; scope:
-                  (url-build-query-string
-                   (list
-                    (list "scope" "meta.sr.ht/PROFILE:RO"))))
+          "https"      ; type
+          "fitzsim"    ; user
+          nil          ; password, resolved by url-http-oauth
+          "meta.sr.ht" ; host
+          443          ; port
+          "/query"     ; path
           nil nil t))
       (goto-char (point-min))
       (re-search-forward "\n\n")
