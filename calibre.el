@@ -34,7 +34,7 @@
 
 (defgroup calibre nil
   "Interact with a Calibre library."
-  :group 'calibre)
+  :group 'emacs)
 
 (defcustom calibre-calibredb-executable "calibre"
   "The calibredb executable to use."
