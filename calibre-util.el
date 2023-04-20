@@ -36,6 +36,9 @@ If FORCE is non-nil the list is refreshed from the database."
     (setf calibre--books (calibre-db--get-books)))
   calibre--books)
 
+(defvar calibre--library nil
+  "The active library.")
+
 (defun calibre-select-library (&optional library)
   "Prompt the user to select a library from `calibre-libraries'.
 If LIBRARY is non-nil, select that instead."
@@ -46,9 +49,6 @@ If LIBRARY is non-nil, select that instead."
         calibre--db nil
         calibre--books nil)
   (calibre-library--refresh t))
-
-(defvar calibre--library nil
-  "The active library.")
 
 (defun calibre--library ()
   "Return the active library.
