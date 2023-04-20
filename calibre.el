@@ -4,7 +4,7 @@
 
 ;; Author: Kjartan Oli Agustsson <kjartanoli@disroot.org>
 ;; Maintainer: Kjartan Oli Agustsson <kjartanoli@disroot.org>
-;; Version: 1.0.3
+;; Version: 1.0.4
 ;; Package-Requires: ((emacs "29.1"))
 ;; URL: https://git.disroot.org/kjartanoli/calibre.el
 
@@ -36,10 +36,10 @@
   "Interact with a Calibre library."
   :group 'emacs)
 
-(defcustom calibre-calibredb-executable "calibre"
+(defcustom calibre-calibredb-executable "calibredb"
   "The calibredb executable to use."
   :type 'string
-  :package-version '("calibre" . "0.1.0"))
+  :package-version '("calibre" . "1.0.4"))
 
 (defcustom calibre-libraries nil
   "An alist mapping library names to directories."
