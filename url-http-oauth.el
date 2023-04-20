@@ -39,6 +39,9 @@
 (defvar url-http-oauth--interposed nil
   "A hash table mapping URL strings to lists of OAuth 2.0 settings.")
 
+(defvar url-http-oauth--extra-arguments nil
+  "A hash table mapping URL strings to lists of extra OAuth 2.0 settings.")
+
 (defun url-http-oauth-url-string (url)
   "Ensure URL is a string."
   (if (stringp url) url (url-recreate-url url)))
@@ -47,10 +50,13 @@
   "Ensure URL is a parsed URL object."
   (if (stringp url) (url-generic-parse-url url) url))
 
-(defun url-http-oauth-settings (url)
+(defun url-http-oauth-settings (url &optional extra)
   "Return a settings list if URL needs OAuth 2.0, nil otherwise.
-URL is either a URL object or a URL string."
-  (when url-http-oauth--interposed
+URL is either a URL object or a URL string.  If EXTRA is non-nil,
+return the extra settings for URL."
+  (when (if extra
+            url-http-oauth--extra-arguments
+          url-http-oauth--interposed)
     (let* ((url-no-query (url-parse-make-urlobj
                           (url-type url)
                           nil nil
@@ -59,13 +65,15 @@ URL is either a URL object or a URL string."
                           (car (url-path-and-query url))
                           nil nil t))
            (key (url-http-oauth-url-string url-no-query)))
-      (gethash key url-http-oauth--interposed))))
+      (gethash key (if extra
+                       url-http-oauth--extra-arguments
+                     url-http-oauth--interposed)))))
 
 ;; Maybe if RFC 8414, "OAuth 2.0 Authorization Server Metadata",
 ;; catches on, authorization-url and access-token-url can be made
 ;; optional and their values retrieved automatically.  As of early
 ;; 2023, RFC 8414 is not consistently implemented yet.
-(defun url-http-oauth-interpose (url-settings)
+(defun url-http-oauth-interpose (url-settings &optional extra-arguments)
   "Arrange for Emacs to use OAuth 2.0 to access a URL using URL-SETTINGS.
 URL-SETTINGS is an alist with fields whose descriptions follow.
 URL will be accessed by Emacs's `url' library with a suitable
@@ -77,25 +85,30 @@ strings.  CLIENT-IDENTIFIER is a string identifying an Emacs
 library or mode to the server.  SCOPE is a string defining the
 -permissions that the Emacs library or mode is requesting.
 CLIENT-SECRET-METHOD is the symbol `prompt' if a client secret is
-required, nil otherwise.  Extra fields are allowed in
-URL-SETTINGS, in which case they will be appended verbatim to the
-authorization URL's query arguments."
+required, nil otherwise.  EXTRA-ARGUMENTS contains an alist of
+extra arguments that should be included in the authorization URL."
   (unless url-http-oauth--interposed
     (setq url-http-oauth--interposed (make-hash-table :test #'equal)))
+  (unless url-http-oauth--extra-arguments
+    (setq url-http-oauth--extra-arguments (make-hash-table :test #'equal)))
   (let* ((url (cadr (assoc "url" url-settings)))
          (key (url-http-oauth-url-string url))
          (client-secret-method
           (cadr (assoc "client-secret-method" url-settings))))
     (unless (or (eq client-secret-method 'prompt) (eq client-secret-method nil))
       (error "Unrecognized client-secret-method value"))
-    (puthash key url-settings url-http-oauth--interposed)))
+    (puthash key url-settings url-http-oauth--interposed)
+    (puthash key extra-arguments url-http-oauth--extra-arguments)))
 
 (defun url-http-oauth-uninterpose (url)
   "Arrange for Emacs not to use OAuth 2.0 when accessing URL.
 This function does the opposite of `url-http-oauth-interpose'.
 URL is either an object or a string."
-  (when url-http-oauth--interposed
-    (remhash (url-http-oauth-url-string url) url-http-oauth--interposed)))
+  (let ((url-string (url-http-oauth-url-string url)))
+    (when url-http-oauth--interposed
+      (remhash url-string url-http-oauth--interposed))
+    (when url-http-oauth--extra-arguments
+      (remhash url-string url-http-oauth--extra-arguments))))
 
 (defvar url-http-response-status)
 (defvar auth-source-creation-prompts)
@@ -114,7 +127,8 @@ Assume an HTTPS URL that does not specify a port uses 443."
            (cadr (assoc "access-token-endpoint" url-settings))))
          (client-identifier (cadr (assoc "client-identifier" url-settings)))
          (scope (cadr (assoc "scope" url-settings)))
-         (client-secret-method (cadr (assoc "client-secret-method" url-settings)))
+         (client-secret-method (cadr (assoc "client-secret-method"
+                                            url-settings)))
          (auth-result
           (when client-secret-method
             (car (let ((auth-source-creation-prompts
@@ -201,7 +215,8 @@ URL is a parsed object."
       (error "%s is not interposed by url-http-oauth"
              (url-http-oauth-url-string url)))
     (or bearer-current
-        (let* ((response-url
+        (let* ((extra-arguments (url-http-oauth-settings url t))
+               (response-url
                 (read-from-minibuffer
                  (format "Browse to %s and paste the redirected code URL: "
                          (concat (cadr (assoc "authorization-endpoint"
@@ -212,7 +227,9 @@ URL is a parsed object."
                                               (cadr (assoc "client-identifier"
                                                            url-settings)))
                                         (list "response_type" "code")
-                                        (list "scope" scope)))))))
+                                        (list "scope" scope)))
+                                 "&"
+                                 (url-build-query-string extra-arguments)))))
                (code
                 (url-http-oauth-extract-authorization-code response-url))
                (grant (url-http-oauth-get-access-token-grant url code))
