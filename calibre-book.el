@@ -28,8 +28,6 @@
 (require 'eieio)
 (require 'parse-time)
 
-(require 'calibre-db)
-
 (defun calibre-parse-timestamp (timestamp)
   "Return a Lisp timestamp from TIMESTAMP.
 TIMESTAMP is a string of the form YYYY-MM-DD HH:MM:SS.xxxxxx+00:00."
@@ -93,25 +91,6 @@ for private functions."
 (calibre-book--slot formats)
 (calibre-book--slot path t)
 (calibre-book--slot file-name)
-
-(defun calibre-make-book (entry)
-  "Create a `calibre-book' from ENTRY.
-ENTRY is a list of the form:
-\(ID TITLE SERIES SERIES-INDEX TIMESTAMP PUBDATE LAST-MODIFIED)."
-  (seq-let [id title series series-index timestamp pubdate last-modified path] entry
-    (calibre-book :id id
-                  :title title
-                  :authors (calibre-db--get-book-authors id)
-                  :publishers (calibre-db--get-book-publishers id)
-                  :series series
-                  :series-index series-index
-                  :timestamp (calibre-parse-timestamp timestamp)
-                  :pubdate (calibre-parse-timestamp pubdate)
-                  :last-modified (calibre-parse-timestamp last-modified)
-                  :tags (calibre-db--get-book-tags id)
-                  :formats (calibre-db--get-book-formats id)
-                  :path path
-                  :file-name (calibre-db--get-book-file-name id))))
 
 (defcustom calibre-format-preferences '(pdf epub)
   "The preference order of file formats."

@@ -24,33 +24,27 @@
 ;; Fetch data from the library database.
 
 ;;; Code:
-(declare-function calibre--library "calibre.el")
-(declare-function calibre-make-book "calibre-book.el")
+(require 'calibre)
+(require 'calibre-book)
 
-(defvar calibre--db nil)
-(defun calibre--db ()
-  "Return the metadata database."
-  (unless calibre--db
-    (let ((file-name (file-name-concat (calibre--library) "metadata.db")))
-      (if (not (file-exists-p file-name))
-          (progn
-            (display-warning 'calibre (format "Metedata database %s does not exist.  Add some books to the library to create it." file-name))
-            (setf calibre--db nil))
-        (setf calibre--db
-              (sqlite-open
-               file-name)))))
-  calibre--db)
-
-(defun calibre-db--get-books ()
-  "Return all books in the Calibre library `calibre-library-dir'."
-  (if (not (calibre--db))
-      nil
-    (mapcar #'calibre-make-book
-            (sqlite-select (calibre--db)
-                           "SELECT books.id, title, series.name, series_index, timestamp, pubdate, last_modified, path
-FROM books
-LEFT JOIN books_series_link sl ON books.id = sl.book
-LEFT JOIN series ON sl.series = series.id;"))))
+(defun calibre-make-book (entry)
+  "Create a `calibre-book' from ENTRY.
+ENTRY is a list of the form:
+\(ID TITLE SERIES SERIES-INDEX TIMESTAMP PUBDATE LAST-MODIFIED)."
+  (seq-let [id title series series-index timestamp pubdate last-modified path] entry
+    (calibre-book :id id
+                  :title title
+                  :authors (calibre-db--get-book-authors id)
+                  :publishers (calibre-db--get-book-publishers id)
+                  :series series
+                  :series-index series-index
+                  :timestamp (calibre-parse-timestamp timestamp)
+                  :pubdate (calibre-parse-timestamp pubdate)
+                  :last-modified (calibre-parse-timestamp last-modified)
+                  :tags (calibre-db--get-book-tags id)
+                  :formats (calibre-db--get-book-formats id)
+                  :path path
+                  :file-name (calibre-db--get-book-file-name id))))
 
 (defun calibre-db--get-book-authors (id)
   "Return a list of authors for the book identified by ID."
@@ -92,6 +86,98 @@ WHERE books.id = ?"
           (flatten-list (sqlite-select (calibre--db)
                                "SELECT format FROM data WHERE book = ?"
                                `[,id]))))
+
+(defvar calibre--db nil)
+(defun calibre--db ()
+  "Return the metadata database."
+  (unless calibre--db
+    (let ((file-name (file-name-concat (calibre--library) "metadata.db")))
+      (if (not (file-exists-p file-name))
+          (progn
+            (display-warning 'calibre (format "Metedata database %s does not exist.  Add some books to the library to create it." file-name))
+            (setf calibre--db nil))
+        (setf calibre--db
+              (sqlite-open
+               file-name)))))
+  calibre--db)
+
+(defun calibre-db--get-books ()
+  "Return all books in the Calibre library `calibre-library-dir'."
+  (if (not (calibre--db))
+      nil
+    (mapcar #'calibre-make-book
+            (sqlite-select (calibre--db)
+                           "SELECT books.id, title, series.name, series_index, timestamp, pubdate, last_modified, path
+FROM books
+LEFT JOIN books_series_link sl ON books.id = sl.book
+LEFT JOIN series ON sl.series = series.id;"))))
+
+(defvar calibre--books nil)
+(defun calibre--books (&optional force)
+  "Return the in memory list of books.
+If FORCE is non-nil the list is refreshed from the database."
+  (when (or force (not calibre--books))
+    (setf calibre--books (calibre-db--get-books)))
+  calibre--books)
+
+(defvar calibre--library nil
+  "The active library.")
+
+(defun calibre-select-library (&optional library)
+  "Prompt the user to select a library from `calibre-libraries'.
+If LIBRARY is non-nil, select that instead."
+  (interactive)
+  (setf calibre--library (if library
+                            library
+                           (completing-read "Library: " (calibre--library-names) nil t))
+        calibre--db nil
+        calibre--books nil)
+  (calibre-library--refresh t))
+
+(defun calibre--library ()
+  "Return the active library.
+If no library is active, prompt the user to select one."
+  (unless calibre--library
+    (calibre-select-library))
+  (alist-get calibre--library calibre-libraries nil nil #'string=))
+
+(defconst calibre-library-buffer "*Library*")
+(defun calibre-library--refresh (&optional force)
+  "Refresh the contents of the library buffer.
+If FORCE is non-nil fetch book data from the database."
+  (let* ((buffer (get-buffer calibre-library-buffer)))
+      (with-current-buffer buffer
+        (setf tabulated-list-entries
+              (mapcar #'calibre-book--print-info
+                      (calibre--books force)))
+        (tabulated-list-print))))
+
+(defun calibre-book--print-info (book)
+  "Return list suitable as a value of `tabulated-list-entries'.
+BOOK is a `calibre-book'."
+  (list book
+        (with-slots (id title authors publishers series series-index tags formats) book
+          (vconcat (mapcar (lambda (x)
+                             (let ((column (car x))
+                                   (width (cdr x)))
+                               (cl-case column
+                                 (id (format (format "%%%ds" width) id))
+                                 (title title)
+                                 (authors (string-join authors ", "))
+                                 (publishers (string-join publishers ", "))
+                                 (series (if (not series) "" series))
+                                 (series-index (if series (format "%.1f" series-index) ""))
+                                 (tags (string-join tags ", "))
+                                 (formats (string-join (mapcar (lambda (f) (upcase (symbol-name f))) formats) ", ")))))
+                           calibre-library-columns)))))
+
+(defun calibre-book--file (book format)
+  "Return the path to BOOK in FORMAT."
+  (with-slots (path file-name) book
+    (message "%S" file-name)
+    (file-name-concat (calibre--library)
+                      path
+                      (message "%s.%s" file-name format))))
 
 (provide 'calibre-db)
 ;;; calibre-db.el ends here

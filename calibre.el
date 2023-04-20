@@ -29,8 +29,6 @@
 ;; associated with each book, and read them, all from within Emacs.
 
 ;;; Code:
-(require 'calibre-db)
-(require 'calibre-book)
 
 (defgroup calibre nil
   "Interact with a Calibre library."

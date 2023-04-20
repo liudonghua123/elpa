@@ -24,7 +24,8 @@
 
 ;;; Code:
 (require 'dired)
-(require 'calibre-util)
+(require 'calibre-db)
+(require 'calibre-book)
 
 ;;;###autoload
 (defun calibre-library-add-book (file)
