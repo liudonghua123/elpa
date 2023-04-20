@@ -69,6 +69,7 @@ URL is either a URL object or a URL string."
                                  authorization-url
                                  access-token-url
                                  client-identifier
+                                 scope
                                  &optional
                                  client-secret-required)
   "Arrange for Emacs to use OAuth 2.0 to access URL.
@@ -78,14 +79,16 @@ AUTHORIZATION-URL and ACCESS-TOKEN-URL will be used to acquire
 <token> and save it to the user's `auth-source' file.  URL,
 AUTHORIZATION-URL and ACCESS-TOKEN-URL are either objects or
 strings.  CLIENT-IDENTIFIER is a string identifying an Emacs
-library or mode to the server.  CLIENT-SECRET-REQUIRED is the
-symbol `prompt' if a client secret is required, nil otherwise."
+library or mode to the server.  SCOPE is a string defining the
+-permissions that the Emacs library or mode is requesting.
+CLIENT-SECRET-REQUIRED is the symbol `prompt' if a client secret
+is required, nil otherwise."
   (unless url-http-oauth--interposed
     (setq url-http-oauth--interposed (make-hash-table :test #'equal)))
   (let ((key (url-http-oauth-url-string url))
         (authorization (url-http-oauth-url-string authorization-url))
         (access-token-object (url-http-oauth-url-object access-token-url)))
-    (puthash key (list authorization access-token-object client-identifier
+    (puthash key (list authorization access-token-object client-identifier scope
                        (cond
                         ((eq client-secret-required 'prompt) 'prompt)
                         ((eq client-secret-required nil) nil)
@@ -93,10 +96,10 @@ symbol `prompt' if a client secret is required, nil otherwise."
                             "Unrecognized client-secret-required value"))))
              url-http-oauth--interposed)))
 
-(defun url-http-oauth-ignore (url)
+(defun url-http-oauth-uninterpose (url)
   "Arrange for Emacs not to use OAuth 2.0 when accessing URL.
 This function does the opposite of `url-http-oauth-interpose'.
-URL is either an objects or a string."
+URL is either an object or a string."
   (when url-http-oauth--interposed
     (remhash (url-http-oauth-url-string url) url-http-oauth--interposed)))
 
@@ -114,7 +117,8 @@ Assume an HTTPS URL that does not specify a port uses 443."
          (url-list (url-http-oauth-configuration url))
          (access-token-object (nth 1 url-list))
          (client-identifier (nth 2 url-list))
-         (client-secret-required (nth 3 url-list))
+         (scope (nth 3 url-list))
+         (client-secret-required (nth 4 url-list))
          (auth-result
           (when client-secret-required
             (car (let ((auth-source-creation-prompts
@@ -126,6 +130,7 @@ Assume an HTTPS URL that does not specify a port uses 443."
                     :host (url-host access-token-object)
                     :port (url-http-oauth-port access-token-object)
                     :path (url-filename access-token-object)
+                    :scope scope
                     :create '(path)
                     :max 1)))))
          (client-secret (auth-info-password auth-result))
@@ -181,10 +186,10 @@ The time is in seconds since the epoch."
 (defun url-http-oauth-get-bearer (url)
   "Prompt the user with the authorization endpoint for URL.
 URL is a parsed object."
-  (let* ((path-and-query (url-path-and-query url))
+  (let* ((url-list (url-http-oauth-configuration url))
+         (path-and-query (url-path-and-query url))
          (path (car path-and-query))
-         (query (cdr path-and-query))
-         (scope (cadr (assoc "scope" (url-parse-query-string query))))
+         (scope (nth 3 url-list))
          (bearer-current (auth-info-password
                           (car
                            (let ((auth-source-do-cache nil))
@@ -195,46 +200,45 @@ URL is a parsed object."
                               :path path
                               :scope scope
                               :max 1))))))
+    (unless url-list
+      (error "%s is not interposed by url-http-oauth"
+             (url-http-oauth-url-string url)))
     (or bearer-current
-        (let ((url-list (url-http-oauth-configuration url)))
-          (unless url-list
-            (error "%s is not interposed by url-http-oauth"
-                   (url-http-oauth-url-string url)))
-          (let* ((response-url
-                  (read-from-minibuffer
-                   (format "Browse to %s and paste the redirected code URL: "
-                           (concat (nth 0 url-list)
-                                   "?"
-                                   (url-build-query-string
-                                    (list (list "client_id" (nth 2 url-list))
-                                          (list "response_type" "code")
-                                          (list "scope" scope)))))))
-                 (code
-                  (url-http-oauth-extract-authorization-code response-url)))
-            (let* ((grant (url-http-oauth-get-access-token-grant url code))
-                   (bearer-retrieved (gethash "access_token" grant))
-                   (auth-result (let ((auth-source-do-cache nil))
-                                  (auth-source-search
-                                   :user (url-user url)
-                                   :host (url-host url)
-                                   :port (url-http-oauth-port url)
-                                   :path path
-                                   :scope (if (string= (gethash "scope" grant)
-                                                       scope)
-                                              scope
-                                            (error
-                                             (concat "url-http-oauth:"
-                                                     " Returned scope did not"
-                                                     " match requested scope")))
-                                   :expiry (url-http-oauth-expiry-string grant)
-                                   :secret bearer-retrieved
-                                   :create '(path scope expiry)
-                                   :max 1)))
-                   (save-function (plist-get (car auth-result) :save-function)))
-              ;; Success, so save bearer.
-              (when (functionp save-function)
-                (funcall save-function))
-              bearer-retrieved))))))
+        (let* ((response-url
+                (read-from-minibuffer
+                 (format "Browse to %s and paste the redirected code URL: "
+                         (concat (nth 0 url-list)
+                                 "?"
+                                 (url-build-query-string
+                                  (list (list "client_id" (nth 2 url-list))
+                                        (list "response_type" "code")
+                                        (list "scope" scope)))))))
+               (code
+                (url-http-oauth-extract-authorization-code response-url))
+               (grant (url-http-oauth-get-access-token-grant url code))
+               (bearer-retrieved (gethash "access_token" grant))
+               (auth-result (let ((auth-source-do-cache nil))
+                              (auth-source-search
+                               :user (url-user url)
+                               :host (url-host url)
+                               :port (url-http-oauth-port url)
+                               :path path
+                               :scope (if (string= (gethash "scope" grant)
+                                                   scope)
+                                          scope
+                                        (error
+                                         (concat "url-http-oauth:"
+                                                 " Returned scope did not"
+                                                 " match requested scope")))
+                               :expiry (url-http-oauth-expiry-string grant)
+                               :secret bearer-retrieved
+                               :create '(path scope expiry)
+                               :max 1)))
+               (save-function (plist-get (car auth-result) :save-function)))
+            ;; Success; save bearer.
+          (when (functionp save-function)
+            (funcall save-function))
+          bearer-retrieved))))
 
 ;;; Public function called by `url-get-authentication'.
 ;;;###autoload
