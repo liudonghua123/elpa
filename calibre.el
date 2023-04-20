@@ -36,9 +36,21 @@
   "Interact with a Calibre library."
   :group 'emacs)
 
+(defcustom calibre-format-preferences '(pdf epub)
+  "The preference order of file formats."
+  :type '(repeat (symbol :tag "Format"))
+  :package-version '("calibre" . "0.1.0"))
+
 (defcustom calibre-calibredb-executable "calibre"
   "The calibredb executable to use."
   :type 'string
+  :package-version '("calibre" . "0.1.0"))
+
+(defcustom calibre-libraries nil
+  "An alist mapping library names to directories."
+  :type '(repeat :tag "Libraries" (cons :tag "Library"
+                                   (string :tag "Name")
+                                   (directory :tag "Location")))
   :package-version '("calibre" . "0.1.0"))
 
 (defcustom calibre-library-columns '((id . 4)
@@ -67,21 +79,9 @@ column should have."
                   (integer :tag "Width")))
   :package-version '("calibre" . "0.1.0"))
 
-(defcustom calibre-libraries nil
-  "An alist mapping library names to directories."
-  :type '(repeat :tag "Libraries" (cons :tag "Library"
-                                   (string :tag "Name")
-                                   (directory :tag "Location")))
-  :package-version '("calibre" . "0.1.0"))
-
 (defun calibre--library-names ()
   "Return a list of the names of defined libraries."
   (mapcar #'car calibre-libraries))
-
-(defcustom calibre-format-preferences '(pdf epub)
-  "The preference order of file formats."
-  :type '(repeat symbol :tag "Format")
-  :package-version '("calibre" . "0.1.0"))
 
 (provide 'calibre)
 ;;; calibre.el ends here
