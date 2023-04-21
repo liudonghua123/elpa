@@ -158,10 +158,9 @@ BOOK is a `calibre-book'."
   (list book
         (with-slots (id title authors publishers series series-index tags formats) book
           (vconcat (mapcar (lambda (x)
-                             (let ((column (car x))
-                                   (width (cdr x)))
+                             (let ((column (car x)))
                                (cl-case column
-                                 (id (format (format "%%%ds" width) id))
+                                 (id (int-to-string id))
                                  (title title)
                                  (authors (string-join authors ", "))
                                  (publishers (string-join publishers ", "))

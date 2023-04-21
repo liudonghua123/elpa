@@ -99,6 +99,9 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
   (find-file (calibre-book--file book (calibre-book--pick-format book))))
 
 (defun calibre-library--header-format ()
+  "Create the header for the Library buffer.
+Return a vector suitable as the value of `tabulated-list-format'
+with values determined by `calibre-library-columns'."
   (vconcat
    (mapcar (lambda (x)
              (let ((column (car x))
@@ -106,13 +109,16 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
                (cl-case column
                  (id `("ID" ,width (lambda (a b)
                                      (< (calibre-book-id (car a))
-                                        (calibre-book-id (car b))))))
-                 (title `("Title" ,width))
-                 (authors `("Author(s)" ,width))
-                 (publishers `("Publisher(s)" ,width))
+                                        (calibre-book-id (car b))))
+                       :right-align t))
+                 (title `("Title" ,width t))
+                 (authors `("Author(s)" ,width t))
+                 (publishers `("Publisher(s)" ,width t))
                  (series `("Series" ,width (lambda (a b)
                                              (calibre-book-sort-by-series (car a) (car b)))))
-                 (series-index `("#" ,width))
+                 (series-index `("#" ,width (lambda (a b)
+                                              (calibre-book-sort-by-series (car a) (car b)))
+                                 :right-align t))
                  (tags `("Tags" ,width))
                  (formats `("Formats" ,width)))))
            calibre-library-columns)))
