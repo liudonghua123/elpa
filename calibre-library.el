@@ -74,7 +74,7 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
   (tabulated-list-put-tag "D" t))
 
 (defun calibre-library-mark-unmark (&optional _num)
-  "Clear any marks on a book and move to the next line."
+  "Clear any mark on a book and move to the next line."
   (interactive "p" calibre-library-mode)
   (tabulated-list-put-tag " " t))
 
