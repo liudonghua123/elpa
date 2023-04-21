@@ -94,7 +94,7 @@ WHERE books.id = ?"
     (let ((file-name (file-name-concat (calibre--library) "metadata.db")))
       (if (not (file-exists-p file-name))
           (progn
-            (display-warning 'calibre (format "Metedata database %s does not exist.  Add some books to the library to create it." file-name))
+            (message "Metedata database %s does not exist.  Add some books to the library to create it." file-name)
             (setf calibre--db nil))
         (setf calibre--db
               (sqlite-open
