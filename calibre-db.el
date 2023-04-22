@@ -153,6 +153,37 @@ If FORCE is non-nil fetch book data from the database."
                       (calibre--books force)))
         (tabulated-list-print)))))
 
+(defcustom calibre-library-columns '((id . 4)
+                                     (title . 35)
+                                     (authors . 20)
+                                     (publishers . 10)
+                                     (series . 15)
+                                     (series-index . 3)
+                                     (tags . 10)
+                                     (formats . 10))
+  "The metadata fields to display in the library buffer.
+Each entry is a key identifying a metadata field and the width that
+column should have."
+  :type '(repeat (cons
+                  :tag "Column"
+                  (choice
+                   :tag "Attribute"
+                   (const :tag "ID" id)
+                   (const :tag "Title" title)
+                   (const :tag "Author(s)" authors)
+                   (const :tag "Publisher(s)" publishers)
+                   (const :tag "Series" series)
+                   (const :tag "Series Index" series-index)
+                   (const :tag "Tags" tags)
+                   (const :tag "Formats" formats))
+                  (integer :tag "Width")))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (calibre-library--set-header)
+         (calibre-library--refresh))
+  :package-version '("calibre" . "0.1.0")
+  :group 'calibre)
+
 (defun calibre-library--set-header ()
   "Set the header of the Library buffer."
   (setf tabulated-list-format (calibre-library--header-format)))
