@@ -35,7 +35,7 @@
 
 (defun calibre-library-add-books (files)
   "Add FILES to the Calibre library."
-  (calibre-library--execute `("add" ,@(mapcar #'expand-file-name files))))
+  (calibre-library--execute `("add" "-r" ,@(mapcar #'expand-file-name files))))
 
 ;;;###autoload
 (defun calibre-dired-add ()
