@@ -146,11 +146,12 @@ If no library is active, prompt the user to select one."
   "Refresh the contents of the library buffer.
 If FORCE is non-nil fetch book data from the database."
   (let* ((buffer (get-buffer calibre-library-buffer)))
+    (when buffer
       (with-current-buffer buffer
         (setf tabulated-list-entries
               (mapcar #'calibre-book--print-info
                       (calibre--books force)))
-        (tabulated-list-print))))
+        (tabulated-list-print)))))
 
 (defun calibre-book--print-info (book)
   "Return list suitable as a value of `tabulated-list-entries'.
