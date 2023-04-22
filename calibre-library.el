@@ -93,6 +93,22 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
   (calibre--books t)
   (calibre-library--refresh))
 
+(defun calibre-library--find-book (book)
+  "Move point to the line representing BOOK."
+  (goto-char (point-min))
+        (while (not (or (eobp)
+                        (= (calibre-book-id (tabulated-list-get-id))
+                           (calibre-book-id book))))
+          (forward-line)))
+
+(defun calibre-library--revert ()
+  "Refresh the contents of the Library buffer without moving point."
+  (let ((pos (tabulated-list-get-id)))
+    (calibre-library--refresh t)
+    (if (not pos)
+        (goto-char (point-max))
+      (calibre-library--find-book pos))))
+
 (defun calibre-library-open-book (book)
   "Open BOOK in its preferred format."
   (interactive (list (tabulated-list-get-id)) calibre-library-mode)
