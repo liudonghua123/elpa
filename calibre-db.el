@@ -186,7 +186,10 @@ column should have."
 
 (defun calibre-library--set-header ()
   "Set the header of the Library buffer."
-  (setf tabulated-list-format (calibre-library--header-format)))
+  (let ((buffer (get-buffer calibre-library-buffer)))
+    (when buffer
+      (with-current-buffer buffer
+        (setf tabulated-list-format (calibre-library--header-format))))))
 
 (defun calibre-library--header-format ()
   "Create the header for the Library buffer.
