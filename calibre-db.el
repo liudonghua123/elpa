@@ -158,7 +158,8 @@ If FORCE is non-nil fetch book data from the database."
   (let ((buffer (get-buffer calibre-library-buffer)))
     (when buffer
       (with-current-buffer buffer
-        (setf tabulated-list-format (calibre-library--header-format))))))
+        (setf tabulated-list-format (calibre-library--header-format))
+        (tabulated-list-init-header)))))
 
 (defcustom calibre-library-columns '((id . 4)
                                      (title . 35)
