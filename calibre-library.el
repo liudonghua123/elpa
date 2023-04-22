@@ -65,7 +65,7 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
       (error "Could not find calibredb")
     (make-process
      :name "calibre"
-     :command `("calibredb" "--with-library" ,(calibre--library) ,@args)
+     :command `(,calibre-calibredb-executable "--with-library" ,(calibre--library) ,@args)
      :sentinel sentinel)))
 
 (defun calibre-library-mark-remove (&optional _num)
