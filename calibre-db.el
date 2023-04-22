@@ -153,6 +153,35 @@ If FORCE is non-nil fetch book data from the database."
                       (calibre--books force)))
         (tabulated-list-print)))))
 
+(defun calibre-library--set-header ()
+  "Set the header of the Library buffer."
+  (setf tabulated-list-format (calibre-library--header-format)))
+
+(defun calibre-library--header-format ()
+  "Create the header for the Library buffer.
+Return a vector suitable as the value of `tabulated-list-format'
+with values determined by `calibre-library-columns'."
+  (vconcat
+   (mapcar (lambda (x)
+             (let ((column (car x))
+                   (width (cdr x)))
+               (cl-case column
+                 (id `("ID" ,width (lambda (a b)
+                                     (< (calibre-book-id (car a))
+                                        (calibre-book-id (car b))))
+                       :right-align t))
+                 (title `("Title" ,width t))
+                 (authors `("Author(s)" ,width t))
+                 (publishers `("Publisher(s)" ,width t))
+                 (series `("Series" ,width (lambda (a b)
+                                             (calibre-book-sort-by-series (car a) (car b)))))
+                 (series-index `("#" ,width (lambda (a b)
+                                              (calibre-book-sort-by-series (car a) (car b)))
+                                 :right-align t))
+                 (tags `("Tags" ,width))
+                 (formats `("Formats" ,width)))))
+           calibre-library-columns)))
+
 (defun calibre-book--print-info (book)
   "Return list suitable as a value of `tabulated-list-entries'.
 BOOK is a `calibre-book'."

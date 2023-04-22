@@ -98,31 +98,6 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
   (interactive (list (tabulated-list-get-id)) calibre-library-mode)
   (find-file (calibre-book--file book (calibre-book--pick-format book))))
 
-(defun calibre-library--header-format ()
-  "Create the header for the Library buffer.
-Return a vector suitable as the value of `tabulated-list-format'
-with values determined by `calibre-library-columns'."
-  (vconcat
-   (mapcar (lambda (x)
-             (let ((column (car x))
-                   (width (cdr x)))
-               (cl-case column
-                 (id `("ID" ,width (lambda (a b)
-                                     (< (calibre-book-id (car a))
-                                        (calibre-book-id (car b))))
-                       :right-align t))
-                 (title `("Title" ,width t))
-                 (authors `("Author(s)" ,width t))
-                 (publishers `("Publisher(s)" ,width t))
-                 (series `("Series" ,width (lambda (a b)
-                                             (calibre-book-sort-by-series (car a) (car b)))))
-                 (series-index `("#" ,width (lambda (a b)
-                                              (calibre-book-sort-by-series (car a) (car b)))
-                                 :right-align t))
-                 (tags `("Tags" ,width))
-                 (formats `("Formats" ,width)))))
-           calibre-library-columns)))
-
 (defvar-keymap calibre-library-mode-map
   :doc "Local keymap for Calibre Library buffers."
   :parent tabulated-list-mode-map
@@ -133,9 +108,9 @@ with values determined by `calibre-library-columns'."
   "RET" #'calibre-library-open-book)
 
 (define-derived-mode calibre-library-mode tabulated-list-mode
-  (setf tabulated-list-padding 2
-        tabulated-list-format (calibre-library--header-format))
-  (tabulated-list-init-header))
+  (setf tabulated-list-padding 2)
+  (calibre-library--set-header)
+  (add-hook 'tabulated-list-revert-hook #'calibre-library--revert))
 
 ;;;###autoload
 (defun calibre-library ()
