@@ -145,7 +145,7 @@ If no library is active, prompt the user to select one."
 (defun calibre-library--refresh (&optional force)
   "Refresh the contents of the library buffer.
 If FORCE is non-nil fetch book data from the database."
-  (let* ((buffer (get-buffer calibre-library-buffer)))
+  (let ((buffer (get-buffer calibre-library-buffer)))
     (when buffer
       (with-current-buffer buffer
         (setf tabulated-list-entries
