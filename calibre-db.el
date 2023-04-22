@@ -153,6 +153,13 @@ If FORCE is non-nil fetch book data from the database."
                       (calibre--books force)))
         (tabulated-list-print)))))
 
+(defun calibre-library--set-header ()
+  "Set the header of the Library buffer."
+  (let ((buffer (get-buffer calibre-library-buffer)))
+    (when buffer
+      (with-current-buffer buffer
+        (setf tabulated-list-format (calibre-library--header-format))))))
+
 (defcustom calibre-library-columns '((id . 4)
                                      (title . 35)
                                      (authors . 20)
@@ -183,13 +190,6 @@ column should have."
          (calibre-library--refresh))
   :package-version '("calibre" . "0.1.0")
   :group 'calibre)
-
-(defun calibre-library--set-header ()
-  "Set the header of the Library buffer."
-  (let ((buffer (get-buffer calibre-library-buffer)))
-    (when buffer
-      (with-current-buffer buffer
-        (setf tabulated-list-format (calibre-library--header-format))))))
 
 (defun calibre-library--header-format ()
   "Create the header for the Library buffer.
