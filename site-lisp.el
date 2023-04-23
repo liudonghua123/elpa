@@ -68,7 +68,7 @@ If DIR is a list, the function will be applied to every element
 of the list."
   (interactive "DPrepare: ")
   (if (listp dir)
-      (mapc #'site-lisp-unprepare dir)
+      (mapc #'site-lisp-prepare dir)
     (let ((backup-inhibited t)
           (autoload-file (expand-file-name site-lisp-autoload-file dir)))
       (dolist (dir (cons dir (directory-files dir t "^[^.]")))
