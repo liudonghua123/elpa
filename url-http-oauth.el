@@ -39,9 +39,6 @@
 (defvar url-http-oauth--interposed nil
   "A hash table mapping URL strings to lists of OAuth 2.0 settings.")
 
-(defvar url-http-oauth--extra-arguments nil
-  "A hash table mapping URL strings to lists of extra OAuth 2.0 settings.")
-
 (defun url-http-oauth-url-string (url)
   "Ensure URL is a string."
   (if (stringp url) url (url-recreate-url url)))
@@ -50,13 +47,10 @@
   "Ensure URL is a parsed URL object."
   (if (stringp url) (url-generic-parse-url url) url))
 
-(defun url-http-oauth-settings (url &optional extra)
+(defun url-http-oauth-settings (url)
   "Return a settings list if URL needs OAuth 2.0, nil otherwise.
-URL is either a URL object or a URL string.  If EXTRA is non-nil,
-return the extra settings for URL."
-  (when (if extra
-            url-http-oauth--extra-arguments
-          url-http-oauth--interposed)
+URL is either a URL object."
+  (when url-http-oauth--interposed
     (let* ((url-no-query (url-parse-make-urlobj
                           (url-type url)
                           nil nil
@@ -65,15 +59,13 @@ return the extra settings for URL."
                           (car (url-path-and-query url))
                           nil nil t))
            (key (url-http-oauth-url-string url-no-query)))
-      (gethash key (if extra
-                       url-http-oauth--extra-arguments
-                     url-http-oauth--interposed)))))
+      (gethash key url-http-oauth--interposed))))
 
 ;; Maybe if RFC 8414, "OAuth 2.0 Authorization Server Metadata",
 ;; catches on, authorization-url and access-token-url can be made
 ;; optional and their values retrieved automatically.  As of early
 ;; 2023, RFC 8414 is not consistently implemented yet.
-(defun url-http-oauth-interpose (url-settings &optional extra-arguments)
+(defun url-http-oauth-interpose (url-settings)
   "Arrange for Emacs to use OAuth 2.0 to access a URL using URL-SETTINGS.
 URL-SETTINGS is an alist with fields whose descriptions follow.
 URL will be accessed by Emacs's `url' library with a suitable
@@ -85,30 +77,24 @@ strings.  CLIENT-IDENTIFIER is a string identifying an Emacs
 library or mode to the server.  SCOPE is a string defining the
 -permissions that the Emacs library or mode is requesting.
 CLIENT-SECRET-METHOD is the symbol `prompt' if a client secret is
-required, nil otherwise.  EXTRA-ARGUMENTS contains an alist of
-extra arguments that should be included in the authorization URL."
+required, nil otherwise."
   (unless url-http-oauth--interposed
     (setq url-http-oauth--interposed (make-hash-table :test #'equal)))
-  (unless url-http-oauth--extra-arguments
-    (setq url-http-oauth--extra-arguments (make-hash-table :test #'equal)))
   (let* ((url (cadr (assoc "url" url-settings)))
          (key (url-http-oauth-url-string url))
          (client-secret-method
           (cadr (assoc "client-secret-method" url-settings))))
     (unless (or (eq client-secret-method 'prompt) (eq client-secret-method nil))
       (error "Unrecognized client-secret-method value"))
-    (puthash key url-settings url-http-oauth--interposed)
-    (puthash key extra-arguments url-http-oauth--extra-arguments)))
+    (puthash key url-settings url-http-oauth--interposed)))
 
-(defun url-http-oauth-uninterpose (url)
-  "Arrange for Emacs not to use OAuth 2.0 when accessing URL.
-This function does the opposite of `url-http-oauth-interpose'.
-URL is either an object or a string."
-  (let ((url-string (url-http-oauth-url-string url)))
-    (when url-http-oauth--interposed
-      (remhash url-string url-http-oauth--interposed))
-    (when url-http-oauth--extra-arguments
-      (remhash url-string url-http-oauth--extra-arguments))))
+(defun url-http-oauth-uninterpose (url-settings)
+  "Arrange for Emacs not to use OAuth 2.0 when accessing URL in URL-SETTINGS.
+This function does the opposite of `url-http-oauth-interpose'."
+  (when url-http-oauth--interposed
+    (let* ((url (cadr (assoc "url" url-settings)))
+           (key (url-http-oauth-url-string url)))
+      (remhash key url-http-oauth--interposed))))
 
 (defvar url-http-response-status)
 (defvar auth-source-creation-prompts)
@@ -194,6 +180,17 @@ The time is in seconds since the epoch."
         (error "url-http-oauth: Failed to find code in query component"))
       code)))
 
+(defun url-http-oauth-authorization-url (url-settings)
+  "Return the authorization URL for URL-SETTINGS."
+  (let ((base (cadr (assoc "authorization-endpoint" url-settings)))
+        (client
+         (list "client_id" (cadr (assoc "client-identifier" url-settings))))
+        (response-type (list "response_type" "code"))
+        (scope (assoc "scope" url-settings))
+        (extra (cadr (assoc "authorization-extra-arguments" url-settings))))
+    (concat base "?" (url-build-query-string
+                      `(,client ,response-type ,scope ,@extra)))))
+
 (defun url-http-oauth-get-bearer (url)
   "Prompt the user with the authorization endpoint for URL.
 URL is a parsed object."
@@ -215,21 +212,10 @@ URL is a parsed object."
       (error "%s is not interposed by url-http-oauth"
              (url-http-oauth-url-string url)))
     (or bearer-current
-        (let* ((extra-arguments (url-http-oauth-settings url t))
-               (response-url
+        (let* ((response-url
                 (read-from-minibuffer
                  (format "Browse to %s and paste the redirected code URL: "
-                         (concat (cadr (assoc "authorization-endpoint"
-                                              url-settings))
-                                 "?"
-                                 (url-build-query-string
-                                  (list (list "client_id"
-                                              (cadr (assoc "client-identifier"
-                                                           url-settings)))
-                                        (list "response_type" "code")
-                                        (list "scope" scope)))
-                                 "&"
-                                 (url-build-query-string extra-arguments)))))
+                         (url-http-oauth-authorization-url url-settings))))
                (code
                 (url-http-oauth-extract-authorization-code response-url))
                (grant (url-http-oauth-get-access-token-grant url code))
