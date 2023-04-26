@@ -150,7 +150,7 @@ Print the result to *Messages*.  Return the name."
         (url-retrieve-synchronously
          (url-parse-make-urlobj
           "https"      ; type
-          "fitzsim"    ; user
+          nil          ; user
           nil          ; password, resolved by url-http-oauth
           "meta.sr.ht" ; host
           443          ; port
