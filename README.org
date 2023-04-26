@@ -29,12 +29,15 @@ After that, require buildbot and set the host and builders.
 
 * Use
 
-There are two entry points:
+Entry points:
 - ~M-x buildbot-revision-open~ prompts for a revision id (e.g. commit
   hash in git), and opens a view of the revision, including builds
   associated with changes associated with the revision.
 - ~M-x buildbot-branch-open~ prompts for a branch name, and opens up a
   view of revisions of this branch.
+- ~M-x buildbot-builder-open~ prompts for a builder name from a list
+  of available builders, and opens up a view of recent builds by this
+  builder.
 
 * TODOs
 
