@@ -782,8 +782,8 @@ Return a structure, or nil, suitable for splicing into
   "Return a list of nil arguments for OPERATION.
 IDENTIFIER is the connection for which to look up OPERATION."
   (let* ((wsdl (exco--with-fsm identifier
-                 (plist-get (fsm-get-state-data fsm) :service-wsdl)))
-         (arity (soap-operation-arity wsdl "ExchangeServicePort" operation)))
+		 (plist-get (fsm-get-state-data fsm) :service-wsdl)))
+	 (arity (soap-operation-arity wsdl "ExchangeServicePort" operation)))
     (make-list arity nil)))
 
 (defun exco-calendar-item-meeting-create (identifier
@@ -814,9 +814,9 @@ creation."
 	(Subject . ,subject)
 	(Body (BodyType . "Text") ,body)
 	(StartTimeZone (Id . ,(exco-time-zone)))
-        (Start . ,(exco-format-date-time start))
-        (End . ,(exco-format-date-time end))
-        (Location . ,location)
+	(Start . ,(exco-format-date-time start))
+	(End . ,(exco-format-date-time end))
+	(Location . ,location)
 	,@(exco--create-attendee-structure main-invitees t)
 	,@(exco--create-attendee-structure optional-invitees nil))))
      ;; Empty arguments.
@@ -890,11 +890,11 @@ appointment creation."
 		`(((SendMeetingInvitations . "SendToNone")
 		   (Items
 		    (CalendarItem
-                     (Subject . ,subject)
+		     (Subject . ,subject)
 		     (Body (BodyType . "Text") ,body)
 		     (StartTimeZone (Id . ,(exco-time-zone)))
-                     (Start . ,(exco-format-date-time start))
-                     (End . ,(exco-format-date-time end)))))
+		     (Start . ,(exco-format-date-time start))
+		     (End . ,(exco-format-date-time end)))))
 		  nil nil nil nil)
 		callback))
 
