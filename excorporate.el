@@ -297,8 +297,28 @@ the FSM should transition to on success."
   ((identifier)
    "Start an Excorporate finite state machine."
    (let* ((autodiscover (stringp identifier))
-	  (mail (if autodiscover identifier (car identifier)))
-	  (url (unless autodiscover (cdr identifier)))
+	  (string-pair (stringp (car identifier)))
+	  (oauth-url (cdr (assoc "url" identifier)))
+	  (oauth (stringp oauth-url))
+	  (mail (if autodiscover
+		    identifier
+		  (if string-pair
+		      (car identifier)
+		    (if oauth
+			(cdr (assoc "login_hint"
+				    (cdr (assoc "authorization-extra-arguments"
+						excorporate-configuration))))
+		      (error
+		       "Failed to extract mail address from identifier: %s"
+		       identifier)))))
+	  (url (if autodiscover
+		   nil
+		 (if string-pair
+		     (cdr identifier)
+		   (if oauth
+		       oauth-url
+		     (error "Failed to extract URL from identifier: %s"
+			    identifier)))))
 	  (autodiscovery-urls
 	   (when autodiscover
 	     (let ((domain (cadr (split-string mail "@"))))
@@ -645,9 +665,12 @@ If IDENTIFIER is a mail address, `exco-connect' will use it to
 autodiscover the service URL to use.  If IDENTIFIER is a pair,
 `exco-connect' will not perform autodiscovery, but will instead
 use the `cdr' of the pair as the service URL."
-  (let ((autodiscover (stringp identifier)))
+  (let ((autodiscover (stringp identifier))
+	(oauth (stringp (cdr (assoc "url" identifier)))))
     (when autodiscover
       (message "Excorporate: Starting autodiscovery for %s" identifier))
+    (when oauth
+      (url-http-oauth-interpose identifier))
     (let ((fsm (start-exco--fsm identifier)))
       (unless exco--connections
 	(setq exco--connections (make-hash-table :test 'equal)))
@@ -1208,7 +1231,7 @@ Examples:
 Other Excorporate documentation refers to the email address as
 the \"mail address\", and the EWS URL as the \"service URL\"."
   :type
-  '(choice
+  `(choice
     (const
      :tag "Prompt for Exchange account information" nil)
     #1=(string
@@ -1217,8 +1240,80 @@ the \"mail address\", and the EWS URL as the \"service URL\"."
 	:tag "Exchange email address and EWS URL (no autodiscovery)"
 	(string :tag "Exchange mail address (e.g., hacker@gnu.org)")
 	(string :tag "EWS URL (e.g., https://mail.gnu.org/EWS/Exchange.asmx)"))
-    (repeat :tag "List of configurations"
-	    (choice #1# #2#))))
+    #3=(alist :tag "EWS URL OAuth 2.0 settings (no autodiscovery)"
+	      :key-type (string :tag "OAuth 2.0 setting name")
+	      :value-type (string :tag "OAuth 2.0 setting value")
+	      :options
+	      (("url"
+		(string :tag "EWS URL"
+			"https://outlook.office365.com/EWS/Exchange.asmx"))
+	       ("authorization-endpoint"
+		(string :tag "Authorization URL"
+			,(concat "https://login.microsoftonline.com"
+				 "/ecdd899a-33be-4c33-91e4-1f1144fc2f56"
+				 "/oauth2/authorize")))
+	       ("access-token-endpoint"
+		(string :tag "Access-token URL"
+			,(concat "https://login.microsoftonline.com"
+				 "/ecdd899a-33be-4c33-91e4-1f1144fc2f56"
+				 "/oauth2/token")))
+	       ("client-identifier"
+		(string :tag "Client identifier"
+			;; FIXME: It would be nice if Microsoft
+			;; provided a "Generic Free Software
+			;; application" client identifier for use by
+			;; Free Software projects that do not want to
+			;; register as EWS clients, for whatever
+			;; reason.  That client identifier could be
+			;; hard-coded here.
+			;; FIXME: Failing that, the Free Software
+			;; Foundation could register Emacs as an EWS
+			;; client and then hard-code the assigned
+			;; client identifier here.
+			;; FIXME: Failing that, the user must do the
+			;; registration themselves.  See
+			;; https://wiki.gnome.org/Apps/Evolution/EWS/OAuth2
+			;; for a good overview of the registration
+			;; process.
+			"00000000-0000-0000-0000-000000000000"))
+	       ("scope"
+		(string :tag "Access scope"
+			,(concat "openid"
+				 " offline_access"
+				 " profile"
+				 " Mail.ReadWrite"
+				 " Mail.ReadWrite.Shared"
+				 " Mail.Send"
+				 " Mail.Send.Shared"
+				 " Calendars.ReadWrite"
+				 " Calendars.ReadWrite.Shared"
+				 " Contacts.ReadWrite"
+				 " Contacts.ReadWrite.Shared"
+				 " Tasks.ReadWrite"
+				 " Tasks.ReadWrite.Shared"
+				 " MailboxSettings.ReadWrite"
+				 " People.Read"
+				 " User.ReadBasic.All")))
+	       ("authorization-extra-arguments"
+		(alist :tag "Extra arguments to authorization URL"
+		       :options (("resource"
+				  (string :value "https://outlook.office.com"))
+				 ("response_mode"
+				  (string :value "query"))
+				 ("login_hint"
+				  (string :value "change-this@gnu.org"))
+				 ("prompt"
+				  (string :value "login"))
+				 ("redirect_uri"
+				  (string
+				   :value
+				   ,(concat "https://login.microsoftonline.com"
+					    "/common/oauth2/nativeclient"))))
+		       :key-type (string :tag "Argument name")
+		       :value-type (string :tag "Argument value")))))
+    (repeat
+     :tag "List of configurations"
+     (choice #1# #2# #3#))))
 
 (defun exco--string-or-string-pair-p (value)
   "Return t if VALUE is a string or a pair of strings."
@@ -1249,19 +1344,25 @@ ARGUMENT is the prefix argument."
 	   (ask-1 "Exchange mail address: ")
 	   (ask-2 "Attempt settings autodiscovery ('n' for Office 365)?")
 	   (ask-3 "EWS URL: ")
+	   (ask-4 "Use OAuth 2.0?")
 	   (mail (completing-read ask-1 (list suggestion) nil nil suggestion))
 	   (identifier
 	    (if (y-or-n-p ask-2)
 		mail
 	      (cons mail (completing-read ask-3 (list url) nil nil url)))))
+      (when (y-or-n-p ask-4)
+	(error (concat "No interactive support for OAuth 2.0 configuration;"
+		       " customize `excorporate-configuration'")))
       (exco-connect identifier)))
-   ((exco--string-or-string-pair-p excorporate-configuration)
+   ((or (exco--string-or-string-pair-p excorporate-configuration)
+	(assoc "url" excorporate-configuration))
     ;; A single string or a single pair.
     (exco-connect excorporate-configuration))
    ((consp (cdr excorporate-configuration))
     ;; A proper list.
     (dolist (configuration excorporate-configuration)
-      (if (exco--string-or-string-pair-p configuration)
+      (if (or (exco--string-or-string-pair-p configuration)
+	      (assoc "url" excorporate-configuration))
 	  (exco-connect configuration)
 	(warn "Skipping invalid configuration: %s" configuration))))
    (t
