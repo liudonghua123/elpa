@@ -45,7 +45,7 @@ Any further bugs or questions can be submitted to my [public inbox][mailing list
 Copying
 -------
 
-`face-shfit.el` is distributed under the [CC0 1.0 Universal (CC0 1.0) Public
+`face-shift.el` is distributed under the [CC0 1.0 Universal (CC0 1.0) Public
 Domain Dedication][cc0] license.
 
 [melpa]: https://melpa.org/#/face-shift
