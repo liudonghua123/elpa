@@ -102,7 +102,10 @@ This function does the opposite of `url-http-oauth-interpose'."
 (defun url-http-oauth-port (url)
   "Return port of URL object.
 Assume an HTTPS URL that does not specify a port uses 443."
-  (or (url-port url) (when (string= "https" (url-type url)) 443)))
+  (let ((port-number (url-port url)))
+    (if port-number
+	(number-to-string port-number)
+      (when (string= "https" (url-type url)) "443"))))
 
 (defun url-http-oauth-get-access-token-grant (url code)
   "Get an access token for URL using CODE."
@@ -202,7 +205,7 @@ URL is a parsed object."
                           (car
                            (let ((auth-source-do-cache nil))
                              (auth-source-search
-                              :user (url-user url)
+                              :user (or (url-user url) "")
                               :host (url-host url)
                               :port (url-http-oauth-port url)
                               :path path
@@ -222,7 +225,7 @@ URL is a parsed object."
                (bearer-retrieved (gethash "access_token" grant))
                (auth-result (let ((auth-source-do-cache nil))
                               (auth-source-search
-                               :user (url-user url)
+                               :user (or (url-user url) "")
                                :host (url-host url)
                                :port (url-http-oauth-port url)
                                :path path
@@ -238,7 +241,7 @@ URL is a parsed object."
                                :create '(path scope expiry)
                                :max 1)))
                (save-function (plist-get (car auth-result) :save-function)))
-            ;; Success; save bearer.
+          ;; Success; save bearer.
           (when (functionp save-function)
             (funcall save-function))
           bearer-retrieved))))
