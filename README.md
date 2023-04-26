@@ -1,55 +1,70 @@
-`face-shift.el`
-===============
+Per Major-Mode Distortion of Buffer Faces
+=========================================
 
-`face-shift` lets the user shift the colours in a buffer uniformly
-towards a certain hue. This is done by linearly transforming the default
-colours of a face, and then applying this transformed/shifted colour
-_just_ to this buffer, thus not changing all faces at once.
+Find here the source for the Emacs package `face-shift`.  It allows
+Emacs to shift the appearance of each buffer according to their
+respective active major modes.
 
 My recommendation is to use no theme when `face-shift` is in use, to
 avoid confusion, although it certainly is possible.
 
-How to use
+Installation
 ----------
 
-Using [MELPA][melpa] and [`setup`][setup], a minimal setup might look
-something like this:
+`Face-shift.el` is available from [GNU ELPA].  It can be installed by
+invoking
 
-	(setup (:package face-shift)
-	  (:option face-shift-mode t))
+	M-x package-install RET face-shift RET
 
-The main function for users is `face-shift-mode`, that turns on a global
-minor mode, to shift all the faces in all buffers.
+[GNU ELPA]:
+	http://elpa.gnu.org/packages/face-shift.html
 
-This will shift the fore- and background colours of all faces in
-`face-shift-faces`, according to `face-shift-shifts`. This variable is
-an alist of the form `(MAJOR-MODE . COLOUR-STRING)`. This means that
-`face-shift-setup` will iterate the list for so long until the current
-major mode is derived from a `MAJOR-MODE`, and will then use
-`COLOUR-STRING` to shift all colours. Modify this variable to customise
-`face-shift-setup`'s behaviour.
+Usage
+-----
 
-Example
--------
+The main entry point is the global minor mode `face-shift-mode`.  It
+taints all buffers of a certain major mode according to the user
+option `face-shift-shifts`.
 
-![screenshot]
+Visual Example
+--------------
 
-Bugs
-----
+![Screenshot of an Emacs with `face-shift-mode` enabled](https://i.imgur.com/E3tGyNL.png)
+
+Known Issues
+------------
 
 - Due to Emacs' implementation of fringes, it's not possible to shift
   the colour of the fringe for just one buffer.
 
-Any further bugs or questions can be submitted to my [public inbox][mailing list].
+Any further bugs, patches, comments or questions can be submitted to
+my [public inbox].
 
-Copying
--------
+[public inbox]:
+	https://lists.sr.ht/~pkal/public-inbox
 
-`face-shift.el` is distributed under the [CC0 1.0 Universal (CC0 1.0) Public
-Domain Dedication][cc0] license.
+Contribute
+----------
 
-[melpa]: https://melpa.org/#/face-shift
+As `face-shift.el` is distribed as part of [GNU ELPA], and therefore
+requires a [copyright assignment] to the [FSF], for all non-trivial
+code contributions.
+
+[copyright assignment]:
+	https://www.gnu.org/software/emacs/manual/html_node/emacs/Copyright-Assignment.html
+[FSF]:
+	https://www.fsf.org/
+
+Distribution
+------------
+
+`face-shift.el` and all other source files in this directory are
+distributed under the [GNU Public License], Version 3 (like Emacs
+itself).
+
+[GNU Public License]:
+	https://www.gnu.org/licenses/gpl-3.0.en.html
+
 [setup]: http://elpa.gnu.org/packages/setup.html
-[screenshot]: https://i.imgur.com/E3tGyNL.png
 [mailing list]: https://lists.sr.ht/~pkal/public-inbox
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/deed
