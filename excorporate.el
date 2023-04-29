@@ -298,7 +298,7 @@ the FSM should transition to on success."
    "Start an Excorporate finite state machine."
    (let* ((autodiscover (stringp identifier))
 	  (string-pair (stringp (car identifier)))
-	  (oauth-url (cdr (assoc "url" identifier)))
+	  (oauth-url (cadr (assoc "urls" identifier)))
 	  (oauth (stringp oauth-url))
 	  (mail (if autodiscover
 		    identifier
@@ -666,7 +666,7 @@ autodiscover the service URL to use.  If IDENTIFIER is a pair,
 `exco-connect' will not perform autodiscovery, but will instead
 use the `cdr' of the pair as the service URL."
   (let ((autodiscover (stringp identifier))
-	(oauth (stringp (cdr (assoc "url" identifier)))))
+	(oauth (stringp (cadr (assoc "urls" identifier)))))
     (when autodiscover
       (message "Excorporate: Starting autodiscovery for %s" identifier))
     (when oauth
@@ -1244,10 +1244,19 @@ the \"mail address\", and the EWS URL as the \"service URL\"."
 	      :key-type (string :tag "OAuth 2.0 setting name")
 	      :value-type (string :tag "OAuth 2.0 setting value")
 	      :options
-	      (("url"
-		(string :tag "EWS URL"
-			"https://outlook.office365.com/EWS/Exchange.asmx"))
-	       ("authorization-endpoint"
+	      (("urls"
+                (list
+                 (string :tag "EWS URL"
+			 "https://outlook.office365.com/EWS/Exchange.asmx")
+                 (string :tag "EWS URL"
+			 "https://outlook.office365.com/EWS/Services.wsdl")
+                 (string :tag "EWS URL"
+			 "https://outlook.office365.com/EWS/messages.xsd")
+                 (string :tag "EWS URL"
+			 "https://outlook.office365.com/EWS/types.xsd")
+                 (string :tag "EWS URL"
+			 "https://outlook.office365.com/EWS/xml.xsd")))
+               ("authorization-endpoint"
 		(string :tag "Authorization URL"
 			,(concat "https://login.microsoftonline.com"
 				 "/ecdd899a-33be-4c33-91e4-1f1144fc2f56"
@@ -1355,14 +1364,14 @@ ARGUMENT is the prefix argument."
 		       " customize `excorporate-configuration'")))
       (exco-connect identifier)))
    ((or (exco--string-or-string-pair-p excorporate-configuration)
-	(assoc "url" excorporate-configuration))
+	(assoc "urls" excorporate-configuration))
     ;; A single string or a single pair.
     (exco-connect excorporate-configuration))
    ((consp (cdr excorporate-configuration))
     ;; A proper list.
     (dolist (configuration excorporate-configuration)
       (if (or (exco--string-or-string-pair-p configuration)
-	      (assoc "url" excorporate-configuration))
+	      (assoc "urls" excorporate-configuration))
 	  (exco-connect configuration)
 	(warn "Skipping invalid configuration: %s" configuration))))
    (t
