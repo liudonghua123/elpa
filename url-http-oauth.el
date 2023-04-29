@@ -35,6 +35,7 @@
 (require 'url-auth)
 (require 'url-http)
 (require 'url-util)
+(require 'json)
 
 (defvar url-http-oauth--interposed nil
   "A hash table mapping URL strings to lists of OAuth 2.0 settings.")
@@ -80,24 +81,30 @@ CLIENT-SECRET-METHOD is the symbol `prompt' if a client secret is
 required, nil otherwise."
   (unless url-http-oauth--interposed
     (setq url-http-oauth--interposed (make-hash-table :test #'equal)))
-  (let* ((url (cadr (assoc "url" url-settings)))
-         (key (url-http-oauth-url-string url))
+  (let* ((urls (cdr (assoc "urls" url-settings)))
          (client-secret-method
-          (cadr (assoc "client-secret-method" url-settings))))
+          (cdr (assoc "client-secret-method" url-settings))))
     (unless (or (eq client-secret-method 'prompt) (eq client-secret-method nil))
       (error "Unrecognized client-secret-method value"))
-    (puthash key url-settings url-http-oauth--interposed)))
+    (dolist (url urls)
+      (puthash (url-http-oauth-url-string url) url-settings
+               url-http-oauth--interposed))))
 
 (defun url-http-oauth-uninterpose (url-settings)
   "Arrange for Emacs not to use OAuth 2.0 when accessing URL in URL-SETTINGS.
 This function does the opposite of `url-http-oauth-interpose'."
   (when url-http-oauth--interposed
-    (let* ((url (cadr (assoc "url" url-settings)))
-           (key (url-http-oauth-url-string url)))
-      (remhash key url-http-oauth--interposed))))
+    (let* ((urls (cdr (assoc "urls" url-settings))))
+      (dolist (url urls)
+        (remhash (url-http-oauth-url-string url)
+                 url-http-oauth--interposed)))))
 
 (defvar url-http-response-status)
 (defvar auth-source-creation-prompts)
+;; FIXME: if anything goes wrong during the authentication steps,
+;; `url-http-end-of-document-sentinel' calls back into
+;; `url-oauth-auth' somehow.  Maybe `url-http-no-retry' can help here?
+(defvar url-http-no-retry)
 
 (defun url-http-oauth-port (url)
   "Return port of URL object.
@@ -110,8 +117,8 @@ Assume an HTTPS URL that does not specify a port uses 443."
 (defun url-http-oauth-auth-source-search (&rest spec)
   "Like `auth-source-search' but search for all of SPEC in all backends.
 Filter out nil spec entries prior to searching."
-  (let* ((auth-source-do-cache nil)
-         (all (apply #'auth-source-search :max 5001 spec)) ; no :max 'all
+  (let* ((auth-source-do-cache nil) ; do not cache nil result.
+         (all (apply #'auth-source-search :max 5001 spec)) ; hmm, no :max 'all.
          (spec (cl-loop for i below (length spec) by 2
                         unless (null (nth (1+ i) spec))
                         collect (nth i spec)
@@ -120,10 +127,30 @@ Filter out nil spec entries prior to searching."
          (result (cl-loop for entry in all
                           when (auth-source-specmatchp spec entry)
                           collect entry)))
-    (unless (eq (length result) 1)
+    (unless (or (eq (length result) 0)
+                (eq (length result) 1))
       (warn "url-http-oauth-auth-source-search produced multiple results for %s"
             spec))
     result))
+
+(defun url-http-oauth-encode-scope (scope)
+  "Replace spaces in SCOPE with plus signs."
+  (replace-regexp-in-string " " "+" scope))
+
+;; Backport of `auth-info-password'.
+(defun url-http-oauth-auth-info-password (auth-info)
+  "Return the :secret password from the AUTH-INFO."
+  (let ((secret (plist-get auth-info :secret)))
+    (if (functionp secret)
+        (funcall secret)
+      secret)))
+
+;; Backport (roughly) of `json-parse-buffer'.
+(defun url-http-oauth-json-parse-buffer ()
+  "See `json-parse-buffer'."
+  (let ((json-object-type 'hash-table))
+    (json-read-from-string
+     (buffer-substring (point) (point-max)))))
 
 (defun url-http-oauth-get-access-token-grant (url code)
   "Get an access token for URL using CODE."
@@ -131,29 +158,25 @@ Filter out nil spec entries prior to searching."
          (url-settings (url-http-oauth-settings url))
          (access-token-object
           (url-http-oauth-url-object
-           (cadr (assoc "access-token-endpoint" url-settings))))
-         (client-identifier (cadr (assoc "client-identifier" url-settings)))
-         (scope (cadr (assoc "scope" url-settings)))
-         (client-secret-method (cadr (assoc "client-secret-method"
-                                            url-settings)))
+           (cdr (assoc "access-token-endpoint" url-settings))))
+         (client-identifier (cdr (assoc "client-identifier" url-settings)))
+         (scope (cdr (assoc "scope" url-settings)))
+         (client-secret-method (cdr (assoc "client-secret-method"
+                                           url-settings)))
          (auth-result
           (when client-secret-method
             (car (let* ((auth-source-creation-prompts
-                         '((secret . "Client secret for %u at %h")))
-                        ;; Do not cache nil result.
-                        (auth-source-do-cache nil)
+                         '((secret . "Client secret for %u at %h: ")))
                         (spec (list :user client-identifier
                                     :host (url-host access-token-object)
                                     :port (url-http-oauth-port
                                            access-token-object)
                                     :path (url-filename access-token-object)
-                                    :scope scope))
-                        (existing-entry
-                         (apply #'url-http-oauth-auth-source-search spec)))
-                   (or existing-entry
-                       (apply #'auth-source-search
-                              :create '(path scope) spec))))))
-         (client-secret (auth-info-password auth-result))
+                                    :scope
+                                    (url-http-oauth-encode-scope scope))))
+                   (or (apply #'url-http-oauth-auth-source-search spec)
+                       (apply #'auth-source-search :create '(path scope) spec))))))
+         (client-secret (url-http-oauth-auth-info-password auth-result))
          (save-function (plist-get auth-result :save-function))
          (authorization (when client-secret
                           (concat
@@ -176,7 +199,7 @@ Filter out nil spec entries prior to searching."
           (progn
             (goto-char (point-min))
             (re-search-forward "\n\n")
-            (let* ((grant (json-parse-buffer))
+            (let* ((grant (url-http-oauth-json-parse-buffer))
                    (type (gethash "token_type" grant)))
               (unless (equal type "bearer" )
                 (error "Unrecognized token type %s for %s at %s" type
@@ -206,14 +229,16 @@ The time is in seconds since the epoch."
 
 (defun url-http-oauth-authorization-url (url-settings)
   "Return the authorization URL for URL-SETTINGS."
-  (let ((base (cadr (assoc "authorization-endpoint" url-settings)))
+  (let ((base (cdr (assoc "authorization-endpoint" url-settings)))
         (client
-         (list "client_id" (cadr (assoc "client-identifier" url-settings))))
+         (list "client_id" (cdr (assoc "client-identifier" url-settings))))
         (response-type (list "response_type" "code"))
-        (scope (assoc "scope" url-settings))
-        (extra (cadr (assoc "authorization-extra-arguments" url-settings))))
+        (scope (list "scope" (cdr (assoc "scope" url-settings))))
+        (extra (mapcar (lambda (entry)
+                         (list (car entry) (cdr entry)))
+                (cdr (assoc "authorization-extra-arguments" url-settings)))))
     (concat base "?" (url-build-query-string
-                      `(,client ,response-type ,scope ,@extra)))))
+                      (apply #'list client response-type scope extra)))))
 
 (defun url-http-oauth-get-bearer (url)
   "Prompt the user with the authorization endpoint for URL.
@@ -222,12 +247,12 @@ URL is a parsed object."
          (url-settings (url-http-oauth-settings url))
          (path-and-query (url-path-and-query url))
          (path (car path-and-query))
-         (scope (cadr (assoc "scope" url-settings)))
-         (bearer-current (auth-info-password
+         (scope (cdr (assoc "scope" url-settings)))
+         (bearer-current (url-http-oauth-auth-info-password
                           (car
                            (let ((auth-source-do-cache nil))
                              (url-http-oauth-auth-source-search
-                              :user (url-user url)
+                              :user "BEARER"
                               :host (url-host url)
                               :port (url-http-oauth-port url)
                               :path path
@@ -244,24 +269,30 @@ URL is a parsed object."
                 (url-http-oauth-extract-authorization-code response-url))
                (grant (url-http-oauth-get-access-token-grant url code))
                (bearer-retrieved (gethash "access_token" grant))
-               (spec (list :user (or (url-user url) "")
-                           :host (url-host url)
-                           :port (url-http-oauth-port url)
-                           :path path
-                           :scope (if (string= (gethash "scope" grant)
-                                               scope)
-                                      scope
-                                    (error
-                                     (concat "url-http-oauth:"
-                                             " Returned scope did not"
-                                             " match requested scope")))
-                           :expiry (url-http-oauth-expiry-string grant)
-                           :secret bearer-retrieved))
-               (auth-result
-                (unless (apply #'url-http-oauth-auth-source-search spec)
-                  (let ((auth-source-do-cache nil))
-                    (apply #'auth-source-search
-                           :create '(path scope expiry) spec))))
+               (auth-result (auth-source-search
+                             :create '(path scope expiry)
+                             ;; If :user is nil, then
+                             ;; (auth-source-search :create ...) will
+                             ;; find the client-identifier username.
+                             ;; :user isn't used for bearer tokens
+                             ;; anyway, so use this dummy name to
+                             ;; differentiate the bearer token
+                             ;; authinfo line from the
+                             ;; client-identifier/client-secret
+                             ;; authinfo line.
+                             :user "BEARER"
+                             :host (url-host url)
+                             :port (url-http-oauth-port url)
+                             :path path
+                             :scope (if (string= (gethash "scope" grant)
+                                                 scope)
+                                        (url-http-oauth-encode-scope scope)
+                                      (error
+                                       (concat "url-http-oauth:"
+                                               " Returned scope did not"
+                                               " match requested scope")))
+                             :expiry (url-http-oauth-expiry-string grant)
+                             :secret bearer-retrieved))
                (save-function (plist-get (car auth-result) :save-function)))
           ;; Success; save bearer.
           (when (functionp save-function)
