@@ -48,6 +48,8 @@ will not be appended to the calibre-db--get-FIELD function's name."
 (calibre-search--choice-function "author" t)
 (calibre-search--choice-function "publisher")
 (calibre-search--choice-function "tag")
+(calibre-search--choice-function "series" nil t)
+(calibre-search--choice-function "format")
 
 (defun calibre-search--operation (args)
   "Return the appropriate symbol for a filter operation.
@@ -68,7 +70,9 @@ ARGS is the argument list of a transient command."
 
 (calibre-library--search-function "author")
 (calibre-library--search-function "publisher")
+(calibre-library--search-function "series")
 (calibre-library--search-function "tag")
+(calibre-library--search-function "format")
 
 (defun calibre-library-clear-last-search ()
   "Clear the last applied search filter."
@@ -85,7 +89,9 @@ ARGS is the argument list of a transient command."
   ["Search"
    ("a" "Author" calibre-library-search-author)
    ("p" "Publisher" calibre-library-search-publisher)
-   ("t" "Tag" calibre-library-search-tag)]
+   ("t" "Tag" calibre-library-search-tag)
+   ("s" "Series" calibre-library-search-series)
+   ("f" "Format" calibre-library-search-format)]
   ["Misc"
    ("u" "Undo" calibre-library-clear-last-search)
    ("c" "Clear" calibre-library-clear-filters)

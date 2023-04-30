@@ -107,6 +107,11 @@ WHERE books.id = ?"
   (flatten-list (sqlite-select (calibre--db)
                                "SELECT name FROM publishers;")))
 
+(defun calibre-db--get-formats ()
+  "Return a list of the file formats stored in the active library."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT DISTINCT format FROM data;")))
+
 (defvar calibre--db nil)
 (defun calibre--db ()
   "Return the metadata database."
@@ -179,7 +184,7 @@ WHERE format = ?" `[,format])))
       (tag (calibre-db--get-tag-books value))
       (publisher (calibre-db--get-publisher-books value))
       (series (calibre-db--get-series-books value))
-      (format (calibre-db--get-format-books (upcase (symbol-name value)))))))
+      (format (calibre-db--get-format-books value)))))
 
 (defun calibre-library--filter (filters books)
   "Return those books in BOOKS that match FILTERS.
