@@ -229,8 +229,11 @@ If FORCE is non-nil the list is refreshed from the database."
 If LIBRARY is non-nil, select that instead."
   (interactive)
   (setf calibre--library (if library
-                            library
-                           (completing-read "Library: " (calibre--library-names) nil t))
+                             library
+                           (let ((names (calibre--library-names)))
+                             (if (not (length> names 1))
+                               (car names)
+                             (completing-read "Library: " names nil t))))
         calibre--db nil
         calibre--books nil)
   (calibre-library--refresh t))
