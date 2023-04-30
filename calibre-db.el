@@ -161,7 +161,7 @@ WHERE p.name = ?" `[,publisher])))
   (flatten-list (sqlite-select (calibre--db)
                                "SELECT book
 FROM books_series_link sl
-LEFT JOIN series s ON sl.publisher = s.id
+LEFT JOIN series s ON sl.series = s.id
 WHERE s.name = ?" `[,series])))
 
 (defun calibre-db--get-format-books (format)
