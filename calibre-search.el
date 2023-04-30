@@ -24,52 +24,51 @@
 (require 'transient)
 (require 'calibre-db)
 
-(defun calibre-chose-author ()
-  "Prompt the user to select an author."
-  (interactive)
-  (completing-read "Author: " (calibre-db--get-authors)))
+(defmacro calibre-search--choice-function (field &optional an plural)
+  "Create a function to prompt the user to select a value for FIELD.
+FIELD should be the name of a metadata field associated with
+books.  A corresponding calibre-db--get-FIELDs function must
+exist, i.e. if FIELD is author the function
+calibre-db--get-authors must exist.
 
-(defun calibre-chose-publisher ()
-  "Prompt the user to select a publisher."
-  (interactive)
-  (completing-read "Author: " (calibre-db--get-publishers)))
+If AN is non-nil the new function's docstring will read: Prompt
+the user to select an FIELD, otherwise it will read: Prompt the
+user to select a FIELD.
 
-(defun calibre-chose-tag ()
-  "Prompt the user to select a tag."
-  (interactive)
-  (completing-read "Tag: " (calibre-db--get-tags)))
+If PLURAL is non-nil FIELD is assumed to be a plural word, and an s
+will not be appended to the calibre-db--get-FIELD function's name."
+  `(defun ,(intern (format "calibre-search-chose-%s" field)) ()
+     ,(format "Prompt the user to select %s %s" (if an "an" "a") field)
+     (interactive)
+     (completing-read ,(format "%s:" (capitalize field))
+                      (,(intern (format "calibre-db--get-%s%s"
+                                        field
+                                        (if plural "" "s")))))))
+
+(calibre-search--choice-function "author" t)
+(calibre-search--choice-function "publisher")
+(calibre-search--choice-function "tag")
 
 (defun calibre-search--operation (args)
   "Return the appropriate symbol for a filter operation.
 ARGS is the argument list of a transient command."
   (if (cl-find "--exclude" args :test #'string=) '- '+))
 
-(defun calibre-library-search-author (author &optional args)
-  "Add a filter for AUTHOR.
-ARGS determines whether the created filter is inclusive or exclusive."
-  (interactive (list (calibre-chose-author)
-                     (transient-args 'calibre-search)))
-  (setf calibre-library--filters (cons `[,(calibre-search--operation args) author ,author]
-                                       calibre-library--filters))
-  (calibre-library--refresh))
+(defmacro calibre-library--search-function (field)
+  "Create a function adding a filter for FIELD."
+  `(defun ,(intern (format "calibre-library-search-%s" field)) (val &optional args)
+     (interactive (list (,(intern (format "calibre-search-chose-%s" field)))
+                        (transient-args 'calibre-search)))
+     (setf calibre-library--filters (cons
+                                     (vector (calibre-search--operation args)
+                                             (quote ,(intern field))
+                                             val)
+                                     calibre-library--filters))
+     (calibre-library--refresh)))
 
-(defun calibre-library-search-publisher (publisher &optional args)
-    "Add a filter for PUBLISHER.
-ARGS determines whether the created filter is inclusive or exclusive."
-  (interactive (list (calibre-chose-publisher)
-                     (transient-args 'calibre-search)))
-  (setf calibre-library--filters (cons `[,(calibre-search--operation args) publisher ,publisher]
-                                       calibre-library--filters))
-  (calibre-library--refresh))
-
-(defun calibre-library-search-tag (tag &optional args)
-    "Add a filter for TAG.
-ARGS determines whether the created filter is inclusive or exclusive."
-  (interactive (list (calibre-chose-tag)
-                     (transient-args 'calibre-search)))
-  (setf calibre-library--filters (cons `[,(calibre-search--operation args) tag ,tag]
-                                       calibre-library--filters))
-  (calibre-library--refresh))
+(calibre-library--search-function "author")
+(calibre-library--search-function "publisher")
+(calibre-library--search-function "tag")
 
 (defun calibre-library-clear-last-search ()
   "Clear the last applied search filter."
