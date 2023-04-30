@@ -26,6 +26,8 @@
 (require 'dired)
 (require 'calibre-db)
 (require 'calibre-book)
+(require 'calibre-search)
+(require 'calibre-virtual-library)
 
 ;;;###autoload
 (defun calibre-library-add-book (file)
@@ -114,6 +116,11 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
   (interactive (list (tabulated-list-get-id)) calibre-library-mode)
   (find-file (calibre-book--file book (calibre-book--pick-format book))))
 
+(defun calibre-library-open-book-other-window (book)
+  "Open BOOK in its preferred format."
+  (interactive (list (tabulated-list-get-id)) calibre-library-mode)
+  (find-file-other-window (calibre-book--file book (calibre-book--pick-format book))))
+
 (defvar-keymap calibre-library-mode-map
   :doc "Local keymap for Calibre Library buffers."
   :parent tabulated-list-mode-map
@@ -121,7 +128,10 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
   "u" #'calibre-library-mark-unmark
   "x" #'calibre-library-execute
   "a" #'calibre-library-add-book
-  "RET" #'calibre-library-open-book)
+  "v" #'calibre-select-virtual-library
+  "s" #'calibre-search
+  "RET" #'calibre-library-open-book
+  "o" #'calibre-library-open-book-other-window)
 
 (define-derived-mode calibre-library-mode tabulated-list-mode
   (setf tabulated-list-padding 2)

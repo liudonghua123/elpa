@@ -6,6 +6,8 @@ Calibre.el is a package for interacting with Calibre
 include:
 - Easily switch between multiple libraries
 - List the contents of your library
+- Filter the contents of your library based on various metadata
+- Create Virtual Libraries by giving names to sets of filters
 - Add and remove books from your library
 - Read your books in Emacs
 

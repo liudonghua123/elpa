@@ -87,6 +87,26 @@ WHERE books.id = ?"
                                "SELECT format FROM data WHERE book = ?"
                                `[,id]))))
 
+(defun calibre-db--get-authors ()
+  "Return a list of the authors in the active library."
+  (sqlite-select (calibre--db)
+                               "SELECT name FROM authors;"))
+
+(defun calibre-db--get-series ()
+  "Return a list of the series in the active library."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT name FROM series;")))
+
+(defun calibre-db--get-tags ()
+  "Return a list of the tags in the active library."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT name FROM tags;")))
+
+(defun calibre-db--get-publishers ()
+  "Return a list of the publishers in the active library."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT name FROM publishers;")))
+
 (defvar calibre--db nil)
 (defun calibre--db ()
   "Return the metadata database."
@@ -112,6 +132,79 @@ FROM books
 LEFT JOIN books_series_link sl ON books.id = sl.book
 LEFT JOIN series ON sl.series = series.id;"))))
 
+(defun calibre-db--get-author-books (author)
+  "Return the id's of books written by AUTHOR."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT book
+FROM books_authors_link al
+LEFT JOIN authors a ON al.author = a.id
+WHERE a.name = ?" `[,author])))
+
+(defun calibre-db--get-tag-books (tag)
+  "Return the id's of books tagged with TAG."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT book
+FROM books_tags_link tl
+LEFT JOIN tags t ON tl.tag = t.id
+WHERE t.name = ?" `[,tag])))
+
+(defun calibre-db--get-publisher-books (publisher)
+  "Return the id's of books published by PUBLISHER."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT book
+FROM books_publishers_link pl
+LEFT JOIN publishers p ON pl.publisher = p.id
+WHERE p.name = ?" `[,publisher])))
+
+(defun calibre-db--get-series-books (series)
+  "Return the id's of books that are part of SERIES."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT book
+FROM books_series_link sl
+LEFT JOIN series s ON sl.publisher = s.id
+WHERE s.name = ?" `[,series])))
+
+(defun calibre-db--get-format-books (format)
+  "Return the id's of books available in FORMAT."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT book
+FROM data
+WHERE format = ?" `[,format])))
+
+(defun calibre--get-filter-items (filter)
+  "Return the id's of books matching FILTER."
+  (seq-let (_ field value) filter
+    (cl-case field
+      (author (calibre-db--get-author-books value))
+      (tag (calibre-db--get-tag-books value))
+      (publisher (calibre-db--get-publisher-books value))
+      (series (calibre-db--get-series-books value))
+      (format (calibre-db--get-format-books (upcase (symbol-name value)))))))
+
+(defun calibre-library--filter (filters books)
+  "Return those books in BOOKS that match FILTERS.
+FILTERS should be a list of vectors, for the exact contents see
+`calibre-virtual-libraries'."
+  (let* ((include (cl-remove-if-not (lambda (f) (eq (elt f 0) '+)) filters))
+         (exclude (cl-remove-if-not (lambda (f) (eq (elt f 0) '-)) filters))
+         (include-ids (when include
+                        (cl-reduce #'cl-intersection
+                                   (mapcar #'calibre--get-filter-items include))))
+         (exclude-ids (when exclude
+                        (cl-reduce #'cl-union
+                                   (mapcar #'calibre--get-filter-items exclude)))))
+    (cl-remove-if (lambda (b)
+                    (seq-find (lambda (id)
+                                (= id (calibre-book-id b)))
+                              exclude-ids))
+                  (if include-ids
+                      (cl-remove-if-not (lambda (b)
+                                      (seq-find (lambda (id)
+                                                  (= id (calibre-book-id b)))
+                                                include-ids))
+                                        books)
+                    books))))
+
 (defvar calibre--books nil)
 (defun calibre--books (&optional force)
   "Return the in memory list of books.
@@ -119,6 +212,14 @@ If FORCE is non-nil the list is refreshed from the database."
   (when (or force (not calibre--books))
     (setf calibre--books (calibre-db--get-books)))
   calibre--books)
+
+(defvar calibre-library--filters nil)
+
+(defun calibre-library-clear-filters ()
+  "Clear all active filters."
+  (interactive)
+  (setf calibre-library--filters nil)
+  (calibre-library--refresh))
 
 (defvar calibre--library nil
   "The active library.")
@@ -150,7 +251,8 @@ If FORCE is non-nil fetch book data from the database."
       (with-current-buffer buffer
         (setf tabulated-list-entries
               (mapcar #'calibre-book--print-info
-                      (calibre--books force)))
+                      (calibre-library--filter calibre-library--filters
+                                               (calibre--books force))))
         (tabulated-list-print)))))
 
 (defun calibre-library--set-header ()
