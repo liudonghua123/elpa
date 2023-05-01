@@ -176,15 +176,27 @@ WHERE s.name = ?" `[,series])))
 FROM data
 WHERE format = ?" `[,format])))
 
+(defun calibre-composite-filter-p (object)
+  "Return t if OBJECT is a composite filter."
+  (and (vectorp object) (length= object 2) (listp (elt object 1))))
+
 (defun calibre--get-filter-items (filter)
   "Return the id's of books matching FILTER."
-  (seq-let (_ field value) filter
-    (cl-case field
-      (author (calibre-db--get-author-books value))
-      (tag (calibre-db--get-tag-books value))
-      (publisher (calibre-db--get-publisher-books value))
-      (series (calibre-db--get-series-books value))
-      (format (calibre-db--get-format-books value)))))
+  (if (calibre-composite-filter-p filter)
+      (seq-let (op filters) filter
+        (cl-reduce (if (eq op '+)
+                       #'cl-union
+                     #'cl-intersection)
+                    (mapcar (lambda (f)
+                             (calibre--get-filter-items (vconcat `[,op] f)))
+                           filters)))
+    (seq-let (_ field value) filter
+      (cl-case field
+        (author (calibre-db--get-author-books value))
+        (tag (calibre-db--get-tag-books value))
+        (publisher (calibre-db--get-publisher-books value))
+        (series (calibre-db--get-series-books value))
+        (format (calibre-db--get-format-books value))))))
 
 (defun calibre-library--filter (filters books)
   "Return those books in BOOKS that match FILTERS.

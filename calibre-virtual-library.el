@@ -28,7 +28,13 @@
   "A list of predefined filters, i.e. Virtual Libraries.
 Each element is a cons cell (name . filters) where name is a
 string, and filters is a list of vectors [op field value]"
-  :type '(repeat :tag "Virtual Libraries"
+  :type (let ((fields '(choice :tag "Field"
+                               (const :tag "Author" author)
+                               (const :tag "Publisher" publisher)
+                               (const :tag "Series" series)
+                               (const :tag "Tag" tag)
+                               (const :tag "Format" format))))
+          `(repeat :tag "Virtual Libraries"
                  (cons :tag "Virtual Library"
                        (string :tag "Name")
                        (repeat :tag "Filters"
@@ -36,13 +42,15 @@ string, and filters is a list of vectors [op field value]"
                                        (choice :tag "Operation"
                                                (const :tag "Include" +)
                                                (const  :tag "Exclude" -))
-                                       (choice :tag "Field"
-                                               (const :tag "Author" author)
-                                               (const :tag "Publisher" publisher)
-                                               (const :tag "Series" series)
-                                               (const :tag "Tag" tag)
-                                               (const :tag "Format" format))
-                                       (string :tag "Value")))))
+                                       (choice :tag "Type"
+                                               (list :tag "Basic"
+                                                       :inline t
+                                                       ,fields
+                                                       (string :tag "Value"))
+                                               (repeat :tag "Composite"
+                                                       (vector :tag "Filter"
+                                                               ,fields
+                                                               (string :tag "Value")))))))))
   :group 'calibre
   :package-version '("calibre" . "1.1.0"))
 

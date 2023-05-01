@@ -82,7 +82,7 @@ ARGS is the argument list of a transient command."
   (calibre-library--refresh))
 
 (transient-define-prefix calibre-search ()
-  ""
+  "Filter the library view."
   :transient-suffix 'transient--do-call
   ["Arguments"
    ("-e" "Exclude" "--exclude")]
@@ -92,9 +92,57 @@ ARGS is the argument list of a transient command."
    ("t" "Tag" calibre-library-search-tag)
    ("s" "Series" calibre-library-search-series)
    ("f" "Format" calibre-library-search-format)]
-  ["Misc"
+  ["Actions"
+   ("C" "Compose" calibre-search-compose)
    ("u" "Undo" calibre-library-clear-last-search)
    ("c" "Clear" calibre-library-clear-filters)
    ("q" "Exit" transient-quit-one)])
+
+
+(defvar calibre-search-composing-filter nil)
+(defun calibre-search-compose-apply (&optional args)
+  "Apply the composite filter under construction."
+  (interactive (list (transient-args 'calibre-search-compose)))
+  (if (not calibre-search-composing-filter)
+      (error "Can not apply an empty composite filter")
+    (let ((filter (vector (calibre-search--operation args)
+                          calibre-search-composing-filter)))
+      (setf calibre-library--filters (cons filter calibre-library--filters)
+            calibre-search-composing-filter nil)
+      (calibre-library--refresh))))
+
+(defun calibre-search-compose-cleanup ()
+  "Clear any filter currently being composed."
+  (interactive)
+  (setf calibre-search-composing-filter nil))
+
+(defmacro calibre-search--composition-function (field)
+  "Create a function adding a filter for FIELD to a composite filter."
+  `(defun ,(intern (format "calibre-search-compose-%s" field)) ()
+     ,(format "Add a filter for %s to the composite filter under construction." field)
+     (interactive)
+     (setf calibre-search-composing-filter
+           (cons (vector ',(intern field) (,(intern (format "calibre-search-chose-%s" field)))) calibre-search-composing-filter))))
+
+(calibre-search--composition-function "author")
+(calibre-search--composition-function "publisher")
+(calibre-search--composition-function "tag")
+(calibre-search--composition-function "series")
+(calibre-search--composition-function "format")
+
+(transient-define-prefix calibre-search-compose ()
+  "Create a composite filter."
+  :transient-suffix 'transient--do-call
+  ["Arguments"
+   ("-e" "Exclude" "--exclude")]
+  ["Compose"
+   ("a" "Author" calibre-search-compose-author)
+   ("p" "Publisher" calibre-search-compose-publisher)
+   ("t" "Tag" calibre-search-compose-tag)
+   ("s" "Series" calibre-search-compose-series)
+   ("f" "Format" calibre-search-compose-format)]
+  ["Actions"
+   ("A" "Apply" calibre-search-compose-apply :transient transient--do-return)
+   ("q" "Quit" calibre-search-compose-cleanup :transient transient--do-return)])
 
 (provide 'calibre-search)
