@@ -718,7 +718,7 @@
  (verilog-mode		:core "lisp/progmodes/verilog-mode.el")
  (vertico		:url "https://github.com/minad/vertico"
   :doc "README.org"
-  :doc "CHANGELOG.org"
+  :news "CHANGELOG.org"
   :ignored-files ("LICENSE")
   :renames (("extensions/" "")))
  (vertico-posframe	:url "https://github.com/tumashu/vertico-posframe")
