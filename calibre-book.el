@@ -91,6 +91,7 @@ for private functions."
 (calibre-book--slot formats)
 (calibre-book--slot path t)
 (calibre-book--slot file-name)
+(calibre-book--slot pubdate)
 
 (defcustom calibre-format-preferences '(pdf epub)
   "The preference order of file formats."

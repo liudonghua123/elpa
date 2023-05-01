@@ -283,6 +283,17 @@ If FORCE is non-nil fetch book data from the database."
         (setf tabulated-list-format (calibre-library--header-format))
         (tabulated-list-init-header)))))
 
+(defcustom calibre-library-time-format "%x"
+  "String specifying format for displaying time related metadata.
+See `format-time-string' for an explanation of how to write this
+string."
+  :type 'string
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (calibre-library--refresh))
+  :group 'calibre
+  :package-version '("calibre" . "1.1.0"))
+
 (defcustom calibre-library-columns '((id . 4)
                                      (title . 35)
                                      (authors . 20)
@@ -305,7 +316,8 @@ column should have."
                    (const :tag "Series" series)
                    (const :tag "Series Index" series-index)
                    (const :tag "Tags" tags)
-                   (const :tag "Formats" formats))
+                   (const :tag "Formats" formats)
+                   (const :tag "Publication date" pubdate))
                   (integer :tag "Width")))
   :set (lambda (symbol value)
          (set-default symbol value)
@@ -336,14 +348,17 @@ with values determined by `calibre-library-columns'."
                                               (calibre-book-sort-by-series (car a) (car b)))
                                  :right-align t))
                  (tags `("Tags" ,width))
-                 (formats `("Formats" ,width)))))
+                 (formats `("Formats" ,width))
+                 (pubdate `("Publication Date" ,width (lambda (a b)
+                                                        (time-less-p (calibre-book-pubdate (car a))
+                                                                     (calibre-book-pubdate (car b)))))))))
            calibre-library-columns)))
 
 (defun calibre-book--print-info (book)
   "Return list suitable as a value of `tabulated-list-entries'.
 BOOK is a `calibre-book'."
   (list book
-        (with-slots (id title authors publishers series series-index tags formats) book
+        (with-slots (id title authors publishers series series-index tags formats pubdate) book
           (vconcat (mapcar (lambda (x)
                              (let ((column (car x)))
                                (cl-case column
@@ -354,7 +369,8 @@ BOOK is a `calibre-book'."
                                  (series (if (not series) "" series))
                                  (series-index (if series (format "%.1f" series-index) ""))
                                  (tags (string-join tags ", "))
-                                 (formats (string-join (mapcar (lambda (f) (upcase (symbol-name f))) formats) ", ")))))
+                                 (formats (string-join (mapcar (lambda (f) (upcase (symbol-name f))) formats) ", "))
+                                 (pubdate (format-time-string calibre-library-time-format pubdate)))))
                            calibre-library-columns)))))
 
 (defun calibre-book--file (book format)
