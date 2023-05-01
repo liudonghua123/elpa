@@ -286,6 +286,7 @@
  (external-completion   :core "lisp/external-completion.el")
  (exwm			:url "https://github.com/ch11ng/exwm.git")
  (f90-interface-browser :url nil) ;; Was "https://github.com/wence-/f90-iface"
+ (face-shift            :url "https://git.sr.ht/~pkal/face-shift")
  (filladapt		:url nil)
  (flylisp		:url nil)
  (flymake		:core "lisp/progmodes/flymake.el")
