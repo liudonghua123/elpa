@@ -72,7 +72,9 @@ Valid values end with a directory separator character.")
 ;;; Hyperbole test importation settings
 ;;; ************************************************************************
 
-(add-to-list 'load-path (expand-file-name "test" hyperb:dir))
+;; FIXME: This should be done only when running the tests, not in
+;; normal sessions.
+;;(add-to-list 'load-path (expand-file-name "test" hyperb:dir))
 
 ;; Ensure final name (after resolving all links) of hyperb:dir is
 ;; used after setting up load-path; otherwise, Hyperbole may fail
