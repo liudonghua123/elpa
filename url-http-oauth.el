@@ -185,15 +185,20 @@ Filter out nil spec entries prior to searching."
                             (format "%s:%s" client-identifier client-secret)
                             t))))
          (url-request-extra-headers
-          (if authorization
-              (list (cons "Content-Type" "application/x-www-form-urlencoded")
-                    (cons "Authorization" authorization))
-            ;; client-secret-method was nil; no authorization required.
-            (list (cons "Content-Type" "application/x-www-form-urlencoded"))))
+          (apply #'list
+                 (cons "Content-Type" "application/x-www-form-urlencoded")
+                 (when authorization (cons "Authorization" authorization))))
+         (redirect-uri
+          (cdr (assoc "redirect_uri"
+                      (cdr (assoc "authorization-extra-arguments"
+                                  url-settings)))))
          (url-request-data
           (url-build-query-string
-           (list (list "grant_type" "authorization_code")
-                 (list "code" code)))))
+           (apply #'list (list "code" code)
+                  (list "client_id" client-identifier)
+                  (list "grant_type" "authorization_code")
+                  (when redirect-uri
+                    (list (list "redirect_uri" redirect-uri)))))))
     (with-current-buffer (url-retrieve-synchronously access-token-object)
       (if (eq 'OK (car (alist-get url-http-response-status url-http-codes)))
           (progn
@@ -201,7 +206,7 @@ Filter out nil spec entries prior to searching."
             (re-search-forward "\n\n")
             (let* ((grant (url-http-oauth-json-parse-buffer))
                    (type (gethash "token_type" grant)))
-              (unless (equal type "bearer" )
+              (unless (equal (dowcase type) "bearer")
                 (error "Unrecognized token type %s for %s at %s" type
                        client-identifier (url-http-oauth-url-string url)))
               ;; Success, so save client secret, if necessary.
@@ -247,7 +252,7 @@ URL is a parsed object."
          (url-settings (url-http-oauth-settings url))
          (path-and-query (url-path-and-query url))
          (path (car path-and-query))
-         (scope (cdr (assoc "scope" url-settings)))
+         (scope (url-http-oauth-encode-scope (cdr (assoc "scope" url-settings))))
          (bearer-current (url-http-oauth-auth-info-password
                           (car
                            (let ((auth-source-do-cache nil))
@@ -284,13 +289,19 @@ URL is a parsed object."
                              :host (url-host url)
                              :port (url-http-oauth-port url)
                              :path path
-                             :scope (if (string= (gethash "scope" grant)
-                                                 scope)
-                                        (url-http-oauth-encode-scope scope)
-                                      (error
-                                       (concat "url-http-oauth:"
-                                               " Returned scope did not"
-                                               " match requested scope")))
+                             :scope
+                             (let ((returned-scope
+                                    (gethash "scope" grant)))
+                               (if (string=
+                                    (url-http-oauth-encode-scope
+                                     returned-scope)
+                                    scope)
+                                   scope
+                                 (error
+                                  (concat "url-http-oauth:"
+                                          " Returned scope %S did not"
+                                          " match requested scope"
+                                          returned-scope))))
                              :expiry (url-http-oauth-expiry-string grant)
                              :secret bearer-retrieved))
                (save-function (plist-get (car auth-result) :save-function)))
