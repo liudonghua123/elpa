@@ -119,6 +119,7 @@
 (require 'excorporate-calendar)
 (require 'org)
 (require 'excorporate-time-zones)
+(require 'url-http-oauth)
 
 (defgroup excorporate nil
   "Exchange support."
@@ -298,7 +299,7 @@ the FSM should transition to on success."
    "Start an Excorporate finite state machine."
    (let* ((autodiscover (stringp identifier))
 	  (string-pair (stringp (car identifier)))
-	  (oauth-url (cadr (assoc "urls" identifier)))
+	  (oauth-url (cdr (assoc "resource-url" identifier)))
 	  (oauth (stringp oauth-url))
 	  (mail (if autodiscover
 		    identifier
@@ -307,7 +308,7 @@ the FSM should transition to on success."
 		    (if oauth
 			(cdr (assoc "login_hint"
 				    (cdr (assoc "authorization-extra-arguments"
-						excorporate-configuration))))
+						identifier))))
 		      (error
 		       "Failed to extract mail address from identifier: %s"
 		       identifier)))))
@@ -1232,8 +1233,14 @@ Other Excorporate documentation refers to the email address as
 the \"mail address\", and the EWS URL as the \"service URL\"."
   :type
   `(choice
-    (const
-     :tag "Prompt for Exchange account information" nil)
+    ;; FIXME: Customize bug#FIXME causes the const form to add blank
+    ;; values to the alist defaults:
+    ;;     [INS] [DEL] Argument name:
+    ;;		       Argument value:
+    ;; and:
+    ;; [INS] [DEL] OAuth 2.0 setting name:
+    ;;		   OAuth 2.0 setting value:
+    (const :tag "Prompt for Exchange account information" nil)
     #1=(string
 	:tag "Exchange email address (autodiscover settings)")
     #2=(cons
@@ -1244,19 +1251,14 @@ the \"mail address\", and the EWS URL as the \"service URL\"."
 	      :key-type (string :tag "OAuth 2.0 setting name")
 	      :value-type (string :tag "OAuth 2.0 setting value")
 	      :options
-	      (("urls"
-                (list
-                 (string :tag "EWS URL"
-			 "https://outlook.office365.com/EWS/Exchange.asmx")
-                 (string :tag "EWS URL"
-			 "https://outlook.office365.com/EWS/Services.wsdl")
-                 (string :tag "EWS URL"
-			 "https://outlook.office365.com/EWS/messages.xsd")
-                 (string :tag "EWS URL"
-			 "https://outlook.office365.com/EWS/types.xsd")
-                 (string :tag "EWS URL"
-			 "https://outlook.office365.com/EWS/xml.xsd")))
-               ("authorization-endpoint"
+	      (("resource-url"
+		(string :tag "EWS URL"
+			"https://outlook.office365.com/EWS/Exchange.asmx"))
+	       ("resource-url-prefixes"
+		(list
+		 (string :tag "EWS URLs with these prefixes will also use bearer"
+			 "https://outlook.office365.com/EWS/")))
+	       ("authorization-endpoint"
 		(string :tag "Authorization URL"
 			,(concat "https://login.microsoftonline.com"
 				 "/ecdd899a-33be-4c33-91e4-1f1144fc2f56"
@@ -1282,8 +1284,8 @@ the \"mail address\", and the EWS URL as the \"service URL\"."
 			;; FIXME: Failing that, the user must do the
 			;; registration themselves.  See
 			;; https://wiki.gnome.org/Apps/Evolution/EWS/OAuth2
-			;; for a good overview of the registration
-			;; process.
+			;; for an excellent overview of the
+			;; registration process.
 			"00000000-0000-0000-0000-000000000000"))
 	       ("scope"
 		(string :tag "Access scope"
@@ -1310,7 +1312,9 @@ the \"mail address\", and the EWS URL as the \"service URL\"."
 				 ("response_mode"
 				  (string :value "query"))
 				 ("login_hint"
-				  (string :value "change-this@gnu.org"))
+				  (string
+				   :value
+				   "change-this-to-your-EWS-email-address"))
 				 ("prompt"
 				  (string :value "login"))
 				 ("redirect_uri"
@@ -1364,14 +1368,14 @@ ARGUMENT is the prefix argument."
 		       " customize `excorporate-configuration'")))
       (exco-connect identifier)))
    ((or (exco--string-or-string-pair-p excorporate-configuration)
-	(assoc "urls" excorporate-configuration))
+	(assoc "resource-url" excorporate-configuration))
     ;; A single string or a single pair.
     (exco-connect excorporate-configuration))
    ((consp (cdr excorporate-configuration))
     ;; A proper list.
     (dolist (configuration excorporate-configuration)
       (if (or (exco--string-or-string-pair-p configuration)
-	      (assoc "urls" excorporate-configuration))
+	      (assoc "resource-url" excorporate-configuration))
 	  (exco-connect configuration)
 	(warn "Skipping invalid configuration: %s" configuration))))
    (t
