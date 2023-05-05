@@ -1233,7 +1233,7 @@ Other Excorporate documentation refers to the email address as
 the \"mail address\", and the EWS URL as the \"service URL\"."
   :type
   `(choice
-    ;; FIXME: Customize bug#FIXME causes the const form to add blank
+    ;; FIXME: Customize bug#63290 causes the const form to add blank
     ;; values to the alist defaults:
     ;;     [INS] [DEL] Argument name:
     ;;		       Argument value:
@@ -1273,9 +1273,9 @@ the \"mail address\", and the EWS URL as the \"service URL\"."
 			;; FIXME: It would be nice if Microsoft
 			;; provided a "Generic Free Software
 			;; application" client identifier for use by
-			;; Free Software projects that do not want to
-			;; register as EWS clients, for whatever
-			;; reason.  That client identifier could be
+			;; Free Software projects that, for whatever
+			;; reason, do not want to register as EWS
+			;; clients.  That client identifier could be
 			;; hard-coded here.
 			;; FIXME: Failing that, the Free Software
 			;; Foundation could register Emacs as an EWS
