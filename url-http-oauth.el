@@ -85,9 +85,14 @@ URL is an object or a string."
   "Update `url-http-oauth--interposed-regexp'."
   (let (all-urls)
     (dolist (settings url-http-oauth--interposed)
-      (push (cdr (assoc "resource-url" settings)) all-urls)
-      (dolist (prefix (cdr (assoc "resource-url-prefixes" settings)))
-        (push prefix all-urls)))
+      (let ((resource-url (cdr (assoc "resource-url" settings)))
+            (resource-url-prefixes
+             (cdr (assoc "resource-url-prefixes" settings))))
+        (when resource-url
+          (push resource-url all-urls))
+        (when resource-url-prefixes
+          (dolist (prefix resource-url-prefixes)
+            (push prefix all-urls)))))
     (setq url-http-oauth--interposed-regexp (regexp-opt all-urls))))
 
 ;; Maybe if RFC 8414, "OAuth 2.0 Authorization Server Metadata",
@@ -250,7 +255,7 @@ endpoint."
          (auth-result
           (when client-secret-method
             (url-http-oauth--auth-source-search
-             access-token-url client-identifier
+             access-token-url client-identifier nil
              "Client secret for %u at %h: ")))
          (client-secret (url-http-oauth--auth-info-password auth-result))
          (save-function (plist-get auth-result :save-function))
@@ -263,14 +268,19 @@ endpoint."
          (url-request-extra-headers
           (apply #'list
                  (cons "Content-Type" "application/x-www-form-urlencoded")
-                 (when authorization (cons "Authorization" authorization))))
+                 (when authorization
+                   (list (cons "Authorization" authorization)))))
          (redirect-uri
           (cdr (assoc "redirect_uri" (cdr (assoc "authorization-extra-arguments"
                                                  url-settings)))))
          (url-request-data
           (url-build-query-string
            (apply #'list (list "code" code)
-                  (list "client_id" client-identifier)
+                  (when (not authorization)
+                    ;; Client identifier is included in authorization
+                    ;; string.  Some services object to it also being
+                    ;; in the body.
+                    (list "client_id" client-identifier))
                   (list "grant_type" "authorization_code")
                   (when redirect-uri
                     (list (list "redirect_uri" redirect-uri)))))))
@@ -289,7 +299,9 @@ endpoint."
 The time is in seconds since the epoch."
   (let ((expiry (gethash "expires_in" grant)))
     (unless expiry (error "url-http-oauth: Did not find expiry time in grant"))
-    (format-time-string "%s" (time-add nil (string-to-number expiry)))))
+    (format-time-string "%s" (time-add nil (if (stringp expiry)
+                                               (string-to-number expiry)
+                                             expiry)))))
 
 (defun url-http-oauth--refresh-token-string (grant)
   "Return the refresh token from GRANT.
