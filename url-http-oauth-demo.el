@@ -113,7 +113,7 @@
    ;; This is the URL at which the `url-http-oauth-demo' package will
    ;; access resources.  Everything that follows is for authentication
    ;; and authorization to satisfy OAuth 2.0 requirements.
-   ("urls". ("https://meta.sr.ht/query"))
+   ("resource-url" . "https://meta.sr.ht/query")
    ;; These are the authorization and token endpoints, published in
    ;; "https://man.sr.ht/meta.sr.ht/oauth.md".  There is no way to
    ;; autodiscover them from "https://meta.sr.ht/query".
