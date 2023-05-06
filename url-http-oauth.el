@@ -129,7 +129,11 @@ pairs that will be appended to the authorization URL.  Specific
 pairs in this list are not standardized but may be required or
 recommended by the OAuth 2.0 provider.  Examples of string types
 include RESOURCE, RESPONSE_MODE, LOGIN_HINT, PROMPT and
-REDIRECT_URI."
+REDIRECT_URI.
+
+AUTHORIZATION-CODE-FUNCTION is an elisp function that takes an
+authorization URL as a string argument, and returns, as a string,
+a full URL containing a code value in its query string."
   (let* ((client-secret-method
           (cdr (assoc "client-secret-method" url-settings))))
     (unless (or (eq client-secret-method 'prompt) (eq client-secret-method nil))
@@ -485,11 +489,15 @@ Save the bearer token to `auth-sources' then return it."
 (defun url-http-oauth--retrieve-and-save-bearer (url url-settings)
   "Retrieve the bearer token required for URL, using URL-SETTINGS.
 Save the bearer token to `auth-sources' upon success."
-  (let* ((response-url
-          ;; FIXME: Make this a per-provider function.
-          (read-from-minibuffer
-           (format "Browse to %s and paste the redirected code URL: "
-                   (url-http-oauth--authorization-url url-settings))))
+  (let* ((authorization-code-function
+          (cdr (assoc "authorization-code-function" url-settings)))
+         (authorization-url (url-http-oauth--authorization-url url-settings))
+         (response-url
+          (if (functionp authorization-code-function)
+              (funcall authorization-code-function authorization-url)
+            (read-from-minibuffer
+             (format "Browse to %s and paste the redirected code URL: "
+                     authorization-url))))
          (code
           (url-http-oauth--extract-authorization-code response-url))
          (grant (url-http-oauth--get-access-token-grant url-settings code)))
