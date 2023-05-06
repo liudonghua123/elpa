@@ -681,6 +681,7 @@
   :news "CHANGELOG"
   :doc "docs/transient.texi")
  (transient-cycles    	:url nil)
+ (tree-inspector        :url "https://github.com/mmontone/emacs-tree-inspector")
  (trie			:url "http://www.dr-qubit.org/git/predictive.git"
   :manual-sync t ;; The upstream doesn't exist any more!
   )
