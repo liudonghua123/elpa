@@ -287,9 +287,9 @@ endpoint."
 (defun url-http-oauth--expiry-string (grant)
   "Return as a string a number representing the expiry time of GRANT.
 The time is in seconds since the epoch."
-  (let ((expiry (gethash "expires_on" grant)))
+  (let ((expiry (gethash "expires_in" grant)))
     (unless expiry (error "url-http-oauth: Did not find expiry time in grant"))
-    expiry))
+    (format-time-string "%s" (time-add nil (string-to-number expiry)))))
 
 (defun url-http-oauth--refresh-token-string (grant)
   "Return the refresh token from GRANT.
