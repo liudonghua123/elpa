@@ -133,7 +133,7 @@ REDIRECT_URI."
   (let* ((client-secret-method
           (cdr (assoc "client-secret-method" url-settings))))
     (unless (or (eq client-secret-method 'prompt) (eq client-secret-method nil))
-      (error "Unrecognized client-secret-method value"))
+      (error "url-http-oauth: Unrecognized client-secret-method value"))
     (prog1
         (add-to-list 'url-http-oauth--interposed url-settings)
       (url-http-oauth--update-regexp))))
@@ -223,14 +223,14 @@ server to receive a new access token."
 (defun url-http-oauth--parse-grant ()
   "Parse the JSON grant structure in the current buffer.
 Return the parsed JSON object."
-  (message "url-http-oauth grant: %s" (buffer-string))
+  (message "url-http-oauth: grant: %s" (buffer-string))
   (progn
     (goto-char (point-min))
     (re-search-forward "\n\n")
     (let* ((grant (url-http-oauth--json-parse-buffer))
            (type (gethash "token_type" grant)))
       (unless (equal (downcase type) "bearer")
-        (error "Unrecognized token type %s" type))
+        (error "url-http-oauth: Unrecognized token type %s" type))
       ;; Return grant object.
       grant)))
 
@@ -284,7 +284,7 @@ endpoint."
   "Return as a string a number representing the expiry time of GRANT.
 The time is in seconds since the epoch."
   (let ((expiry (gethash "expires_on" grant)))
-    (unless expiry (error "Did not find expiry time in grant"))
+    (unless expiry (error "url-http-oauth: Did not find expiry time in grant"))
     expiry))
 
 (defun url-http-oauth--refresh-token-string (grant)
@@ -327,13 +327,14 @@ The refresh token is an opaque string."
     (url-build-query-string
      (apply #'list
             (let ((resource-url
-                   (cdr (assoc "resource-url" url-settings))))
+                   (cdr (assoc "resource-url" url-settings)))
+                  (error-message
+                   "url-http-oauth: Failed to retrieve refresh token for %s"))
               (list "refresh_token"
                     (or (plist-get
                          (url-http-oauth--auth-source-search resource-url)
                          :refresh-token)
-                        (error "Failed to retrieve refresh token for %s"
-                               resource-url))))
+                        (error error-message resource-url))))
             (list "client_id" client-identifier)
             (list "grant_type" "refresh_token")
             (list "resource" resource)
@@ -415,7 +416,6 @@ The entry is cleared from the `password-data' cache after the
                                nil))))
                        1))))
               (when prior-start-point
-                (message "prior start point: %s" prior-start-point)
                 (goto-char prior-start-point)
                 (auth-source-netrc-parse-next-interesting)
                 (goto-char (pos-bol))
@@ -526,7 +526,7 @@ permissions that the caller is requesting."
     (let ((bearer (url-http-oauth--get-bearer url)))
       (if bearer
           (concat "Bearer " bearer)
-        (error "Bearer retrieval failed for %s" url)))))
+        (error "url-http-oauth: Bearer retrieval failed for %s" url)))))
 
 ;;; Register `url-oauth-auth' HTTP authentication method.
 ;;;###autoload
