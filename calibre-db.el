@@ -26,6 +26,7 @@
 ;;; Code:
 (require 'calibre)
 (require 'calibre-book)
+(require 'calibre-util)
 
 (defun calibre-make-book (entry)
   "Create a `calibre-book' from ENTRY.
@@ -271,11 +272,16 @@ If FORCE is non-nil fetch book data from the database."
   (let ((buffer (get-buffer calibre-library-buffer)))
     (when buffer
       (with-current-buffer buffer
-        (setf tabulated-list-entries
-              (mapcar #'calibre-book--print-info
-                      (calibre-library--filter calibre-library--filters
-                                               (calibre--books force))))
-        (tabulated-list-print)))))
+        (let ((book (tabulated-list-get-id)))
+          (calibre-with-preserved-marks (not force)
+            (setf tabulated-list-entries
+                  (mapcar #'calibre-book--print-info
+                          (calibre-library--filter calibre-library--filters
+                                                   (calibre--books force))))
+            (tabulated-list-print)
+            (if book
+                (calibre-library--find-book book)
+              (goto-char (point-max)))))))))
 
 (defun calibre-library--set-header ()
   "Set the header of the Library buffer."
