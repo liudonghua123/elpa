@@ -103,8 +103,7 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
                            (calibre-book-id book))))
           (forward-line)))
 
-(defun calibre-library--revert ()
-  "Refresh the contents of the Library buffer without moving point."
+(defun calibre-library-revert (&rest _IGNORED)
   (let ((pos (tabulated-list-get-id)))
     (calibre-library--refresh t)
     (if (not pos)
@@ -135,8 +134,8 @@ ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
 
 (define-derived-mode calibre-library-mode tabulated-list-mode
   (setf tabulated-list-padding 2)
-  (calibre-library--set-header)
-  (add-hook 'tabulated-list-revert-hook #'calibre-library--revert))
+  (setq-local revert-buffer-function #'calibre-library-revert)
+  (calibre-library--set-header))
 
 ;;;###autoload
 (defun calibre-library ()
