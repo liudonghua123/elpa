@@ -35,7 +35,7 @@ ENTRY is a list of the form:
     (calibre-book :id id
                   :title title
                   :authors (calibre-db--get-book-authors id)
-                  :publishers (calibre-db--get-book-publishers id)
+                  :publisher (calibre-db--get-book-publisher id)
                   :series series
                   :series-index series-index
                   :timestamp (calibre-parse-timestamp timestamp)
@@ -54,13 +54,13 @@ FROM authors
 INNER JOIN books_authors_link al ON authors.id = al.author
 WHERE al.book = ?" `[,id])))
 
-(defun calibre-db--get-book-publishers (id)
-  "Return a list of publishers for the book identified by ID."
-  (flatten-list (sqlite-select (calibre--db)
+(defun calibre-db--get-book-publisher (id)
+  "Return the publisher of the book identified by ID."
+  (car (flatten-list (sqlite-select (calibre--db)
                                "SELECT publishers.name
 FROM publishers
 INNER JOIN books_publishers_link pl ON publishers.id = pl.publisher
-WHERE pl.book = ?" `[,id])))
+WHERE pl.book = ?" `[,id]))))
 
 (defun calibre-db--get-book-file-name (id)
   "Return the file name, sans extension, of the book identified by ID."
@@ -297,7 +297,7 @@ string."
 (defcustom calibre-library-columns '((id . 4)
                                      (title . 35)
                                      (authors . 20)
-                                     (publishers . 10)
+                                     (publisher . 10)
                                      (series . 15)
                                      (series-index . 3)
                                      (tags . 10)
@@ -312,7 +312,7 @@ column should have."
                    (const :tag "ID" id)
                    (const :tag "Title" title)
                    (const :tag "Author(s)" authors)
-                   (const :tag "Publisher(s)" publishers)
+                   (const :tag "Publisher(s)" publisher)
                    (const :tag "Series" series)
                    (const :tag "Series Index" series-index)
                    (const :tag "Tags" tags)
@@ -323,7 +323,7 @@ column should have."
          (set-default symbol value)
          (calibre-library--set-header)
          (calibre-library--refresh))
-  :package-version '("calibre" . "0.1.0")
+  :package-version '("calibre" . "1.1.0")
   :group 'calibre)
 
 (defun calibre-library--header-format ()
@@ -341,7 +341,7 @@ with values determined by `calibre-library-columns'."
                        :right-align t))
                  (title `("Title" ,width t))
                  (authors `("Author(s)" ,width t))
-                 (publishers `("Publisher(s)" ,width t))
+                 (publisher `("Publisher" ,width t))
                  (series `("Series" ,width (lambda (a b)
                                              (calibre-book-sort-by-series (car a) (car b)))))
                  (series-index `("#" ,width (lambda (a b)
@@ -358,14 +358,14 @@ with values determined by `calibre-library-columns'."
   "Return list suitable as a value of `tabulated-list-entries'.
 BOOK is a `calibre-book'."
   (list book
-        (with-slots (id title authors publishers series series-index tags formats pubdate) book
+        (with-slots (id title authors publisher series series-index tags formats pubdate) book
           (vconcat (mapcar (lambda (x)
                              (let ((column (car x)))
                                (cl-case column
                                  (id (int-to-string id))
                                  (title title)
                                  (authors (string-join authors ", "))
-                                 (publishers (string-join publishers ", "))
+                                 (publisher (if (not publisher) "" publisher))
                                  (series (if (not series) "" series))
                                  (series-index (if series (format "%.1f" series-index) ""))
                                  (tags (string-join tags ", "))

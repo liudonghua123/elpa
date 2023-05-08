@@ -43,9 +43,10 @@ TIMESTAMP is a string of the form YYYY-MM-DD HH:MM:SS.xxxxxx+00:00."
    (authors :initarg :authors
             :type list
             :documentation "The authors of the book.")
-   (publishers :initarg :publishers
-               :type list
-               :documentation "The publishers of the book.")
+   (publisher :initarg :publisher
+               :type (or string null)
+               :documentation "The publisher of the book."
+               :custom (choice (const nil) string))
    (series :initarg :series
            :initform nil
            :type (or string null)
@@ -84,7 +85,7 @@ for private functions."
 (calibre-book--slot id)
 (calibre-book--slot title)
 (calibre-book--slot authors)
-(calibre-book--slot publishers)
+(calibre-book--slot publisher)
 (calibre-book--slot series)
 (calibre-book--slot series-index)
 (calibre-book--slot tags)
