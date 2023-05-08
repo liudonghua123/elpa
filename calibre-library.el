@@ -37,7 +37,9 @@
 
 (defun calibre-library-add-books (files)
   "Add FILES to the Calibre library."
-  (calibre-library--execute `("add" "-r" ,@(mapcar #'expand-file-name files))))
+  (calibre-exec--queue-command
+   `("add" "-r" ,@(mapcar #'expand-file-name files)))
+  (calibre-exec--start-execution))
 
 ;;;###autoload
 (defun calibre-dired-add ()
@@ -49,26 +51,7 @@
 (defun calibre-library-remove-books (books)
   "Remove BOOKS from the Calibre library."
   (let ((ids (mapcar #'int-to-string (mapcar #'calibre-book-id books))))
-    (calibre-library--execute `("remove" ,(string-join ids ",")))))
-
-(defun calibre-library--process-sentinel (_ event)
-  "Process filter for Calibre library operations.
-EVENT is the process event, see Info node
-`(elisp)Sentinels'"
-  (if (string= event "finished\n")
-      (if (get-buffer calibre-library-buffer)
-          (calibre-library--refresh t))
-    (error "Calibre process failed %S" event)))
-
-(cl-defun calibre-library--execute (args &optional (sentinel #'calibre-library--process-sentinel))
-  "Execute calibredb with arguments ARGS.
-ARGS should be a list of strings.  SENTINEL is a process sentinel to install."
-  (if (not (executable-find calibre-calibredb-executable))
-      (error "Could not find calibredb")
-    (make-process
-     :name "calibre"
-     :command `(,calibre-calibredb-executable "--with-library" ,(calibre--library) ,@args)
-     :sentinel sentinel)))
+    (calibre-exec--queue-command `("remove" ,(string-join ids ",")))))
 
 (defun calibre-library-mark-remove (&optional _num)
   "Mark a book for removal and move to the next line."
