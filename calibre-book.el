@@ -39,10 +39,12 @@ TIMESTAMP is a string of the form YYYY-MM-DD HH:MM:SS.xxxxxx+00:00."
        :documentation "The ID of the book in the Calibre database.")
    (title :initarg :title
           :type string
-          :documentation "The title of the book.")
+          :documentation "The title of the book."
+          :custom string)
    (authors :initarg :authors
             :type list
-            :documentation "The authors of the book.")
+            :documentation "The authors of the book."
+            :custom (repeat (string :tag "Author")))
    (publisher :initarg :publisher
                :type (or string null)
                :documentation "The publisher of the book."
@@ -50,11 +52,13 @@ TIMESTAMP is a string of the form YYYY-MM-DD HH:MM:SS.xxxxxx+00:00."
    (series :initarg :series
            :initform nil
            :type (or string null)
-           :documentation "The series the book is a part of.")
+           :documentation "The series the book is a part of."
+           :custom (choice (const nil) string))
    (series-index :initarg :series-index
                  :initform 1
                  :type real
-                 :documentation "The book's position within its series.")
+                 :documentation "The book's position within its series."
+                 :custom number)
    (formats :initarg :formats
             :type list)
    (timestamp :initarg :timestamp
@@ -66,7 +70,8 @@ TIMESTAMP is a string of the form YYYY-MM-DD HH:MM:SS.xxxxxx+00:00."
    (tags :initarg :tags
          :initform '()
          :type list
-         :documentation "Tags associated with the book.")
+         :documentation "Tags associated with the book."
+         :custom (repeat (string :tag "Tag")))
    (path :initarg :path
          :type string
          :documentation "The book's position within the library")
