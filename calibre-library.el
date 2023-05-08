@@ -28,6 +28,7 @@
 (require 'calibre-book)
 (require 'calibre-search)
 (require 'calibre-virtual-library)
+(require 'calibre-edit)
 
 ;;;###autoload
 (defun calibre-library-add-book (file)
@@ -59,32 +60,34 @@
   (tabulated-list-put-tag "D" t))
 
 (defun calibre-library-mark-unmark (&optional _num)
-  "Clear any mark on a book and move to the next line."
+  "Clear any marks on a book and move to the next line."
   (interactive "p" calibre-library-mode)
-  (tabulated-list-put-tag " " t))
+  (let ((book (tabulated-list-get-id)))
+    (beginning-of-line)
+    (when (char-equal (char-after) ?M)
+      (calibre-edit-revert book))
+    (calibre-library--find-book book)
+    (tabulated-list-put-tag " " t)))
 
 (defun calibre-library-execute ()
   "Performed marked Library actions."
   (interactive nil calibre-library-mode)
-  (let (remove-list mark)
+  (let (remove-list modified-list mark)
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))
         (setf mark (char-after))
-        (cl-case mark
-          (?\D (push (tabulated-list-get-id) remove-list)))
+        (let ((book (tabulated-list-get-id)))
+          (cl-case mark
+            (?D (push book remove-list))
+            (?M (push book modified-list))))
         (forward-line)))
-    (when remove-list (calibre-library-remove-books remove-list)))
-  (calibre--books t)
-  (calibre-library--refresh))
-
-(defun calibre-library--find-book (book)
-  "Move point to the line representing BOOK."
-  (goto-char (point-min))
-        (while (not (or (eobp)
-                        (= (calibre-book-id (tabulated-list-get-id))
-                           (calibre-book-id book))))
-          (forward-line)))
+    (when remove-list (calibre-library-remove-books remove-list))
+    (when modified-list (calibre-edit-commit-edits modified-list)))
+  (calibre-library-revert)
+  (setf calibre-edit--edited-books nil)
+  (calibre-exec--start-execution)
+  (tabulated-list-clear-all-tags))
 
 (defun calibre-library-revert (&rest _IGNORED)
   (let ((pos (tabulated-list-get-id)))
@@ -108,6 +111,7 @@
   :parent tabulated-list-mode-map
   "d" #'calibre-library-mark-remove
   "u" #'calibre-library-mark-unmark
+  "e" #'calibre-edit-book
   "x" #'calibre-library-execute
   "a" #'calibre-library-add-book
   "v" #'calibre-select-virtual-library
