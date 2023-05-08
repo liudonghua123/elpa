@@ -245,6 +245,8 @@ If FORCE is non-nil the list is refreshed from the database."
   "Prompt the user to select a library from `calibre-libraries'.
 If LIBRARY is non-nil, select that instead."
   (interactive)
+  (unless calibre-libraries
+    (error "No Libraries defined"))
   (setf calibre--library (if library
                              library
                            (let ((names (calibre--library-names)))
