@@ -378,10 +378,9 @@ BOOK is a `calibre-book'."
 (defun calibre-book--file (book format)
   "Return the path to BOOK in FORMAT."
   (with-slots (path file-name) book
-    (message "%S" file-name)
     (file-name-concat (calibre--library)
                       path
-                      (message "%s.%s" file-name format))))
+                      (format "%s.%s" file-name format))))
 
 (provide 'calibre-db)
 ;;; calibre-db.el ends here
