@@ -697,6 +697,10 @@
   :readme "README.md")
  (uniquify-files	:url nil)
  (url-http-ntlm 	:url nil)
+ (url-http-oauth	:url "https://git.sr.ht/~fitzsim/url-http-oauth"
+  :readme ignore)
+ (url-http-oauth-demo	:url "https://git.sr.ht/~fitzsim/url-http-oauth-demo"
+  :readme ignore)
  (url-scgi		:url "https://github.com/skangas/url-scgi"
   :readme "README.org")
  (use-package
