@@ -158,8 +158,9 @@ This function does the opposite of `url-http-oauth-interpose'."
 (defun url-http-oauth-interposed-p (url)
   "Return non-nil if `url' will use OAuth 2.0 to access URL.
 URL is an object."
-  (string-match-p url-http-oauth--interposed-regexp
-                  (url-http-oauth--url-string url)))
+  (when url-http-oauth--interposed-regexp
+    (string-match-p url-http-oauth--interposed-regexp
+                    (url-http-oauth--url-string url))))
 
 (defvar url-http-response-status)
 (defvar auth-source-creation-prompts)
