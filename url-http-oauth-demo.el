@@ -5,7 +5,7 @@
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Version: 1.0.0
 ;; Keywords: comm, data, processes, hypermedia
-;; Package-Requires: ((url-http-oauth "0.8.0"))
+;; Package-Requires: ((url-http-oauth "0.8.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
