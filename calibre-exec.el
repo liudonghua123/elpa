@@ -48,7 +48,6 @@ calibredb.  SENTINEL is a process sentinel to install."
     (make-process
      :name "calibre"
      :command `(,calibre-calibredb-executable "--with-library" ,(calibre--library) ,@args)
-     :buffer (get-buffer-create "*calibre*")
      :sentinel sentinel)))
 
 (defun calibre-exec--next-command ()
