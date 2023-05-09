@@ -23,6 +23,7 @@
 ;; circular dependency issues.
 
 ;;; Code:
+(require 'calibre)
 (require 'calibre-book)
 
 (defun calibre-util-find-book (book seq)
@@ -75,6 +76,17 @@ discard any modifications."
   `(let ((marks (calibre-library--preserve-marks (not ,preserve-modifications))))
      (unwind-protect (progn ,@body)
        (calibre-library--restore-marks marks))))
+
+(defvar calibre--library nil
+  "The active library.")
+
+(declare-function calibre-select-library "calibre-core.el")
+(defun calibre--library ()
+  "Return the active library.
+If no library is active, prompt the user to select one."
+  (unless calibre--library
+    (calibre-select-library))
+  (alist-get calibre--library calibre-libraries nil nil #'string=))
 
 (provide 'calibre-util)
 ;;; calibre-util.el ends here
