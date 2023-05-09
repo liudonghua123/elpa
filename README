@@ -9,14 +9,16 @@ include:
 - Filter the contents of your library based on various metadata
 - Create Virtual Libraries by giving names to sets of filters
 - Add and remove books from your library
+- Modify the metadata of your books
 - Read your books in Emacs
 
-Calibre.el uses the built in SQLite support introduced in Emacs 29,
-and therefore requires an Emacs >= 29 compiled with SQLite support.
-Adding and removing books from a library requires a working calibredb
-executable, i.e. a Calibre installation.  Even if Calibre is not
-installed you will still be able to view the contents of existing
-libraries.
+Calibre.el can use either the calibredb command line interface, or
+Emacs 29's SQLite support to retrive the contents of the Calibre
+library.  The SQLite based interface is significantly faster, and
+enables the viewing of existing libraries without a working Calibre
+installation.  A working Calibre installation is always required for
+modifying the library.
+
 
 This file is part of calibre.el.
 
