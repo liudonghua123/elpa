@@ -1,0 +1,21 @@
+GNU Emacs url-http-oauth NEWS -- history of user-visible changes.
+
+* New in url-http-oauth 0.8.0
+
+Released 2023-05-08
+
+Warning: To handle refresh tokens, url-http-oauth needs to delete
+entries from netrc files listed in the `auth-sources' variable.
+Please back up all files listed in the `auth-sources' variable before
+trying url-http-oauth 0.8.0 because the netrc entry deletion code is
+new and relatively untested.  Deletion respects the customization
+value of `auth-source-save-behavior'; if it is set to `ask', you will
+be prompted before the entry deletion happens.
+
+** Introduce ability to delete entries in `auth-sources' netrc files.
+
+** Feature-complete for EWS access.
+See excorporate 1.1.0 package for example configuration.
+
+** Feature-complete for Sourcehut GraphQL access.
+See url-http-oauth-demo 1.0.0 package for example configuration.
