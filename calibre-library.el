@@ -123,6 +123,8 @@
 (define-derived-mode calibre-library-mode tabulated-list-mode
   (setf tabulated-list-padding 2)
   (setq-local revert-buffer-function #'calibre-library-revert)
+  (setq-local font-lock-defaults
+              '(calibre-font-lock-keywords t nil nil beginning-of-line))
   (calibre-library--set-header))
 
 ;;;###autoload

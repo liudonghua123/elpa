@@ -55,5 +55,38 @@
 (defconst calibre-mod-marker ?M
   "Character used to flag books that have been modified.")
 
+
+;;; Faces
+
+(defgroup calibre-faces nil
+  "Faces used by Calibre."
+  :group 'calibre
+  :group 'faces)
+
+(defface calibre-modified
+  '((t (:inherit warning)))
+  "Face used for marked as modified."
+  :group 'calibre-faces
+  :package-version '("calibre" . "1.2.0"))
+
+(defvar calibre-modified-face 'calibre-modified
+  "Face used for marked as modified.")
+
+(defface calibre-flagged
+  '((t (:inherit error)))
+  "Face used for books flagged for deletion."
+  :group 'calibre-faces
+  :package-version '("calibre" . "1.2.0"))
+
+(defvar calibre-flagged-face 'calibre-flagged
+  "Face used for books flagged for deletion.")
+
+(defvar calibre-font-lock-keywords
+  (list
+   (list (concat "^[" (char-to-string calibre-del-marker) "]")
+         '(".+" (beginning-of-line) nil (0 calibre-flagged-face)))
+   (list (concat "^[" (char-to-string calibre-mod-marker) "]")
+         '(".+" (beginning-of-line) nil (0 calibre-modified-face)))))
+
 (provide 'calibre)
 ;;; calibre.el ends here
