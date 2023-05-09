@@ -34,10 +34,11 @@
   (eieio-customize-object book))
 
 (cl-defmethod eieio-done-customizing ((book calibre-book))
+  "Finalise the editing of BOOK."
   (calibre-library--refresh)
   (with-current-buffer (get-buffer calibre-library-buffer)
     (calibre-library--find-book book)
-    (tabulated-list-put-tag "M")))
+    (tabulated-list-put-tag (char-to-string calibre-mod-marker))))
 
 (defun calibre-edit-revert (book)
   "Undo any edits performed to BOOK in this session."

@@ -50,5 +50,10 @@
   "Return a list of the names of defined libraries."
   (mapcar #'car calibre-libraries))
 
+(defconst calibre-del-marker ?D
+  "Character used to flag books for deletion.")
+(defconst calibre-mod-marker ?M
+  "Character used to flag books that have been modified.")
+
 (provide 'calibre)
 ;;; calibre.el ends here

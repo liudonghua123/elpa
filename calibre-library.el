@@ -58,7 +58,7 @@
 (defun calibre-library-mark-remove (&optional _num)
   "Mark a book for removal and move to the next line."
   (interactive "p" calibre-library-mode)
-  (tabulated-list-put-tag "D" t))
+  (tabulated-list-put-tag (char-to-string calibre-del-marker) t))
 
 (defun calibre-library-mark-unmark (&optional _num)
   "Clear any marks on a book and move to the next line."
@@ -80,8 +80,8 @@
         (setf mark (char-after))
         (let ((book (tabulated-list-get-id)))
           (cl-case mark
-            (?D (push book remove-list))
-            (?M (push book modified-list))))
+            (calibre-del-marker (push book remove-list))
+            (calibre-mod-marker (push book modified-list))))
         (forward-line)))
     (when remove-list (calibre-library-remove-books remove-list))
     (when modified-list (calibre-edit-commit-edits modified-list)))
