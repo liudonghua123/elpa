@@ -232,7 +232,7 @@ server to receive a new access token."
 (defun url-http-oauth--parse-grant ()
   "Parse the JSON grant structure in the current buffer.
 Return the parsed JSON object."
-  (message "url-http-oauth: grant: %s" (buffer-string))
+  ;; (message "url-http-oauth: grant: %s" (buffer-string))
   (progn
     (goto-char (point-min))
     (re-search-forward "\n\n")
