@@ -3,7 +3,7 @@
 ;; Copyright (C) 2023 Free Software Foundation, Inc.
 
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
-;; Version: 1.0.1
+;; Version: 1.0.2
 ;; Keywords: comm, data, processes, hypermedia
 ;; Package-Requires: ((url-http-oauth "0.8.1") 
 ;;                    (emacs "27.1")) ; for json-parse-buffer
