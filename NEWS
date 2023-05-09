@@ -18,4 +18,4 @@ be prompted before the entry deletion happens.
 See excorporate 1.1.0 package for example configuration.
 
 ** Feature-complete for Sourcehut GraphQL access.
-See url-http-oauth-demo 1.0.0 package for example configuration.
+See url-http-oauth-demo 1.0.1 package for example configuration.
