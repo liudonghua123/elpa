@@ -5,8 +5,9 @@
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Version: 1.0.1
 ;; Keywords: comm, data, processes, hypermedia
-;; Package-Requires: ((url-http-oauth "0.8.1"))
-
+;; Package-Requires: ((url-http-oauth "0.8.1") 
+;;                    (emacs "27.1")) ; for json-parse-buffer
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -165,7 +166,7 @@ Print the result to *Messages*.  Return the name."
         "me"
         (gethash
          "data"
-         (url-http-oauth-json-parse-buffer)))))))
+         (json-parse-buffer)))))))
 
 (provide 'url-http-oauth-demo)
 
