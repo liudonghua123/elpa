@@ -24,7 +24,7 @@
 ;;; Code:
 (eval-when-compile (require 'cl-macs))
 
-(require 'calibre-db)
+(require 'calibre-core)
 
 (defvar calibre-exec--commands nil)
 (defvar calibre-exec--executing nil)

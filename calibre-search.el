@@ -22,7 +22,7 @@
 
 ;;; Code:
 (require 'transient)
-(require 'calibre-db)
+(require 'calibre-core)
 
 (defmacro calibre-search--choice-function (field &optional an plural)
   "Create a function to prompt the user to select a value for FIELD.
@@ -41,7 +41,7 @@ will not be appended to the calibre-db--get-FIELD function's name."
      ,(format "Prompt the user to select %s %s" (if an "an" "a") field)
      (interactive)
      (completing-read ,(format "%s: " (capitalize field))
-                      (,(intern (format "calibre-db--get-%s%s"
+                      (,(intern (format "calibre-core--get-%s%s"
                                         field
                                         (if plural "" "s")))))))
 

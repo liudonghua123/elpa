@@ -19,7 +19,7 @@
 
 ;;; Code:
 (require 'eieio-custom)
-(require 'calibre-db)
+(require 'calibre-core)
 (require 'calibre-util)
 (require 'calibre-exec)
 

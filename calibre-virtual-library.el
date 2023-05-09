@@ -22,7 +22,7 @@
 ;; virtual library is a named set of predefined search filters.
 
 ;;; Code:
-(require 'calibre-db)
+(require 'calibre-core)
 
 (defcustom calibre-virtual-libraries nil
   "A list of predefined filters, i.e. Virtual Libraries.
