@@ -28,7 +28,7 @@
 (require 'calibre-book)
 (require 'calibre-util)
 
-(defun calibre-make-book (entry)
+(defun calibre-db--make-book (entry)
   "Create a `calibre-book' from ENTRY.
 ENTRY is a list of the form:
 \(ID TITLE SERIES SERIES-INDEX TIMESTAMP PUBDATE LAST-MODIFIED)."
@@ -131,7 +131,7 @@ WHERE books.id = ?"
   "Return all books in the Calibre library `calibre-library-dir'."
   (if (not (calibre--db))
       nil
-    (mapcar #'calibre-make-book
+    (mapcar #'calibre-db--make-book
             (sqlite-select (calibre--db)
                            "SELECT books.id, title, series.name, series_index, timestamp, pubdate, last_modified, path
 FROM books
