@@ -24,6 +24,7 @@
 
 ;;; Code:
 (require 'dired)
+(require 'compat)
 (require 'calibre-db)
 (require 'calibre-book)
 (require 'calibre-search)
