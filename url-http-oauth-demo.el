@@ -3,7 +3,7 @@
 ;; Copyright (C) 2023 Free Software Foundation, Inc.
 
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
-;; Version: 0
+;; Version: 1.0.0
 ;; Keywords: comm, data, processes, hypermedia
 ;; Package-Requires: ((url-http-oauth "0"))
 
