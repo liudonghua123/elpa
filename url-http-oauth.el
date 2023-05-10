@@ -435,17 +435,20 @@ The entry is cleared from the `password-data' cache after the
               (when prior-start-point
                 (goto-char prior-start-point)
                 (auth-source-netrc-parse-next-interesting)
-                (goto-char (pos-bol))
+                (goto-char (line-beginning-position))
                 (let ((extents
                        (if (bobp)
                            (progn
-                             (goto-char (pos-eol))
+                             (goto-char (line-end-position))
                              (if (eobp)
-                                 (cons (pos-bol) (pos-eol))
-                               (cons (pos-bol) (1+ (pos-eol)))))
+                                 (cons (line-beginning-position)
+                                       (line-end-position))
+                               (cons (line-beginning-position)
+                                     (1+ (line-end-position)))))
                          (progn
-                           (goto-char (pos-eol))
-                           (cons (1- (pos-bol)) (pos-eol))))))
+                           (goto-char (line-end-position))
+                           (cons (1- (line-beginning-position))
+                                 (line-end-position))))))
                   (let ((region-to-delete (buffer-substring (car extents)
                                                             (cdr extents))))
                     (when (or (not (eq auth-source-save-behavior 'ask))
