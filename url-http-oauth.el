@@ -29,7 +29,8 @@
 ;;
 ;; Usage:
 ;;
-;; See url-http-oauth-demo.el.
+;; See url-http-oauth-demo.el, which is installed alongside
+;; url-http-oauth.el.
 
 ;;; Code:
 (require 'url-auth)
