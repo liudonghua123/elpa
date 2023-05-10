@@ -21,11 +21,11 @@
 
 ;;; Commentary:
 ;;
-;; This package adds OAuth 2.0 support to Emacs's URL library.
+;; url-http-oauth adds OAuth 2.0 support to Emacs's URL library.
 ;;
 ;; Installation:
 ;;
-;; M-x package-install RET url-http-oauth RET
+;; M-x package-install RET url-http-oauth
 ;;
 ;; Usage:
 ;;
@@ -99,6 +99,7 @@ URL is an object or a string."
 ;; catches on, authorization-url and access-token-url can be made
 ;; optional and their values retrieved automatically.  As of early
 ;; 2023, RFC 8414 is not consistently implemented yet.
+;;;###autoload
 (defun url-http-oauth-interpose (url-settings)
   "Arrange for Emacs to use OAuth 2.0 to access a URL using URL-SETTINGS.
 URL-SETTINGS is an association list (alist) with fields whose
@@ -139,14 +140,18 @@ REDIRECT_URI.
 AUTHORIZATION-CODE-FUNCTION is an elisp function that takes an
 authorization URL as a string argument, and returns, as a string,
 a full URL containing a code value in its query string."
-  (let* ((client-secret-method
-          (cdr (assoc "client-secret-method" url-settings))))
+  (let ((client-identifier (cdr (assoc "client-identifier" url-settings)))
+        (client-secret-method
+         (cdr (assoc "client-secret-method" url-settings))))
+    (unless (and (stringp client-identifier) (> (length client-identifier) 0))
+      (error "url-http-oauth: Unset client-identifier value"))
     (unless (or (eq client-secret-method 'prompt) (eq client-secret-method nil))
       (error "url-http-oauth: Unrecognized client-secret-method value"))
     (prog1
         (add-to-list 'url-http-oauth--interposed url-settings)
       (url-http-oauth--update-regexp))))
 
+;;;###autoload
 (defun url-http-oauth-uninterpose (url-settings)
   "Arrange for Emacs not to use OAuth 2.0 when accessing URL in URL-SETTINGS.
 This function does the opposite of `url-http-oauth-interpose'."
@@ -155,6 +160,7 @@ This function does the opposite of `url-http-oauth-interpose'."
             (delete url-settings url-http-oauth--interposed))
     (url-http-oauth--update-regexp)))
 
+;;;###autoload
 (defun url-http-oauth-interposed-p (url)
   "Return non-nil if `url' will use OAuth 2.0 to access URL.
 URL is an object."
