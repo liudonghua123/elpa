@@ -83,7 +83,7 @@
                                                (series-index (calibre-book-series-index book))
                                                (tags (string-join (calibre-book-tags book) ","))))))
                            (calibre-edit--different-fields book (calibre-edit--find-original book))))
-    ,(format "%d" (calibre-book-id book))))
+    ,(int-to-string (calibre-book-id book))))
 
 (defun calibre-edit-commit-edits (books)
   "Commit edits to BOOKS to disk."
