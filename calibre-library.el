@@ -73,15 +73,15 @@
 (defun calibre-library-execute ()
   "Performed marked Library actions."
   (interactive nil calibre-library-mode)
-  (let (remove-list modified-list mark)
+  (let (remove-list modified-list)
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))
-        (setf mark (char-after))
-        (let ((book (tabulated-list-get-id)))
-          (cl-case mark
-            (calibre-del-marker (push book remove-list))
-            (calibre-mod-marker (push book modified-list))))
+        (let ((book (tabulated-list-get-id))
+              (mark (char-after)))
+          (cond
+            ((eql mark calibre-del-marker) (push book remove-list))
+            ((eql mark calibre-mod-marker) (push book modified-list))))
         (forward-line)))
     (when remove-list (calibre-library-remove-books remove-list))
     (when modified-list (calibre-edit-commit-edits modified-list)))
