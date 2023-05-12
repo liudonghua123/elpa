@@ -97,15 +97,27 @@
         (goto-char (point-max))
       (calibre-library--find-book pos))))
 
-(defun calibre-library-open-book (book)
-  "Open BOOK in its preferred format."
-  (interactive (list (tabulated-list-get-id)) calibre-library-mode)
-  (find-file (calibre-book--file book (calibre-book--pick-format book))))
+(defun calibre-library-open-book (book &optional arg)
+  "Open BOOK in its preferred format.
+If called with a prefix argument prompt the user for the format."
+  (interactive (list (tabulated-list-get-id)
+                     current-prefix-arg)
+               calibre-library-mode)
+  (let ((format (if arg
+                    (completing-read "Format: " (calibre-book-formats book) nil t)
+                  (calibre-book--pick-format book))))
+    (find-file (calibre-book--file book format))))
 
-(defun calibre-library-open-book-other-window (book)
-  "Open BOOK in its preferred format."
-  (interactive (list (tabulated-list-get-id)) calibre-library-mode)
-  (find-file-other-window (calibre-book--file book (calibre-book--pick-format book))))
+(defun calibre-library-open-book-other-window (book &optional arg)
+  "Open BOOK in its preferred format, in another window.
+If called with a prefix argument prompt the user for the format."
+  (interactive (list (tabulated-list-get-id)
+                     current-prefix-arg)
+               calibre-library-mode)
+  (let ((format (if arg
+                    (completing-read "Format: " (calibre-book-formats book) nil t)
+                  (calibre-book--pick-format book))))
+    (find-file-other-window (calibre-book--file book format))))
 
 (defvar-keymap calibre-library-mode-map
   :doc "Local keymap for Calibre Library buffers."
