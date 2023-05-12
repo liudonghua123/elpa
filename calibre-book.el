@@ -107,8 +107,9 @@ for private functions."
 
 (defun calibre-book--pick-format (book)
   "Return the preferred format for BOOK."
-  (car (seq-intersection calibre-format-preferences
-                         (calibre-book-formats book))))
+  (let ((pref (seq-intersection calibre-format-preferences
+                                (calibre-book-formats book))))
+    (car (if pref pref (calibre-book-formats book)))))
 
 (defun calibre-book-sort-by-series (a b)
   "Return t if A should appear before B when sorting by series."
