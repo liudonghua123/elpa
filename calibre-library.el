@@ -121,6 +121,7 @@
   "o" #'calibre-library-open-book-other-window)
 
 (define-derived-mode calibre-library-mode tabulated-list-mode
+  "Library Mode"
   (setf tabulated-list-padding 2)
   (setq-local revert-buffer-function #'calibre-library-revert)
   (setq-local font-lock-defaults
