@@ -384,6 +384,8 @@
   :ignored-files ("*.png" "LICENSE"))
  (kmb			:url nil)
  (landmark		:url nil)
+ (latex-table-wizard    :url "https://github.com/enricoflor/latex-table-wizard"
+  :doc "latex-table-wizard.texi")
  (leaf			:url "https://github.com/conao3/leaf.el")
  ;; FIXME: In preparation (depends on `f` and `s`).
  ;; (lentic		:url "https://github.com/phillord/lentic")
