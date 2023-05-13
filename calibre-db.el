@@ -90,8 +90,8 @@ WHERE books.id = ?"
 
 (defun calibre-db--get-authors ()
   "Return a list of the authors in the active library."
-  (sqlite-select (calibre--db)
-                               "SELECT name FROM authors;"))
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT name FROM authors;")))
 
 (defun calibre-db--get-series ()
   "Return a list of the series in the active library."
