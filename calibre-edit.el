@@ -76,7 +76,7 @@
     ,@(flatten-list (mapcar (lambda (field)
                               `("-f" ,(format "%s:%s" (calibre-util-uglify-field-name field)
                                              (cl-case field
-                                               (authors (string-join (calibre-book-authors book) ","))
+                                               (authors (string-join (calibre-book-authors book) " & "))
                                                (title (calibre-book-title book))
                                                (publisher (calibre-book-publisher book))
                                                (series (calibre-book-series book))
