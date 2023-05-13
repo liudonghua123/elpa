@@ -27,9 +27,9 @@
 (defmacro calibre-search--choice-function (field &optional an plural)
   "Create a function to prompt the user to select a value for FIELD.
 FIELD should be the name of a metadata field associated with
-books.  A corresponding calibre-db--get-FIELDs function must
+books.  A corresponding calibre-core--get-FIELDs function must
 exist, i.e. if FIELD is author the function
-calibre-db--get-authors must exist.
+calibre-core--get-authors must exist.
 
 If AN is non-nil the new function's docstring will read: Prompt
 the user to select an FIELD, otherwise it will read: Prompt the
