@@ -120,7 +120,7 @@ for private functions."
       (cl-case (compare-strings (calibre-book-series a) nil nil
                                   (calibre-book-series b) nil nil)
           (-1 t)
-          ((eq t) (> (calibre-book-series-index a)
+          ((eq t) (< (calibre-book-series-index a)
                      (calibre-book-series-index b)))
           (1 nil)))))
 
