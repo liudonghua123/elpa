@@ -98,7 +98,7 @@ AUTHORS should be a comma separated string."
                      "search"
                      "--with-library"
                      (calibre--library)
-                     (format ,(format "%s:%%s" field) ,field))
+                     (format ,(format "%s:=%%s" field) ,field))
        (mapcar #'cl-parse-integer
                (string-split
                 (buffer-substring-no-properties (point-min) (point-max))
