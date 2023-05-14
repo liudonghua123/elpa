@@ -45,6 +45,7 @@ will not be appended to the calibre-db--get-FIELD function's name."
                                         field
                                         (if plural "" "s")))))))
 
+(calibre-search--choice-function "title")
 (calibre-search--choice-function "author" t)
 (calibre-search--choice-function "publisher")
 (calibre-search--choice-function "tag")
@@ -68,6 +69,7 @@ ARGS is the argument list of a transient command."
                                      calibre-library--filters))
      (calibre-library--refresh)))
 
+(calibre-library--search-function "title")
 (calibre-library--search-function "author")
 (calibre-library--search-function "publisher")
 (calibre-library--search-function "series")
@@ -87,6 +89,7 @@ ARGS is the argument list of a transient command."
   ["Arguments"
    ("-e" "Exclude" "--exclude")]
   ["Search"
+   ("T" "Title" calibre-library-search-title)
    ("a" "Author" calibre-library-search-author)
    ("p" "Publisher" calibre-library-search-publisher)
    ("t" "Tag" calibre-library-search-tag)

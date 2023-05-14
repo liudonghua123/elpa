@@ -88,6 +88,11 @@ WHERE books.id = ?"
                                "SELECT format FROM data WHERE book = ?"
                                `[,id]))))
 
+(defun calibre-db--get-titles ()
+  "Return a list of the titles in the active library."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT title FROM books;")))
+
 (defun calibre-db--get-authors ()
   "Return a list of the authors in the active library."
   (flatten-list (sqlite-select (calibre--db)
@@ -137,6 +142,12 @@ WHERE books.id = ?"
 FROM books
 LEFT JOIN books_series_link sl ON books.id = sl.book
 LEFT JOIN series ON sl.series = series.id;"))))
+
+(defun calibre-db--get-title-books (title)
+  "Return the id's of books whose title is TITLE."
+  (flatten-list (sqlite-select (calibre--db)
+                               "SELECT id FROM books WHERE title = ?"
+                               `[,title])))
 
 (defun calibre-db--get-author-books (author)
   "Return the id's of books written by AUTHOR."

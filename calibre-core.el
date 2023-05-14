@@ -215,6 +215,7 @@ BOOK is a `calibre-book'."
                            filters)))
     (seq-let (_ field value) filter
       (cl-case field
+        (title (calibre-core--interface get-title-books value))
         (author (calibre-core--interface get-author-books value))
         (tag (calibre-core--interface get-tag-books value))
         (publisher (calibre-core--interface get-publisher-books value))
@@ -245,6 +246,10 @@ FILTERS should be a list of vectors, for the exact contents see
                                         books)
                     books))))
 
+(defun calibre-core--get-titles ()
+  "Return a list of the titles in the active library."
+  (calibre-core--interface get-titles))
+
 (defun calibre-core--get-authors ()
   "Return a list of the authors in the active library."
   (calibre-core--interface get-authors))
@@ -269,6 +274,12 @@ FILTERS should be a list of vectors, for the exact contents see
 ;; These functions should be in calibre-cli.el, but they require
 ;; calibre--books because the calibredb interface does not expose the
 ;; ability get this information.
+(defun calibre-cli--get-titles ()
+  "Return a list of the titles in the active library."
+  (cl-remove-duplicates
+   (mapcar #'calibre-book-title (calibre--books))
+   :test #'string=))
+
 (defun calibre-cli--get-authors ()
   "Return a list of the authors in the active library."
   (cl-reduce #'cl-union (mapcar #'calibre-book-authors (calibre--books))))
@@ -284,8 +295,8 @@ FILTERS should be a list of vectors, for the exact contents see
 (defun calibre-cli--get-series ()
   "Return a list of the series in the active library."
   (remq nil (cl-remove-duplicates
-            (mapcar #'calibre-book-series (calibre--books))
-            :test #'string=)))
+             (mapcar #'calibre-book-series (calibre--books))
+             :test #'string=)))
 
 (defun calibre-cli--get-publishers ()
   "Return a list of the publishers in the active library."
