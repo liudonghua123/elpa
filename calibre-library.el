@@ -1,6 +1,6 @@
 ;;; calibre-library.el --- View and interact with the Calibre library -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023  Kjartan Oli Agustsson
+;; Copyright (C) 2023  Free Software Foundation, Inc.
 
 ;; Author: Kjartan Oli Agustsson <kjartanoli@disroot.org>
 ;; Maintainer: Kjartan Oli Agustsson <kjartanoli@disroot.org>

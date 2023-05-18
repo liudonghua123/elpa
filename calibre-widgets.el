@@ -1,5 +1,5 @@
 ;;; calibre-widgets.el --- Widgets for editing book metadata.  -*- lexical-binding: t; -*-
-;; Copyright (C) 2023  Kjartan Óli Águstsson
+;; Copyright (C) 2023  Free Software Foundation, Inc.
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

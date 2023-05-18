@@ -1,6 +1,6 @@
 ;;; calibre-util.el --- Utilities with no better place  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023  Kjartan Oli Agustsson
+;; Copyright (C) 2023  Free Software Foundation, Inc.
 
 ;; This file is part of calibre.el.
 

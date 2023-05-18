@@ -1,5 +1,5 @@
 ;;; calibre-search.el --- Filter books based on search criteria.  -*- lexical-binding: t; -*-
-;; Copyright (C) 2023  Kjartan Óli Águstsson
+;; Copyright (C) 2023  Free Software Foundation, Inc.
 
 ;; This file is part of calibre.el.
 
