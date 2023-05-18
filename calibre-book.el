@@ -25,75 +25,50 @@
 ;; representations of books
 
 ;;; Code:
-(require 'eieio)
 (require 'parse-time)
 
-
-(defclass calibre-book ()
-  ((id :initarg :id
-       :type number
-       :documentation "The ID of the book in the Calibre database.")
-   (title :initarg :title
-          :type string
-          :documentation "The title of the book."
-          :custom string)
-   (authors :initarg :authors
-            :type list
-            :documentation "The authors of the book."
-            :custom (repeat (string :tag "Author")))
-   (publisher :initarg :publisher
-               :type (or string null)
-               :documentation "The publisher of the book."
-               :custom (choice (const nil) string))
-   (series :initarg :series
-           :initform nil
-           :type (or string null)
-           :documentation "The series the book is a part of."
-           :custom (choice (const nil) string))
-   (series-index :initarg :series-index
-                 :initform 1
-                 :type real
-                 :documentation "The book's position within its series."
-                 :custom number)
-   (formats :initarg :formats
-            :type list)
-   (timestamp :initarg :timestamp
-              :type list)
-   (pubdate :initarg :pubdate
-            :type list)
-   (last-modified :initarg :last-modified
-                  :type list)
-   (tags :initarg :tags
-         :initform '()
-         :type list
-         :documentation "Tags associated with the book."
-         :custom (repeat (string :tag "Tag")))
-   (path :initarg :path
+(cl-defstruct calibre-book
+  (id nil
+      :read-only t
+      :type integer
+      :documentation "The ID of the book in the Calibre database.")
+  (title nil
          :type string
-         :documentation "The book's position within the library")
-   (file-name :initarg :file-name
-              :type string
-              :documentation "The book's filename, sans extension.")))
-
-(defmacro calibre-book--slot (slot &optional internal)
-  "Create a function to access SLOT of a `calibre-book'.
-If INTERNAL is non nil the function name will follow the convention
-for private functions."
-  `(defun ,(intern (format "calibre-book-%s%s" (if internal "-" "") slot)) (book)
-     ,(format "Access the %s slot of a `calibre-book'." slot)
-     (slot-value book ',slot)))
-
-(calibre-book--slot id)
-(calibre-book--slot title)
-(calibre-book--slot authors)
-(calibre-book--slot publisher)
-(calibre-book--slot series)
-(calibre-book--slot series-index)
-(calibre-book--slot tags)
-(calibre-book--slot formats)
-(calibre-book--slot path t)
-(calibre-book--slot file-name)
-(calibre-book--slot pubdate)
+         :documentation "The title of the book.")
+  (authors nil
+           :type list
+           :documentation "The authors of the book.")
+  (publisher nil
+             :type (or string null)
+             :documentation "The publisher of the book.")
+  (series nil
+          :type (or string null)
+          :documentation "The series the book is a part of.")
+  (series-index 1
+                :type number
+                :documentation "The book's position within its series.")
+  (formats nil
+           :read-only t
+           :type list
+           :documentation "The formats the book is available in.")
+  (timestamp nil
+             :read-only t
+             :type list)
+  (pubdate nil
+           :type list
+           :documentation "The book's publication date.")
+  (last-modified nil
+                 :type list
+                 :documentation "The last time the book was modified.")
+  (tags nil
+        :type list
+        :documentation "Tags associated with the book.")
+  (path nil
+        :type string
+        :documentation "The book's position within the library")
+  (file-name nil
+             :type string
+             :documentation "The book's filename, sans extension."))
 
 (defcustom calibre-format-preferences '(pdf epub)
   "The preference order of file formats."

@@ -38,19 +38,19 @@ TIMESTAMP is a string of the form YYYY-MM-DD HH:MM:SS.xxxxxx+00:00."
 ENTRY is a list of the form:
 \(ID TITLE SERIES SERIES-INDEX TIMESTAMP PUBDATE LAST-MODIFIED)."
   (seq-let [id title series series-index timestamp pubdate last-modified path] entry
-    (calibre-book :id id
-                  :title title
-                  :authors (calibre-db--get-book-authors id)
-                  :publisher (calibre-db--get-book-publisher id)
-                  :series series
-                  :series-index series-index
-                  :tags (calibre-db--get-book-tags id)
-                  :formats (calibre-db--get-book-formats id)
-                  :path path
-                  :file-name (calibre-db--get-book-file-name id))))
+    (make-calibre-book :id id
+                       :title title
+                       :authors (calibre-db--get-book-authors id)
+                       :publisher (calibre-db--get-book-publisher id)
+                       :series series
+                       :series-index series-index
                        :timestamp (calibre-db--parse-timestamp timestamp)
                        :pubdate (calibre-db--parse-timestamp pubdate)
                        :last-modified (calibre-db--parse-timestamp last-modified)
+                       :tags (calibre-db--get-book-tags id)
+                       :formats (calibre-db--get-book-formats id)
+                       :path path
+                       :file-name (calibre-db--get-book-file-name id))))
 
 (defun calibre-db--get-book-authors (id)
   "Return a list of authors for the book identified by ID."

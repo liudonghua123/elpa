@@ -48,19 +48,19 @@
 (defun calibre-cli--make-book (json)
   "Make a `calibre-book' from JSON."
   (let-alist json
-    (calibre-book :id .id
-                  :title .title
-                  :authors (calibre-cli--parse-authors .authors)
-                  :publisher .publisher
-                  :series .series
-                  :series-index .series_index
-                  :timestamp (calibre-cli--parse-timestamp .timestamp)
-                  :pubdate (calibre-cli--parse-timestamp .pubdate)
-                  :last-modified (calibre-cli--parse-timestamp .last_modified)
-                  :tags .tags
-                  :formats (calibre-cli--parse-formats .formats)
-                  :path (calibre-cli--parse-path .formats)
-                  :file-name (calibre-cli--parse-file-name .formats))))
+    (make-calibre-book :id .id
+                       :title .title
+                       :authors (calibre-cli--parse-authors .authors)
+                       :publisher .publisher
+                       :series .series
+                       :series-index .series_index
+                       :timestamp (calibre-cli--parse-timestamp .timestamp)
+                       :pubdate (calibre-cli--parse-timestamp .pubdate)
+                       :last-modified (calibre-cli--parse-timestamp .last_modified)
+                       :tags .tags
+                       :formats (calibre-cli--parse-formats .formats)
+                       :path (calibre-cli--parse-path .formats)
+                       :file-name (calibre-cli--parse-file-name .formats))))
 
 (defun calibre-cli--parse-authors (authors)
   "Parse AUTHORS a string, into a list of authors.

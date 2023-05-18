@@ -18,7 +18,8 @@
 ;; along with calibre.el.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
-(require 'eieio-custom)
+(require 'wid-edit)
+(require 'calibre-widgets)
 (require 'calibre-core)
 (require 'calibre-util)
 (require 'calibre-exec)
@@ -26,19 +27,179 @@
 (defvar calibre-edit--edited-books nil
   "A list containing the original copies of edited books.")
 
+;; Declare these variables to prevent free variable warnings
+(defvar-local calibre-edit--book nil
+  "The book being edited in the current buffer.")
+(defvar-local calibre-edit--title nil
+  "The title widget in the current buffer.")
+(defvar-local calibre-edit--authors nil
+  "The authors widget in the current buffer.")
+(defvar-local calibre-edit--publisher nil
+  "The publisher widget in the current buffer.")
+(defvar-local calibre-edit--series nil
+  "The series widget in the current buffer.")
+(defvar-local calibre-edit--tags nil
+  "The tags widget in the current buffer.")
+
+(defun calibre-edit-apply (&rest _)
+  "Apply any edits to the book in the current buffer."
+  (interactive)
+  (setf (calibre-book-title calibre-edit--book) (widget-value calibre-edit--title)
+        (calibre-book-authors calibre-edit--book) (widget-value calibre-edit--authors)
+        (calibre-book-publisher calibre-edit--book) (widget-value calibre-edit--publisher)
+        (calibre-book-series calibre-edit--book) (if (consp (widget-value calibre-edit--series))
+                                                     (car (widget-value calibre-edit--series))
+                                                   nil)
+        (calibre-book-series-index calibre-edit--book) (if (consp (widget-value calibre-edit--series))
+                                                           (cdr (widget-value calibre-edit--series))
+                                                         1)
+        (calibre-book-tags calibre-edit--book) (widget-value calibre-edit--tags))
+    (calibre-library--refresh)
+    (let ((book calibre-edit--book))
+      (with-current-buffer (get-buffer calibre-library-buffer)
+        (calibre-library--find-book book)
+        (tabulated-list-put-tag (char-to-string calibre-mod-marker)))))
+
+(defun calibre-edit-abort (&rest _)
+  "Abort any changes made in the current buffer."
+  (interactive)
+  (let ((book calibre-edit--book))
+    (unless (calibre-edit--different-fields book (calibre-edit--find-original book))
+      (setf calibre-edit--edited-books (seq-remove (lambda (b)
+                                                     (= (calibre-book-id b)
+                                                        (calibre-book-id book)))
+                                                   calibre-edit--edited-books))))
+  (quit-window t))
+
+(defun calibre-edit-reset (&rest _)
+  "Undo any changes made during this editing session."
+  (interactive)
+  (calibre-edit-book calibre-edit--book))
+
+(defun calibre-edit-confirm (&rest _)
+  "Apply any changes and exit."
+  (interactive)
+  (calibre-edit-apply)
+  (quit-window t))
+
+(defvar-keymap calibre-edit-mode-map
+  :doc "Keymap for `calibre-edit-mode'."
+  :parent widget-keymap
+  "C-c C-c" #'calibre-edit-confirm
+  "C-c C-a" #'calibre-edit-apply
+  "C-c C-r" #'calibre-edit-reset
+  "C-c C-k" #'calibre-edit-abort)
+
+(defvar-keymap calibre-edit-field-keymap
+  :doc "Keymap used inside editable fields in calibre edit buffers."
+  :parent widget-field-keymap
+  "C-c C-c" #'calibre-edit-confirm
+  "C-c C-a" #'calibre-edit-apply
+  "C-c C-r" #'calibre-edit-reset
+  "C-c C-k" #'calibre-edit-abort)
+
+(define-derived-mode calibre-edit-mode nil "Calibre Edit"
+  :group 'calibre
+  (widget-put (get 'editable-field 'widget-type) :keymap calibre-edit-field-keymap))
+
 (defun calibre-edit-book (book)
   "Edit the metadata of BOOK."
   (interactive (list (tabulated-list-get-id)) calibre-library-mode)
   (unless (calibre-util-find-book book calibre-edit--edited-books)
-    (push (clone book) calibre-edit--edited-books))
-  (eieio-customize-object book))
+    (push (copy-calibre-book book) calibre-edit--edited-books))
+  (let ((buffer (calibre-edit--create-buffer book)))
+    (pop-to-buffer buffer)))
 
-(cl-defmethod eieio-done-customizing ((book calibre-book))
-  "Finalise the editing of BOOK."
-  (calibre-library--refresh)
-  (with-current-buffer (get-buffer calibre-library-buffer)
-    (calibre-library--find-book book)
-    (tabulated-list-put-tag (char-to-string calibre-mod-marker))))
+(defun calibre-edit--create-buffer (book)
+  "Create a buffer for editing BOOK.
+Returns a buffer for editing BOOK, creating it if necessary."
+  (let ((buffer (get-buffer-create (format "*%s - Metadata*" (calibre-book-title book)))))
+    (with-current-buffer buffer
+      (kill-all-local-variables)
+      (let ((inhibit-read-only t))
+        (erase-buffer))
+      (remove-overlays)
+      (calibre-edit-mode)
+      (setf calibre-edit--book book)
+      (setq-local
+       header-line-format
+       (substitute-command-keys
+        "\\<calibre-edit-mode-map>Finish `\\[calibre-edit-confirm]', Apply `\\[calibre-edit-apply]', Reset `\\[calibre-edit-reset]', Cancel `\\[calibre-edit-abort]'"))
+      (setf calibre-edit--title
+            (widget-create 'string
+                           :value (calibre-book-title book)
+                           :tag "Title"
+                           :doc "The title of the book."
+                           :format "%t: %v%d"))
+      (widget-insert "\n")
+      (setf calibre-edit--authors
+            (widget-create 'repeat
+                           :value (calibre-book-authors book)
+                           :tag "Authors"
+                           :doc "The authors of the book."
+                           :format "%t:\n%v%i\n%d"
+                           'calibre-author))
+      (widget-insert "\n")
+      (setf calibre-edit--publisher
+            (widget-create 'choice
+                           :value (calibre-book-publisher book)
+                           :tag "Publisher"
+                           :doc "The publisher of the book."
+                           :format "%[%t%]%v%d"
+                           '(const :tag ": None" :menu-tag "None" nil)
+                           '(calibre-publisher :tag "" :menu-tag "Publisher")))
+      (widget-insert "\n")
+      (setf calibre-edit--series
+            (widget-create 'choice
+                           :value (if (calibre-book-series book)
+                                      (cons (calibre-book-series book)
+                                            (calibre-book-series-index book))
+                                    nil)
+                           :tag "Series"
+                           :format "%[%t%]%v%d"
+                           '(const :tag ": None" :menu-tag "None" nil)
+                           `(cons :tag ""
+                                  :menu-tag "Series"
+                                  (calibre-series :tag "Name"
+                                                  :doc "The series the book is part of."
+                                                  :format "%t:  %v%d")
+                                  (number :tag "Index"
+                                          :doc "The book's position within its series"
+                                          :format "%t: %v%d"
+                                          :value ,(calibre-book-series-index book)))))
+      (widget-insert "\n")
+      (setf calibre-edit--tags
+            (widget-create 'repeat
+                           :value (calibre-book-tags book)
+                           :tag "Tags"
+                           :doc "Tags associated with the book."
+                           :format "%t:\n%v%i\n%d"
+                           'calibre-tag))
+      (widget-insert "\n")
+      (widget-create 'push-button
+                     :tag "Confirm"
+                     :help-echo "Apply any changes and exit."
+                     :notify (lambda (&rest _)
+                               (calibre-edit-confirm)
+                               (kill-buffer)))
+      (widget-insert "   ")
+      (widget-create 'push-button
+                     :tag "Apply"
+                     :help-echo "Apply any changes."
+                     :notify #'calibre-edit-apply)
+      (widget-insert "   ")
+      (widget-create 'push-button
+                     :tag "Reset"
+                     :help-echo "Undo any changes."
+                     :notify #'calibre-edit-reset)
+      (widget-insert "   ")
+      (widget-create 'push-button
+                     :tag "Cancel"
+                     :help-echo "Abort all changes."
+                     :notify #'calibre-edit-abort)
+      (widget-setup)
+      (goto-char (point-min)))
+    buffer))
 
 (defun calibre-edit-revert (book)
   "Undo any edits performed to BOOK in this session."
@@ -58,10 +219,10 @@
 (defun calibre-edit--different-fields (a b)
   "Return a list of slot names whose values differ in A and B."
   (let (diff)
-    (dolist (descriptor (eieio-class-slots 'calibre-book))
-      (let* ((slot-name (eieio-slot-descriptor-name descriptor))
-             (a (slot-value a slot-name))
-             (b (slot-value b slot-name)))
+    (dolist (descriptor (cdr (cl-struct-slot-info 'calibre-book)))
+      (let* ((slot-name (car descriptor))
+             (a (cl-struct-slot-value 'calibre-book slot-name a))
+             (b (cl-struct-slot-value 'calibre-book slot-name b)))
         (unless (equal a b)
           (push slot-name diff))))
     diff))

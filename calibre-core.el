@@ -177,24 +177,25 @@ with values determined by `calibre-library-columns'."
   "Return list suitable as a value of `tabulated-list-entries'.
 BOOK is a `calibre-book'."
   (list book
-        (with-slots (id title authors publisher series series-index tags formats pubdate) book
-          (vconcat (mapcar (lambda (x)
-                             (let ((column (car x)))
-                               (cl-case column
-                                 (id (int-to-string id))
-                                 (title title)
-                                 (authors (string-join authors ", "))
-                                 (publisher (if (not publisher) "" publisher))
-                                 (series (if (not series) "" series))
-                                 (series-index (if series (format "%.1f" series-index) ""))
-                                 (tags (string-join tags ", "))
-                                 (formats (string-join (mapcar (lambda (f) (upcase (symbol-name f))) formats) ", "))
-                                 (pubdate (format-time-string calibre-library-time-format pubdate)))))
-                           calibre-library-columns)))))
+        (vconcat (mapcar (lambda (x)
+                           (let ((column (car x)))
+                             (cl-case column
+                               (id (int-to-string (calibre-book-id book)))
+                               (title (calibre-book-title book))
+                               (authors (string-join (calibre-book-authors book) ", "))
+                               (publisher (let ((publisher (calibre-book-publisher book)))
+                                            (if (not publisher) "" publisher)))
+                               (series (let ((series (calibre-book-series book))) (if (not series) "" series)))
+                               (series-index (if (calibre-book-series book) (format "%.1f" (calibre-book-series-index book)) ""))
+                               (tags (string-join (calibre-book-tags book) ", "))
+                               (formats (string-join (mapcar (lambda (f) (upcase (symbol-name f))) (calibre-book-formats book)) ", "))
+                               (pubdate (format-time-string calibre-library-time-format (calibre-book-pubdate book))))))
+                         calibre-library-columns))))
 
 (defun calibre-book--file (book format)
   "Return the path to BOOK in FORMAT."
-  (with-slots (path file-name) book
+  (let ((path (calibre-book-path book))
+        (file-name (calibre-book-file-name book)))
     (file-name-concat (calibre--library)
                       path
                       (format "%s.%s" file-name format))))
@@ -246,29 +247,41 @@ FILTERS should be a list of vectors, for the exact contents see
                                         books)
                     books))))
 
-(defun calibre-core--get-titles ()
+;; The ignored optional argument makes these functions valid arguments
+;; to completion-table-dynamic.
+(defun calibre-core--get-titles (&optional _)
   "Return a list of the titles in the active library."
   (calibre-core--interface get-titles))
 
-(defun calibre-core--get-authors ()
+(defun calibre-core--get-authors (&optional _)
   "Return a list of the authors in the active library."
   (calibre-core--interface get-authors))
 
-(defun calibre-core--get-tags ()
+(defun calibre-core--get-tags (&optional _)
   "Return a list of the tags in the active library."
   (calibre-core--interface get-tags))
 
-(defun calibre-core--get-formats ()
+(defun calibre-core--get-formats (&optional _)
   "Return a list of the file formats stored in the active library."
   (calibre-core--interface get-formats))
 
-(defun calibre-core--get-series ()
+(defun calibre-core--get-series (&optional _)
   "Return a list of the series in the active library."
   (calibre-core--interface get-series))
 
-(defun calibre-core--get-publishers ()
+(defun calibre-core--get-publishers (&optional _)
   "Return a list of the publishers in the active library."
   (calibre-core--interface get-publishers))
+
+;; Completion tables
+(defvar calibre-authors-completion-table
+  (completion-table-dynamic #'calibre-core--get-authors))
+(defvar calibre-publishers-completion-table
+  (completion-table-dynamic #'calibre-core--get-publishers))
+(defvar calibre-series-completion-table
+  (completion-table-dynamic #'calibre-core--get-series))
+(defvar calibre-tags-completion-table
+  (completion-table-dynamic #'calibre-core--get-tags))
 
 
 ;; These functions should be in calibre-cli.el, but they require
