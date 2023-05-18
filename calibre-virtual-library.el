@@ -29,6 +29,7 @@
 Each element is a cons cell (name . filters) where name is a
 string, and filters is a list of vectors [op field value]"
   :type (let ((fields '(choice :tag "Field"
+                               (const :tag "Title" title)
                                (const :tag "Author" author)
                                (const :tag "Publisher" publisher)
                                (const :tag "Series" series)
