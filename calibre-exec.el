@@ -31,7 +31,9 @@
 EVENT is the process event, see Info node
 `(elisp)Sentinels'"
   (if (string= event "finished\n")
-      (calibre-library--refresh t)
+      (progn
+        (kill-buffer "*calibre*")
+        (calibre-library--refresh t))
     (error "Calibre process failed %S" event))
   (if calibre-exec--commands
       (calibre-exec--next-command)
@@ -46,6 +48,7 @@ calibredb.  SENTINEL is a process sentinel to install."
     (make-process
      :name "calibre"
      :command `(,calibre-calibredb-executable "--with-library" ,(calibre--library) ,@args)
+     :buffer (get-buffer-create "*calibre*")
      :sentinel sentinel)))
 
 (defun calibre-exec--next-command ()
