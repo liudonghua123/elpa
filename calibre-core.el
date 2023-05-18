@@ -245,7 +245,9 @@ FILTERS should be a list of vectors, for the exact contents see
                                                   (= id (calibre-book-id b)))
                                                 include-ids))
                                         books)
-                    books))))
+                    (if include
+                        nil
+                      books)))))
 
 ;; The ignored optional argument makes these functions valid arguments
 ;; to completion-table-dynamic.
