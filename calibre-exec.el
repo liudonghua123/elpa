@@ -22,8 +22,6 @@
 ;; as adding, modifying, or removing books, on the active library.
 
 ;;; Code:
-(eval-when-compile (require 'cl-macs))
-
 (require 'calibre-core)
 
 (defvar calibre-exec--commands nil)
