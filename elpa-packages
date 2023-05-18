@@ -119,6 +119,7 @@
  ;;                            "lisp/progmodes/cc-vars.el"
  ;;                            "doc/misc/cc-mode.texi"
  ;;                      :doc "cc-mode.texi"))
+ (calibre               :url "https://git.disroot.org/kjartanoli/calibre.el")
  (cape			:url "https://github.com/minad/cape"
   :doc "README.org"
   :news "CHANGELOG.org"
