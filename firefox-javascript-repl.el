@@ -36,16 +36,16 @@
   :group 'external
   :type 'string)
 
-(defun firefox-javascript-repl--message (format &rest arguments)
+(defun fjrepl--message (format &rest arguments)
   "Print to *Messages* a package herald and FORMAT.
 ARGUMENTS will be used for FORMAT, like `messages'."
   (apply #'message (concat "firefox-javascript-repl: " format) arguments))
 
-(defun firefox-javascript-repl--error (message)
+(defun fjrepl--error (message)
   "Throw an error with a package herald and MESSAGE."
   (error "firefox-javascript-repl: %s" message))
 
-(defun firefox-javascript-repl--create-profile-directory ()
+(defun fjrepl--create-profile-directory ()
   "Create a profile directory."
   (let ((profile-directory (make-temp-file "firefox-javascript-repl-" t)))
     (with-current-buffer
@@ -57,37 +57,147 @@ ARGUMENTS will be used for FORMAT, like `messages'."
       (kill-buffer))
     profile-directory))
 
-(defun firefox-javascript-repl--get-first-tab-actor (network-buffer)
-  "Get the actor of the first browser tab.
-NETWORK-BUFFER is where Firefox responses go."
-  (gethash
-   "actor"
-   (elt
-    (gethash
-     "tabs"
-     (with-current-buffer network-buffer
-       (firefox-javascript-repl--message "BUF: %S" (buffer-string))
-       (goto-char (point-max))
-       (unless (bolp)
-         (insert "\n"))
-       (search-backward "{\"tabs\":")
-       (let ((start (point)))
-         (forward-sexp)
-         (prog1
-             (json-parse-string (buffer-substring start (point)))
-           (goto-char (point-max))))))
-    0)))
+(defun fjrepl--parse-prior-message (buffer)
+  "Parse the JSON message before in BUFFER."
+  (with-current-buffer buffer
+    (when (re-search-backward "[0-9]+:{" nil t)
+      (forward-char 2)
+      (let ((start (point)))
+        (forward-sexp)
+        (prog1
+            (json-parse-string (buffer-substring start (point)))
+          (backward-sexp)))))  )
 
-(defun firefox-javascript-repl--accept-input (network)
-  "Wait up to ten sections to see if packets are received from NETWORK."
-  (unless (accept-process-output network 10 0 t)
-    (firefox-javascript-repl--error
-     "Failed to receive network packets from Firefox")))
+(defun fjrepl--get-result (buffer depth &rest arguments)
+  "Return a field from BUFFER.
+BUFFER holds Firefox's Remote Debug Protocol response messages.
+DEPTH is non-nil if ARGUMENTS represent a decending path through
+the data structure.  DEPTH is nil if ARGUMENTS should match
+fields at the current depth level.  Search from the most recent
+to the least recent messages.  Return the filtered value based on
+the matching arguments in the hierarchy.  ARGUMENTS is a list of
+numbers and strings.  A number is used to pick out an element in
+a JSON list, a string is used to pick out an element from a JSON
+map."
+  (with-current-buffer buffer
+    (goto-char (point-max))
+    (unless (bolp) (insert "\n")) ; avoid one long line
+    (let (result)
+      (catch 'match
+        (while (setq result (fjrepl--parse-prior-message buffer))
+          (catch 'fail
+            (dolist (argument arguments) ; check that all arguments match
+              (cond ((numberp argument)
+                     (setq result (when (vectorp result)
+                                    (elt result argument))))
+                    ((stringp argument)
+                     (if depth
+                         (setq result (when (hash-table-p result)
+                                        (gethash argument result)))
+                       (setq result (and (gethash argument result)
+                                         result)))))
+              (unless result (throw 'fail nil))))
+          (when result (throw 'match result)))))))
 
-(defun firefox-javascript-repl--send-string (network message)
+(defun fjrepl--accept-input (&optional network)
+  "Wait up to ten sections to see if packets are received.
+If NETWORK is non-nil, check for output from it.  Otherwise check
+for output from any processes on which Emacs is waiting.."
+  (dotimes (_count 20)
+    (accept-process-output network 0.1)))
+
+(defun fjrepl--send-string (network message)
   "Send to NETWORK a MESSAGE then wait for the response."
   (process-send-string network message)
-  (firefox-javascript-repl--accept-input network))
+  (fjrepl--accept-input))
+
+(defun fjrepl--handle-done (name buffer network)
+  "Process the startListeners response.
+NAME is a string, the process name to use, BUFFER is a string,
+the name of the buffer in which to put process output, NETWORK is
+the debugger-server connection to Firefox."
+  (fjrepl--message "Ready for asynchronous JavaScript evaluation %s %s %s"
+                   name buffer network))
+
+(defun fjrepl--handle-console (name buffer network)
+  "Process the startListeners response.
+NAME is a string, the process name to use, BUFFER is a string,
+the name of the buffer in which to put process output, NETWORK is
+the debugger-server connection to Firefox."
+  (fjrepl--message "Handling console message")
+  (when (get-buffer buffer)
+    (let ((result (fjrepl--get-result buffer nil "startedListeners" "from")))
+      (when result
+        (let ((console-actor (gethash "from" result)))
+          (fjrepl--message "Ready for asynchronous JavaScript evaluation on %s"
+                           console-actor)))
+      (run-at-time (unless result 1) nil
+                   (if result
+                       'fjrepl--handle-done 'fjrepl--handle-console)
+                   name buffer network))))
+
+(defun fjrepl--format-message (format &rest arguments)
+  "Format a message for the Firefox Remote Debug Protocol wire.
+FORMAT is a format string taken by `format', and ARGUMENTS are
+the arguments for the format string."
+  (let ((message (apply 'format format arguments)))
+    (format "%d:%s" (length message) message)))
+
+(defun fjrepl--handle-target (name buffer network)
+  "Process the getTarget response.
+NAME is a string, the process name to use, BUFFER is a string,
+the name of the buffer in which to put process output, NETWORK is
+the debugger-server connection to Firefox."
+  (fjrepl--message "Handling target message")
+  (when (get-buffer buffer)
+    (let ((console-actor (fjrepl--get-result buffer t "frame" "consoleActor")))
+      (when console-actor
+        (process-send-string network
+                             (fjrepl--format-message
+                              (concat
+                               "{\"type\":\"startListeners\","
+                               "\"to\":\"%s\","
+                               "\"listeners\":[\"eventListener\"]}")
+                              console-actor)))
+      (run-at-time (unless console-actor 1) nil
+                   (if console-actor
+                       'fjrepl--handle-console 'fjrepl--handle-target)
+                   name buffer network))))
+
+(defun fjrepl--handle-tab (name buffer network)
+  "Process the listTabs response.
+NAME is a string, the process name to use, BUFFER is a string,
+the name of the buffer in which to put process output, NETWORK is
+the debugger-server connection to Firefox."
+  (fjrepl--message "Handling tab message")
+  (when (get-buffer buffer)
+    (let ((actor (fjrepl--get-result buffer t "tabs" 0 "actor")))
+      (when actor
+        (process-send-string network
+                             (fjrepl--format-message
+                              "{\"type\":\"getTarget\",\"to\":\"%s\"}" actor)))
+      (run-at-time (unless actor 1) nil
+                   (if actor 'fjrepl--handle-target 'fjrepl--handle-tab)
+                   name buffer network))))
+
+(defun fjrepl--handle-first (name buffer network)
+  "Connect to Firefox process and process the first message from Firefox.
+NAME is a string, the process name to use, BUFFER is a string,
+the name of the buffer in which to put process output, NETWORK is
+the debugger-server connection to Firefox."
+  (fjrepl--message "Handling first message")
+  (let ((network network))
+    (unwind-protect
+        (setq network (ignore-errors
+                        (open-network-stream name buffer "127.0.0.1" 6000)))
+      (let ((nextp
+             (and network (fjrepl--get-result buffer t "applicationType"))))
+        (when nextp
+          (process-send-string
+           network "31:{\"to\":\"root\",\"type\":\"listTabs\"}"))
+        (run-at-time (unless nextp 1) nil
+                     (if nextp 'fjrepl--handle-tab 'fjrepl--handle-first)
+                     name buffer network)))))
 
 (defun firefox-javascript-repl ()
   "Run a new instance of Firefox in a new profile.
@@ -99,7 +209,7 @@ localhost (127.0.0.1) TCP port 6000."
   (interactive)
   (when (not (process-status "firefox-javascript-repl"))
     (let* ((profile-directory
-            (firefox-javascript-repl--create-profile-directory))
+            (fjrepl--create-profile-directory))
            (temporary-name (file-name-nondirectory profile-directory))
            (process-name (concat "out-" temporary-name))
            (process-buffer-name (concat "*" process-name "*"))
@@ -116,31 +226,14 @@ localhost (127.0.0.1) TCP port 6000."
                             (lambda (process event)
                               (when (or (string= event "killed\n")
                                         (string= event "finished\n"))
-                                (firefox-javascript-repl--message
+                                (fjrepl--message
                                  "%s %s; deleting %s"
                                  process (string-trim event) profile-directory)
-                                (ignore-errors (kill-buffer network-buffer-name))
+                                (ignore-errors
+                                  (kill-buffer network-buffer-name))
                                 (kill-buffer process-buffer-name)
                                 (delete-directory profile-directory t))))
-      (let (network)
-        (catch 'connected
-          (dotimes (_count 50)
-            (when
-                (setq network
-                      (ignore-errors
-                        (open-network-stream process-name network-buffer-name
-                                             "127.0.0.1" 6000)))
-              (throw 'connected network))
-            (sit-for 2))
-          (firefox-javascript-repl--error
-           "Failed to connect to Firefox network port"))
-        (firefox-javascript-repl--accept-input network)
-        (firefox-javascript-repl--message "Established Firefox connection")
-        (firefox-javascript-repl--send-string
-         network "31:{\"to\":\"root\",\"type\":\"listTabs\"}")
-        (let ((actor (firefox-javascript-repl--get-first-tab-actor
-                      network-buffer-name)))
-          (message "Actor: %s" actor)))
+      (fjrepl--handle-first network-name network-buffer-name nil)
       nil)))
 
 (defun firefox-javascript-repl-stop ()
