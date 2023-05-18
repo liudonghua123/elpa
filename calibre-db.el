@@ -28,6 +28,11 @@
 (require 'calibre-book)
 (require 'calibre-util)
 
+(defun calibre-db--parse-timestamp (timestamp)
+  "Return a Lisp timestamp from TIMESTAMP.
+TIMESTAMP is a string of the form YYYY-MM-DD HH:MM:SS.xxxxxx+00:00."
+  (parse-iso8601-time-string (string-replace " " "T" timestamp)))
+
 (defun calibre-db--make-book (entry)
   "Create a `calibre-book' from ENTRY.
 ENTRY is a list of the form:
@@ -39,13 +44,13 @@ ENTRY is a list of the form:
                   :publisher (calibre-db--get-book-publisher id)
                   :series series
                   :series-index series-index
-                  :timestamp (calibre-parse-timestamp timestamp)
-                  :pubdate (calibre-parse-timestamp pubdate)
-                  :last-modified (calibre-parse-timestamp last-modified)
                   :tags (calibre-db--get-book-tags id)
                   :formats (calibre-db--get-book-formats id)
                   :path path
                   :file-name (calibre-db--get-book-file-name id))))
+                       :timestamp (calibre-db--parse-timestamp timestamp)
+                       :pubdate (calibre-db--parse-timestamp pubdate)
+                       :last-modified (calibre-db--parse-timestamp last-modified)
 
 (defun calibre-db--get-book-authors (id)
   "Return a list of authors for the book identified by ID."

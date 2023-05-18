@@ -28,10 +28,6 @@
 (require 'eieio)
 (require 'parse-time)
 
-(defun calibre-parse-timestamp (timestamp)
-  "Return a Lisp timestamp from TIMESTAMP.
-TIMESTAMP is a string of the form YYYY-MM-DD HH:MM:SS.xxxxxx+00:00."
-  (parse-iso8601-time-string (string-replace " " "T" timestamp)))
 
 (defclass calibre-book ()
   ((id :initarg :id
