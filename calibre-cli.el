@@ -34,7 +34,7 @@
 (defun calibre-cli--list (&rest fields)
   "List books in the active library.
 If FIELDS is a list of metadata fields to list, if none are
-specified the default is 'all'."
+specified the default is \\='all\\='."
   (with-temp-buffer
     (apply #'call-process
            `(,calibre-calibredb-executable
