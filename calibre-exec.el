@@ -24,8 +24,12 @@
 ;;; Code:
 (require 'calibre-core)
 
-(defvar calibre-exec--commands nil)
-(defvar calibre-exec--executing nil)
+(defvar calibre-exec--commands nil
+  "A list of commands queued for execution.")
+
+(defvar calibre-exec--executing nil
+  "A boolean indicating whether execution of commands is ongoing.")
+
 (defun calibre-exec--process-sentinel (_ event)
   "Process filter for Calibre library operations.
 EVENT is the process event, see Info node
