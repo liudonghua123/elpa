@@ -28,6 +28,9 @@
 (require 'calibre-book)
 (require 'calibre-util)
 
+(declare-function sqlite-open (&optional file) "sqlite.c")
+(declare-function sqlite-select (db query &optional values return-type))
+
 (defun calibre-db--parse-timestamp (timestamp)
   "Return a Lisp timestamp from TIMESTAMP.
 TIMESTAMP is a string of the form YYYY-MM-DD HH:MM:SS.xxxxxx+00:00."

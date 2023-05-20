@@ -24,9 +24,12 @@
 ;; SQLite support is not available.
 
 ;;; Code:
+(require 'compat) ; for string-split
 (require 'calibre)
 (require 'calibre-book)
 (require 'calibre-util)
+
+(declare-function json-parse-buffer (&rest args) "json.c")
 
 (defun calibre-cli--list (&rest fields)
   "List books in the active library.

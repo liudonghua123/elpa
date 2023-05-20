@@ -18,6 +18,7 @@
 ;; along with calibre.el.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
+(require 'compat) ; for defvar-keymap
 (require 'wid-edit)
 (require 'calibre-widgets)
 (require 'calibre-core)
