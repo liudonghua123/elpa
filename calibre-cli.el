@@ -104,6 +104,7 @@ AUTHORS should be a comma separated string."
                 (buffer-substring-no-properties (point-min) (point-max))
                 ",")))))
 
+(calibre-cli--search-operation title)
 (calibre-cli--search-operation series)
 (calibre-cli--search-operation publisher)
 (calibre-cli--search-operation format)
