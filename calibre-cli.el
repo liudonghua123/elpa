@@ -65,7 +65,7 @@
 (defun calibre-cli--parse-authors (authors)
   "Parse AUTHORS a string, into a list of authors.
 AUTHORS should be a comma separated string."
-  (string-split authors ","))
+  (string-split authors " & "))
 
 (defun calibre-cli--parse-timestamp (timestamp)
   "Parse TIMESTAMP into a Lisp timestamp."
