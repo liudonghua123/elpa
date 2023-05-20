@@ -285,39 +285,5 @@ FILTERS should be a list of vectors, for the exact contents see
 (defvar calibre-tags-completion-table
   (completion-table-dynamic #'calibre-core--get-tags))
 
-
-;; These functions should be in calibre-cli.el, but they require
-;; calibre--books because the calibredb interface does not expose the
-;; ability get this information.
-(defun calibre-cli--get-titles ()
-  "Return a list of the titles in the active library."
-  (cl-remove-duplicates
-   (mapcar #'calibre-book-title (calibre--books))
-   :test #'string=))
-
-(defun calibre-cli--get-authors ()
-  "Return a list of the authors in the active library."
-  (cl-reduce #'cl-union (mapcar #'calibre-book-authors (calibre--books))))
-
-(defun calibre-cli--get-tags ()
-  "Return a list of the tags in the active library."
-  (cl-reduce #'cl-union (mapcar #'calibre-book-tags (calibre--books))))
-
-(defun calibre-cli--get-formats ()
-  "Return a list of the file formats stored in the active library."
-  (cl-reduce #'cl-union (mapcar #'calibre-book-formats (calibre--books))))
-
-(defun calibre-cli--get-series ()
-  "Return a list of the series in the active library."
-  (remq nil (cl-remove-duplicates
-             (mapcar #'calibre-book-series (calibre--books))
-             :test #'string=)))
-
-(defun calibre-cli--get-publishers ()
-  "Return a list of the publishers in the active library."
-  (remq nil (cl-remove-duplicates
-            (mapcar #'calibre-book-publisher (calibre--books))
-            :test #'string=)))
-
 (provide 'calibre-core)
 ;;; calibre-core.el ends here

@@ -118,5 +118,51 @@ AUTHORS should be a comma separated string."
 (calibre-cli--search-operation tag)
 (calibre-cli--search-operation author)
 
+(defun calibre-cli--get-titles ()
+  "Return a list of the titles in the active library."
+  (cl-remove-duplicates
+   (mapcar (lambda (b)
+             (alist-get 'title b))
+           (calibre-cli--list "title"))
+   :test #'string=))
+
+(defun calibre-cli--get-authors ()
+  "Return a list of the authors in the active library."
+  (cl-remove-duplicates
+   (cl-reduce #'cl-union (mapcar (lambda (b)
+                                  (calibre-cli--parse-authors (alist-get 'authors b)))
+                                 (calibre-cli--list "authors")))
+   :test #'string=))
+
+(defun calibre-cli--get-publishers ()
+  "Return a list of the publishers in the active library."
+  (remq nil (cl-remove-duplicates
+             (mapcar (lambda (b)
+                       (alist-get 'publisher b))
+                     (calibre-cli--list "publisher"))
+             :test #'string=)))
+
+(defun calibre-cli--get-series ()
+  "Return a list of the series in the active library."
+  (remq nil (cl-remove-duplicates
+             (mapcar (lambda (b)
+                       (alist-get 'series b))
+                     (calibre-cli--list "series"))
+             :test #'string=)))
+
+(defun calibre-cli--get-tags ()
+  "Return a list of the tags in the active library."
+  (cl-remove-duplicates
+   (cl-reduce #'cl-union (mapcar (lambda (b)
+                                  (alist-get 'tags b))
+                                 (calibre-cli--list "tags")))
+   :test #'string=))
+
+(defun calibre-cli--get-formats ()
+  "Return a list of the file formats stored in the active library."
+  (cl-reduce #'cl-union (mapcar (lambda (b)
+                                  (calibre-cli--parse-formats (alist-get 'formats b)))
+                                (calibre-cli--list "formats"))))
+
 (provide 'calibre-cli)
 ;;; calibre-cli.el ends here
