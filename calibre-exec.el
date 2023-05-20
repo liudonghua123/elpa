@@ -24,6 +24,9 @@
 ;;; Code:
 (require 'calibre-core)
 
+(defconst calibre-exec--process-buffer "*calibre*"
+  "The name of the buffer containing output from processes.")
+
 (defvar calibre-exec--commands nil
   "A list of commands queued for execution.")
 
@@ -36,9 +39,9 @@ EVENT is the process event, see Info node
 `(elisp)Sentinels'"
   (if (string= event "finished\n")
       (progn
-        (kill-buffer "*calibre*")
+        (kill-buffer calibre-exec--process-buffer)
         (calibre-library--refresh t))
-    (error "Calibre process failed %S" event))
+    (error "Calibre process failed.  See %s for details." calibre-exec--process-buffer))
   (if calibre-exec--commands
       (calibre-exec--next-command)
     (setf calibre-exec--executing nil)))
@@ -52,7 +55,7 @@ calibredb.  SENTINEL is a process sentinel to install."
     (make-process
      :name "calibre"
      :command `(,calibre-calibredb-executable "--with-library" ,(calibre--library) ,@args)
-     :buffer (get-buffer-create "*calibre*")
+     :buffer (get-buffer-create calibre-exec--process-buffer)
      :sentinel sentinel)))
 
 (defun calibre-exec--next-command ()
