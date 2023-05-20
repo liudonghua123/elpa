@@ -48,11 +48,6 @@ It reads a tag from an editable text field."
   :tag "Tag"
   :format "%t %v")
 
-(define-widget 'calibre-series 'cons
-  nil
-  'calibre-series-name
-  '(number))
-
 (define-widget 'calibre-date 'vector
   "A date widget.
 It reads a year, month, and day."
