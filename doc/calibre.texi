@@ -9,7 +9,7 @@ This manual is for calibre.el (version @value{VERSION},
 @value{UPDATED}), a package for interacting with Calibre libraries from
 Emacs.
 
-Copyright @copyright{} 2023 Kjartan Oli Agustsson.
+Copyright @copyright{} 2023  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
