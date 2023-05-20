@@ -28,22 +28,29 @@
 (require 'calibre-book)
 (require 'calibre-util)
 
+(defun calibre-cli--list (&rest fields)
+  "List books in the active library.
+If FIELDS is a list of metadata fields to list, if none are
+specified the default is 'all'."
+  (with-temp-buffer
+    (apply #'call-process
+           `(,calibre-calibredb-executable
+             nil
+             t
+             nil
+             "--with-library"
+             ,(calibre--library)
+             "list"
+             ,@(if fields
+                (flatten-list (mapcar (lambda (f) `("-f" ,f)) fields))
+                '("-f" "all"))
+             "--for-machine"))
+    (goto-char (point-min))
+    (json-parse-buffer :object-type 'alist :array-type 'list)))
+
 (defun calibre-cli--get-books ()
   "Return all books in the Calibre library `calibre-library-dir'."
-  (let ((json (with-temp-buffer
-                (call-process calibre-calibredb-executable
-                              nil
-                              t
-                              nil
-                              "list"
-                              "--with-library"
-                              (calibre--library)
-                              "-f"
-                              "all"
-                              "--for-machine")
-                (goto-char (point-min))
-                (json-parse-buffer :object-type 'alist :array-type 'list))))
-    (mapcar #'calibre-cli--make-book json)))
+  (mapcar #'calibre-cli--make-book (calibre-cli--list)))
 
 (defun calibre-cli--make-book (json)
   "Make a `calibre-book' from JSON."
