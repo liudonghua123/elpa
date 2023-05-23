@@ -120,7 +120,7 @@ to load a previously saved location."
     (put symbol 'persist t)
     (if (hash-table-p initvalue)
         (put symbol 'persist-default (copy-hash-table initvalue))
-      (put symbol 'persist-default initvalue))))
+      (put symbol 'persist-default (persist-copy-tree initvalue t)))))
 
 (defun persist--persistant-p (symbol)
   "Return non-nil if SYMBOL is a persistant variable."
@@ -208,6 +208,34 @@ tables. In that case, the following are compared:
               a)
              t))
     (equal a b)))
+
+(defun persist-copy-tree (tree &optional vectors-and-records)
+  "Make a copy of TREE.
+If TREE is a cons cell, this recursively copies both its car and its cdr.
+Contrast to `copy-sequence', which copies only along the cdrs.
+With the second argument VECTORS-AND-RECORDS non-nil, this
+traverses and copies vectors and records as well as conses."
+  (declare (side-effect-free error-free))
+  (if (consp tree)
+      (let (result)
+	(while (consp tree)
+	  (let ((newcar (car tree)))
+	    (if (or (consp (car tree))
+                    (and vectors-and-records
+                         (or (vectorp (car tree)) (recordp (car tree)))))
+		(setq newcar (persist-copy-tree (car tree) vectors-and-records)))
+	    (push newcar result))
+	  (setq tree (cdr tree)))
+	(nconc (nreverse result)
+               (if (and vectors-and-records (or (vectorp tree) (recordp tree)))
+                   (persist-copy-tree tree vectors-and-records)
+                 tree)))
+    (if (and vectors-and-records (or (vectorp tree) (recordp tree)))
+	(let ((i (length (setq tree (copy-sequence tree)))))
+	  (while (>= (setq i (1- i)) 0)
+	    (aset tree i (persist-copy-tree (aref tree i) vectors-and-records)))
+	  tree)
+      tree)))
 
 (provide 'persist)
 ;;; persist.el ends here

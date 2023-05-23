@@ -69,6 +69,14 @@
                                (puthash 'foo "bar" (symbol-value sym))
                                "#s(hash-table size 65 test eql rehash-size 1.5 rehash-threshold 0.8125 data (foo \"bar\"))")))
 
+(ert-deftest test-persist-save-record ()
+  "Test saving record."
+  (let* ((rec (record 'foo 'a 'b))
+         (default (copy-sequence rec)))
+    (persist-test-persist-save rec default
+                               (setf (aref (symbol-value sym) 2) 'quux)
+                               "#s(foo a quux)")))
+
 (ert-deftest test-persist-load ()
   (with-local-temp-persist
    (let ((sym (cl-gensym)))
