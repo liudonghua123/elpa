@@ -367,15 +367,17 @@ the parameter to pass to it.  Examples of query functions are:
                            change
                            project
                            patchset
+                           branch
                            ref
                            (limit "10000"))
   "Return a list of `zuul-build' objects.
 
-Optionally provide CHANGE, PROJECT, PATCHSET, REF and LIMIT."
+Optionally provide CHANGE, PROJECT, PATCHSET, BRANCH, REF and LIMIT."
   (let* ((params `(("limit" ,limit)
                    ,(and change `("change" ,change))
                    ,(and patchset `("patchset" ,patchset))
                    ,(and project `("project" ,project))
+                   ,(and branch `("branch" ,branch))
                    ,(and ref `("ref" ,ref))))
          (response
           (zuul--rest-request
@@ -387,6 +389,7 @@ Optionally provide CHANGE, PROJECT, PATCHSET, REF and LIMIT."
                               change
                               project
                               patchset
+                              result
                               (limit "200"))
   "Return a list of `zuul-buildset' objects.
 
@@ -394,6 +397,7 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
   (let* ((params `(("limit" ,limit)
                    ,(and change `("change" ,change))
                    ,(and patchset `("patchset" ,patchset))
+                   ,(and result `("result" ,result))
                    ,(and project `("project" ,project))))
          (response
           (zuul--rest-request
@@ -411,9 +415,7 @@ Optionally provide parameters CHANGE, PROJECT, PATCHSET and LIMIT."
 (defun zuul-switch-build ()
   "Switch to another build."
   (interactive)
-  (let ((zuul--builds zuul--current-builds))
-    (zuul--open-build-log
-     (zuul--builds zuul--current-build))))
+  (zuul--open-build-log zuul--current-builds))
 
 (defun zuul-switch-buildset ()
   "Switch to a build from a specific buildset."
