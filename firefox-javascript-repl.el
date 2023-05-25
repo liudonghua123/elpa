@@ -54,7 +54,6 @@ ARGUMENTS will be used for FORMAT, like `messages'."
   "The prompt used in the Firefox JavaScript buffer.")
 
 ;; fixme: font-lock.
-;; fixme: fix "" quoting.
 (defun fjrepl--input-sender (process string)
   "Send to PROCESS the STRING.  Set `comint-input-sender' to this function."
   (process-send-string process (fjrepl--format-message
@@ -63,7 +62,8 @@ ARGUMENTS will be used for FORMAT, like `messages'."
                                 (concat "{\"type\":\"evaluateJSAsync\","
                                         "\"text\":\"%s\","
                                         "\"to\":\"%s\"}")
-                                string fjrepl--console-actor)))
+                                (replace-regexp-in-string "\"" "\\\\\"" string)
+                                fjrepl--console-actor)))
 
 (define-derived-mode firefox-javascript-repl-mode comint-mode "FJ"
   "Major mode for interactively evaluating JavaScript expressions in Firefox."
