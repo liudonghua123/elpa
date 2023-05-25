@@ -30,11 +30,16 @@
 
 ;; M-x firefox-javascript-repl RET
 
+;; Compatibility:
+
+;; Tested 2023-05-19 on ppc64le Debian Firefox 102.11.0esr (64-bit).
+
 ;;; Code:
-(defcustom firefox-javascript-repl-binary "firefox"
-  "The name or full path of the firefox binary to run."
-  :group 'external
-  :type 'string)
+(require 'js)
+(require 'comint)
+
+(defvar fjrepl--console-actor nil
+  "The console actor used to evaluate JavaScript in Firefox.")
 
 (defun fjrepl--message (format &rest arguments)
   "Print to *Messages* a package herald and FORMAT.
@@ -45,6 +50,144 @@ ARGUMENTS will be used for FORMAT, like `messages'."
   "Throw an error with a package herald and MESSAGE."
   (error "firefox-javascript-repl: %s" message))
 
+(defvar fjrepl--prompt "FJ> "
+  "The prompt used in the Firefox JavaScript buffer.")
+
+;; fixme: font-lock.
+;; fixme: fix "" quoting.
+(defun fjrepl--input-sender (process string)
+  "Send to PROCESS the STRING.  Set `comint-input-sender' to this function."
+  (process-send-string process (fjrepl--format-message
+                                ;; Do not use "eager": true, or stuff like
+                                ;; "alert('hello')" does not work.
+                                (concat "{\"type\":\"evaluateJSAsync\","
+                                        "\"text\":\"%s\","
+                                        "\"to\":\"%s\"}")
+                                string fjrepl--console-actor)))
+
+(define-derived-mode firefox-javascript-repl-mode comint-mode "FJ"
+  "Major mode for interactively evaluating JavaScript expressions in Firefox."
+  :syntax-table js-mode-syntax-table
+  :after-hook
+  (progn
+    (when (and (string= (buffer-name) "*firefox-javascript-repl*")
+               (fjrepl--parse-prior-message (current-buffer)))
+      (delete-region (point-min) (point-max)))
+    (setq-local font-lock-keywords nil)
+    ;; From js.el.
+    ;; Ensure all CC Mode "lang variables" are set to valid values.
+    (c-init-language-vars js-mode)
+    (setq-local indent-line-function #'js-indent-line)
+    (setq-local beginning-of-defun-function #'js-beginning-of-defun)
+    (setq-local end-of-defun-function #'js-end-of-defun)
+    (setq-local open-paren-in-column-0-is-defun-start nil)
+    (setq-local font-lock-defaults
+                (list js--font-lock-keywords nil nil nil nil
+                      '(font-lock-syntactic-face-function
+                        . js-font-lock-syntactic-face-function)))
+    (setq-local syntax-propertize-function #'js-syntax-propertize)
+    (add-hook 'syntax-propertize-extend-region-functions
+              #'syntax-propertize-multiline 'append 'local)
+    (add-hook 'syntax-propertize-extend-region-functions
+              #'js--syntax-propertize-extend-region 'append 'local)
+    (setq-local prettify-symbols-alist js--prettify-symbols-alist)
+
+    (setq-local parse-sexp-ignore-comments t)
+    (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
+
+    ;; Comments
+    (setq-local comment-start "// ")
+    (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
+    (setq-local comment-end "")
+    (setq-local fill-paragraph-function #'js-fill-paragraph)
+    (setq-local normal-auto-fill-function #'js-do-auto-fill)
+
+    ;; Parse cache
+    (add-hook 'before-change-functions #'js--flush-caches t t)
+
+    ;; Frameworks
+    (js--update-quick-match-re)
+
+    ;; Syntax extensions
+    (unless (js-jsx--detect-and-enable)
+      (add-hook 'after-change-functions #'js-jsx--detect-after-change nil t))
+    (js-use-syntactic-mode-name)
+
+    ;; Imenu
+    (setq imenu-case-fold-search nil)
+    (setq imenu-create-index-function #'js--imenu-create-index)
+
+    ;; for filling, pretend we're cc-mode
+    (c-foreign-init-lit-pos-cache)
+    (add-hook 'before-change-functions #'c-foreign-truncate-lit-pos-cache nil t)
+    (setq-local comment-line-break-function #'c-indent-new-comment-line)
+    (setq-local comment-multi-line t)
+    (setq-local electric-indent-chars
+                (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
+    (setq-local electric-layout-rules
+                '((?\; . after) (?\{ . after) (?\} . before)))
+
+    (let ((c-buffer-is-cc-mode t))
+      ;; FIXME: These are normally set by `c-basic-common-init'.  Should
+      ;; we call it instead?  (Bug#6071)
+      (make-local-variable 'paragraph-start)
+      (make-local-variable 'paragraph-separate)
+      (make-local-variable 'paragraph-ignore-fill-prefix)
+      (make-local-variable 'adaptive-fill-mode)
+      (make-local-variable 'adaptive-fill-regexp)
+      ;; While the full CC Mode style system is not yet in use, set the
+      ;; pertinent style variables manually.
+      (c-initialize-builtin-style)
+      (let ((style (cc-choose-style-for-mode 'js-mode c-default-style)))
+        (c-set-style style))
+      (setq c-block-comment-prefix "* "
+            c-comment-prefix-regexp "//+\\|\\**")
+      (c-setup-paragraph-variables))
+
+    (setq-local font-lock-defaults
+                (list js--font-lock-keywords nil nil nil nil
+                      '(font-lock-syntactic-face-function
+                        . js-font-lock-syntactic-face-function)))
+    (setq-local syntax-propertize-function #'js-syntax-propertize)
+    (add-hook 'syntax-propertize-extend-region-functions
+              #'syntax-propertize-multiline 'append 'local)
+    (add-hook 'syntax-propertize-extend-region-functions
+              #'js--syntax-propertize-extend-region 'append 'local)
+
+    (goto-char (point-max))
+
+    (setq-local comint-prompt-regexp
+                (concat "^" (regexp-quote fjrepl--prompt)))
+    (setq-local comint-input-sender
+                'fjrepl--input-sender)
+    (setq-local comint-last-output-start (make-marker))
+    (set-marker comint-last-output-start (point-max))
+    (setq-local comint-last-input-start (make-marker))
+    (set-marker comint-last-input-start (point-max))
+    (setq-local comint-last-input-end (make-marker))
+    (set-marker comint-last-input-end (point-max))
+    (setq-local comint-accum-marker (make-marker))
+    (set-marker comint-accum-marker (point-max))
+    (setq-local comint-last-prompt (cons (make-marker) (make-marker)))
+    (unless (or (bobp) (bolp)) (insert "\n"))
+    (set-marker (car comint-last-prompt) (point-max))
+    (insert fjrepl--prompt)
+    (set-marker (process-mark (get-buffer-process (current-buffer)))
+                (point))
+    (set-marker (cdr comint-last-prompt) (point-max))
+    (minibuffer-message
+     (with-temp-buffer (js-mode)
+                       (insert "// JavaScript tip of the day:\n")
+                       (font-lock-ensure (point-min) (point-max))
+                       (buffer-string)))))
+;; FIXME: make font lock work.  Maybe make the mode derived from
+;; js-mode instead.
+;; (setq-local font-lock-defaults
+;;             (list js--font-lock-keywords nil nil nil nil
+;;                   '(font-lock-syntactic-face-function
+;;                     . js-font-lock-syntactic-face-function)))
+
+
 (defun fjrepl--create-profile-directory ()
   "Create a profile directory."
   (let ((profile-directory (make-temp-file "firefox-javascript-repl-" t)))
@@ -53,6 +196,15 @@ ARGUMENTS will be used for FORMAT, like `messages'."
       (insert "user_pref(\"devtools.debugger.remote-enabled\", true);\n")
       (insert "user_pref(\"devtools.chrome.enabled\", true);\n")
       (insert "user_pref(\"devtools.debugger.prompt-connection\", false);\n")
+      ;; Disable Firefox Privacy Policy tab.
+      (insert
+       "user_pref(\"toolkit.telemetry.reportingpolicy.firstRun\", false);\n")
+      ;; Disable "Choose what I share" drop down.
+      (insert
+       (concat
+        "user_pref("
+        "\"datareporting.policy.dataSubmissionPolicyBypassNotification\","
+        " true);\n"))
       (save-buffer 0)
       (kill-buffer))
     profile-directory))
@@ -68,17 +220,17 @@ ARGUMENTS will be used for FORMAT, like `messages'."
             (json-parse-string (buffer-substring start (point)))
           (backward-sexp)))))  )
 
-(defun fjrepl--get-result (buffer depth &rest arguments)
+(defun fjrepl--get-result (buffer descend &rest arguments)
   "Return a field from BUFFER.
 BUFFER holds Firefox's Remote Debug Protocol response messages.
-DEPTH is non-nil if ARGUMENTS represent a decending path through
-the data structure.  DEPTH is nil if ARGUMENTS should match
-fields at the current depth level.  Search from the most recent
-to the least recent messages.  Return the filtered value based on
-the matching arguments in the hierarchy.  ARGUMENTS is a list of
-numbers and strings.  A number is used to pick out an element in
-a JSON list, a string is used to pick out an element from a JSON
-map."
+DESCEND is non-nil if ARGUMENTS represent a decending path
+through the data structure.  DESCEND is nil if ARGUMENTS should
+match fields at the current depth level.  Search from the most
+recent to the least recent messages.  Return the filtered value
+based on the matching arguments in the hierarchy.  ARGUMENTS is a
+list of numbers and strings.  A number is used to pick out an
+element in a JSON list, a string is used to pick out an element
+from a JSON map."
   (with-current-buffer buffer
     (goto-char (point-max))
     (unless (bolp) (insert "\n")) ; avoid one long line
@@ -91,7 +243,7 @@ map."
                      (setq result (when (vectorp result)
                                     (elt result argument))))
                     ((stringp argument)
-                     (if depth
+                     (if descend
                          (setq result (when (hash-table-p result)
                                         (gethash argument result)))
                        (setq result (and (gethash argument result)
@@ -111,13 +263,33 @@ for output from any processes on which Emacs is waiting.."
   (process-send-string network message)
   (fjrepl--accept-input))
 
+(defun fjrepl--extract-result (network response)
+  "Filter the process NETWORK.
+RESPONSE is a Firefox Debug Protocol message received from the
+browser.  Return the result of the JavaScript evaluation."
+  (let* ((result (with-temp-buffer
+                   (insert response)
+                   (fjrepl--get-result
+                    (current-buffer) nil "result")))
+         (parsed (and (hash-table-p result)
+                      (gethash "result" result)))
+         (string (and parsed
+                      (format "%s" (if (hash-table-p parsed)
+                                       (gethash "type" parsed)
+                                     parsed)))))
+    (when string
+      (comint-output-filter network (concat string "\n" fjrepl--prompt)))))
+
 (defun fjrepl--handle-done (name buffer network)
   "Process the startListeners response.
 NAME is a string, the process name to use, BUFFER is a string,
 the name of the buffer in which to put process output, NETWORK is
 the debugger-server connection to Firefox."
+  (set-process-filter network 'fjrepl--extract-result)
   (fjrepl--message "Ready for asynchronous JavaScript evaluation %s %s %s"
-                   name buffer network))
+                   name buffer network)
+  (with-current-buffer (pop-to-buffer buffer)
+    (firefox-javascript-repl-mode)))
 
 (defun fjrepl--handle-console (name buffer network)
   "Process the startListeners response.
@@ -152,6 +324,7 @@ the debugger-server connection to Firefox."
   (when (get-buffer buffer)
     (let ((console-actor (fjrepl--get-result buffer t "frame" "consoleActor")))
       (when console-actor
+        (setq fjrepl--console-actor console-actor)
         (process-send-string network
                              (fjrepl--format-message
                               (concat
@@ -214,11 +387,12 @@ localhost (127.0.0.1) TCP port 6000."
            (process-name (concat "out-" temporary-name))
            (process-buffer-name (concat "*" process-name "*"))
            (network-name (concat "net-" temporary-name))
-           (network-buffer-name (concat "*" network-name "*"))
+           ;; Re-use the network buffer for comint.
+           (comint-buffer-name "*firefox-javascript-repl*")
            (firefox-process
             (start-process "firefox-javascript-repl"
                            process-buffer-name
-                           firefox-javascript-repl-binary
+                           "firefox" ; executable binary name
                            "about:blank"
                            "-profile" profile-directory
                            "-start-debugger-server")))
@@ -229,11 +403,11 @@ localhost (127.0.0.1) TCP port 6000."
                                 (fjrepl--message
                                  "%s %s; deleting %s"
                                  process (string-trim event) profile-directory)
-                                (ignore-errors
-                                  (kill-buffer network-buffer-name))
+                                (setq fjrepl--console-actor nil)
+                                (ignore-errors (kill-buffer comint-buffer-name))
                                 (kill-buffer process-buffer-name)
                                 (delete-directory profile-directory t))))
-      (fjrepl--handle-first network-name network-buffer-name nil)
+      (fjrepl--handle-first network-name comint-buffer-name nil)
       nil)))
 
 (defun firefox-javascript-repl-stop ()
