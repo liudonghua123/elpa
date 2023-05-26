@@ -77,9 +77,8 @@ frameworks)."
 	      ((natnump typo-level)
 	       typo-level)
 	      ((error "Invalid `typo-level' %S" typo-level)))))
-       (and (<= (- typo-shrink)
-		(- len-word len-key)
-		typo-expand)
+       (and (<= (- len-word len-key) typo-shrink)
+            (<= (- len-key len-word) typo-expand)
 	    (<= (string-distance ,word ,key)
 		typo-level))))))
 
