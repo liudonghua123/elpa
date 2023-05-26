@@ -56,14 +56,18 @@ ARGUMENTS will be used for FORMAT, like `messages'."
 
 (defun fjrepl--input-sender (process string)
   "Send to PROCESS the STRING.  Set `comint-input-sender' to this function."
-  (process-send-string process (fjrepl--format-message
-                                ;; Do not use "eager": true, or stuff like
-                                ;; "alert('hello')" does not work.
-                                (concat "{\"type\":\"evaluateJSAsync\","
-                                        "\"text\":\"%s\","
-                                        "\"to\":\"%s\"}")
-                                (replace-regexp-in-string "\"" "\\\\\"" string)
-                                fjrepl--console-actor)))
+  (let ((send (substring-no-properties
+               (replace-regexp-in-string
+                "\n" " " (replace-regexp-in-string
+                          "\"" "\\\\\"" string)))))
+    ;; (fjrepl--message "Sending %s" send)
+    (process-send-string process (fjrepl--format-message
+                                  ;; Do not use "eager": true, or stuff like
+                                  ;; "alert('hello')" does not work.
+                                  (concat "{\"type\":\"evaluateJSAsync\","
+                                          "\"text\":\"%s\","
+                                          "\"to\":\"%s\"}")
+                                  send fjrepl--console-actor))))
 
 (defconst firefox-javascript-repl--directory
   (file-name-directory load-file-name)
@@ -278,16 +282,21 @@ for output from any processes on which Emacs is waiting.."
   "Filter the process NETWORK.
 RESPONSE is a Firefox Debug Protocol message received from the
 browser.  Return the result of the JavaScript evaluation."
+  ;; (fjrepl--message "%S" response)
   (let* ((result (with-temp-buffer
                    (insert response)
                    (fjrepl--get-result
                     (current-buffer) nil "result")))
-         (parsed (and (hash-table-p result)
+         (parsed (and result (hash-table-p result)
                       (gethash "result" result)))
          (string (and parsed
-                      (format "%s" (if (hash-table-p parsed)
-                                       (gethash "type" parsed)
-                                     parsed)))))
+                      (format "%s"
+                              (if (and parsed (hash-table-p parsed))
+                                  (let ((preview (gethash "preview" parsed)))
+                                    (if preview
+                                        (gethash "items" preview)
+                                      (gethash "type" parsed)))
+                                (if parsed parsed ""))))))
     (when string
       (comint-output-filter network (concat string "\n" fjrepl--prompt)))))
 
