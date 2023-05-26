@@ -1,0 +1,3 @@
+[submodule "wtfjs"]
+	path = wtfjs
+	url = https://github.com/denysdovhan/wtfjs

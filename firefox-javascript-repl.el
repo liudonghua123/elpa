@@ -65,6 +65,36 @@ ARGUMENTS will be used for FORMAT, like `messages'."
                                 (replace-regexp-in-string "\"" "\\\\\"" string)
                                 fjrepl--console-actor)))
 
+(defconst firefox-javascript-repl--directory
+  (file-name-directory load-file-name)
+  "The directory in which `firefox-javascript-repl.el' is installed.")
+
+(defun firefox-javascript-repl--show-quirk ()
+  "Show a fun JavaScript quirk in the minibuffer."
+  (let ((quirk
+         (with-temp-buffer
+           (insert-file-contents (expand-file-name
+                                  "wtfjs/README.md"
+                                  firefox-javascript-repl--directory))
+           (goto-char (point-min))
+           (let* ((regexp "^```js\n")
+                  (count (count-matches regexp)))
+             (re-search-forward regexp nil t (1+ (random count)))
+             (let ((start (point)))
+               (re-search-forward "^```" nil t)
+               (beginning-of-line)
+               (backward-char)
+               (buffer-substring start (point)))))))
+    (let ((minibuffer-message-timeout 3))
+      (minibuffer-message
+       (with-temp-buffer (js-mode)
+                         (insert "// JavaScript quirk of the day:\n")
+                         (insert (truncate-string-to-width quirk 100))
+                         (insert "\n")
+                         (insert "// Happy Hacking!")
+                         (font-lock-ensure (point-min) (point-max))
+                         (buffer-string))))))
+
 (define-derived-mode firefox-javascript-repl-mode comint-mode "FJ"
   "Major mode for interactively evaluating JavaScript expressions in Firefox."
   :syntax-table js-mode-syntax-table
@@ -167,11 +197,7 @@ ARGUMENTS will be used for FORMAT, like `messages'."
     (setq-local comint-indirect-setup-function 'js-mode)
     (comint-indirect-buffer)
     (comint-fontify-input-mode)
-    (minibuffer-message
-     (with-temp-buffer (js-mode)
-                       (insert "// JavaScript tip of the day:\n")
-                       (font-lock-ensure (point-min) (point-max))
-                       (buffer-string)))))
+    (firefox-javascript-repl--show-quirk)))
 
 (defun fjrepl--create-profile-directory ()
   "Create a profile directory."
