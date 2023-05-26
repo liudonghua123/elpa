@@ -62,18 +62,27 @@
 
 ;; Compatibility:
 
-;; Tested 2023-05-19 on ppc64le Debian Firefox 102.11.0esr (64-bit).
+;; ╔════════════╦══════════════╦══════════╦══════════════════════╗
+;; ║  Test Date ║ Architecture ║ Browser  ║ Version              ║
+;; ╠════════════╬══════════════╬══════════╬══════════════════════╣
+;; ║ 2023-05-26 ║ ppc64le      ║ Firefox  ║ 102.11.0esr (64-bit) ║
+;; ║ 2023-05-26 ║ x86-64       ║ Firefox  ║ 113.0.2 (64-bit)     ║
+;; ║ 2023-05-26 ║ x86-64       ║ Abrowser ║ 111.0.1 (64-bit)     ║
+;; ╙────────────╨──────────────╨──────────╨──────────────────────╜
 
 ;;; Code:
 (require 'cc-langs)
-(require 'js)
 (require 'comint)
+(require 'js)
+(require 'json)
 
 (defvar fjrepl--debug nil
   "Non-nil to print debug messages to buffer *fjrepl-debug*.")
 
 (defvar fjrepl--console-actor nil
   "The console actor used to evaluate JavaScript in Firefox.")
+
+(defvar messages-buffer-name) ; Emacs 26.1 byte-compiler.
 
 (defun fjrepl--debug (message)
   "Print MESSAGE, a string, to *fjrep-debug*."
@@ -164,9 +173,12 @@ ARGUMENTS will be used for FORMAT, like `messages'."
     (set-marker (process-mark (get-buffer-process (current-buffer)))
                 (point))
     (set-marker (cdr comint-last-prompt) (point-max))
-    (setq-local comint-indirect-setup-function 'js-mode)
-    (comint-indirect-buffer)
-    (comint-fontify-input-mode)
+    (when (boundp 'comint-indirect-setup-function)
+      (setq-local comint-indirect-setup-function 'js-mode))
+    (when (fboundp 'comint-indirect-buffer)
+      (comint-indirect-buffer))
+    (when (fboundp 'comint-fontify-input-mode)
+      (comint-fontify-input-mode))
     (make-local-variable 'kill-buffer-hook)
     (add-hook 'kill-buffer-hook 'comint--indirect-cleanup)
     (add-hook 'kill-buffer-hook
@@ -204,7 +216,9 @@ ARGUMENTS will be used for FORMAT, like `messages'."
       (let ((start (point)))
         (forward-sexp)
         (prog1
-            (json-parse-string (buffer-substring start (point)))
+	    (let ((json-object-type 'hash-table))
+	      (json-read-from-string
+	       (buffer-substring start (point))))
           (backward-sexp)))))  )
 
 (defun fjrepl--get-result (buffer descend &rest arguments)
@@ -438,7 +452,9 @@ localhost (127.0.0.1) TCP port 6000."
                                        "finished\n"))
                                 (fjrepl--message
                                  "%s %s; deleting %s"
-                                 process (string-trim event) profile-directory)
+                                 process
+				 (string-trim-left (string-trim-right event))
+				 profile-directory)
                                 (setq fjrepl--console-actor nil)
                                 (kill-buffer
                                  firefox-standard-output-buffer-name)
