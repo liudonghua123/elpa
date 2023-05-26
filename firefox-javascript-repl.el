@@ -35,6 +35,7 @@
 ;; Tested 2023-05-19 on ppc64le Debian Firefox 102.11.0esr (64-bit).
 
 ;;; Code:
+(require 'cc-langs)
 (require 'js)
 (require 'comint)
 
@@ -53,7 +54,6 @@ ARGUMENTS will be used for FORMAT, like `messages'."
 (defvar fjrepl--prompt "FJ> "
   "The prompt used in the Firefox JavaScript buffer.")
 
-;; fixme: font-lock.
 (defun fjrepl--input-sender (process string)
   "Send to PROCESS the STRING.  Set `comint-input-sender' to this function."
   (process-send-string process (fjrepl--format-message
@@ -71,9 +71,8 @@ ARGUMENTS will be used for FORMAT, like `messages'."
   :after-hook
   (progn
     (when (and (string= (buffer-name) "*firefox-javascript-repl*")
-               (fjrepl--parse-prior-message (current-buffer)))
+               (fjrepl--parse-prior-message (current-buffer))) ; No accidents.
       (delete-region (point-min) (point-max)))
-    (setq-local font-lock-keywords nil)
     ;; From js.el.
     ;; Ensure all CC Mode "lang variables" are set to valid values.
     (c-init-language-vars js-mode)
@@ -144,16 +143,6 @@ ARGUMENTS will be used for FORMAT, like `messages'."
             c-comment-prefix-regexp "//+\\|\\**")
       (c-setup-paragraph-variables))
 
-    (setq-local font-lock-defaults
-                (list js--font-lock-keywords nil nil nil nil
-                      '(font-lock-syntactic-face-function
-                        . js-font-lock-syntactic-face-function)))
-    (setq-local syntax-propertize-function #'js-syntax-propertize)
-    (add-hook 'syntax-propertize-extend-region-functions
-              #'syntax-propertize-multiline 'append 'local)
-    (add-hook 'syntax-propertize-extend-region-functions
-              #'js--syntax-propertize-extend-region 'append 'local)
-
     (goto-char (point-max))
 
     (setq-local comint-prompt-regexp
@@ -175,18 +164,14 @@ ARGUMENTS will be used for FORMAT, like `messages'."
     (set-marker (process-mark (get-buffer-process (current-buffer)))
                 (point))
     (set-marker (cdr comint-last-prompt) (point-max))
+    (setq-local comint-indirect-setup-function 'js-mode)
+    (comint-indirect-buffer)
+    (comint-fontify-input-mode)
     (minibuffer-message
      (with-temp-buffer (js-mode)
                        (insert "// JavaScript tip of the day:\n")
                        (font-lock-ensure (point-min) (point-max))
                        (buffer-string)))))
-;; FIXME: make font lock work.  Maybe make the mode derived from
-;; js-mode instead.
-;; (setq-local font-lock-defaults
-;;             (list js--font-lock-keywords nil nil nil nil
-;;                   '(font-lock-syntactic-face-function
-;;                     . js-font-lock-syntactic-face-function)))
-
 
 (defun fjrepl--create-profile-directory ()
   "Create a profile directory."
