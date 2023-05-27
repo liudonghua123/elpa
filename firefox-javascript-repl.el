@@ -21,16 +21,17 @@
 
 ;;; Commentary:
 
-;; REPL into a new Firefox instance's JavaScript engine.  This is
-;; barebones and unstructured (the way a `comint' mode should be?)
-;; meant for quick JavaScript experiments.  Paste each statement from
-;; `example.js' into the REPL to try it out.
+;; REPL into a new Firefox instance's JavaScript engine.  This
+;; `comint' mode is barebones and unstructured, meant for quick
+;; JavaScript experiments.  Paste each statement from `example.js'
+;; into the REPL to try it out.
 
-;; Use `dap-mode' and `lsp-mode' instead.
+;; For projects you should probably use `dap-mode' and `lsp-mode'
+;; instead.
 
 ;; Only Firefox and Firefox-derivative browsers will ever be supported
-;; (unless someone sends a really convincing patch).  I will attempt
-;; to promise to try to keep this working with at least the
+;; (unless someone sends a really convincing patch).  I promise to
+;; attempt to stive to keep this working with at least the
 ;; greenest-of-evergreen Firefox and Firefox ESR versions (see
 ;; Compatibility).  My sense is that the Firefox Debug Protocol is
 ;; less of a moving target than it used to be.  Emacs versions back to
@@ -57,7 +58,7 @@
 
 ;; Closing Firefox will clean up some implementation buffers but will
 ;; leave the *firefox-javascript-debugger* buffer intact so you can
-;; pull your experiments out and save them.  Killing
+;; yank your experiments out to save them.  Killing
 ;; *firefox-javascript-debugger* will kill the Firefox process and
 ;; clean everything up.
 
