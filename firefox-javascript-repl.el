@@ -109,7 +109,7 @@
   (when fjrepl--debug
     (let ((messages-buffer-name "*fjrepl-debug*")
           (inhibit-message t))
-      (message "%s" message))))
+      (message "%s" (string-trim-left (string-trim-right message))))))
 
 (defun fjrepl--message (format &rest arguments)
   "Print to *Messages* a package herald and FORMAT.
@@ -419,9 +419,10 @@ the FRDP connection to Firefox."
                (when network
                  (set-process-sentinel
                   network
-                  (lambda (process event)
+                  (lambda (network event)
                     (fjrepl--message
-                     "Network sentinel: %S %S" process event)))))
+                     "Network sentinel: %S %S" network
+                     (string-trim-left (string-trim-right event)))))))
       (let ((nextp (and network
                         (fjrepl--get-result buffer t "applicationType"))))
         (when nextp
@@ -461,17 +462,18 @@ localhost (127.0.0.1) TCP port 6000."
                            "-profile" profile-directory
                            "-start-debugger-server")))
       (set-process-sentinel firefox-process
-                            (lambda (process event)
+                            (lambda (firefox-process event)
                               (fjrepl--message
                                "Firefox standard output sentinel: %S %S"
-                               process event)
+                               firefox-process
+                               (string-trim-left (string-trim-right event)))
                               (when (member
                                      event
                                      '("killed\n"
                                        "finished\n"))
                                 (fjrepl--message
                                  "%s %s; deleting %s"
-                                 process
+                                 firefox-process
                                  (string-trim-left (string-trim-right event))
                                  profile-directory)
                                 (setq fjrepl--console-actor nil)
