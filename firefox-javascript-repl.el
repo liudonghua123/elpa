@@ -21,6 +21,20 @@
 
 ;;; Commentary:
 
+;; Usage:
+
+;; Start the REPL:
+
+;; M-x firefox-javascript-repl RET
+
+;; To stop the REPL, kill the *firefox-javascript-debugger* buffer:
+
+;; C-x k RET yes RET
+
+;; or quit Firefox from within Firefox.
+
+;; Description:
+
 ;; REPL into a new Firefox instance's JavaScript engine.  A new
 ;; throwaway Firefox profile directory is created before each run, so
 ;; you won't need to modify your existing profiles.  This mode takes
@@ -60,16 +74,6 @@
 ;; Installation:
 
 ;; M-x package-install RET firefox-javascript-repl RET
-
-;; Usage:
-
-;; M-x firefox-javascript-repl RET
-
-;; Closing Firefox will clean up some implementation buffers but will
-;; leave the *firefox-javascript-debugger* buffer intact so you can
-;; yank your experiments out to save them.  Killing
-;; *firefox-javascript-debugger* will kill the Firefox process and
-;; clean everything up.
 
 ;; Compatibility:
 
