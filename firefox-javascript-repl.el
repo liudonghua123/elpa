@@ -21,10 +21,18 @@
 
 ;;; Commentary:
 
-;; REPL into a new Firefox instance's JavaScript engine.  This
-;; `comint' mode is barebones and unstructured, meant for quick
-;; JavaScript experiments.  Paste each statement from `example.js'
-;; into the REPL to try it out.
+;; REPL into a new Firefox instance's JavaScript engine.  A new
+;; throwaway Firefox profile directory is created before each run, so
+;; you won't need to modify your existing profiles.  This mode takes
+;; care of starting the new Firefox process in debugging mode, which
+;; may be tedious to do by hand.
+
+;; This `comint' mode is barebones and unstructured, meant for quick
+;; JavaScript experiments.  On newer versions of Emacs with
+;; `comint-indirect-buffer' support, syntax highlighting happens on
+;; the current statement.
+
+;; Paste each statement from `example.js' into the REPL to try it out.
 
 ;; For projects you should probably use `dap-mode' and `lsp-mode'
 ;; instead.
