@@ -33,15 +33,16 @@
 ;; (unless someone sends a really convincing patch).  I promise to
 ;; attempt to stive to keep this working with at least the
 ;; greenest-of-evergreen Firefox and Firefox ESR versions (see
-;; Compatibility).  My sense is that the Firefox Debug Protocol is
-;; less of a moving target than it used to be.  Emacs versions back to
-;; 26.1 (or earlier if anyone can test on Emacs < 26.1) will be
-;; supported.
+;; Compatibility).  My sense is that the Firefox Remote Debugging
+;; Protocol is less of a moving target than it used to be.  Emacs
+;; versions back to 26.1 (or earlier if anyone can test on Emacs <
+;; 26.1) will be supported.
 
 ;; Wouldn't it be great (for other people) to turn this into a full
 ;; SLIME analog for JavaScript (patches accepted)?  I tried `jsSlime'
 ;; (https://github.com/segv/jss) but its most recent update is ten
-;; years old and the Firefox Debug Protocol has changed too much.
+;; years old and the Firefox Remote Debugging Protocol has changed too
+;; much.
 
 ;; The function `fjrepl--extract-result' could do a way better job of
 ;; getting results but I find it OK for little experiments.  If I need
@@ -71,6 +72,11 @@
 ;; ║ 2023-05-26 ║ x86-64       ║ Firefox  ║ 113.0.2 (64-bit)     ║
 ;; ║ 2023-05-26 ║ x86-64       ║ Abrowser ║ 111.0.1 (64-bit)     ║
 ;; ╙────────────╨──────────────╨──────────╨──────────────────────╜
+
+;; Acronyms:
+
+;; FRDP: Firefox Remote Debugging Protocol
+;;       https://firefox-source-docs.mozilla.org/devtools/backend/protocol.html
 
 ;;; Code:
 (require 'cc-langs)
@@ -218,22 +224,21 @@ ARGUMENTS will be used for FORMAT, like `messages'."
       (let ((start (point)))
         (forward-sexp)
         (prog1
-	    (let ((json-object-type 'hash-table))
-	      (json-read-from-string
-	       (buffer-substring start (point))))
+            (let ((json-object-type 'hash-table))
+              (json-read-from-string
+               (buffer-substring start (point))))
           (backward-sexp)))))  )
 
 (defun fjrepl--get-result (buffer descend &rest arguments)
   "Return a field from BUFFER.
-BUFFER holds Firefox's Remote Debug Protocol response messages.
-DESCEND is non-nil if ARGUMENTS represent a decending path
-through the data structure.  DESCEND is nil if ARGUMENTS should
-match fields at the current depth level.  Search from the most
-recent to the least recent messages.  Return the filtered value
-based on the matching arguments in the hierarchy.  ARGUMENTS is a
-list of numbers and strings.  A number is used to pick out an
-element in a JSON list, a string is used to pick out an element
-from a JSON map."
+BUFFER holds the FRDP response messages.  DESCEND is non-nil if
+ARGUMENTS represent a decending path through the data structure.
+DESCEND is nil if ARGUMENTS should match fields at the current
+depth level.  Search from the most recent to the least recent
+messages.  Return the filtered value based on the matching
+arguments in the hierarchy.  ARGUMENTS is a list of numbers and
+strings.  A number is used to pick out an element in a JSON list,
+a string is used to pick out an element from a JSON map."
   (with-current-buffer buffer
     (goto-char (point-max))
     (let (result)
@@ -266,8 +271,8 @@ from a JSON map."
 
 (defun fjrepl--extract-result (network response)
   "Filter the process NETWORK.
-RESPONSE is a Firefox Debug Protocol message received from the
-browser.  Return the result of the JavaScript evaluation."
+RESPONSE is a FRDP message received from the browser.  Return the
+result of the JavaScript evaluation."
   (fjrepl--debug response)
   (let* ((result (with-temp-buffer
                    (insert response)
@@ -292,7 +297,7 @@ browser.  Return the result of the JavaScript evaluation."
   "Process the startListeners response.
 NAME is a string, the process name to use, BUFFER is a string,
 the name of the buffer in which to put process output, NETWORK is
-the debugger-server connection to Firefox."
+the FRDP connection to Firefox."
   (fjrepl--remove-results)
   (set-process-filter network 'fjrepl--extract-result)
   (fjrepl--message
@@ -317,7 +322,7 @@ MESSAGE is the error message."
   "Process the startListeners response.
 NAME is a string, the process name to use, BUFFER is a string,
 the name of the buffer in which to put process output, NETWORK is
-the debugger-server connection to Firefox."
+the FRDP connection to Firefox."
   (fjrepl--ensure-count "Failed to access Firefox console actor")
   (fjrepl--message "Handling console message %d"
                    (setq fjrepl--count (1+ fjrepl--count)))
@@ -342,7 +347,7 @@ the arguments for the format string."
   "Process the getTarget response.
 NAME is a string, the process name to use, BUFFER is a string,
 the name of the buffer in which to put process output, NETWORK is
-the debugger-server connection to Firefox."
+the FRDP connection to Firefox."
   (fjrepl--ensure-count "Failed to find Firefox targets")
   (fjrepl--message "Handling target message %d"
                    (setq fjrepl--count (1+ fjrepl--count)))
@@ -366,7 +371,7 @@ the debugger-server connection to Firefox."
   "Process the listTabs response.
 NAME is a string, the process name to use, BUFFER is a string,
 the name of the buffer in which to put process output, NETWORK is
-the debugger-server connection to Firefox."
+the FRDP connection to Firefox."
   (fjrepl--ensure-count "Failed to find Firefox tab")
   (fjrepl--message "Handling tab message %d"
                    (setq fjrepl--count (1+ fjrepl--count)))
@@ -387,10 +392,10 @@ the debugger-server connection to Firefox."
   (internal-default-process-filter network response))
 
 (defun fjrepl--handle-first (name buffer network)
-  "Connect to Firefox process and process the first message from Firefox.
+  "Connect to Firefox process and process the first FRDP message from Firefox.
 NAME is a string, the process name to use, BUFFER is a string,
 the name of the buffer in which to put process output, NETWORK is
-the debugger-server connection to Firefox."
+the FRDP connection to Firefox."
   (fjrepl--ensure-count "Failed to detect first message from Firefox")
   (fjrepl--message "Handling first message %d"
                    (setq fjrepl--count (1+ fjrepl--count)))
@@ -455,8 +460,8 @@ localhost (127.0.0.1) TCP port 6000."
                                 (fjrepl--message
                                  "%s %s; deleting %s"
                                  process
-				 (string-trim-left (string-trim-right event))
-				 profile-directory)
+                                 (string-trim-left (string-trim-right event))
+                                 profile-directory)
                                 (setq fjrepl--console-actor nil)
                                 (kill-buffer
                                  firefox-standard-output-buffer-name)
