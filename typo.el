@@ -51,11 +51,15 @@ indicating the maximal number of permitted typos."
   :type '(choice function natnum))
 
 (defcustom typo-shrink 1
-  "Number of characters a word may shrink."
+  "Number of characters a word may shrink.
+Any candidate that would shorted the word by more characters than
+the value of this variable are rejected."
   :type 'natnum)
 
 (defcustom typo-expand 4
-  "Number of characters a word may expand."
+  "Number of characters a word may expand.
+Any candidate that would lengthen the word by more characters
+than the value of this variable are rejected."
   :type 'natnum)
 
 (defcustom typo-support-all-completions t
