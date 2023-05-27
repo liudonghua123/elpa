@@ -39,8 +39,8 @@
 
 ;; Wouldn't it be great (for other people) to turn this into a full
 ;; SLIME analog for JavaScript (patches accepted)?  I tried `jsSlime'
-;; but its most recent update is ten years old and the Firefox Debug
-;; Protocol has changed too much.
+;; (https://github.com/segv/jss) but its most recent update is ten
+;; years old and the Firefox Debug Protocol has changed too much.
 
 ;; The function `fjrepl--extract-result' could do a way better job of
 ;; getting results but I find it OK for little experiments.  If I need
