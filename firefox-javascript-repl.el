@@ -200,7 +200,8 @@ ARGUMENTS will be used for FORMAT, like `messages'."
     (when (fboundp 'comint-fontify-input-mode)
       (comint-fontify-input-mode))
     (make-local-variable 'kill-buffer-hook)
-    (add-hook 'kill-buffer-hook 'comint--indirect-cleanup)
+    (when (fboundp 'comint--indirect-cleanup)
+      (add-hook 'kill-buffer-hook 'comint--indirect-cleanup))
     (add-hook 'kill-buffer-hook
               (lambda ()
                 (let ((network (get-process "firefox-javascript-repl")))
