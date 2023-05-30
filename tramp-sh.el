@@ -80,13 +80,6 @@ the default storage location, e.g. \"$HOME/.sh_history\"."
                  (const :tag "Unset HISTFILE" t)
                  (string :tag "Redirect to a file")))
 
-;;;###tramp-autoload
-(defconst tramp-display-escape-sequence-regexp (rx "\e" (+ (any ";[" digit)) "m")
-  "Terminal control escape sequences for display attributes.")
-
-(defconst tramp-device-escape-sequence-regexp (rx "\e" (+ (any "[" digit)) "n")
-  "Terminal control escape sequences for device status.")
-
 ;; ksh on OpenBSD 4.5 requires that $PS1 contains a `#' character for
 ;; root users.  It uses the `$' character for other users.  In order
 ;; to guarantee a proper prompt, we use "#$ " for the prompt.
@@ -2649,7 +2642,7 @@ The method used must be an out-of-band method."
       (setq switches
 	    (append switches (split-string (tramp-sh--quoting-style-options v))))
       (unless (tramp-get-ls-command-with v "--dired")
-	(setq switches (delete "--dired" switches)))
+	(setq switches (delete "-N" (delete "--dired" switches))))
       (when wildcard
         (setq wildcard (tramp-run-real-handler
 			#'file-name-nondirectory (list localname)))
@@ -2737,7 +2730,7 @@ The method used must be an out-of-band method."
 	  (unless (tramp-compat-string-search
 		   "color" (tramp-get-connection-property v "ls" ""))
 	    (goto-char (point-min))
-	    (while (re-search-forward tramp-display-escape-sequence-regexp nil t)
+	    (while (re-search-forward ansi-color-control-seq-regexp nil t)
 	      (replace-match "")))
 
           ;; Now decode what read if necessary.  Stolen from `insert-directory'.
@@ -3220,7 +3213,7 @@ implementation will be used."
             (if (tramp-compat-string-search "=" elt)
                 (setq env (append env `(,elt)))
               (setq uenv (cons elt uenv)))))
-      (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep)
+      (setq env (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
       (when env
 	(setq command
 	      (format
@@ -4424,6 +4417,7 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
 	 proc timeout
 	 (tramp-compat-rx
 	  (| (regexp shell-prompt-pattern) (regexp tramp-shell-prompt-pattern))
+	  (? (regexp ansi-color-control-seq-regexp))
 	  eos))
       (error
        (delete-process proc)
@@ -4932,6 +4926,7 @@ Goes through the list `tramp-inline-compress-commands'."
   "Check, whether local ssh OPTION is applicable."
   ;; We don't want to cache it persistently.
   (with-tramp-connection-property nil option
+    ;; "ssh -G" is introduced in OpenSSH 6.7.
     ;; We use a non-existing IP address for check, in order to avoid
     ;; useless connections, and DNS timeouts.
     (zerop
@@ -4950,26 +4945,30 @@ Goes through the list `tramp-inline-compress-commands'."
          (stringp tramp-ssh-controlmaster-options))
     tramp-ssh-controlmaster-options)
 
+   ;; We can't auto-compute the options.
+   ((ignore-errors
+      (not (tramp-ssh-option-exists-p vec "ControlMaster=auto")))
+    "")
+
    ;; Determine the options.
    (t (ignore-errors
         ;; ControlMaster and ControlPath options are introduced in OpenSSH 3.9.
-	(when (tramp-ssh-option-exists-p vec "ControlMaster=auto")
-          (concat
-           "-o ControlMaster="
-           (if (eq tramp-use-ssh-controlmaster-options 'suppress)
-               "no" "auto")
+        (concat
+         "-o ControlMaster="
+         (if (eq tramp-use-ssh-controlmaster-options 'suppress)
+             "no" "auto")
 
-           " -o ControlPath="
-           (if (eq tramp-use-ssh-controlmaster-options 'suppress)
-               "none"
-             ;; Hashed tokens are introduced in OpenSSH 6.7.
-	     (if (tramp-ssh-option-exists-p vec "ControlPath=tramp.%C")
-		 "tramp.%%C" "tramp.%%r@%%h:%%p"))
+         " -o ControlPath="
+         (if (eq tramp-use-ssh-controlmaster-options 'suppress)
+             "none"
+           ;; Hashed tokens are introduced in OpenSSH 6.7.
+	   (if (tramp-ssh-option-exists-p vec "ControlPath=tramp.%C")
+	       "tramp.%%C" "tramp.%%r@%%h:%%p"))
 
-           ;; ControlPersist option is introduced in OpenSSH 5.6.
-	   (when (and (not (eq tramp-use-ssh-controlmaster-options 'suppress))
-                      (tramp-ssh-option-exists-p vec "ControlPersist=no"))
-	     " -o ControlPersist=no")))))))
+         ;; ControlPersist option is introduced in OpenSSH 5.6.
+	 (when (and (not (eq tramp-use-ssh-controlmaster-options 'suppress))
+                    (tramp-ssh-option-exists-p vec "ControlPersist=no"))
+	   " -o ControlPersist=no"))))))
 
 (defun tramp-scp-strict-file-name-checking (vec)
   "Return the strict file name checking argument of the local scp."
@@ -5394,14 +5393,14 @@ function waits for output unless NOOUTPUT is set."
     (tramp-error proc 'file-error "Process `%s' not available, try again" proc))
   (with-current-buffer (process-buffer proc)
     (let* (;; Initially, `tramp-end-of-output' is "#$ ".  There might
-	   ;; be leading escape sequences, which must be ignored.
-	   ;; Busyboxes built with the EDITING_ASK_TERMINAL config
-	   ;; option send also escape sequences, which must be
-	   ;; ignored.
+	   ;; be leading ANSI control escape sequences, which must be
+	   ;; ignored.  Busyboxes built with the EDITING_ASK_TERMINAL
+	   ;; config option send also ANSI control escape sequences,
+	   ;; which must be ignored.
 	   (regexp (tramp-compat-rx
 		    (* (not (any "#$\n")))
 		    (literal tramp-end-of-output)
-		    (? (regexp tramp-device-escape-sequence-regexp))
+		    (? (regexp ansi-color-control-seq-regexp))
 		    (? "\r") eol))
 	   ;; Sometimes, the commands do not return a newline but a
 	   ;; null byte before the shell prompt, for example "git

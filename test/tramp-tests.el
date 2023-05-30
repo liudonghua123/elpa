@@ -66,7 +66,6 @@
 (defvar ange-ftp-make-backup-files)
 (defvar tramp-connection-properties)
 (defvar tramp-copy-size-limit)
-(defvar tramp-display-escape-sequence-regexp)
 (defvar tramp-fuse-remove-hidden-files)
 (defvar tramp-fuse-unmount-on-cleanup)
 (defvar tramp-inline-compress-start-size)
@@ -4725,7 +4724,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
                              tramp-prefix-format hop
                              (substring-no-properties
 			      method 0 (min 2 (length method))))
-			   ,(concat tramp-prefix-format method-string)
+			   ,(concat tramp-prefix-format hop method-string)
 			   ,method-string)))
 		      ;; Complete user name.
 		      (unless (tramp-string-empty-or-nil-p user)
@@ -4734,7 +4733,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
                              (substring-no-properties
 			      user 0 (min 2 (length user))))
 			   ,(concat
-                             tramp-prefix-format method-string user-string)
+                             tramp-prefix-format hop method-string user-string)
 			   ,user-string)))
 		      ;; Complete host name.
 		      (unless (tramp-string-empty-or-nil-p host)
@@ -4744,9 +4743,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			     (substring-no-properties
 			      host 0 (min 2 (length host))))
 			   (,(concat
-			      tramp-prefix-format method-string host-string)
+			      tramp-prefix-format hop method-string host-string)
 			    ,(concat
-			      tramp-prefix-format method-string
+			      tramp-prefix-format hop method-string
 			      user-string host-string))
 			   ,host-string)))
 		      ;; Complete user and host name.
@@ -4758,7 +4757,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			     (substring-no-properties
 			      host 0 (min 2 (length host))))
 			   ,(concat
-                             tramp-prefix-format method-string
+                             tramp-prefix-format hop method-string
 	                     user-string host-string)
 			   ,host-string)))))
 
@@ -4916,8 +4915,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (if (bufferp destination) destination (current-buffer))
 		  ;; "ls" could produce colorized output.
 		  (goto-char (point-min))
-		  (while (re-search-forward
-			  tramp-display-escape-sequence-regexp nil t)
+		  (while (re-search-forward ansi-color-control-seq-regexp nil t)
 		    (replace-match "" nil nil))
 		  (should
 		   (string-equal (if destination (format "%s\n" fnnd) "")
@@ -4931,8 +4929,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (if (bufferp destination) destination (current-buffer))
 		  ;; "ls" could produce colorized output.
 		  (goto-char (point-min))
-		  (while (re-search-forward
-			  tramp-display-escape-sequence-regexp nil t)
+		  (while (re-search-forward ansi-color-control-seq-regexp nil t)
 		    (replace-match "" nil nil))
 		  (should
 		   (string-equal
@@ -5682,8 +5679,7 @@ INPUT, if non-nil, is a string sent to the process."
 	       (current-buffer))
 	      ;; "ls" could produce colorized output.
 	      (goto-char (point-min))
-	      (while
-		  (re-search-forward tramp-display-escape-sequence-regexp nil t)
+	      (while (re-search-forward ansi-color-control-seq-regexp nil t)
 		(replace-match "" nil nil))
 	      (should
 	       (string-equal
@@ -7439,10 +7435,7 @@ This is needed in timer functions as well as process filters and sentinels."
   "Check parallel asynchronous requests.
 Such requests could arrive from timers, process filters and
 process sentinels.  They shall not disturb each other."
-  :tags (append '(:expensive-test :tramp-asynchronous-processes)
-		(and (or (getenv "EMACS_HYDRA_CI")
-                         (getenv "EMACS_EMBA_CI"))
-                     '(:unstable)))
+  :tags '(:expensive-test :tramp-asynchronous-processes :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
@@ -7577,34 +7570,37 @@ process sentinels.  They shall not disturb each other."
 
             ;; Send a string to the processes.  Use a random order of
             ;; the buffers.  Mix with regular operation.
-            (let ((buffers (copy-sequence buffers)))
+            (let ((buffers (copy-sequence buffers))
+		  buf)
               (while buffers
-                (let* ((buf (seq-random-elt buffers))
-                       (proc (get-buffer-process buf))
-                       (file (process-get proc 'foo))
-                       (count (process-get proc 'bar)))
-                  (tramp--test-message
-                   "Start action %d %s %s" count buf (current-time-string))
-                  ;; Regular operation prior process action.
-		  (dired-uncache file)
-                  (if (= count 0)
-                      (should-not (file-attributes file))
-                    (should (file-attributes file)))
-                  ;; Send string to process.
-                  (process-send-string proc (format "%s\n" (buffer-name buf)))
-                  (while (accept-process-output nil 0))
-                  (tramp--test-message
-                   "Continue action %d %s %s" count buf (current-time-string))
-                  ;; Regular operation post process action.
-		  (dired-uncache file)
-                  (if (= count 2)
-                      (should-not (file-attributes file))
-                    (should (file-attributes file)))
-                  (tramp--test-message
-                   "Stop action %d %s %s" count buf (current-time-string))
-                  (process-put proc 'bar (1+ count))
-                  (unless (process-live-p proc)
-                    (setq buffers (delq buf buffers))))))
+		(setq buf (seq-random-elt buffers))
+                (if-let ((proc (get-buffer-process buf))
+			 (file (process-get proc 'foo))
+			 (count (process-get proc 'bar)))
+		    (progn
+                      (tramp--test-message
+                       "Start action %d %s %s" count buf (current-time-string))
+                      ;; Regular operation prior process action.
+		      (dired-uncache file)
+                      (if (= count 0)
+			  (should-not (file-attributes file))
+			(should (file-attributes file)))
+                      ;; Send string to process.
+                      (process-send-string proc (format "%s\n" (buffer-name buf)))
+                      (while (accept-process-output nil 0))
+                      (tramp--test-message
+                       "Continue action %d %s %s" count buf (current-time-string))
+                      ;; Regular operation post process action.
+		      (dired-uncache file)
+                      (if (= count 2)
+			  (should-not (file-attributes file))
+			(should (file-attributes file)))
+                      (tramp--test-message
+                       "Stop action %d %s %s" count buf (current-time-string))
+                      (process-put proc 'bar (1+ count))
+                      (unless (process-live-p proc)
+			(setq buffers (delq buf buffers))))
+		  (setq buffers (delq buf buffers)))))
 
             ;; Checks.  All process output shall exists in the
             ;; respective buffers.  All created files shall be
