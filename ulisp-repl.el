@@ -21,11 +21,20 @@
 
 ;;; Commentary:
 
-;; Interact with uLisp running on a target board over a serial connection.
+;; Interact with uLisp running on a target board, through a serial
+;; port.
 
 ;; Usage:
 
 ;; M-x ulisp-repl
+
+;; Uses Emacs's built-in serial-port support.  I you are running on a
+;; non-Linux kernel, you will need to adapt
+;; `ulisp--select-serial-device'.
+
+;; To browse uLisp reference documentation:
+
+;; M-x eww RET http://www.ulisp.com/show?3L RET
 
 ;;; Code:
 (require 'comint)
@@ -37,16 +46,29 @@
   :group 'comm
   :type 'string)
 
+(defun ulisp-output-filter (process string)
+  "Filter PROCESS output.
+Detect and drop output from uLisp in STRING."
+  (comint-output-filter process string))
+
 (define-derived-mode ulisp-repl--mode comint-mode "uLisp"
   "Major mode for interacting with a uLisp target board."
   :syntax lisp-mode-syntax-table
   :interactive nil
   :after-hook
   (progn
-    ;; FIXME: make-serial-process and join the comint to that process.
-    (keymap-local-set "RET" 'comint-send-input)
+    (let ((paredit-map (cdr (assoc 'paredit-mode minor-mode-map-alist)))
+          (ulisp-override-map (make-sparse-keymap)))
+      (set-keymap-parent ulisp-override-map paredit-map)
+      (define-key ulisp-override-map (kbd "RET") 'comint-send-input)
+      (make-local-variable 'minor-mode-overriding-map-alist)
+      (push (cons 'paredit-mode ulisp-override-map)
+            minor-mode-overriding-map-alist))
+    (set-process-filter (get-buffer-process (current-buffer))
+                        'ulisp-output-filter)
     (setq-local comint-process-echoes t)
     (setq-local comint-prompt-regexp (concat "^[0-9]+> "))
+    ;; Everything else is for fontifying the current input.
     (when (boundp 'comint-indirect-setup-function)
       (setq-local comint-indirect-setup-function 'lisp-mode))
     (when (fboundp 'comint-indirect-buffer)
@@ -55,11 +77,7 @@
       (comint-fontify-input-mode))
     (make-local-variable 'kill-buffer-hook)
     (when (fboundp 'comint--indirect-cleanup)
-      (add-hook 'kill-buffer-hook 'comint--indirect-cleanup))
-    (add-hook 'kill-buffer-hook
-              (lambda ()
-                (let ((network (get-process "*ulisp-repl*")))
-                  (when network (kill-process network)))))))
+      (add-hook 'kill-buffer-hook 'comint--indirect-cleanup))))
 
 (defun ulisp--filter-files (files)
   "Return FILES but with . and .. entries removed."
@@ -83,8 +101,10 @@ For the meaning of PREFIX, see `ulisp-repl'."
                            (car files))))
               (if (and (file-readable-p file) (file-readable-p file))
                   (customize-set-value 'ulisp-repl-serial-device-path file)
-                (error "Failed to access %s" file)))
-          (error "Failed to access directory %s" base)))
+                (error "Failed to access %s; check owner and permissions"
+                       file)))
+          (error "Failed to access directory %s; check owner and permissions"
+                 base)))
     ulisp-repl-serial-device-path))
 
 (defun ulisp-repl (prefix)
@@ -95,13 +115,13 @@ if that is nil, query."
   (interactive "P")
   (if (get-buffer-process "*ulisp-repl*")
       (pop-to-buffer "*ulisp-repl*")
-    (with-current-buffer (get-buffer-create "*ulisp-repl*")
+    (let ((buffer (get-buffer-create "*ulisp-repl*")))
       (let ((device (ulisp--select-serial-device prefix)))
-        (comint-exec
-         (current-buffer) "ulisp-serial" "cu" nil (list "-l" device))
+        (make-serial-process
+         :name "ulisp-serial" :port device :speed 9600 :buffer buffer))
+      (with-current-buffer buffer
         (ulisp-repl--mode)
         (paredit-mode)
-        (keymap-local-unset "RET" t)
         (pop-to-buffer (current-buffer))))))
 
 (provide 'ulisp-repl)
