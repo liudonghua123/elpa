@@ -1,0 +1,7 @@
+GNU Emacs ulisp-repl NEWS -- history of user-visible changes.
+
+* New in ulisp-repl 1.0.1
+
+Released 2023-06-01:
+
+** Autoload ulisp-repl
