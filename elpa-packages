@@ -289,6 +289,7 @@
  (f90-interface-browser :url nil) ;; Was "https://github.com/wence-/f90-iface"
  (face-shift            :url "https://git.sr.ht/~pkal/face-shift")
  (filladapt		:url nil)
+ (firefox-javascript-repl	:url "https://git.sr.ht/~fitzsim/firefox-javascript-repl")
  (flylisp		:url nil)
  (flymake		:core "lisp/progmodes/flymake.el")
  (flymake-proselint	:url "https://git.sr.ht/~manuel-uberti/flymake-proselint")
