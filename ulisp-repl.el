@@ -107,6 +107,7 @@ For the meaning of PREFIX, see `ulisp-repl'."
                  base)))
     ulisp-repl-serial-device-path))
 
+;;;###autoload
 (defun ulisp-repl (prefix)
   "Start a uLisp REPL.
 If PREFIX is non-nil, always query for the device path.  If
