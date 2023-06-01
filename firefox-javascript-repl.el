@@ -324,7 +324,6 @@ the FRDP connection to Firefox."
 
 (defun fjrepl--stop ()
   "Stop the Firefox process started by `firefox-javascript-repl'."
-  (interactive)
   (kill-process "firefox-javascript-repl"))
 
 (defun fjrepl--ensure-count (message)
@@ -438,6 +437,7 @@ the FRDP connection to Firefox."
                      (if nextp 'fjrepl--handle-tab 'fjrepl--handle-first)
                      name buffer network)))))
 
+;;;###autoload
 (defun firefox-javascript-repl ()
   "Run a new instance of Firefox in a new profile.
 Set about:config values `devtools.debugger.remote-enabled' to
