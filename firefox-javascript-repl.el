@@ -206,7 +206,10 @@ ARGUMENTS will be used for FORMAT, like `messages'."
               (lambda ()
                 (let ((network (get-process "firefox-javascript-repl")))
                   (when network (kill-process network)))))
-    (fjrepl--show-quirk)))
+    ;; FIXME: Remove this ignore-errors after confirmation that GNU
+    ;; ELPA will check out the wtfjs submodule.
+    (ignore-errors
+      (fjrepl--show-quirk))))
 
 (defun fjrepl--create-profile-directory ()
   "Create a profile directory."
