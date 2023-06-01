@@ -147,7 +147,7 @@ ARGUMENTS will be used for FORMAT, like `messages'."
   (let ((quirk
          (with-temp-buffer
            (insert-file-contents (expand-file-name
-                                  "wtfjs/README.md"
+                                  "wtfjs.README.md"
                                   fjrepl--directory))
            (goto-char (point-min))
            (let* ((regexp "^```js\n")
@@ -158,7 +158,7 @@ ARGUMENTS will be used for FORMAT, like `messages'."
                (beginning-of-line)
                (backward-char)
                (buffer-substring start (point)))))))
-    (let ((minibuffer-message-timeout 4))
+    (let ((minibuffer-message-timeout 7))
       (minibuffer-message
        (with-temp-buffer (js-mode)
                          (insert "// JavaScript quirk of the day:\n")
@@ -206,10 +206,7 @@ ARGUMENTS will be used for FORMAT, like `messages'."
               (lambda ()
                 (let ((network (get-process "firefox-javascript-repl")))
                   (when network (kill-process network)))))
-    ;; FIXME: Remove this ignore-errors after confirmation that GNU
-    ;; ELPA will check out the wtfjs submodule.
-    (ignore-errors
-      (fjrepl--show-quirk))))
+    (fjrepl--show-quirk)))
 
 (defun fjrepl--create-profile-directory ()
   "Create a profile directory."
