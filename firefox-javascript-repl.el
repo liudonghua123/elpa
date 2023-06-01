@@ -169,7 +169,7 @@ ARGUMENTS will be used for FORMAT, like `messages'."
                          (font-lock-ensure (point-min) (point-max))
                          (buffer-string))))))
 
-(define-derived-mode firefox-javascript-repl-mode comint-mode "FJ"
+(define-derived-mode firefox-javascript-repl--mode comint-mode "FJ"
   "Major mode for interactively evaluating JavaScript expressions in Firefox."
   :syntax-table js-mode-syntax-table
   :interactive nil
@@ -317,7 +317,7 @@ the FRDP connection to Firefox."
    "Ready for asynchronous JavaScript evaluation %s %s %s %s"
    name buffer network fjrepl--console-actor)
   (with-current-buffer (pop-to-buffer buffer)
-    (firefox-javascript-repl-mode)))
+    (firefox-javascript-repl--mode)))
 
 (defun fjrepl--stop ()
   "Stop the Firefox process started by `firefox-javascript-repl'."
