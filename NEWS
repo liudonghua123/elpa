@@ -1,0 +1,9 @@
+GNU Emacs Firefox-Javascript-Repl NEWS -- history of user-visible changes.
+
+* New in Firefox-Javascript-Repl 0.9.1
+
+Released 2023-06-01:
+
+** Autoload firefox-javascript-repl
+
+** Include local copy of wtfjs README.md
