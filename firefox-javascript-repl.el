@@ -205,7 +205,7 @@ ARGUMENTS will be used for FORMAT, like `messages'."
     (add-hook 'kill-buffer-hook
               (lambda ()
                 (let ((network (get-process "firefox-javascript-repl")))
-                  (when network (kill-process "firefox-javascript-repl")))))
+                  (when network (kill-process network)))))
     (fjrepl--show-quirk)))
 
 (defun fjrepl--create-profile-directory ()
