@@ -1,5 +1,11 @@
 GNU Emacs ulisp-repl NEWS -- history of user-visible changes.
 
+* New in ulisp-repl 1.0.2
+
+Released 2023-06-02:
+
+** Remove dependency on paredit.  But use it if it is installed.
+
 * New in ulisp-repl 1.0.1
 
 Released 2023-06-01:
