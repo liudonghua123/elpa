@@ -3,7 +3,7 @@
 ;; Copyright (C) 2023 Free Software Foundation, Inc.
 
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
-;; Version: 0.9.3
+;; Version: 0.9.4
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
