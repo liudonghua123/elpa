@@ -4,7 +4,7 @@
 
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Version: 1.0.1
-;; Package-Requires: ((emacs "26.1") (paredit "26"))
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@
 ;; non-Linux kernel, you will need to adapt
 ;; `ulisp--select-serial-device'.
 
+;; This mode uses `paredit' if you have it installed.
+
 ;; To browse uLisp reference documentation:
 
 ;; M-x eww RET http://www.ulisp.com/show?3L RET
@@ -39,7 +41,7 @@
 ;;; Code:
 (require 'comint)
 (require 'lisp-mode)
-(require 'paredit)
+(require 'paredit nil t)
 
 (defcustom ulisp-repl-serial-device-path nil
   "The full path of the serial device this REPL should use."
@@ -57,13 +59,14 @@ Detect and drop output from uLisp in STRING."
   :interactive nil
   :after-hook
   (progn
-    (let ((paredit-map (cdr (assoc 'paredit-mode minor-mode-map-alist)))
-          (ulisp-override-map (make-sparse-keymap)))
-      (set-keymap-parent ulisp-override-map paredit-map)
-      (define-key ulisp-override-map (kbd "RET") 'comint-send-input)
-      (make-local-variable 'minor-mode-overriding-map-alist)
-      (push (cons 'paredit-mode ulisp-override-map)
-            minor-mode-overriding-map-alist))
+    (when (fboundp 'paredit-mode)
+      (let ((paredit-map (cdr (assoc 'paredit-mode minor-mode-map-alist)))
+            (ulisp-override-map (make-sparse-keymap)))
+        (set-keymap-parent ulisp-override-map paredit-map)
+        (define-key ulisp-override-map (kbd "RET") 'comint-send-input)
+        (make-local-variable 'minor-mode-overriding-map-alist)
+        (push (cons 'paredit-mode ulisp-override-map)
+              minor-mode-overriding-map-alist)))
     (set-process-filter (get-buffer-process (current-buffer))
                         'ulisp-output-filter)
     (setq-local comint-process-echoes t)
@@ -122,7 +125,8 @@ if that is nil, query."
          :name "ulisp-serial" :port device :speed 9600 :buffer buffer))
       (with-current-buffer buffer
         (ulisp-repl--mode)
-        (paredit-mode)
+        (when (fboundp 'paredit-mode)
+          (paredit-mode))
         (pop-to-buffer (current-buffer))))))
 
 (provide 'ulisp-repl)
