@@ -480,7 +480,10 @@ localhost (127.0.0.1) TCP port 6000."
                                 (setq fjrepl--console-actor nil)
                                 (kill-buffer
                                  firefox-standard-output-buffer-name)
-                                (delete-directory profile-directory t))))
+                                (when (yes-or-no-p
+                                       (format "Delete %s recursively? "
+                                               profile-directory))
+                                  (delete-directory profile-directory t)))))
       (fjrepl--handle-first network-name comint-buffer-name nil)
       nil)))
 
