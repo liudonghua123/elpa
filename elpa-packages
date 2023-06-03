@@ -606,6 +606,9 @@
  (smalltalk-mode	:url nil) ;; Was "git://git.sv.gnu.org/smalltalk"
  (smart-yank		:url nil)
  (sml-mode		:url nil)
+ (spacious-padding		:url "https://git.sr.ht/~protesilaos/spacious-padding"
+  :readme "README.md"
+  :ignored-files ("COPYING"))
  (so-long		:core "lisp/so-long.el")
  (soap-client		:core ("lisp/net/soap-client.el" "lisp/net/soap-inspect.el"))
  (sokoban		:url nil)
