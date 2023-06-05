@@ -77,13 +77,13 @@
 
 ;; Compatibility:
 
-;; ╔════════════╦══════════════╦══════════╦══════════════════════╗
-;; ║  Test Date ║ Architecture ║ Browser  ║ Version              ║
-;; ╠════════════╬══════════════╬══════════╬══════════════════════╣
-;; ║ 2023-05-26 ║ ppc64le      ║ Firefox  ║ 102.11.0esr (64-bit) ║
-;; ║ 2023-05-26 ║ x86-64       ║ Firefox  ║ 113.0.2 (64-bit)     ║
-;; ║ 2023-05-26 ║ x86-64       ║ Abrowser ║ 111.0.1 (64-bit)     ║
-;; ╙────────────╨──────────────╨──────────╨──────────────────────╜
+;; ╔════════════╦══════════╦══════════════════════╗
+;; ║  Test Date ║ Browser  ║ Version              ║
+;; ╠════════════╬══════════╬══════════════════════╣
+;; ║ 2023-05-26 ║ Firefox  ║ 102.11.0esr (64-bit) ║
+;; ║ 2023-05-26 ║ Firefox  ║ 113.0.2 (64-bit)     ║
+;; ║ 2023-05-26 ║ Abrowser ║ 111.0.1 (64-bit)     ║
+;; ╙────────────╨──────────╨──────────────────────╜
 
 ;; Acronyms:
 
@@ -95,6 +95,7 @@
 (require 'comint)
 (require 'js)
 (require 'json)
+(require 'browse-url)
 
 (defvar fjrepl--debug nil
   "Non-nil to print debug messages to buffer *fjrepl-debug*.")
@@ -458,7 +459,7 @@ localhost (127.0.0.1) TCP port 6000."
            (firefox-process
             (start-process "firefox-javascript-repl"
                            firefox-standard-output-buffer-name
-                           "firefox" ; executable binary name
+                           (executable-find browse-url-firefox-program)
                            "about:blank"
                            "-profile" profile-directory
                            "-start-debugger-server")))
