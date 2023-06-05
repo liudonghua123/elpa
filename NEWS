@@ -1,5 +1,11 @@
 GNU Emacs firefox-javascript-repl NEWS -- history of user-visible changes.
 
+* New in firefox-javascript-repl 0.9.5
+
+Released 2023-06-05:
+
+** Use browse-url to find firefox binary.
+
 * New in firefox-javascript-repl 0.9.4
 
 Released 2023-06-02:
