@@ -247,6 +247,8 @@
  (eldoc-eval		:url "https://github.com/thierryvolpiatto/eldoc-eval.git")
  (electric-spacing	:url nil)
  (elisp-benchmarks	:url nil)
+ (emacs-gc-stats	:url "https://git.sr.ht/~yantar92/emacs-gc-stats"
+  :ignored-files ("COPYING"))
  ;; FIXME: Work in progress.  The copyright paperwork is ready.
  ;;(elsa		:url "https://github.com/emacs-elsa/Elsa")
  ;;(emacspeak		:url "https://github.com/tvraman/emacspeak"
@@ -606,13 +608,13 @@
  (smalltalk-mode	:url nil) ;; Was "git://git.sv.gnu.org/smalltalk"
  (smart-yank		:url nil)
  (sml-mode		:url nil)
- (spacious-padding		:url "https://git.sr.ht/~protesilaos/spacious-padding"
-  :readme "README.md"
-  :ignored-files ("COPYING"))
  (so-long		:core "lisp/so-long.el")
  (soap-client		:core ("lisp/net/soap-client.el" "lisp/net/soap-inspect.el"))
  (sokoban		:url nil)
  (sotlisp		:url "https://github.com/Malabarba/speed-of-thought-lisp")
+ (spacious-padding		:url "https://git.sr.ht/~protesilaos/spacious-padding"
+  :readme "README.md"
+  :ignored-files ("COPYING"))
  (spinner		:url "https://github.com/Malabarba/spinner.el")
  (sql-beeline		:url nil)
  (sql-cassandra		:url nil)
