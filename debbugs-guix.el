@@ -1,6 +1,6 @@
 ;;; debbugs-guix.el --- guix specific debbugs functions -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author: Joshua Branson <jbranso@dismail.de>
 ;; Keywords: comm, hypermedia, maint
@@ -30,6 +30,10 @@
 ;; search for open bugs that relate to the GNU guix.
 
 ;;; Code:
+
+(declare-function debbugs-gnu-search "debbugs-gnu")
+(declare-function debbugs-org-show-reports "debbugs-org")
+(defvar debbugs-gnu-show-reports-function)
 
 ;;;###autoload
 (defun debbugs-gnu-guix-search ()
