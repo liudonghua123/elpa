@@ -1052,18 +1052,7 @@ are taken from the cache instead."
 (defun debbugs-gnu-print-entry (list-id cols)
   "Insert a debbugs entry at point.
 Used instead of `tabulated-list-print-entry'."
-  (let ((beg (point))
-	(pos 0)
-	(case-fold-search t)
-	(id               (aref cols 0))
-	(id-length        (nth 1 (aref tabulated-list-format 0)))
-	(state            (aref cols 1))
-	(state-length     (nth 1 (aref tabulated-list-format 1)))
-	(submitter        (aref cols 2))
-	(submitter-length (nth 1 (aref tabulated-list-format 2)))
-	(title            (aref cols 3))
-	;; (title-length     (nth 1 (aref tabulated-list-format 3)))
-        )
+  (let ((case-fold-search t))
     (when (and
 	   ;; We may have a narrowing in effect.
 	   (or (not debbugs-gnu-limit)
@@ -1090,32 +1079,7 @@ Used instead of `tabulated-list-print-entry'."
 				       (> (cddr check) val)))
 			  (throw :suppress t))))))))
 
-      ;; Insert id.
-      (indent-to (- id-length (length id)))
-      (insert id)
-      ;; Insert state.
-      (indent-to (setq pos (+ pos id-length 1)) 1)
-      (insert (if (> (length state) state-length)
-		  (propertize (substring state 0 state-length)
-			      'help-echo state)
-		state))
-      ;; Insert submitter.
-      (indent-to (setq pos (+ pos state-length 1)) 1)
-      (insert (if (> (length submitter) submitter-length)
-		  (propertize (substring submitter 0 submitter-length)
-			      'help-echo submitter)
-		submitter))
-      (indent-to (+ pos (1- submitter-length)))
-      ;; Insert title.
-      (indent-to (setq pos (+ pos submitter-length 1)) 1)
-      (insert (propertize title 'help-echo title))
-      ;; Add properties.
-      (add-text-properties
-       beg (point)
-       `(tabulated-list-id ,list-id
-	 tabulated-list-entry ,cols
-	 mouse-face highlight))
-      (insert ?\n))))
+      (tabulated-list-print-entry list-id cols))))
 
 (defun debbugs-gnu-menu-map-emacs-enabled ()
   "Whether \"Show Release Blocking Bugs\" is enabled in the menu."
