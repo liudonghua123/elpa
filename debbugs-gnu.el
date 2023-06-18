@@ -1079,7 +1079,12 @@ Used instead of `tabulated-list-print-entry'."
 				       (> (cddr check) val)))
 			  (throw :suppress t))))))))
 
-      (tabulated-list-print-entry list-id cols))))
+      (tabulated-list-print-entry list-id cols)
+
+      ;; Add properties.
+      (add-text-properties
+       (line-beginning-position 0) (line-end-position 0)
+       '(mouse-face highlight)))))
 
 (defun debbugs-gnu-menu-map-emacs-enabled ()
   "Whether \"Show Release Blocking Bugs\" is enabled in the menu."
