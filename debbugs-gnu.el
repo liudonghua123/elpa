@@ -1160,10 +1160,10 @@ Used instead of `tabulated-list-print-entry'."
 		  :help "Send control message to debbugs.gnu.org")
       #'debbugs-gnu-show-all-blocking-reports)
     (define-key-after menu-map [debbugs-gnu-make-control-message]
-      '(menu-item "Make Control Message"
+      `(menu-item "Make Control Message"
 		  debbugs-gnu-make-control-message
-		  :help (concat "Make (but don't yet send) "
-				"a control message to debbugs.gnu.org"))
+		  :help ,(concat "Make (but don't yet send) "
+				 "a control message to debbugs.gnu.org"))
       #'debbugs-gnu-send-control-message)
 
     (define-key-after menu-map [debbugs-gnu-separator1]
