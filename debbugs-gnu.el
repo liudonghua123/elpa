@@ -1231,6 +1231,7 @@ Interactively, it is non-nil with the prefix argument."
 			       ("Title"     10 debbugs-gnu-sort-title)])
   (setq tabulated-list-sort-key (cons "Id" nil))
   (setq tabulated-list-printer #'debbugs-gnu-print-entry)
+  (add-hook 'tabulated-list-revert-hook #'debbugs-gnu-rescan nil t)
   (buffer-disable-undo)
   (setq truncate-lines t)
   (setq buffer-read-only t))
