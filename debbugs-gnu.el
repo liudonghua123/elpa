@@ -1293,10 +1293,12 @@ Interactively, it is non-nil with the prefix argument."
 (defun debbugs-gnu-sort-submitter (s1 s2)
   (let ((address1
 	 (debbugs-gnu--split-address
-	  (decode-coding-string (alist-get 'originator (car s1) "") 'utf-8)))
+	  (decode-coding-string
+           (or (alist-get 'originator (car s1)) "") 'utf-8)))
 	(address2
 	 (debbugs-gnu--split-address
-	  (decode-coding-string (alist-get 'originator (car s2) "") 'utf-8))))
+	  (decode-coding-string
+           (or (alist-get 'originator (car s2)) "") 'utf-8))))
     (cond
      ;; Bugs I'm the originator of go to the beginning.
      ((and (string-equal user-mail-address (car address1))
@@ -1314,14 +1316,16 @@ Interactively, it is non-nil with the prefix argument."
 (defun debbugs-gnu-sort-title (s1 s2)
   (let ((owner1
 	 (car (debbugs-gnu--split-address
-	       (decode-coding-string (alist-get 'owner (car s1) "") 'utf-8))))
+	       (decode-coding-string
+                (or (alist-get 'owner (car s1)) "") 'utf-8))))
 	(subject1
-	 (decode-coding-string (alist-get 'subject (car s1) "") 'utf-8))
+	 (decode-coding-string (or (alist-get 'subject (car s1)) "") 'utf-8))
 	(owner2
 	 (car (debbugs-gnu--split-address
-	       (decode-coding-string (alist-get 'owner (car s2) "") 'utf-8))))
+	       (decode-coding-string
+                (or (alist-get 'owner (car s2)) "") 'utf-8))))
 	(subject2
-	 (decode-coding-string (alist-get 'subject (car s2) "") 'utf-8)))
+	 (decode-coding-string (or (alist-get 'subject (car s2)) "") 'utf-8)))
     (cond
      ;; Bugs I'm the owner of go to the beginning.
      ((and (string-equal user-mail-address owner1)

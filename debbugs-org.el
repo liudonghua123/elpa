@@ -209,9 +209,8 @@ marked as \"client-side filter\"."
 	     (archived (alist-get 'archived status))
 	     (tags (append (alist-get 'found_versions status)
 			   (alist-get 'tags status)))
-	     (subject (when (alist-get 'subject status)
-			(decode-coding-string
-			 (alist-get 'subject status) 'utf-8)))
+	     (subject (decode-coding-string
+                       (or (alist-get 'subject status) "") 'utf-8))
 	     (date (alist-get 'date status))
 	     (last-modified (alist-get 'last_modified status))
 	     (originator (when (alist-get 'originator status)
