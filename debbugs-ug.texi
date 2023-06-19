@@ -431,7 +431,9 @@ is closed).  Archived bugs are shown with inverse face
 (@code{debbugs-gnu-archived}).
 
 A DarkGrey background color (@code{debbugs-gnu-marked}) in the title
-column shows bugs which have been marked locally.
+column shows bugs which have been marked locally.  The title text is
+italic (@code{debbugs-gnu-marked-stale}) if the marked bug hasn't been
+touched for more than a week.
 
 The minor mode @code{debbugs-gnu-mode} is active in bug report
 buffers.  This enables the following key strokes:

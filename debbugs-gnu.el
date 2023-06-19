@@ -403,6 +403,11 @@ If this is `rmail', use Rmail instead."
 (defface debbugs-gnu-marked '((t (:background "DarkGrey")))
   "Face for reports that have been marked locally.")
 
+(defface debbugs-gnu-marked-stale
+  '((t (:inherit debbugs-gnu-marked :slant italic)))
+  "Face for reports that have been marked locally.
+They haven't been touched more than a week.")
+
 (defface debbugs-gnu-title '((t (:height 1.2 :bold t)))
   "Face for titles.")
 
@@ -1035,7 +1040,8 @@ are taken from the cache instead."
 	      (cond
 	       ;; Marked bugs.
 	       ((memq id debbugs-gnu-local-marks)
-		'debbugs-gnu-marked)
+                (if (< age week)
+		    'debbugs-gnu-marked 'debbugs-gnu-marked-stale))
 	       ;; Mark owned bugs.
 	       ((and (stringp owner)
 		     (string-equal owner user-mail-address))
@@ -1487,7 +1493,9 @@ interest to you."
 	(let ((owner (if (alist-get 'owner (car entry))
 			 (car (debbugs-gnu--split-address
 			       (decode-coding-string
-				(alist-get 'owner (car entry)) 'utf-8))))))
+				(alist-get 'owner (car entry)) 'utf-8)))))
+              (age (- (float-time) (or (alist-get 'log_modified (car entry)) 0)))
+	      (week (* 60 60 24 7)))
 	  (aset (cadr entry) 0
 		(propertize
 		 (format "%5d" id)
@@ -1503,7 +1511,8 @@ interest to you."
 		 (cond
 		  ;; Marked bugs.
 		  ((memq id debbugs-gnu-local-marks)
-		   'debbugs-gnu-marked)
+                   (if (< age week)
+		       'debbugs-gnu-marked 'debbugs-gnu-marked-stale))
 		  ;; Mark owned bugs.
 		  ((and (stringp owner) (string-equal owner user-mail-address))
 		   'debbugs-gnu-tagged)
