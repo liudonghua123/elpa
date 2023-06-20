@@ -408,6 +408,7 @@
  (loccur		:url "https://github.com/fourier/loccur")
  (logos			:url "https://git.sr.ht/~protesilaos/logos"
   :doc "README.org"
+  :readme "README.md"
   :news "CHANGELOG.org"
   :ignored-files ("COPYING" "doclicense.texi"))
  (luwak			:url "https://g.ypei.me/luwak.git"
