@@ -5,6 +5,8 @@ See the end of the file for an explanation of the versioning scheme.
 
 ** Rename to Window Commander.
 ** Remove functions and vars obsoleted in version 2.x.
+** Accept a ':minibuffer' keyword argument for 'wincom-define-window-command'
+instead of using a positional argument.
 
 * 2.3
 

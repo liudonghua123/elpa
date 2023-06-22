@@ -334,16 +334,21 @@ window and the raw prefix argument, respectively.
 If PREFIX is omitted or nil, the resulting command will not accept a
 prefix argument.
 
-If MINIBUFFER is non-nil, allow the minibuffer to be selected by
+Currently, only a single KEYWORD-ARG is recognized, `:minibuffer':
+When it's non-nil, allow the minibuffer to be selected by
 `next-window' (when there are less than `wincom-minimum' tracked windows).
 
 For more information, see info node `(Window Commander) Window Commands'.
 
-\(fn NAME (WINDOW [PREFIX] [MINIBUFFER]) [DOCSTRING] BODY...)"
-  (declare (debug (&define [&name symbolp] listp [&optional stringp] def-body))
+\(fn NAME (WINDOW [PREFIX]) [KEYWORD-ARG...] [DOCSTRING] BODY...)"
+  (declare (debug (&define name listp [&optional stringp]
+                           def-body keywordp t))
            (doc-string 3) (indent defun))
-  (let* ((docstring (car body)) (window (car args))
-         (prefix (cadr args)) (minibuffer (caddr args)))
+  (let* ((first (car body))
+         (minibuffer (and (eq first :minibuffer) (cadr body)))
+         (docstring (if (stringp first) first
+                      (and minibuffer (caddr body))))
+         (window (car args)) (prefix (cadr args)))
     `(defun ,name ,(and prefix `(,prefix))
        ,(when (stringp docstring) (format "%s
 
@@ -367,7 +372,8 @@ window command is chosen.
          (funcall f (next-window nil (unless ,minibuffer 'exclude)
                                  (wincom--get-scope)))))))
 
-(wincom-define-window-command wincom-select (window nil t)
+(wincom-define-window-command wincom-select (window)
+  :minibuffer t
   "Select a window."
   (select-window window))
 
