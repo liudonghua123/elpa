@@ -1,5 +1,10 @@
-swsw NEWS -- history of user-visible changes. -*- mode: outline -*-
+Window Commander NEWS -- history of user-visible changes. -*- mode: outline -*-
 See the end of the file for an explanation of the versioning scheme.
+
+* 3.0 (wip)
+
+** Rename to Window Commander.
+** Remove functions and vars obsoleted in version 2.x.
 
 * 2.3
 
@@ -171,9 +176,9 @@ removed completely), and works on older Emacs versions.
 ** Initial version.
 
 * Versioning scheme
-swsw's versioning scheme is inspired by semver (https://semver.org/).
-Each version number is of the form MAJOR.MINOR.PATCH (patch may be
-omitted if 0).
+Window Commander's versioning scheme is inspired by semver
+(https://semver.org/).  Each version number is of the form
+MAJOR.MINOR.PATCH (patch may be omitted if 0).
 The MAJOR version is bumped when a user facing variable or function
 changes in a way that could cause previous user configuration to
 break (where user configuration considered is configuration done

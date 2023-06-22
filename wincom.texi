@@ -1,12 +1,12 @@
 \input texinfo
-@setfilename swsw.info
-@settitle swsw User Manual
+@setfilename wincom.info
+@settitle Window Commander User Manual
 @documentencoding UTF-8
 @documentlanguage en
 
 @copying
 @quotation
-Copyright @copyright{} 2020-2022 Daniel Semyonov
+Copyright @copyright{} 2023 Free Software Foundation, Inc.
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -23,11 +23,11 @@ General Public License for more details.
 
 @dircategory Emacs
 @direntry
-* swsw: (swsw). Simple window switching.
+* Window Commander: (Window Commander). Simply execute commands on windows.
 @end direntry
 
 @titlepage
-@title swsw User Manual
+@title Window Commander User Manual
 @subtitle for version 2.3.
 @author Daniel Semyonov
 @page
@@ -39,13 +39,13 @@ General Public License for more details.
 
 @ifnottex
 @node Top
-@top swsw User Manual
+@top Window Commander User Manual
 
-swsw provides a minor mode for switching to windows or performing
+Window Commander provides a minor mode for switching to windows or performing
 actions on them using IDs assigned to them automatically.
 
 @noindent
-This manual is for swsw version 2.3.
+This manual is for Window Commander version 2.3.
 
 @insertcopying
 @end ifnottex
@@ -65,9 +65,6 @@ This manual is for swsw version 2.3.
 
 Installation
 
-* Installing a release::
-* Installing from the Git repository::
-
 Customization
 
 * ID display::
@@ -79,7 +76,7 @@ Customization
 @node Introduction
 @chapter Introduction
 
-swsw provides a minor mode for switching to windows or performing
+Window Commander provides a minor mode for switching to windows or performing
 actions on them using IDs assigned to them automatically. The
 implementation is simple and extensible, providing various advanced
 customization features for users, while keeping the code base small
@@ -88,111 +85,88 @@ and easy to hack on.
 @node Installation
 @chapter Installation
 
-swsw can be installed from NonGNU ELPA:
+Window Commander can be installed from GNU ELPA:
 
 @table @asis
 @item @kbd{M-x package-install RET swsw RET}
 @end table
 
-@menu
-* Installing a release::
-* Installing from the Git repository::
-@end menu
-
-@node Installing a release
-@section Installing a release
-
-Simply download a release (from <https://dsemy.com/projects/swsw>), and install
-it:
-
-@table @asis
-@item @kbd{M-x package-install-file RET /path/to/download/swsw-VERSION.tar RET}
-@end table
-
-@node Installing from the Git repository
-@section Installing from the Git repository
-
-Clone the repository and build the package archive:
-
-@example
-$ git clone https://git.sr.ht/~dsemy/swsw
-$ cd swsw
-$ make
-@end example
-
-Install the package:
-
-@table @asis
-@item @kbd{M-x package-install-file RET /path/to/clone/swsw-VERSION.tar RET}
-@end table
-
 @node Usage
 @chapter Usage
 
-In order to use any feature of the package, @code{swsw-mode} must be enabled:
+In order to use any feature of the package, @code{wincom-mode} must be enabled:
 
 @table @asis
-@cindex swsw-mode
-@item @kbd{M-x swsw-mode RET}
-You can also add @code{(swsw-mode)} to your init file, or enable it
-through the customize interface.
+@cindex wincom-mode
+@item @kbd{M-x wincom-mode RET}
+You can also add @code{(wincom-mode)} to your initialization file, or
+enable it through the customize interface.
 @end table
 
-When @code{swsw-mode} is enabled, window IDs are shown as mode line
+When @code{wincom-mode} is enabled, window IDs are shown as mode line
 lighters of the form @code{<ID>} (by default, @xref{ID display}), and
-@code{other-window} (@kbd{C-x o}) is remapped to @code{swsw-select}.
+@code{other-window} (@kbd{C-x o}) is remapped to @code{wincom-select}.
+
+@code{wincom-select}, and any other window command, starts window
+selection (provided there are more than @code{wincom-minimum} windows,
+@xref{Window commands}).  During window selection, any window in the
+current @code{wincom-scope} (@xref{Customization}) can be selected by
+pressing the sequence of keys corresponding to its displayed ID.
+Alternatively, you can use any binding in @code{wincom-command-map},
+unless it is shadowed by a window ID.
 
 @table @asis
 @kindex C-x o
 @kindex C-x o o
-@cindex swsw-select
+@cindex wincom-select
 @item @kbd{C-x o ID}, @kbd{C-x o o ID}
 Select the window corresponding to ID in the current scope
-(@xref{Customization}) (@code{swsw-select}).
+(@xref{Customization}) (@code{wincom-select}).
 
 @kindex C-x o 0
-@cindex swsw-delete
+@cindex wincom-delete
 @item @kbd{C-x o 0 ID}
-Delete the window corresponding to ID in the current scope (@code{swsw-delete}).
+Delete the window corresponding to ID in the current scope
+(@code{wincom-delete}).
 
 @kindex C-x o 1
-@cindex swsw-delete-other
+@cindex wincom-delete-other
 @item @kbd{C-x o 1 ID}
 Make the window corresponding to ID in the current scope the sole
-window of its frame (@code{swsw-delete-other}).
+window of its frame (@code{wincom-delete-other}).
 
 @kindex C-x o 2
-@cindex swsw-split-window-below
+@cindex wincom-split-window-below
 @item @kbd{C-x o 2 ID}
 Split the window corresponding to ID in the current scope from below
-(@code{swsw-split-window-below}).  This window command accepts a
+(@code{wincom-split-window-below}).  This window command accepts a
 prefix argument (with the same semantics as @code{split-window-below}).
 
 @kindex C-x o 3
-@cindex swsw-split-window-right
+@cindex wincom-split-window-right
 @item @kbd{C-x o 3 ID}
 Split the window corresponding to ID in the current scope from the right
-(@code{swsw-split-window-right}).  This window command accepts a
+(@code{wincom-split-window-right}).  This window command accepts a
 prefix argument (with the same semantics as @code{split-window-right}).
 
 @kindex C-x o 4
-@cindex swsw-selected-window-prefix
+@cindex wincom-selected-window-prefix
 @item @kbd{C-x o 4 ID}
 Display the buffer of the next command in the window corresponding to
-ID in the current scope (@code{swsw-selected-window-prefix}).  This
+ID in the current scope (@code{wincom-selected-window-prefix}).  This
 window command is only available when
 @code{display-buffer-override-next-command} is available (Emacs 28+).
 
 @kindex C-x o t
-@cindex swsw-swap
+@cindex wincom-swap
 @item @kbd{C-x o t ID}
 Swap the states of the current window and the window corresponding to
-ID in the current scope (@code{swsw-swap}).
+ID in the current scope (@code{wincom-swap}).
 
 @kindex C-x o m
-@cindex swsw-select-minibuffer
+@cindex wincom-select-minibuffer
 @item @kbd{C-x o m}
-Switch to the minibuffer if it's active (@code{swsw-select-minibuffer}).
+Switch to the minibuffer if it's active (@code{wincom-select-minibuffer}).
 @end table
 
 @xref{Window commands} for information regarding defining new commands.
@@ -207,13 +181,13 @@ custom window commands, can be done through the customize interface:
 @item @kbd{M-x customize-group RET swsw RET}
 @end table
 
-@defopt swsw-id-chars
+@defopt wincom-id-chars
 Base set of character from which window IDs are constructed. This should be a
 list of characters. By default, the home row (@code{a s d f g h j k l}) is
 used.
 @end defopt
 
-@defopt swsw-scope
+@defopt wincom-scope
 Scope of all window operations. Used to determine on which frames to track
 windows. A value of @code{t} means consider all windows on all frames, @code{0}
 (the number zero) means consider all windows on all visible and iconified
@@ -231,34 +205,34 @@ frames, @code{visible} means consider all windows on all visible frames and
 @section ID display
 
 By default, the ID of each tracked window is displayed as a mode line
-lighter. This behavior is controlled by @code{swsw-display-lighter}.
+lighter. This behavior is controlled by @code{wincom-display-lighter}.
 
 Additionally, (custom) display functions could be added to
-@code{swsw-mode-hook}. These functions should enable ID display when
-@code{swsw-mode} is enabled, and disable ID display when
-@code{swsw-mode} is disabled. They can also make use of
-@code{swsw-before-command-hook} and @code{swsw-after-command-hook}
+@code{wincom-mode-hook}. These functions should enable ID display when
+@code{wincom-mode} is enabled, and disable ID display when
+@code{wincom-mode} is disabled. They can also make use of
+@code{wincom-before-command-hook} and @code{wincom-after-command-hook}
 (@xref{Window commands}) to display IDs only during window
 selection. See the description and implementation of
-@code{swsw-mode-line-display-function} and
-@code{swsw-mode-line-conditional-display-function} below for more
+@code{wincom-display-mode-line} and
+@code{wincom-display-mode-line-conditional} below for more
 information.
 
-It is also possible to use @code{swsw-format-id} directly in
+It is also possible to use @code{wincom-format-id} directly in
 e.g. @code{mode-line-format}, although details vary depending on how
 and where you want the IDs to be displayed.
 
-@defopt swsw-display-lighter
+@defopt wincom-display-lighter
 Whether or not to show a mode line lighter. A non-nil value means show
 a mode line lighter.  A value of @code{nil} means don't show a mode
 line lighter. By default, @code{t} is used.
 @end defopt
 
-@defopt swsw-mode-hook
-Hook run when enabling or disabling @code{swsw-mode}.
+@defopt wincom-mode-hook
+Hook run when enabling or disabling @code{wincom-mode}.
 @end defopt
 
-@defopt swsw-id-format
+@defopt wincom-id-format
 Format string for the window ID. Used in the mode line lighter, and
 display functions may use this format string to display the ID, but
 they can also ignore it. The string should contain a single occurrence
@@ -266,26 +240,26 @@ of @code{%s}, which will be replaced by the ID. By default,
 @code{" <%s>"} is used.
 @end defopt
 
-@defun swsw-format-id window
-Format an ID string (according to @code{swsw-id-format}) for WINDOW.
+@defun wincom-format-id window
+Format an ID string (according to @code{wincom-id-format}) for WINDOW.
 @end defun
 
-@defun swsw-mode-line-display-function
+@defun wincom-display-mode-line
 Reference implementation of a ``simple'' display function, displaying
 window IDs at the beginning of the mode line. Display window IDs if
-@code{swsw-mode} is enabled, and disable displaying window IDs if
-@code{swsw-mode} is disabled.  This display function respects
-@code{swsw-id-format}.
+@code{wincom-mode} is enabled, and disable displaying window IDs if
+@code{wincom-mode} is disabled.  This display function respects
+@code{wincom-id-format}.
 @end defun
 
-@defun swsw-mode-line-conditional-display-function
+@defun wincom-display-mode-line-conditional
 Reference implementation of a conditional display function, displaying
 window IDs at the beginning of the mode line during window selection.
-Add a hook to @code{swsw-before-command-hook} which displays window
-IDs on the mode line and add a hook to @code{swsw-after-command-hook}
-which hides window IDs from the mode line if @code{swsw-mode} is
-enabled, and remove those hooks if @code{swsw-mode} is disabled.  This
-display function respects @code{swsw-id-format}.
+Add a hook to @code{wincom-before-command-hook} which displays window
+IDs on the mode line and add a hook to @code{wincom-after-command-hook}
+which hides window IDs from the mode line if @code{wincom-mode} is
+enabled, and remove those hooks if @code{wincom-mode} is disabled.  This
+display function respects @code{wincom-id-format}.
 @end defun
 
 @node Window commands
@@ -293,24 +267,24 @@ display function respects @code{swsw-id-format}.
 
 Window commands are used to perform operations on specific windows,
 chosen by their ID (or the next window, if less than
-@code{swsw-minimum} (3 by default) windows are currently in scope).
-Alternatively, other commands available in @code{swsw-command-map} can
-be chosen. Not all commands in @code{swsw-command-map} are window
+@code{wincom-minimum} (3 by default) windows are currently in scope).
+Alternatively, other commands available in @code{wincom-command-map} can
+be chosen. Not all commands in @code{wincom-command-map} are window
 commands (by default).  For more information about included window
 commands, @xref{Usage}.
 
 Window commands can easily be defined using
-@code{swsw-define-window-command}.  For more complex use cases,
-the lower level @code{swsw-run-window-command} can be used.
+@code{wincom-define-window-command}.  For more complex use cases,
+the lower level @code{wincom-run-window-command} can be used.
 
-@defopt swsw-minimum
+@defopt wincom-minimum
 Minimum number of tracked windows for which interactive selection
 occurs when using window commands.  In practice, only window commands
-defined using @code{swsw-define-window-command} automatically adhere
+defined using @code{wincom-define-window-command} automatically adhere
 to this rule.
 @end defopt
 
-@defvar swsw--id-map
+@defvar wincom--id-map
 Key map which is populated automatically with elements corresponding
 to all tracked windows. The ID of each window is converted to a vector
 (to serve as a key sequence), and is bound to a command which calls
@@ -319,19 +293,19 @@ sole argument. There should be no reason to modify it directly; it is
 reset whenever window configuration is updated.
 @end defvar
 
-@defvar swsw-command-map
+@defvar wincom-command-map
 Key map which holds bindings to window commands. This key map is set
-as the parent of @code{swsw--id-map}, so all window commands are
+as the parent of @code{wincom--id-map}, so all window commands are
 available when it's active (unless they are shadowed by a window ID).
 @end defvar
 
-@defvar swsw-window-count
+@defvar wincom-window-count
 Amount of windows currently tracked, including the minibuffer (if it's
 active). It can be used to change the behavior of window commands (or
 display functions, @xref{ID display}).
 @end defvar
 
-@defmac swsw-define-window-command name (window [prefix] [minibuffer]) docstring body...
+@defmac wincom-define-window-command name (window [prefix] [minibuffer]) docstring body...
 Define NAME as a window command with DOCSTRING as its documentation
 string.  PREFIX (a symbol) is passed as an argument to the command
 (when not omitted or nil), with its value being the raw prefix
@@ -339,20 +313,20 @@ argument.
 
 BODY is used as the body of an anonymous function which receives
 WINDOW (a symbol) as an argument, with its value being a selected
-window.  If there are less than @code{swsw-minimum} (3 by default)
+window.  If there are less than @code{wincom-minimum} (3 by default)
 windows in the current scope (@xref{Customization}), the function is
 called with the window returned by @code{next-window}.  In this case,
 if MINIBUFFER is non-nil, it can be selected if it's active.
-Otherwise, the function is run using @code{swsw-run-window-command}.
+Otherwise, the function is run using @code{wincom-run-window-command}.
 @end defmac
 
-@defun swsw-run-window-command fun
-Run FUN as a window command. Run @code{swsw-before-command-hook}, set
-@code{this-command} to FUN, and set @code{swsw--id-map} as a transient
-map which runs @code{swsw-after-command-hook} on exit.  The hooks run
-by this function are expected by swsw to run for any window command
-which requires ID selection; they should be run even if
-this function isn't used when defining a new window command.
+@defun wincom-run-window-command fun
+Run FUN as a window command. Run @code{wincom-before-command-hook},
+set @code{this-command} to FUN, and set @code{wincom--id-map} as a
+transient map which runs @code{wincom-after-command-hook} on exit.
+The hooks run by this function are expected by Window Commander to run
+for any window command which requires ID selection; they should be run
+even if this function isn't used when defining a new window command.
 @end defun
 
 @node Keystroke Index
