@@ -1,7 +1,3 @@
 *.elc
 *.info
-dir
-*.tar
-swsw
-swsw-pkg.el
 *~
