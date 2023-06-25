@@ -88,7 +88,7 @@ and easy to hack on.
 Window Commander can be installed from GNU ELPA:
 
 @table @asis
-@item @kbd{M-x package-install RET swsw RET}
+@item @kbd{M-x package-install RET window-commander RET}
 @end table
 
 @node Usage
@@ -178,7 +178,7 @@ All customization, except for defining custom display functions and
 custom window commands, can be done through the customize interface:
 
 @table @asis
-@item @kbd{M-x customize-group RET swsw RET}
+@item @kbd{M-x customize-group RET window-commander RET}
 @end table
 
 @defopt wincom-id-chars
