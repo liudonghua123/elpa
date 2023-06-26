@@ -38,7 +38,7 @@
     (end-of-line 1)
     (re-search-forward buildbot-view-header-regex)
     (beginning-of-line 1)))
-(define-key buildbot-view-mode-map (kbd "M-n") 'buildbot-view-next-header)
+(define-key buildbot-view-mode-map (kbd "M-n") #'buildbot-view-next-header)
 
 (defun buildbot-view-next-failed-header (n)
   (interactive "p")
@@ -46,7 +46,7 @@
     (end-of-line 1)
     (text-property-search-forward 'face 'error)
     (beginning-of-line 1)))
-(define-key buildbot-view-mode-map "n" 'buildbot-view-next-failed-header)
+(define-key buildbot-view-mode-map "n" #'buildbot-view-next-failed-header)
 
 (defun buildbot-view-next-header-same-thing (n)
   (interactive "p")
@@ -57,7 +57,7 @@
       (while (not (eq (get-text-property (point) 'type) type))
         (buildbot-view-next-header 1)))))
 (define-key buildbot-view-mode-map "f"
-  'buildbot-view-next-header-same-thing)
+  #'buildbot-view-next-header-same-thing)
 
 (defun buildbot-view-previous-header (n)
   (interactive "p")
@@ -66,7 +66,7 @@
     (re-search-backward buildbot-view-header-regex))
   (dotimes (_ n)
     (re-search-backward buildbot-view-header-regex)))
-(define-key buildbot-view-mode-map (kbd "M-p") 'buildbot-view-previous-header)
+(define-key buildbot-view-mode-map (kbd "M-p") #'buildbot-view-previous-header)
 
 (defun buildbot-view-previous-failed-header (n)
   (interactive "p")
@@ -76,7 +76,7 @@
   (dotimes (_ n)
     (text-property-search-backward 'face 'error))
   (beginning-of-line 1))
-(define-key buildbot-view-mode-map "p" 'buildbot-view-previous-failed-header)
+(define-key buildbot-view-mode-map "p" #'buildbot-view-previous-failed-header)
 
 (defun buildbot-view-previous-header-same-thing (n)
   (interactive "p")
@@ -87,7 +87,7 @@
       (while (not (eq (get-text-property (point) 'type) type))
         (buildbot-view-previous-header 1)))))
 (define-key buildbot-view-mode-map (kbd "b")
-  'buildbot-view-previous-header-same-thing)
+  #'buildbot-view-previous-header-same-thing)
 
 (defun buildbot-view-format-revision-info (revision-info)
   (propertize
@@ -269,7 +269,7 @@
 (defun buildbot-view-reload ()
   (interactive)
   (buildbot-view-update))
-(define-key buildbot-view-mode-map "g" 'buildbot-view-reload)
+(define-key buildbot-view-mode-map "g" #'buildbot-view-reload)
 
 ;;;###autoload
 (defun buildbot-revision-open (revision)
@@ -381,6 +381,6 @@
              (get-text-property (point) 'log))
        (buildbot-view-open 'log data force)))))
 (define-key buildbot-view-mode-map (kbd "<return>")
-  'buildbot-view-open-thing-at-point)
+  #'buildbot-view-open-thing-at-point)
 
 (provide 'buildbot-view)
