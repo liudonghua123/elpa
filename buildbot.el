@@ -27,6 +27,26 @@
 ;; License along with buildbot.el. If not, see
 ;; <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; `buildbot.el' is an Emacs interface for Buildbot, a widely used
+;; continuous integration tool. It can be used to view build
+;; information on a Buildbot instance.
+
+;; Main entry points:
+;;
+;; `buildbot-revision-open' prompts for a revision id (e.g. commit
+;; hash in git), and opens a view of the revision, including builds
+;; associated with changes associated with the revision.
+;;
+;; `buildbot-branch-open' prompts for a branch name, and opens up a
+;; view of revisions of this branch.
+;;
+;; `buildbot-builder-open' prompts for a builder name from a list of
+;; available builders, and opens up a view of recent builds by this
+;; builder.
+
+
 (require 'buildbot-client)
 (require 'buildbot-view)
 
