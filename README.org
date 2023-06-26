@@ -1,11 +1,19 @@
 #+title: buildbot.el
+#+author: Yuchen Pei
+#+language: en
 
-buildbot.el is a buildbot client for emacs. It shows views for
-branches, revisions, builds, steps, and logs.
+[[https://www.buildbot.net/][Buildbot]] is a free software continuous integration tool. buildbot.el
+is an emacs interface to view build information on a Buildbot
+instance. It supports newer versions of Buildbot (e.g. 3.x) but not
+older versions (e.g. 0.8.9) and shows views for branches, revisions,
+builds, steps, logs and builders.
 
 * Install
 
 ** Manual install
+   :PROPERTIES:
+   :UPDATED:  [2023-06-26 Mon 16:44]
+   :END:
 
 Clone this repo, and add to load path (assuming you clone to
 ~~/.emacs.d~):
@@ -19,7 +27,7 @@ git clone https://g.ypei.me/buildbot.el.git
 (add-to-list 'load-path "~/.emacs.d/buildbot.el")
 #+end_src
 
-After that, require buildbot and set the host and builders.
+After that, require buildbot and set the host and builders, like so
 
 #+begin_src elisp
 (require 'buildbot)
@@ -40,9 +48,14 @@ Entry points:
   builder.
 
 * TODOs
+  :PROPERTIES:
+  :UPDATED:  [2023-06-26 Mon 17:04]
+  :END:
 
 - org link integration.
-- older buildbot api.
+- older buildbot api (not really sure if feasible)
+- copy url of the current view
+- highlight certain builders (e.g. mandatory for push)
 
 * Contact and Copyright
 
