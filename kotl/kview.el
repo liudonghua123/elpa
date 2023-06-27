@@ -638,7 +638,11 @@ level."
 ;;;###autoload
 (defun kview:char-invisible-p (&optional pos)
   "Return t if the character after point is invisible/hidden, else nil."
+  (declare (obsolete invisible-p nil))
+  ;; FIXME: Why not (invisible-p (or pos (point))) ?
   (when (get-char-property (or pos (point)) 'invisible)
+    ;; FIXME: To be invisible, a non-nil property value is not
+    ;; sufficient: it also depends on `buffer-invisibility-spec'.
     t))
 
 (defun kview:create (buffer-name
@@ -704,6 +708,8 @@ are used.
 
 (defun kview:end-of-actual-line ()
   "Go to the end of the current line whether collapsed or not."
+  ;; FIXME: This "[\n\r]" is a leftover from when kotl was using
+  ;; `selective-display'.  We should use `end-of-line' nowadays.
   (when (re-search-forward "[\n\r]" nil 'move)
     (backward-char 1)))
 

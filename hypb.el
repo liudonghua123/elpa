@@ -603,7 +603,7 @@ region is copied, otherwise, it is omitted."
 	(setq start (1+ start)))
     ;; Skip both hidden blank lines between cells and hidden outline text.
     (while (< start end)
-      (or (kview:char-invisible-p start) (append-to-buffer buffer start (1+ start)))
+      (or (invisible-p start) (append-to-buffer buffer start (1+ start)))
       (setq start (1+ start)))))
 
 (defun hypb:installation-type ()
