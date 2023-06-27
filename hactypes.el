@@ -32,7 +32,7 @@
 ;;; Standard Hyperbole action types
 ;;; ************************************************************************
 
-(defact annot-bib (key)
+(defact annot-bib (key) ;; FIXME: Clean up namespace use!
   "Follow internal ref KEY within an annotated bibliography, delimiters=[]."
   (interactive "sReference key (no []): ")
   (let* ((key-regexp (concat "^[*]*[ \t]*\\[" (ebut:key-to-label key) "\\]"))
@@ -716,8 +716,7 @@ Optional SECTIONS-START limits toc entries to those after that point."
     (rename-buffer toc-buf-name)
     (re-search-forward "^[ ]*[0-9]+:" nil t)
     (beginning-of-line)
-    (let ((inhibit-read-only t)
-	  (buffer-read-only))
+    (let ((inhibit-read-only t))
       (remove-text-properties (point-min) (point) '(read-only))
       (delete-region (point-min) (point))
       (insert "Sections of " rfc-buf-name ":\n")
