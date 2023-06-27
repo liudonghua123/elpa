@@ -2698,8 +2698,6 @@ type for ibtype is presently undefined."
 	      (htype:create ,type ibtypes ,doc nil ,at-func
 			    '(to-p ,to-func style ,style))))))
 
-(put      'defib 'lisp-indent-function 'defun)
-
 ;; Support edebug-defun for interactive debugging of ibtypes
 (def-edebug-spec defib
  (&define name lambda-list
