@@ -37,12 +37,6 @@
 Override this if the system-computed default is incorrect for
 your specific mouse.")
 
-(defvar hyperb:automount-prefixes
-  (if (and (boundp 'automount-dir-prefix) (stringp automount-dir-prefix))
-      automount-dir-prefix
-    "^/tmp_mnt/"
-    "Regexp to match any automounter prefix in a pathname."))
-
 ;;; ************************************************************************
 ;;; Public declarations
 ;;; ************************************************************************
@@ -75,10 +69,15 @@ Where a part in the term-type is delimited by a `-' or  an `_'."
     term))
 
 (defun hyperb:window-system (&optional frame)
+  ;; FIXME: This apparently can return only "emacs", "next", or nil.
+  ;; What do these things mean?  What does "window system available" mean?
+  ;; What does "mouse available mean"?
   "Return name of window system or term type where the selected FRAME is running.
 If nil after system initialization, no window system or mouse
 support is available."
   (unless frame (setq frame (selected-frame)))
+  ;; FIXME: Why not compute it on the fly rather than precomputing it
+  ;; via a hook and then saving it as a frame property?
   (frame-parameter frame 'hyperb:window-system))
 
 ;; Each frame could be on a different window system when under a
