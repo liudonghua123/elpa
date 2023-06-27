@@ -186,6 +186,7 @@ If the referenced location is found, return non-nil."
 ;;; ========================================================================
 
 (defib pathname ()
+  ;; FIXME: GNU convention calls these *file* names.
   "Make a valid pathname at point display the path entry.
 
 If instead is a PATH-style variable name, .e.g. MANPATH, will prompt
@@ -255,7 +256,8 @@ display options."
           (cond ((and (string-match hpath:path-variable-regexp path)
 		      (setq path (match-string-no-properties 1 path))
 		      (hpath:is-path-variable-p path))
-		 (setq path (if (or assist-flag (hyperb:stack-frame '(hkey-help)))
+		 (setq path (if (or assist-flag
+				    (bound-and-true-p hkey--within-help))
 				path
 			      (hpath:choose-from-path-variable path "Display")))
 		 (unless (or (null path) (string-blank-p path)
@@ -359,6 +361,7 @@ in all buffers."
 
 ;; Org links in Org mode are handled at the highest priority; see the last
 ;; section at the end of this file.
+(defvar hibtypes--within-org-link-outside-org-mode nil)
 
 (defib org-link-outside-org-mode ()
   "Follow an Org link in a non-Org mode buffer.
@@ -368,11 +371,12 @@ handle any links they recognize first."
 	     (not (funcall hsys-org-mode-function))
 	     ;; Prevent infinite recursion, e.g. if called via
 	     ;; `org-metareturn-hook' from `org-meta-return' invocation.
-	     (not (hyperb:stack-frame '(ibtypes::debugger-source org-meta-return))))
+	     (not hibtypes--within-org-link-outside-org-mode))
     (require 'hsys-org)
     (declare-function hsys-org-link-at-p      "hsys-org" ())
     (declare-function hsys-org-set-ibut-label "hsys-org" (start-end))
-    (let ((start-end (hsys-org-link-at-p)))
+    (let* ((hibtypes--within-org-link-outside-org-mode t)
+           (start-end (hsys-org-link-at-p)))
       (when start-end
         (hsys-org-set-ibut-label start-end)
         (hact #'org-open-at-point-global)))))
