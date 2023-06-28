@@ -1,4 +1,4 @@
-;;; wincom.el --- Simply execute commands on windows -*- lexical-binding: t -*-
+;;; window-commander.el --- Simply execute commands on windows -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2023 Free Software Foundation, Inc.
 
@@ -500,6 +500,6 @@ selection:
     (remove-hook 'minibuffer-exit-hook #'wincom--update)
     (remove-hook 'after-delete-frame-functions #'wincom--update)))
 
-(provide 'wincom)
+(provide 'window-commander)
 
-;;; wincom.el ends here
+;;; window-commander.el ends here
