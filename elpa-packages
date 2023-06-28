@@ -386,6 +386,11 @@
  (kind-icon		:url "https://github.com/jdtsmith/kind-icon")
  (kiwix			:url "https://repo.or.cz/kiwix.el.git"
   :ignored-files ("*.png" "LICENSE"))
+ ;; While kixtart mode's author has signed the copyright paperwork,
+ ;; there is no Free implementation of the KiXtart language :-(
+ ;; (kixtart-mode	:url "https://github.com/morganwillcock/kixtart-mode"
+ ;;  :ignored-files ("LICENSE")
+ ;;  :readme "README")
  (kmb			:url nil)
  (landmark		:url nil)
  (latex-table-wizard    :url "https://github.com/enricoflor/latex-table-wizard"
@@ -752,6 +757,10 @@
  (webfeeder		:url "https://gitlab.com/ambrevar/emacs-webfeeder.git")
  (websocket		:url "https://github.com/ahyatt/emacs-websocket.git")
  (which-key           	:url "https://github.com/justbur/emacs-which-key")
+ (window-commander	:url "https://git.sr.ht/~dsemy/window-commander"
+  :readme ignore
+  :doc "window-commander.texi"
+  :news "NEWS")
  (windower		:url "https://gitlab.com/ambrevar/emacs-windower")
  (windresize		:url nil)
  (wisi			:url nil
