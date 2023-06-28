@@ -303,7 +303,7 @@ active). It can be used to change the behavior of window commands (or
 display functions, @xref{ID display}).
 @end defvar
 
-@defmac wincom-define-window-command name (window [prefix] [minibuffer]) docstring body...
+@defmac wincom-define-window-command name (window [prefix]) [docstring] [keyword-arg...] body...
 Define NAME as a window command with DOCSTRING as its documentation
 string.  PREFIX (a symbol) is passed as an argument to the command
 (when not omitted or nil), with its value being the raw prefix

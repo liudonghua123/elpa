@@ -340,15 +340,15 @@ When it's non-nil, allow the minibuffer to be selected by
 
 For more information, see info node `(Window Commander) Window Commands'.
 
-\(fn NAME (WINDOW [PREFIX]) [KEYWORD-ARG...] [DOCSTRING] BODY...)"
+\(fn NAME (WINDOW [PREFIX]) [DOCSTRING] [KEYWORD-ARG...] BODY...)"
   (declare (debug (&define name listp [&optional stringp]
                            def-body keywordp t))
            (doc-string 3) (indent defun))
-  (let* ((first (car body))
-         (minibuffer (and (eq first :minibuffer) (cadr body)))
-         (docstring (if (stringp first) first
-                      (and minibuffer (caddr body))))
-         (window (car args)) (prefix (cadr args)))
+  (let* ((window (car args)) (prefix (cadr args))
+         (docstring (car body)) minibuffer)
+    (and (stringp docstring) (pop body))
+    (while-let (((keywordp (car body))) (form (pop body)))
+      (and (eq form :minibuffer) (setq minibuffer (car body))))
     `(defun ,name ,(and prefix `(,prefix))
        ,(when (stringp docstring) (format "%s
 
@@ -373,8 +373,8 @@ window command is chosen.
                                  (wincom--get-scope)))))))
 
 (wincom-define-window-command wincom-select (window)
-  :minibuffer t
   "Select a window."
+  :minibuffer t
   (select-window window))
 
 (wincom-define-window-command wincom-delete (window)
