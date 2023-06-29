@@ -1,3 +1,7 @@
 *.elc
 *.info
 *~
+
+# ELPA-generated files
+/window-commander-autoloads.el
+/window-commander-pkg.el

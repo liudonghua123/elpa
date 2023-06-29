@@ -1,6 +1,10 @@
 Window Commander NEWS -- history of user-visible changes. -*- mode: outline -*-
 See the end of the file for an explanation of the versioning scheme.
 
+* 3.0.1
+
+** Fix ELPA build.
+
 * 3.0
 
 ** Rename to Window Commander.
