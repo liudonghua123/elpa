@@ -531,6 +531,7 @@ Also see `ignore'."
 	tramp-default-method-alist
 	tramp-default-user-alist
 	tramp-default-host-alist
+	tramp-default-proxies-alist
 	;; Suppress method name check.
 	(non-essential t)
 	;; Suppress check for multihops.
@@ -857,154 +858,203 @@ Also see `ignore'."
 		   "/path/to/file"))
 
 	  ;; Multihop.
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/method1:user1@host1|method2:user2@host2:/path/to/file")
-	    "/method2:user2@host2:"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/method1:user1@host1|method2:user2@host2:/path/to/file" 'method)
-	    "method2"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/method1:user1@host1|method2:user2@host2:/path/to/file" 'user)
-	    "user2"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/method1:user1@host1|method2:user2@host2:/path/to/file" 'host)
-	    "host2"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/method1:user1@host1|method2:user2@host2:/path/to/file"
-	     'localname)
-	    "/path/to/file"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/method1:user1@host1|method2:user2@host2:/path/to/file" 'hop)
-	    (format "%s:%s@%s|"
-		    "method1" "user1" "host1")))
+	  (dolist (tramp-show-ad-hoc-proxies '(nil t))
 
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/method1:user1@host1"
-	      "|method2:user2@host2"
-	      "|method3:user3@host3:/path/to/file"))
-	    "/method3:user3@host3:"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/method1:user1@host1"
-	      "|method2:user2@host2"
-	      "|method3:user3@host3:/path/to/file")
-	     'method)
-	    "method3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/method1:user1@host1"
-	      "|method2:user2@host2"
-	      "|method3:user3@host3:/path/to/file")
-	     'user)
-	    "user3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/method1:user1@host1"
-	      "|method2:user2@host2"
-	      "|method3:user3@host3:/path/to/file")
-	     'host)
-	    "host3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/method1:user1@host1"
-	      "|method2:user2@host2"
-	      "|method3:user3@host3:/path/to/file")
-	     'localname)
-	    "/path/to/file"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/method1:user1@host1"
-	      "|method2:user2@host2"
-	      "|method3:user3@host3:/path/to/file")
-	     'hop)
-	    (format "%s:%s@%s|%s:%s@%s|"
-		    "method1" "user1" "host1" "method2" "user2" "host2")))
+	    ;; Explicit settings in `tramp-default-proxies-alist'
+	    ;; shouldn't show hops.
+	    (setq tramp-default-proxies-alist
+		  '(("^host2$" "^user2$" "/method1:user1@host1:")))
+	    (should
+	     (string-equal
+	      (file-remote-p "/method2:user2@host2:/path/to/file")
+	      "/method2:user2@host2:"))
+	    (setq tramp-default-proxies-alist nil)
 
-	  ;; Expand `tramp-default-method-alist'.
-	  (add-to-list 'tramp-default-method-alist '("host1" "user1" "method1"))
-	  (add-to-list 'tramp-default-method-alist '("host2" "user2" "method2"))
-	  (add-to-list 'tramp-default-method-alist '("host3" "user3" "method3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/-:user1@host1"
-	      "|-:user2@host2"
-	      "|-:user3@host3:/path/to/file"))
-	    "/method3:user3@host3:"))
+	    ;; Ad-hoc settings.
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/method1:user1@host1|method2:user2@host2:/path/to/file")
+	      (if tramp-show-ad-hoc-proxies
+		  "/method1:user1@host1|method2:user2@host2:"
+		"/method2:user2@host2:")))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/method1:user1@host1|method2:user2@host2:/path/to/file" 'method)
+	      "method2"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/method1:user1@host1|method2:user2@host2:/path/to/file" 'user)
+	      "user2"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/method1:user1@host1|method2:user2@host2:/path/to/file" 'host)
+	      "host2"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/method1:user1@host1|method2:user2@host2:/path/to/file"
+	       'localname)
+	      "/path/to/file"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/method1:user1@host1|method2:user2@host2:/path/to/file" 'hop)
+	      (format "%s:%s@%s|"
+		      "method1" "user1" "host1")))
 
-	  ;; Expand `tramp-default-user-alist'.
-	  (add-to-list 'tramp-default-user-alist '("method1" "host1" "user1"))
-	  (add-to-list 'tramp-default-user-alist '("method2" "host2" "user2"))
-	  (add-to-list 'tramp-default-user-alist '("method3" "host3" "user3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/method1:host1"
-	      "|method2:host2"
-	      "|method3:host3:/path/to/file"))
-	    "/method3:user3@host3:"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/method1:user1@host1"
+		"|method2:user2@host2"
+		"|method3:user3@host3:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/method1:user1@host1"
+		   "|method2:user2@host2"
+		   "|method3:user3@host3:")
+		"/method3:user3@host3:")))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/method1:user1@host1"
+		"|method2:user2@host2"
+		"|method3:user3@host3:/path/to/file")
+	       'method)
+	      "method3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/method1:user1@host1"
+		"|method2:user2@host2"
+		"|method3:user3@host3:/path/to/file")
+	       'user)
+	      "user3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/method1:user1@host1"
+		"|method2:user2@host2"
+		"|method3:user3@host3:/path/to/file")
+	       'host)
+	      "host3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/method1:user1@host1"
+		"|method2:user2@host2"
+		"|method3:user3@host3:/path/to/file")
+	       'localname)
+	      "/path/to/file"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/method1:user1@host1"
+		"|method2:user2@host2"
+		"|method3:user3@host3:/path/to/file")
+	       'hop)
+	      (format "%s:%s@%s|%s:%s@%s|"
+		      "method1" "user1" "host1" "method2" "user2" "host2")))
 
-	  ;; Expand `tramp-default-host-alist'.
-	  (add-to-list 'tramp-default-host-alist '("method1" "user1" "host1"))
-	  (add-to-list 'tramp-default-host-alist '("method2" "user2" "host2"))
-	  (add-to-list 'tramp-default-host-alist '("method3" "user3" "host3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/method1:user1@"
-	      "|method2:user2@"
-	      "|method3:user3@:/path/to/file"))
-	    "/method3:user3@host3:"))
+	    ;; Expand `tramp-default-method-alist'.
+	    (add-to-list
+	     'tramp-default-method-alist '("host1" "user1" "method1"))
+	    (add-to-list
+	     'tramp-default-method-alist '("host2" "user2" "method2"))
+	    (add-to-list
+	     'tramp-default-method-alist '("host3" "user3" "method3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/-:user1@host1"
+		"|-:user2@host2"
+		"|-:user3@host3:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/method1:user1@host1"
+		   "|method2:user2@host2"
+		   "|method3:user3@host3:")
+		"/method3:user3@host3:")))
 
-	  ;; Ad-hoc user name and host name expansion.
-	  (setq tramp-default-method-alist nil
-		tramp-default-user-alist nil
-		tramp-default-host-alist nil)
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/method1:user1@host1"
-	      "|method2:user2@"
-	      "|method3:user3@:/path/to/file"))
-	    "/method3:user3@host1:"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/method1:%u@%h"
-	      "|method2:user2@host2"
-	      "|method3:%u@%h"
-	      "|method4:user4%domain4@host4#1234:/path/to/file"))
-	    "/method4:user4%domain4@host4#1234:")))
+	    ;; Expand `tramp-default-user-alist'.
+	    (add-to-list 'tramp-default-user-alist '("method1" "host1" "user1"))
+	    (add-to-list 'tramp-default-user-alist '("method2" "host2" "user2"))
+	    (add-to-list 'tramp-default-user-alist '("method3" "host3" "user3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/method1:host1"
+		"|method2:host2"
+		"|method3:host3:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/method1:user1@host1"
+		   "|method2:user2@host2"
+		   "|method3:user3@host3:")
+		"/method3:user3@host3:")))
+
+	    ;; Expand `tramp-default-host-alist'.
+	    (add-to-list 'tramp-default-host-alist '("method1" "user1" "host1"))
+	    (add-to-list 'tramp-default-host-alist '("method2" "user2" "host2"))
+	    (add-to-list 'tramp-default-host-alist '("method3" "user3" "host3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/method1:user1@"
+		"|method2:user2@"
+		"|method3:user3@:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/method1:user1@host1"
+		   "|method2:user2@host2"
+		   "|method3:user3@host3:")
+		"/method3:user3@host3:")))
+
+	    ;; Ad-hoc user name and host name expansion.
+	    (setq tramp-default-method-alist nil
+		  tramp-default-user-alist nil
+		  tramp-default-host-alist nil)
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/method1:user1@host1"
+		"|method2:user2@"
+		"|method3:user3@:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/method1:user1@host1"
+		   "|method2:user2@host1"
+		   "|method3:user3@host1:")
+		"/method3:user3@host1:")))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/method1:%u@%h"
+		"|method2:user2@host2"
+		"|method3:%u@%h"
+		"|method4:user4%domain4@host4#1234:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/method1:user2@host2"
+		   "|method2:user2@host2"
+		   "|method3:user4@host4"
+		   "|method4:user4%domain4@host4#1234:")
+		"/method4:user4%domain4@host4#1234:")))))
 
       ;; Exit.
       (tramp-change-syntax syntax))))
@@ -1017,6 +1067,7 @@ Also see `ignore'."
 	(tramp-default-host "default-host")
 	tramp-default-user-alist
 	tramp-default-host-alist
+	tramp-default-proxies-alist
 	;; Suppress method name check.
 	(non-essential t)
 	;; Suppress check for multihops.
@@ -1188,137 +1239,178 @@ Also see `ignore'."
 		   "/path/to/file"))
 
 	  ;; Multihop.
-	  (should
-	   (string-equal
-	    (file-remote-p "/user1@host1|user2@host2:/path/to/file")
-	    "/user2@host2:"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/user1@host1|user2@host2:/path/to/file" 'method)
-	    "default-method"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/user1@host1|user2@host2:/path/to/file" 'user)
-	    "user2"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/user1@host1|user2@host2:/path/to/file" 'host)
-	    "host2"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/user1@host1|user2@host2:/path/to/file" 'localname)
-	    "/path/to/file"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/user1@host1|user2@host2:/path/to/file" 'hop)
-	    (format "%s@%s|" "user1" "host1")))
+	  (dolist (tramp-show-ad-hoc-proxies '(nil t))
 
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/user1@host1"
-	      "|user2@host2"
-	      "|user3@host3:/path/to/file"))
-	    "/user3@host3:"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/user1@host1"
-	      "|user2@host2"
-	      "|user3@host3:/path/to/file")
-	     'method)
-	    "default-method"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/user1@host1"
-	      "|user2@host2"
-	      "|user3@host3:/path/to/file")
-	     'user)
-	    "user3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/user1@host1"
-	      "|user2@host2"
-	      "|user3@host3:/path/to/file")
-	     'host)
-	    "host3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/user1@host1"
-	      "|user2@host2"
-	      "|user3@host3:/path/to/file")
-	     'localname)
-	    "/path/to/file"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/user1@host1"
-	      "|user2@host2"
-	      "|user3@host3:/path/to/file")
-	     'hop)
-	    (format "%s@%s|%s@%s|"
-		    "user1" "host1" "user2" "host2")))
+	    ;; Explicit settings in `tramp-default-proxies-alist'
+	    ;; shouldn't show hops.
+	    (setq tramp-default-proxies-alist
+		  '(("^host2$" "^user2$" "/user1@host1:")))
+	    (should
+	     (string-equal
+	      (file-remote-p "/user2@host2:/path/to/file")
+	      "/user2@host2:"))
+	    (setq tramp-default-proxies-alist nil)
 
-	  ;; Expand `tramp-default-user-alist'.
-	  (add-to-list 'tramp-default-user-alist '(nil "host1" "user1"))
-	  (add-to-list 'tramp-default-user-alist '(nil "host2" "user2"))
-	  (add-to-list 'tramp-default-user-alist '(nil "host3" "user3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/host1"
-	      "|host2"
-	      "|host3:/path/to/file"))
-	    "/user3@host3:"))
+	    ;; Ad-hoc settings.
+	    (should
+	     (string-equal
+	      (file-remote-p "/user1@host1|user2@host2:/path/to/file")
+	      (if tramp-show-ad-hoc-proxies
+		  "/user1@host1|user2@host2:"
+		"/user2@host2:")))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/user1@host1|user2@host2:/path/to/file" 'method)
+	      "default-method"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/user1@host1|user2@host2:/path/to/file" 'user)
+	      "user2"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/user1@host1|user2@host2:/path/to/file" 'host)
+	      "host2"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/user1@host1|user2@host2:/path/to/file" 'localname)
+	      "/path/to/file"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/user1@host1|user2@host2:/path/to/file" 'hop)
+	      (format "%s@%s|" "user1" "host1")))
 
-	  ;; Expand `tramp-default-host-alist'.
-	  (add-to-list 'tramp-default-host-alist '(nil "user1" "host1"))
-	  (add-to-list 'tramp-default-host-alist '(nil "user2" "host2"))
-	  (add-to-list 'tramp-default-host-alist '(nil "user3" "host3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/user1@"
-	      "|user2@"
-	      "|user3@:/path/to/file"))
-	    "/user3@host3:"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/user1@host1"
+		"|user2@host2"
+		"|user3@host3:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/user1@host1"
+		   "|user2@host2"
+		   "|user3@host3:")
+		"/user3@host3:")))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/user1@host1"
+		"|user2@host2"
+		"|user3@host3:/path/to/file")
+	       'method)
+	      "default-method"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/user1@host1"
+		"|user2@host2"
+		"|user3@host3:/path/to/file")
+	       'user)
+	      "user3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/user1@host1"
+		"|user2@host2"
+		"|user3@host3:/path/to/file")
+	       'host)
+	      "host3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/user1@host1"
+		"|user2@host2"
+		"|user3@host3:/path/to/file")
+	       'localname)
+	      "/path/to/file"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/user1@host1"
+		"|user2@host2"
+		"|user3@host3:/path/to/file")
+	       'hop)
+	      (format "%s@%s|%s@%s|"
+		      "user1" "host1" "user2" "host2")))
 
-	  ;; Ad-hoc user name and host name expansion.
-	  (setq tramp-default-user-alist nil
-		tramp-default-host-alist nil)
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/user1@host1"
-	      "|user2@"
-	      "|user3@:/path/to/file"))
-	    "/user3@host1:"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/%u@%h"
-	      "|user2@host2"
-	      "|%u@%h"
-	      "|user4%domain4@host4#1234:/path/to/file"))
-	    "/user4%domain4@host4#1234:")))
+	    ;; Expand `tramp-default-user-alist'.
+	    (add-to-list 'tramp-default-user-alist '(nil "host1" "user1"))
+	    (add-to-list 'tramp-default-user-alist '(nil "host2" "user2"))
+	    (add-to-list 'tramp-default-user-alist '(nil "host3" "user3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/host1"
+		"|host2"
+		"|host3:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/user1@host1"
+		   "|user2@host2"
+		   "|user3@host3:")
+		"/user3@host3:")))
+
+	    ;; Expand `tramp-default-host-alist'.
+	    (add-to-list 'tramp-default-host-alist '(nil "user1" "host1"))
+	    (add-to-list 'tramp-default-host-alist '(nil "user2" "host2"))
+	    (add-to-list 'tramp-default-host-alist '(nil "user3" "host3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/user1@"
+		"|user2@"
+		"|user3@:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/user1@host1"
+		   "|user2@host2"
+		   "|user3@host3:")
+		"/user3@host3:")))
+
+	    ;; Ad-hoc user name and host name expansion.
+	    (setq tramp-default-user-alist nil
+		  tramp-default-host-alist nil)
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/user1@host1"
+		"|user2@"
+		"|user3@:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/user1@host1"
+		   "|user2@host1"
+		   "|user3@host1:")
+		"/user3@host1:")))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/%u@%h"
+		"|user2@host2"
+		"|%u@%h"
+		"|user4%domain4@host4#1234:/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/user2@host2"
+		   "|user2@host2"
+		   "|user4@host4"
+		   "|user4%domain4@host4#1234:")
+		"/user4%domain4@host4#1234:")))))
 
       ;; Exit.
       (tramp-change-syntax syntax))))
@@ -1332,6 +1424,7 @@ Also see `ignore'."
 	tramp-default-method-alist
 	tramp-default-user-alist
 	tramp-default-host-alist
+	tramp-default-proxies-alist
 	;; Suppress method name check.
 	(non-essential t)
 	;; Suppress check for multihops.
@@ -1804,154 +1897,203 @@ Also see `ignore'."
 		   "/path/to/file"))
 
 	  ;; Multihop.
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/[method1/user1@host1|method2/user2@host2]/path/to/file")
-	    "/[method2/user2@host2]"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/[method1/user1@host1|method2/user2@host2]/path/to/file" 'method)
-	    "method2"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/[method1/user1@host1|method2/user2@host2]/path/to/file" 'user)
-	    "user2"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/[method1/user1@host1|method2/user2@host2]/path/to/file" 'host)
-	    "host2"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/[method1/user1@host1|method2/user2@host2]/path/to/file"
-	     'localname)
-	    "/path/to/file"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     "/[method1/user1@host1|method2/user2@host2]/path/to/file" 'hop)
-	    (format "%s/%s@%s|"
-		    "method1" "user1" "host1")))
+	  (dolist (tramp-show-ad-hoc-proxies '(nil t))
 
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[method1/user1@host1"
-	      "|method2/user2@host2"
-	      "|method3/user3@host3]/path/to/file"))
-	    "/[method3/user3@host3]"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[method1/user1@host1"
-	      "|method2/user2@host2"
-	      "|method3/user3@host3]/path/to/file")
-	     'method)
-	    "method3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[method1/user1@host1"
-	      "|method2/user2@host2"
-	      "|method3/user3@host3]/path/to/file")
-	     'user)
-	    "user3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[method1/user1@host1"
-	      "|method2/user2@host2"
-	      "|method3/user3@host3]/path/to/file")
-	     'host)
-	    "host3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[method1/user1@host1"
-	      "|method2/user2@host2"
-	      "|method3/user3@host3]/path/to/file")
-	     'localname)
-	    "/path/to/file"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[method1/user1@host1"
-	      "|method2/user2@host2"
-	      "|method3/user3@host3]/path/to/file")
-	     'hop)
-	    (format "%s/%s@%s|%s/%s@%s|"
-		    "method1" "user1" "host1" "method2" "user2" "host2")))
+	    ;; Explicit settings in `tramp-default-proxies-alist'
+	    ;; shouldn't show hops.
+	    (setq tramp-default-proxies-alist
+		  '(("^host2$" "^user2$" "/[method1/user1@host1]")))
+	    (should
+	     (string-equal
+	      (file-remote-p "/[method2/user2@host2]/path/to/file")
+	      "/[method2/user2@host2]"))
+	    (setq tramp-default-proxies-alist nil)
 
-	  ;; Expand `tramp-default-method-alist'.
-	  (add-to-list 'tramp-default-method-alist '("host1" "user1" "method1"))
-	  (add-to-list 'tramp-default-method-alist '("host2" "user2" "method2"))
-	  (add-to-list 'tramp-default-method-alist '("host3" "user3" "method3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[/user1@host1"
-	      "|/user2@host2"
-	      "|/user3@host3]/path/to/file"))
-	    "/[method3/user3@host3]"))
+	    ;; Ad-hoc settings.
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/[method1/user1@host1|method2/user2@host2]/path/to/file")
+	      (if tramp-show-ad-hoc-proxies
+		  "/[method1/user1@host1|method2/user2@host2]"
+		"/[method2/user2@host2]")))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/[method1/user1@host1|method2/user2@host2]/path/to/file" 'method)
+	      "method2"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/[method1/user1@host1|method2/user2@host2]/path/to/file" 'user)
+	      "user2"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/[method1/user1@host1|method2/user2@host2]/path/to/file" 'host)
+	      "host2"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/[method1/user1@host1|method2/user2@host2]/path/to/file"
+	       'localname)
+	      "/path/to/file"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       "/[method1/user1@host1|method2/user2@host2]/path/to/file" 'hop)
+	      (format "%s/%s@%s|"
+		      "method1" "user1" "host1")))
 
-	  ;; Expand `tramp-default-user-alist'.
-	  (add-to-list 'tramp-default-user-alist '("method1" "host1" "user1"))
-	  (add-to-list 'tramp-default-user-alist '("method2" "host2" "user2"))
-	  (add-to-list 'tramp-default-user-alist '("method3" "host3" "user3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[method1/host1"
-	      "|method2/host2"
-	      "|method3/host3]/path/to/file"))
-	    "/[method3/user3@host3]"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[method1/user1@host1"
+		"|method2/user2@host2"
+		"|method3/user3@host3]/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/[method1/user1@host1"
+		   "|method2/user2@host2"
+		   "|method3/user3@host3]")
+		"/[method3/user3@host3]")))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[method1/user1@host1"
+		"|method2/user2@host2"
+		"|method3/user3@host3]/path/to/file")
+	       'method)
+	      "method3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[method1/user1@host1"
+		"|method2/user2@host2"
+		"|method3/user3@host3]/path/to/file")
+	       'user)
+	      "user3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[method1/user1@host1"
+		"|method2/user2@host2"
+		"|method3/user3@host3]/path/to/file")
+	       'host)
+	      "host3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[method1/user1@host1"
+		"|method2/user2@host2"
+		"|method3/user3@host3]/path/to/file")
+	       'localname)
+	      "/path/to/file"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[method1/user1@host1"
+		"|method2/user2@host2"
+		"|method3/user3@host3]/path/to/file")
+	       'hop)
+	      (format "%s/%s@%s|%s/%s@%s|"
+		      "method1" "user1" "host1" "method2" "user2" "host2")))
 
-	  ;; Expand `tramp-default-host-alist'.
-	  (add-to-list 'tramp-default-host-alist '("method1" "user1" "host1"))
-	  (add-to-list 'tramp-default-host-alist '("method2" "user2" "host2"))
-	  (add-to-list 'tramp-default-host-alist '("method3" "user3" "host3"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[method1/user1@"
-	      "|method2/user2@"
-	      "|method3/user3@]/path/to/file"))
-	    "/[method3/user3@host3]"))
+	    ;; Expand `tramp-default-method-alist'.
+	    (add-to-list
+	     'tramp-default-method-alist '("host1" "user1" "method1"))
+	    (add-to-list
+	     'tramp-default-method-alist '("host2" "user2" "method2"))
+	    (add-to-list
+	     'tramp-default-method-alist '("host3" "user3" "method3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[/user1@host1"
+		"|/user2@host2"
+		"|/user3@host3]/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/[method1/user1@host1"
+		   "|method2/user2@host2"
+		   "|method3/user3@host3]")
+		"/[method3/user3@host3]")))
 
-	  ;; Ad-hoc user name and host name expansion.
-	  (setq tramp-default-method-alist nil
-		tramp-default-user-alist nil
-		tramp-default-host-alist nil)
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[method1/user1@host1"
-	      "|method2/user2@"
-	      "|method3/user3@]/path/to/file"))
-	    "/[method3/user3@host1]"))
-	  (should
-	   (string-equal
-	    (file-remote-p
-	     (concat
-	      "/[method1/%u@%h"
-	      "|method2/user2@host2"
-	      "|method3/%u@%h"
-	      "|method4/user4%domain4@host4#1234]/path/to/file"))
-	    "/[method4/user4%domain4@host4#1234]")))
+	    ;; Expand `tramp-default-user-alist'.
+	    (add-to-list 'tramp-default-user-alist '("method1" "host1" "user1"))
+	    (add-to-list 'tramp-default-user-alist '("method2" "host2" "user2"))
+	    (add-to-list 'tramp-default-user-alist '("method3" "host3" "user3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[method1/host1"
+		"|method2/host2"
+		"|method3/host3]/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/[method1/user1@host1"
+		   "|method2/user2@host2"
+		   "|method3/user3@host3]")
+		"/[method3/user3@host3]")))
+
+	    ;; Expand `tramp-default-host-alist'.
+	    (add-to-list 'tramp-default-host-alist '("method1" "user1" "host1"))
+	    (add-to-list 'tramp-default-host-alist '("method2" "user2" "host2"))
+	    (add-to-list 'tramp-default-host-alist '("method3" "user3" "host3"))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[method1/user1@"
+		"|method2/user2@"
+		"|method3/user3@]/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/[method1/user1@host1"
+		   "|method2/user2@host2"
+		   "|method3/user3@host3]")
+		"/[method3/user3@host3]")))
+
+	    ;; Ad-hoc user name and host name expansion.
+	    (setq tramp-default-method-alist nil
+		  tramp-default-user-alist nil
+		  tramp-default-host-alist nil)
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[method1/user1@host1"
+		"|method2/user2@"
+		"|method3/user3@]/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/[method1/user1@host1"
+		   "|method2/user2@host1"
+		   "|method3/user3@host1]")
+		"/[method3/user3@host1]")))
+	    (should
+	     (string-equal
+	      (file-remote-p
+	       (concat
+		"/[method1/%u@%h"
+		"|method2/user2@host2"
+		"|method3/%u@%h"
+		"|method4/user4%domain4@host4#1234]/path/to/file"))
+	      (if tramp-show-ad-hoc-proxies
+		  (concat
+		   "/[method1/user2@host2"
+		   "|method2/user2@host2"
+		   "|method3/user4@host4"
+		   "|method4/user4%domain4@host4#1234]")
+		"/[method4/user4%domain4@host4#1234]")))))
 
       ;; Exit.
       (tramp-change-syntax syntax))))
@@ -2524,7 +2666,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    ;; Do not overwrite if excluded.
 	    (cl-letf (((symbol-function #'y-or-n-p) #'tramp--test-always)
 		      ;; Ange-FTP.
-		      ((symbol-function 'yes-or-no-p) #'tramp--test-always))
+		      ((symbol-function #'yes-or-no-p) #'tramp--test-always))
 	      (write-region "foo" nil tmp-name nil nil nil 'mustbenew))
 	    (should-error
 	     (cl-letf (((symbol-function #'y-or-n-p) #'ignore)
@@ -6738,8 +6880,9 @@ INPUT, if non-nil, is a string sent to the process."
 		(insert "foo")
 		;; Bug#53207: with `create-lockfiles' nil, saving the
 		;; buffer results in a prompt.
-		(cl-letf (((symbol-function 'yes-or-no-p)
-			   (lambda (_) (ert-fail "Test failed unexpectedly"))))
+		(cl-letf (((symbol-function #'read-from-minibuffer)
+			   (lambda (&rest _)
+			     (ert-fail "Test failed unexpectedly"))))
 		  (should (buffer-modified-p))
 		  (save-buffer)
 		  (should-not (buffer-modified-p)))
@@ -6757,7 +6900,7 @@ INPUT, if non-nil, is a string sent to the process."
 		;; modification time properly, for them it doesn't
 		;; make sense to test.
 		(when (not (verify-visited-file-modtime))
-		  (cl-letf (((symbol-function 'read-char-choice)
+		  (cl-letf (((symbol-function #'read-char-choice)
 			     (lambda (prompt &rest _) (message "%s" prompt) ?y)))
 		    (ert-with-message-capture captured-messages
 		      (insert "bar")
@@ -6773,8 +6916,8 @@ INPUT, if non-nil, is a string sent to the process."
 			(should (file-locked-p tmp-name)))))
 
 		  ;; `save-buffer' removes the file lock.
-		  (cl-letf (((symbol-function 'yes-or-no-p) #'tramp--test-always)
-			    ((symbol-function 'read-char-choice)
+		  (cl-letf (((symbol-function #'yes-or-no-p) #'tramp--test-always)
+			    ((symbol-function #'read-char-choice)
 			     (lambda (&rest _) ?y)))
 		    (should (buffer-modified-p))
 		    (save-buffer)

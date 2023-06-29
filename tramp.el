@@ -63,6 +63,23 @@
 (declare-function file-notify-rm-watch "filenotify")
 (declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
+(defvar ls-lisp-use-insert-directory-program)
+(defvar tramp-prefix-format)
+(defvar tramp-prefix-regexp)
+(defvar tramp-method-regexp)
+(defvar tramp-postfix-method-format)
+(defvar tramp-postfix-method-regexp)
+(defvar tramp-prefix-ipv6-format)
+(defvar tramp-prefix-ipv6-regexp)
+(defvar tramp-postfix-ipv6-format)
+(defvar tramp-postfix-ipv6-regexp)
+(defvar tramp-postfix-host-format)
+(defvar tramp-postfix-host-regexp)
+(defvar tramp-remote-file-name-spec-regexp)
+(defvar tramp-file-name-structure)
+(defvar tramp-file-name-regexp)
+(defvar tramp-completion-method-regexp)
+(defvar tramp-completion-file-name-regexp)
 
 ;; Reload `tramp-compat' when we reload `tramp-autoloads' of the GNU
 ;; ELPA package.
@@ -522,6 +539,11 @@ interpreted as a regular expression which always matches."
   :version "24.3"
   :type 'boolean)
 
+(defcustom tramp-show-ad-hoc-proxies nil
+  "Whether to show ad-hoc proxies in file names."
+  :version "29.2"
+  :type 'boolean)
+
 ;; For some obscure technical reasons, `system-name' on w32 returns
 ;; either lower case or upper case letters.  See
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=38079#20>.
@@ -814,23 +836,6 @@ Customize.  See also `tramp-change-syntax'."
   :require 'tramp
   :initialize #'custom-initialize-default
   :set #'tramp-set-syntax)
-
-(defvar tramp-prefix-format)
-(defvar tramp-prefix-regexp)
-(defvar tramp-method-regexp)
-(defvar tramp-postfix-method-format)
-(defvar tramp-postfix-method-regexp)
-(defvar tramp-prefix-ipv6-format)
-(defvar tramp-prefix-ipv6-regexp)
-(defvar tramp-postfix-ipv6-format)
-(defvar tramp-postfix-ipv6-regexp)
-(defvar tramp-postfix-host-format)
-(defvar tramp-postfix-host-regexp)
-(defvar tramp-remote-file-name-spec-regexp)
-(defvar tramp-file-name-structure)
-(defvar tramp-file-name-regexp)
-(defvar tramp-completion-method-regexp)
-(defvar tramp-completion-file-name-regexp)
 
 (defun tramp-set-syntax (symbol value)
   "Set SYMBOL to value VALUE.
@@ -1824,8 +1829,8 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
       (when (cadr args)
 	(setq localname (and (stringp (cadr args)) (cadr args))))
       (when hop
-	;; Keep hop in file name for completion.
-	(unless minibuffer-completing-file-name
+	;; Keep hop in file name for completion or when indicated.
+	(unless (or minibuffer-completing-file-name tramp-show-ad-hoc-proxies)
 	  (setq hop nil))
 	;; Assure that the hops are in `tramp-default-proxies-alist'.
 	;; In tramp-archive.el, the slot `hop' is used for the archive
@@ -1876,7 +1881,7 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
      (tramp-compat-rx
       (regexp tramp-postfix-host-regexp) eos)
      tramp-postfix-hop-format
-     (tramp-make-tramp-file-name vec 'noloc)))))
+     (tramp-make-tramp-file-name (tramp-file-name-unify vec))))))
 
 (defun tramp-completion-make-tramp-file-name (method user host localname)
   "Construct a Tramp file name from METHOD, USER, HOST and LOCALNAME.
@@ -1975,8 +1980,11 @@ version, the function does nothing."
   "Return contents of BUFFER.
 If BUFFER is not a buffer or a buffer name, return the contents
 of `current-buffer'."
-  (with-current-buffer (or buffer (current-buffer))
-    (substring-no-properties (buffer-string))))
+  (or (let ((buf (or buffer (current-buffer))))
+        (when (bufferp buf)
+          (with-current-buffer (or buffer (current-buffer))
+	    (substring-no-properties (buffer-string)))))
+      ""))
 
 (defun tramp-debug-buffer-name (vec)
   "A name for the debug buffer for VEC."
@@ -4326,6 +4334,7 @@ Let-bind it when necessary.")
 (defun tramp-handle-insert-directory
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
+  (require 'ls-lisp)
   (unless switches (setq switches ""))
   ;; Mark trailing "/".
   (when (and (directory-name-p filename)
@@ -4338,7 +4347,6 @@ Let-bind it when necessary.")
     (with-tramp-progress-reporter v 0 (format "Opening directory %s" filename)
       (let (ls-lisp-use-insert-directory-program start)
 	;; Silence byte compiler.
-	(ignore ls-lisp-use-insert-directory-program)
 	(tramp-run-real-handler
 	 #'insert-directory
 	 (list filename switches wildcard full-directory-p))
@@ -5055,7 +5063,7 @@ support symbolic links."
 
 (defun tramp-handle-memory-info ()
   "Like `memory-info' for Tramp files."
-  (let ((result '(0 0 0 0))
+  (let ((result (list 0 0 0 0))
         process-file-side-effects)
     (with-temp-buffer
       (cond
