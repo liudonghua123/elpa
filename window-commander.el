@@ -75,7 +75,7 @@
 ;;
 ;; M-x customize-group RET window-commander RET
 ;;
-;; For more information see info node `(Window Commander)'.
+;; For more information see info node `(window-commander)'.
 
 ;;; Code:
 
@@ -90,7 +90,7 @@
 
 (defgroup window-commander nil
   "Window Commander."
-  :link '(custom-manual "(Window Commander) Top")
+  :link '(custom-manual "(window-commander) Top")
   :group 'convenience
   :prefix "wincom-")
 
@@ -102,7 +102,7 @@
 (defcustom wincom-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed.
 This list should contain at least two characters."
-  :link '(info-link "(Window Commander) Customization")
+  :link '(info-link "(window-commander) Customization")
   :type '( repeat :validate
            (lambda (w)
              (unless (nth 1 (widget-value w))
@@ -123,7 +123,7 @@ This list should contain at least two characters."
   iconified frames.
 - `visible' means consider all windows on all visible frames.
 - `current' means consider only the currently selected frame."
-  :link '(info-link "(Window Commander) Customization")
+  :link '(info-link "(window-commander) Customization")
   :type '(radio (const :tag "All windows on all frames" t)
                 (const
                  :tag "All windows on all visible and iconified frames" 0)
@@ -138,7 +138,7 @@ This list should contain at least two characters."
 
 (defcustom wincom-minimum 3
   "Minimum number of tracked windows for which interactive selection occurs."
-  :link '(info-link "(Window Commander) Window Commands")
+  :link '(info-link "(window-commander) Window Commands")
   :type 'integer
   :risky t
   :package-version '(swsw . 2.3))
@@ -147,14 +147,14 @@ This list should contain at least two characters."
   "Whether or not to show a mode line lighter.
 - non-nil means show a mode line lighter.
 - nil means don't show a mode line lighter."
-  :link '(info-link "(Window Commander) Display functions")
+  :link '(info-link "(window-commander) Display functions")
   :type '(radio (const :tag "Show mode line lighter" t)
                 (const :tag "Don't show mode line lighter" nil))
   :package-version '(swsw . 2.2))
 
 (defcustom wincom-mode-hook nil
   "Hook run when enabling or disabling Window Commander mode."
-  :link '(info-link "(Window Commander) Display functions")
+  :link '(info-link "(window-commander) Display functions")
   :type 'hook
   :options '(wincom-mode-line-display-function
              wincom-mode-line-conditional-display-function)
@@ -169,7 +169,7 @@ This list should contain at least two characters."
 (defcustom wincom-id-format " <%s>"
   "Format string for the window ID.
 %s is replaced with a representation of the window's ID."
-  :link '(info-link "(Window Commander) Customization")
+  :link '(info-link "(window-commander) Customization")
   :type 'string
   :package-version '(swsw . 1.0))
 
@@ -338,7 +338,7 @@ Currently, only a single KEYWORD-ARG is recognized, `:minibuffer':
 When it's non-nil, allow the minibuffer to be selected by
 `next-window' (when there are less than `wincom-minimum' tracked windows).
 
-For more information, see info node `(Window Commander) Window Commands'.
+For more information, see info node `(window-commander) Window Commands'.
 
 \(fn NAME (WINDOW [PREFIX]) [DOCSTRING] [KEYWORD-ARG...] BODY...)"
   (declare (debug (&define name listp [&optional stringp]
@@ -360,7 +360,7 @@ window command is chosen.
 
   This is a window command, intended to be used only when Window
   Commander mode is enabled; for more information, see info node
-  `(Window Commander) Window Commands'.
+  `(window-commander) Window Commands'.
 " docstring (if minibuffer "" ", excluding the minibuffer")))
        (declare (modes wincom-mode)
                 (interactive-only t))

@@ -1,5 +1,5 @@
 \input texinfo
-@setfilename wincom.info
+@setfilename window-commander.info
 @settitle Window Commander User Manual
 @documentencoding UTF-8
 @documentlanguage en
@@ -23,7 +23,7 @@ General Public License for more details.
 
 @dircategory Emacs
 @direntry
-* Window Commander: (Window Commander). Simply execute commands on windows.
+* Window Commander: (window-commander). Simply execute commands on windows.
 @end direntry
 
 @titlepage
