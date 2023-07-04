@@ -64,7 +64,7 @@ messages buffer"
   :group 'cpupower)
 
 (defconst cpupower--compatible-versions
-  '("5.4" "5.10" "5.12")
+  '("5.4" "5.10" "5.12" "5.18")
   "Versions of cpupower which cpupower.el can work with.
 
 It is possible that other versions of cpupower have the same
