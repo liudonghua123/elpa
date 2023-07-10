@@ -1,22 +1,31 @@
-;;; buildbot-view.el --- buildbot.el UI -*- lexical-binding: t; -*-
+;;; buildbot-view.el -- buildbot.el UI -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023  Free Software Foundation, Inc.
-;;
+;; Copyright (C) 2023 Free Software Foundation.
+
+;; Author: Yuchen Pei <id@ypei.org>
+;; Package-Requires: ((emacs "28.2"))
+
 ;; This file is part of buildbot.el.
-;;
+
 ;; buildbot.el is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU Affero General Public License as
 ;; published by the Free Software Foundation, either version 3 of the
 ;; License, or (at your option) any later version.
-;;
+
 ;; buildbot.el is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ;; Affero General Public License for more details.
-;;
+
 ;; You should have received a copy of the GNU Affero General Public
 ;; License along with buildbot.el. If not, see
 ;; <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; buildbot.el UI.
+
+;;; Code:
 
 (require 'buildbot-utils)
 (require 'buildbot-client)
@@ -30,9 +39,10 @@
 (defvar-local buildbot-view-data nil)
 
 (define-derived-mode buildbot-view-mode special-mode "Buildbot"
-  "buildbot.el is a Buildbot client for emacs.")
+  "A Buildbot client for Emacs.")
 
 (defun buildbot-view-next-header (n)
+  "Move forward N headers."
   (interactive "p")
   (dotimes (_ n)
     (end-of-line 1)
@@ -41,6 +51,7 @@
 (define-key buildbot-view-mode-map (kbd "M-n") #'buildbot-view-next-header)
 
 (defun buildbot-view-next-failed-header (n)
+  "Move forward N headers with failed states."
   (interactive "p")
   (dotimes (_ n)
     (end-of-line 1)
@@ -49,6 +60,7 @@
 (define-key buildbot-view-mode-map "n" #'buildbot-view-next-failed-header)
 
 (defun buildbot-view-next-header-same-thing (n)
+  "Move forward N headers of the same type."
   (interactive "p")
   (when-let
       ((type (get-text-property (point) 'type)))
@@ -60,6 +72,7 @@
   #'buildbot-view-next-header-same-thing)
 
 (defun buildbot-view-previous-header (n)
+  "Move backward N headers."
   (interactive "p")
   (beginning-of-line 1)
   (unless (looking-at buildbot-view-header-regex)
@@ -69,6 +82,7 @@
 (define-key buildbot-view-mode-map (kbd "M-p") #'buildbot-view-previous-header)
 
 (defun buildbot-view-previous-failed-header (n)
+  "Move back N headers of failed states."
   (interactive "p")
   (beginning-of-line 1)
   (unless (looking-at buildbot-view-header-regex)
@@ -79,6 +93,7 @@
 (define-key buildbot-view-mode-map "p" #'buildbot-view-previous-failed-header)
 
 (defun buildbot-view-previous-header-same-thing (n)
+  "Move back N headers of the same type."
   (interactive "p")
   (when-let
       ((type (get-text-property (point) 'type)))
@@ -90,6 +105,7 @@
   #'buildbot-view-previous-header-same-thing)
 
 (defun buildbot-view-format-revision-info (revision-info)
+  "Format REVISION-INFO header in the view."
   (propertize
    (format
     "[Revision %s]\nAuthor: %s\nDate: %s\n\n%s"
@@ -100,12 +116,17 @@
    'revision (alist-get 'revision revision-info) 'type 'revision))
 
 (defun buildbot-view-format-build-stats (stats)
+  "Format build STATS in the view."
   (format "Build stats: Success - %d | Failure - %d | Pending - %d"
           (alist-get 'success stats)
           (alist-get 'failure stats)
           (alist-get 'pending stats)))
 
 (defun buildbot-view-format-build (revision build &optional show-revision)
+  "Format a BUILD header associated with REVISION in the view.
+
+With a non-nil SHOW-REVISION, display REVISION instead of the
+builder name of the build."
   (propertize
    (format "\n[%s | %s]\n%s"
            (if show-revision
@@ -118,9 +139,12 @@
             (mapcar (lambda (test) (alist-get 'test_name test))
                     (alist-get 'failed_tests build))
             "\n"))
-    'revision revision 'build build 'type 'build))
+   'revision revision 'build build 'type 'build))
 
 (defun buildbot-view-format-change-info (change-info &optional no-branch)
+  "Format a CHANGE-INFO in the view.
+
+With a non-nil NO-BRANCH, do not show branch info."
   (let ((revision (alist-get 'revision change-info)))
     (concat
      (unless no-branch
@@ -136,6 +160,7 @@
       "\n"))))
 
 (defun buildbot-view-format-step (step)
+  "Format a STEP header in the view."
   (propertize
    (format "\n[%d. %s | %s]\n"
            (alist-get 'number step)
@@ -147,12 +172,16 @@
    'step step 'type 'step))
 
 (defun buildbot-view-format-log (log)
+  "Format a LOG header in the view."
   (propertize
    (format "\n[%s]\n"
            (alist-get 'name log))
    'log log 'type 'log))
 
 (defun buildbot-revision-format (revision-and-changes-info &optional no-branch)
+  "Format a revision view with REVISION-AND-CHANGES-INFO.
+
+With a non-nil NO-BRANCH, do not show branch info."
   (let ((revision-info (alist-get 'revision-info revision-and-changes-info)))
     (concat
      (buildbot-view-format-revision-info revision-info)
@@ -164,12 +193,14 @@
       "\n"))))
 
 (defun buildbot-view-format-branch (branch)
+  "Format a BRANCH header in the view."
   (propertize
    (format "[Branch %s]" branch)
    'branch branch
    'type 'branch))
 
 (defun buildbot-branch-format (branch changes)
+  "Format a branch view with BRANCH and CHANGES info."
   (concat
    (buildbot-view-format-branch branch)
    "\n\n"
@@ -182,11 +213,13 @@
     "\n\n")))
 
 (defun buildbot-view-format-builder (builder)
+  "Format a BUILDER header in the view."
   (propertize
    (format "[Builder %s]" (alist-get 'name builder))
    'builder builder 'type 'builder))
 
 (defun buildbot-builder-format (builder builds-with-revisions)
+  "Format a builder view with info from BUILDER and BUILDS-WITH-REVISIONS."
   (concat
    (buildbot-view-format-builder builder)
    "\n\n"
@@ -203,6 +236,7 @@
     "\n\n")))
 
 (defun buildbot-build-format (revision-info build steps)
+  "Format a build view with REVISION-INFO, BUILD and STEPS info."
   (concat
    (buildbot-view-format-revision-info revision-info)
    "\n"
@@ -213,6 +247,7 @@
     "\n")))
 
 (defun buildbot-step-format (revision-info build step logs)
+  "Format a step view with REVISION-INFO, BUILD, STEP and LOGS info."
   (concat
    (buildbot-view-format-revision-info revision-info)
    "\n"
@@ -225,6 +260,7 @@
     "\n")))
 
 (defun buildbot-log-format (revision-info build step log log-text)
+  "Format a log view with REVISION-INFO, BUILD, STEP, LOG and LOG-TEXT."
   (concat
    (buildbot-view-format-revision-info revision-info)
    "\n"
@@ -237,10 +273,12 @@
    log-text))
 
 (defun buildbot-get-id-from-build (build)
+  "Get the build id from BUILD."
   (or (alist-get 'id build)
       (alist-get 'buildid build)))
 
 (defun buildbot-view-buffer-name (type data)
+  "Get the buffer name of a view of TYPE with DATA."
   (pcase type
     ('branch (format "*buildbot branch %s*" (alist-get 'branch data)))
     ('revision (format "*buildbot revision %s*"
@@ -257,6 +295,9 @@
                   (alist-get 'logid (alist-get 'log data))))))
 
 (defun buildbot-view-open (type data &optional force)
+  "Open a view of TYPE using DATA.
+
+With a non-nil FORCE, reload the view buffer if exists."
   (let ((buffer-name (buildbot-view-buffer-name type data)))
     (when (or force (not (get-buffer buffer-name)))
       (with-current-buffer (get-buffer-create buffer-name)
@@ -267,22 +308,26 @@
     (switch-to-buffer buffer-name)))
 
 (defun buildbot-view-reload ()
+  "Reload a view buffer."
   (interactive)
   (buildbot-view-update))
 (define-key buildbot-view-mode-map "g" #'buildbot-view-reload)
 
 ;;;###autoload
 (defun buildbot-revision-open (revision)
+  "Open a REVISION view."
   (interactive "sRevision (e.g. commit hash): ")
   (buildbot-view-open 'revision `((revision . ,revision))))
 
 ;;;###autoload
 (defun buildbot-branch-open (branch)
+  "Open a BRANCH view."
   (interactive "sBranch name: ")
   (buildbot-view-open 'branch `((branch . ,branch))))
 
 ;;;###autoload
 (defun buildbot-builder-open (builder-name)
+  "Open a builder view of BUILDER-NAME."
   (interactive (list (completing-read
                       "Builder name: "
                       (mapcar
@@ -293,6 +338,7 @@
                                   (buildbot-builder-by-name builder-name)))))
 
 (defun buildbot-view-update ()
+  "Refresh a view."
   (unless (derived-mode-p 'buildbot-view-mode)
     (error "Not in buildbot view mode"))
   (let ((inhibit-read-only t))
@@ -355,6 +401,9 @@
     (goto-char (point-min))))
 
 (defun buildbot-view-open-thing-at-point (force)
+  "Open thing at point.
+
+With a non-nil FORCE, refresh the opened buffer if exists."
   (interactive "P")
   (let ((data (copy-tree buildbot-view-data)))
     (pcase (get-text-property (point) 'type)
@@ -384,3 +433,4 @@
   #'buildbot-view-open-thing-at-point)
 
 (provide 'buildbot-view)
+;;; buildbot-view.el ends here

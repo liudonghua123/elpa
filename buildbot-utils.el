@@ -18,9 +18,18 @@
 ;; License along with buildbot.el. If not, see
 ;; <https://www.gnu.org/licenses/>.
 
-(defvar buildbot-client-buffer-name "*buildbot api*")
+;;; Commentary:
+
+;; Commonly used utilities.
+
+;;; Code:
+(require 'json)
+
+(defvar buildbot-client-buffer-name "*buildbot api*"
+  "Name of the buffer recording buildbot API calls.")
 
 (defun buildbot-parse-http-header (text)
+  "Parse the http header TEXT."
   (let ((status) (fields))
     (with-temp-buffer
       (insert text)
@@ -32,12 +41,17 @@
     (list (cons 'status status) (cons 'fields fields))))
 
 (defun buildbot-delete-http-header ()
+  "Delete the http header from a response buffer."
   (save-excursion
     (goto-char (point-min))
     (kill-region (point) (progn (re-search-forward "\r?\n\r?\n")
                                 (point)))))
 
 (defun buildbot-url-fetch-json (url &optional decompression with-header)
+  "Fetch and parse a json object from URL.
+
+With non-nil DECOMPRESSION, decompress the response.
+With non-nil WITH-HEADER, include the header in the result."
   (with-current-buffer (get-buffer-create buildbot-client-buffer-name)
     (goto-char (point-max))
     (insert "[" (current-time-string) "] Request: " url "\n"))
@@ -64,6 +78,10 @@
         (error "HTTP error: %s" (buffer-substring (point) (point-max)))))))
 
 (defun buildbot-url-fetch-raw (url &optional decompression with-header)
+  "Fetch from URL.
+
+With non-nil DECOMPRESSION, decompress the response.
+With non-nil WITH-HEADER, include the header in the result."
   (with-current-buffer (get-buffer-create buildbot-client-buffer-name)
     (goto-char (point-max))
     (insert "[" (current-time-string) "] Request: " url "\n"))
@@ -90,17 +108,20 @@
         (error "HTTP error: %s" (buffer-substring (point) (point-max)))))))
 
 (defun buildbot-format-attr (attr)
+  "Format an alist ATTR into a url query string."
   (string-join (mapcar (lambda (pair)
                          (format "%s=%s" (car pair) (cdr pair)))
                        attr)
                "&"))
 
 (defun buildbot-format-epoch-time (epoch)
+  "Format an EPOCH."
   (format-time-string "%Y-%m-%d %a %H:%M:%S %Z" (encode-time
                                                  (decode-time epoch))))
 
 
 (defun buildbot-build-status (build)
+  "Get the status of a BUILD."
   (let ((state (alist-get 'state_string build)))
     (cond ((equal state "build successful")
            'success)
@@ -109,6 +130,7 @@
           (t 'pending))))
 
 (defun buildbot-step-guess-status (step)
+  "Guess the status of a STEP."
   (let ((state (alist-get 'state_string step)))
     (cond ((string-suffix-p "(warnings)" state)
            'pending)
@@ -123,12 +145,14 @@
           (t 'success))))
 
 (defun buildbot-status-face (status)
+  "Get the face of STATUS."
   (pcase status
     ('success 'success)
     ('failure 'error)
     (_ 'warning)))
 
 (defun buildbot-get-build-stats (builds)
+  "Get the aggregated build stats of BUILDS."
   (let ((results (copy-tree '((success . 0)
                               (failure . 0)
                               (pending . 0))))
@@ -142,6 +166,7 @@
     results))
 
 (defun buildbot-get-revision-info-from-change (change)
+  "Get the revision info from a CHANGE."
   (list
    (assq 'revision change)
    (assq 'author change)
@@ -151,7 +176,9 @@
    (assq 'comments change)))
 
 (defun buildbot-get-revision-and-changes-info (changes)
-  "Get revision-info and builds from a set of changes of the same revision."
+  "Get the revision-info and builds from a set of CHANGES.
+
+The changes should be of the same revision."
   (let* ((first-change (elt changes 0))
          (revision-info (buildbot-get-revision-info-from-change first-change))
          (changes-info
@@ -167,3 +194,4 @@
     `((revision-info . ,revision-info) (changes-info . ,changes-info))))
 
 (provide 'buildbot-utils)
+;;; buildbot-utils.el ends here
