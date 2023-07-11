@@ -38,6 +38,19 @@
 (defvar-local buildbot-view-type nil)
 (defvar-local buildbot-view-data nil)
 
+(defvar buildbot-view-mode-map
+  (let ((kmap (make-sparse-keymap)))
+    (define-key kmap (kbd "M-n") #'buildbot-view-next-header)
+    (define-key kmap "n" #'buildbot-view-next-failed-header)
+    (define-key kmap "f" #'buildbot-view-next-header-same-thing)
+    (define-key kmap (kbd "M-p") #'buildbot-view-previous-header)
+    (define-key kmap "p" #'buildbot-view-previous-failed-header)
+    (define-key kmap (kbd "b") #'buildbot-view-previous-header-same-thing)
+    (define-key kmap "g" #'buildbot-view-reload)
+    (define-key kmap (kbd "<return>") #'buildbot-view-open-thing-at-point)
+    kmap)
+  "Keymap for `buildbot-view-mode'.")
+
 (define-derived-mode buildbot-view-mode special-mode "Buildbot"
   "A Buildbot client for Emacs.")
 
@@ -48,7 +61,6 @@
     (end-of-line 1)
     (re-search-forward buildbot-view-header-regex)
     (beginning-of-line 1)))
-(define-key buildbot-view-mode-map (kbd "M-n") #'buildbot-view-next-header)
 
 (defun buildbot-view-next-failed-header (n)
   "Move forward N headers with failed states."
@@ -57,7 +69,6 @@
     (end-of-line 1)
     (text-property-search-forward 'face 'error)
     (beginning-of-line 1)))
-(define-key buildbot-view-mode-map "n" #'buildbot-view-next-failed-header)
 
 (defun buildbot-view-next-header-same-thing (n)
   "Move forward N headers of the same type."
@@ -68,8 +79,6 @@
       (buildbot-view-next-header 1)
       (while (not (eq (get-text-property (point) 'type) type))
         (buildbot-view-next-header 1)))))
-(define-key buildbot-view-mode-map "f"
-  #'buildbot-view-next-header-same-thing)
 
 (defun buildbot-view-previous-header (n)
   "Move backward N headers."
@@ -79,7 +88,6 @@
     (re-search-backward buildbot-view-header-regex))
   (dotimes (_ n)
     (re-search-backward buildbot-view-header-regex)))
-(define-key buildbot-view-mode-map (kbd "M-p") #'buildbot-view-previous-header)
 
 (defun buildbot-view-previous-failed-header (n)
   "Move back N headers of failed states."
@@ -90,7 +98,6 @@
   (dotimes (_ n)
     (text-property-search-backward 'face 'error))
   (beginning-of-line 1))
-(define-key buildbot-view-mode-map "p" #'buildbot-view-previous-failed-header)
 
 (defun buildbot-view-previous-header-same-thing (n)
   "Move back N headers of the same type."
@@ -101,8 +108,6 @@
       (buildbot-view-previous-header 1)
       (while (not (eq (get-text-property (point) 'type) type))
         (buildbot-view-previous-header 1)))))
-(define-key buildbot-view-mode-map (kbd "b")
-  #'buildbot-view-previous-header-same-thing)
 
 (defun buildbot-view-format-revision-info (revision-info)
   "Format REVISION-INFO header in the view."
@@ -311,7 +316,6 @@ With a non-nil FORCE, reload the view buffer if exists."
   "Reload a view buffer."
   (interactive)
   (buildbot-view-update))
-(define-key buildbot-view-mode-map "g" #'buildbot-view-reload)
 
 ;;;###autoload
 (defun buildbot-revision-open (revision)
@@ -429,8 +433,6 @@ With a non-nil FORCE, refresh the opened buffer if exists."
        (setf (alist-get 'log data)
              (get-text-property (point) 'log))
        (buildbot-view-open 'log data force)))))
-(define-key buildbot-view-mode-map (kbd "<return>")
-  #'buildbot-view-open-thing-at-point)
 
 (provide 'buildbot-view)
 ;;; buildbot-view.el ends here

@@ -46,8 +46,10 @@
 ;; available builders, and opens up a view of recent builds by this
 ;; builder.
 
+;;; Code:
 
 (require 'buildbot-client)
 (require 'buildbot-view)
 
 (provide 'buildbot)
+;;; buildbot.el ends here

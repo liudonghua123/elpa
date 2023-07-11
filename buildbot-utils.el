@@ -47,9 +47,12 @@
     (kill-region (point) (progn (re-search-forward "\r?\n\r?\n")
                                 (point)))))
 
-(defun buildbot-url-fetch-json (url &optional decompression with-header)
-  "Fetch and parse a json object from URL.
+(defun buildbot-url-fetch-internal (url processor &optional
+                                        decompression with-header)
+  "Fetch from URL and process the response payload using PROCESSOR.
 
+PROCESSOR is a function that takes no argument and processes the
+current buffer.
 With non-nil DECOMPRESSION, decompress the response.
 With non-nil WITH-HEADER, include the header in the result."
   (with-current-buffer (get-buffer-create buildbot-client-buffer-name)
@@ -73,39 +76,24 @@ With non-nil WITH-HEADER, include the header in the result."
             (if with-header
                 (list
                  (cons 'header fields)
-                 (cons 'json (json-read)))
-              (json-read)))
+                 (cons 'json (funcall processor)))
+              (funcall processor)))
         (error "HTTP error: %s" (buffer-substring (point) (point-max)))))))
+
+(defun buildbot-url-fetch-json (url &optional decompression with-header)
+  "Fetch and parse a json object from URL.
+
+With non-nil DECOMPRESSION, decompress the response.
+With non-nil WITH-HEADER, include the header in the result."
+  (buildbot-url-fetch-internal url 'json-read decompression with-header))
 
 (defun buildbot-url-fetch-raw (url &optional decompression with-header)
   "Fetch from URL.
 
 With non-nil DECOMPRESSION, decompress the response.
 With non-nil WITH-HEADER, include the header in the result."
-  (with-current-buffer (get-buffer-create buildbot-client-buffer-name)
-    (goto-char (point-max))
-    (insert "[" (current-time-string) "] Request: " url "\n"))
-  (with-current-buffer (url-retrieve-synchronously url t)
-    (let ((header) (status) (fields))
-      (buildbot-delete-http-header)
-      (goto-char (point-min))
-      (setq header (buildbot-parse-http-header (car kill-ring))
-            status (alist-get 'status header)
-            fields (alist-get 'fields header))
-      (with-current-buffer buildbot-client-buffer-name
-        (insert "[" (current-time-string) "] Response: " status "\n"))
-      (when decompression
-        (call-process-region (point) (point-max) "gunzip" t t t)
-        (goto-char (point-min)))
-      (call-interactively 'delete-trailing-whitespace)
-      (if (string= status "200")
-          (unless (= (point) (point-max))
-            (if with-header
-                (list
-                 (cons 'header fields)
-                 (cons 'json (buffer-string)))
-              (buffer-string)))
-        (error "HTTP error: %s" (buffer-substring (point) (point-max)))))))
+  (buildbot-url-fetch-internal url 'buffer-string decompression
+                               with-header))
 
 (defun buildbot-format-attr (attr)
   "Format an alist ATTR into a url query string."
