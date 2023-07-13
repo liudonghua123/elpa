@@ -1,9 +1,8 @@
-;;; buildbot-view.el -- buildbot.el UI -*- lexical-binding: t -*-
+;;; buildbot-view.el --- buildbot.el UI -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Free Software Foundation.
+;; Copyright (C) 2023  Free Software Foundation, Inc.
 
 ;; Author: Yuchen Pei <id@ypei.org>
-;; Package-Requires: ((emacs "28.2"))
 
 ;; This file is part of buildbot.el.
 
