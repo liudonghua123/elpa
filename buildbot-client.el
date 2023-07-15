@@ -29,7 +29,8 @@
 
 (defvar buildbot-host nil "Buildbot instance host.")
 (defvar buildbot-builders nil
-  "Buildbot builders. Can be generated with `(buildbot-get-all-builders)'.")
+  "Buildbot builders.
+Can be generated with `(buildbot-get-all-builders)'.")
 
 (defun buildbot-api-change (attr)
   "Call the Changes API with ATTR."
@@ -38,7 +39,7 @@
     "%s/api/v2/changes?%s"
     buildbot-host (buildbot-format-attr attr))))
 
-(defun buildbot-api-logs (stepid)
+(defun buildbot-api-log (stepid)
   "Call the Logs API with STEPID."
   (buildbot-url-fetch-json
    (format
@@ -79,15 +80,17 @@
    (format "%s/api/v2/logs/%d/raw" buildbot-host logid)))
 
 (defun buildbot-get-recent-builds-by-builder (builder-id limit)
-  "Get LIMIT number of recent builds with BUILDER-ID."
+  "Get LIMIT number of recent builds by the builder with BUILDER-ID."
   (alist-get 'builds
              (buildbot-api-builders-builds
               builder-id
-              `((limit . ,limit) (order . "-number") (property . "revision")))))
+              `((limit . ,limit)
+                (order . "-number")
+                (property . "revision")))))
 
 (defun buildbot-get-recent-changes (limit)
   "Get LIMIT number of recent changes."
-  (buildbot-api-change (list (cons 'order "-changeid") (cons 'limit limit))))
+  (buildbot-api-change `((order . "-changeid") (limit . ,limit))))
 
 (defun buildbot-get-all-builders ()
   "Get all builders."
@@ -109,7 +112,7 @@
 
 (defun buildbot-get-logs-by-stepid (stepid)
   "Get logs of a step with STEPID."
-  (alist-get 'logs (buildbot-api-logs stepid)))
+  (alist-get 'logs (buildbot-api-log stepid)))
 
 (defun buildbot-get-builder-name-by-id (id)
   "Get a builder name with ID."
@@ -118,7 +121,7 @@
 (defun buildbot-get-changes-by-revision (revision)
   "Get the changes from a REVISION."
   (alist-get 'changes
-             (buildbot-api-change (list (cons 'revision revision)))))
+             (buildbot-api-change `((revision . ,revision)))))
 
 (defun buildbot-get-build-by-buildid (buildid)
   "Get a build with BUILDID."
