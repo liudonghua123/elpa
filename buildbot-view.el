@@ -30,7 +30,8 @@
 (require 'buildbot-client)
 (require 'text-property-search)
 
-(defvar buildbot-view-header-regex "^\\[.*\\]$")
+(defvar buildbot-view-header-regex "^\\[.*\\]$"
+  "The header regex in a Buildbot buffer.")
 (defvar buildbot-view-branch-change-limit 10)
 (defvar buildbot-view-builder-build-limit 50)
 ;; 'revision, 'build, 'step, or 'log
@@ -51,7 +52,13 @@
   "Keymap for `buildbot-view-mode'.")
 
 (define-derived-mode buildbot-view-mode special-mode "Buildbot"
-  "A Buildbot client for Emacs.")
+  "A Buildbot client for Emacs."
+  (setq-local imenu-generic-expression
+	            (list (list nil
+                          (format "^\\(?:%s\\).*$"
+                                  buildbot-view-header-regex)
+                          0))
+              imenu-space-replacement nil))
 
 (defun buildbot-view-next-header (n)
   "Move forward N headers."
