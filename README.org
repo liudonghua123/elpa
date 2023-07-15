@@ -56,12 +56,9 @@ After that, require buildbot and set the host and builders, like so
 (setq buildbot-default-host "https://buildbot.mariadb.org")
 #+end_src
 
-#+RESULTS:
-: https://buildbot.python.org/all
-
 * Use
   :PROPERTIES:
-  :UPDATED:  [2023-07-15 Sat 16:11]
+  :UPDATED:  [2023-07-15 Sat 16:38]
   :END:
 
 Entry points:
