@@ -302,12 +302,16 @@ With a non-nil NO-BRANCH, do not show branch info."
   "Open a view of TYPE using DATA.
 
 With a non-nil FORCE, reload the view buffer if exists."
-  (let ((buffer-name (buildbot-view-buffer-name type data)))
+  (let ((buffer-name (buildbot-view-buffer-name type data))
+        (host buildbot-host)
+        (builders buildbot-builders))
     (when (or force (not (get-buffer buffer-name)))
       (with-current-buffer (get-buffer-create buffer-name)
         (buildbot-view-mode)
         (setq buildbot-view-type type
-              buildbot-view-data data)
+              buildbot-view-data data
+              buildbot-host host
+              buildbot-builders builders)
         (buildbot-view-update)))
     (switch-to-buffer buffer-name)))
 

@@ -27,8 +27,8 @@
 (require 'buildbot-utils)
 (require 'cl-seq)
 
-(defvar buildbot-host nil "Buildbot instance host.")
-(defvar buildbot-builders nil
+(defvar-local buildbot-host nil "Buildbot instance host.")
+(defvar-local buildbot-builders nil
   "Buildbot builders.
 Can be generated with `(buildbot-get-all-builders)'.")
 
