@@ -4,9 +4,12 @@
 
 [[https://www.buildbot.net/][Buildbot]] is a free software continuous integration tool. buildbot.el
 is an emacs interface to view build information on a Buildbot
-instance. It supports newer versions of Buildbot (e.g. 3.x) but not
-older versions (e.g. 0.8.9) and shows views for branches, revisions,
+instance. It supports [[https://docs.buildbot.net/latest/relnotes/0.9.0.html][newer versions]]* of Buildbot (>=0.9.0) but not
+older versions (<0.9.0) and shows views for branches, revisions,
 builds, steps, logs and builders.
+
+*: The linked release notes describes the significant changes at
+0.9.0.
 
 * Install
 
