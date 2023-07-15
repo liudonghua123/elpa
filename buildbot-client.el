@@ -30,7 +30,12 @@
 (defvar-local buildbot-host nil "Buildbot instance host.")
 (defvar-local buildbot-builders nil
   "Buildbot builders.
-Can be generated with `(buildbot-get-all-builders)'.")
+Can be generated with `buildbot-get-all-builders'.")
+(defgroup buildbot () "A Buildbot client." :group 'web)
+(defcustom buildbot-default-host nil
+  "The default Buildbot instance host."
+  :group 'buildbot
+  :type 'string)
 
 (defun buildbot-api-change (attr)
   "Call the Changes API with ATTR."
@@ -38,6 +43,13 @@ Can be generated with `(buildbot-get-all-builders)'.")
    (format
     "%s/api/v2/changes?%s"
     buildbot-host (buildbot-format-attr attr))))
+
+(defun buildbot-api-change-builds (change-id)
+  "Call the Changes API with CHANGE-ID to get all builds."
+  (buildbot-url-fetch-json
+   (format
+    "%s/api/v2/changes/%s/builds"
+    buildbot-host change-id)))
 
 (defun buildbot-api-log (stepid)
   "Call the Logs API with STEPID."
@@ -120,8 +132,18 @@ Can be generated with `(buildbot-get-all-builders)'.")
 
 (defun buildbot-get-changes-by-revision (revision)
   "Get the changes from a REVISION."
-  (alist-get 'changes
-             (buildbot-api-change `((revision . ,revision)))))
+  (let ((changes
+         (alist-get 'changes
+                    (buildbot-api-change `((revision . ,revision))))))
+    (mapcar
+     (lambda (change)
+       (if (assq 'builds change)
+           change
+         (cons
+          (assq 'builds (buildbot-api-change-builds
+                         (alist-get 'changeid change)))
+          change)))
+     changes)))
 
 (defun buildbot-get-build-by-buildid (buildid)
   "Get a build with BUILDID."

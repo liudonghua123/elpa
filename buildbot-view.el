@@ -128,10 +128,12 @@
 
 (defun buildbot-view-format-build-stats (stats)
   "Format build STATS in the view."
-  (format "Build stats: Success - %d | Failure - %d | Pending - %d"
-          (alist-get 'success stats)
-          (alist-get 'failure stats)
-          (alist-get 'pending stats)))
+  (if stats
+      (format "Build stats: Success - %d | Failure - %d | Pending - %d"
+              (alist-get 'success stats)
+              (alist-get 'failure stats)
+              (alist-get 'pending stats))
+    "Build stats: Unknown"))
 
 (defun buildbot-view-format-build (revision build &optional show-revision)
   "Format a BUILD header associated with REVISION in the view.
@@ -305,6 +307,22 @@ With a non-nil NO-BRANCH, do not show branch info."
     ('log (format "*buildbot log %d*"
                   (alist-get 'logid (alist-get 'log data))))))
 
+(defun buildbot-builders-same-host (host)
+  "Get `buildbot-builders' from a buffer with HOST.
+
+Find the first `buildbot-view-mode' buffer whose `buildbot-host'
+has value HOST and whose `buildbot-builders' is nonnil, and
+return `buildbot-builders' from that buffer."
+  (when-let ((found-buffer
+              (cl-find-if
+               (lambda (buffer)
+                 (with-current-buffer buffer
+                   (and (derived-mode-p 'buildbot-view-mode)
+                        (equal buildbot-host host)
+                        buildbot-builders)))
+               (buffer-list))))
+    (buffer-local-value 'buildbot-builders found-buffer)))
+
 (defun buildbot-view-open (type data &optional force)
   "Open a view of TYPE using DATA.
 
@@ -317,8 +335,12 @@ With a non-nil FORCE, reload the view buffer if exists."
         (buildbot-view-mode)
         (setq buildbot-view-type type
               buildbot-view-data data
-              buildbot-host host
-              buildbot-builders builders)
+              buildbot-host
+              (or host buildbot-default-host)
+              buildbot-builders
+              (or builders
+                  (buildbot-builders-same-host buildbot-host)
+                  (buildbot-get-all-builders)))
         (buildbot-view-update)))
     (switch-to-buffer buffer-name)))
 
