@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.2 2023/07/16 11:33:48 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.3 2023/07/16 11:34:38 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -92,7 +92,7 @@
     (word
      (?$ "Spell check" ,(lambda () (ispell-word)))
      (?d "Dictionary" ,#'dictionary-search))
-    (sexp)
+    (string) (sexp)
     (defun
 	(?e "Evaluate" ,(lambda () (eval-defun nil)))))
   "Association of things and their respective actions.
