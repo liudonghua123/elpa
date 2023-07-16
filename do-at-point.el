@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.1 2023/07/16 09:56:22 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.2 2023/07/16 11:33:48 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -70,6 +70,7 @@
      (?w "Kill-Save" ,#'kill-new)
      (?k "Kill" ,#'kill-region)
      (?n "Narrow" ,#'narrow-to-region)
+     (?$ "Spell check" ,#'ispell-region)
      (?| "Pipe command"
 	 ,(lambda (beg end)
 	    (let ((cmd (read-shell-command "Command: ")))
