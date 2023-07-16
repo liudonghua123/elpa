@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.3 2023/07/16 11:34:38 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.4 2023/07/16 11:35:03 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -132,21 +132,20 @@ user for possible things at point."
   "Dispatch an action on the thing at point."
   (interactive)
   (unwind-protect
-      (let* ((things (mapcar #'car do-at-point-actions))
-	     (cand (seq-filter #'thing-at-point things))
-	     (last last-input-event) (key last) (i 0) thing)
-	(when (null cand)
+      (let ((things (seq-filter #'thing-at-point (mapcar #'car do-at-point-actions)))
+	    (last last-input-event) (key last-input-event) thing)
+	(when (null things)
 	  (user-error "Nothing actionable at point"))
+	(setf (cdr (last things)) things)
 	(while (eq key last)
-	  (setq thing (nth (mod i (length cand)) cand))
+	  (setq thing (pop things))
 	  (let ((bound (bounds-of-thing-at-point thing))
 		(default (cadar (or (alist-get thing do-at-point-actions)
 				    (alist-get 'region do-at-point-actions)))))
 	    (move-overlay do-at-point--overlay (car bound) (cdr bound))
 	    (setq key (read-key (if (and do-at-point-quick-select default)
 				    (format "Act on `%s' (%s by default)?" thing default)
-				  (format "Act on `%s'?" thing)))
-		  i (1+ i))
+				  (format "Act on `%s'?" thing))))
 	    (when (eq key ?\C-g) (keyboard-quit))))
 	(let* ((options (append
 			 (and (not (eq thing 'region))
