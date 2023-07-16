@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.4 2023/07/16 11:35:03 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.5 2023/07/16 11:40:23 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -49,7 +49,8 @@
 ;; Embark for + it dispatches actions using `read-multiple-choice'
 ;; instead of popping up a buffer of using `completing-read' -- which
 ;; is a bad choice for users who aren't using narrowing-selecting
-;; completion frameworks.
+;; completion frameworks.  Also `do-at-point' is not interested in any
+;; special features regarding completion.
 
 ;;; Code:
 
