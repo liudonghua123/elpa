@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.6 2023/07/16 11:48:25 oj14ozun Exp $
+;; Version: $Id: do-at-point.el,v 1.7 2023/07/17 14:09:29 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -44,7 +44,7 @@
 ;;; Relation to "Embark"
 
 ;; A similar package, that served as inspiration for `do-at-point' is
-;; called Embark (https://github.com/oantolin/embark), by Omar Anatolian
+;; called Embark (https://github.com/oantolin/embark), by Omar Antolín
 ;; Camarena.  I'll be honest, I don't get the hype but I find the core
 ;; functionality nice.  This package is a fraction of the size of
 ;; Embark, but does pretty much exactly what I would want to use
