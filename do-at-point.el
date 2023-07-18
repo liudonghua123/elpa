@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.10 2023/07/18 07:09:53 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.11 2023/07/18 07:18:43 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -98,7 +98,7 @@
      (?f "Find file" ,#'find-file)
      (?4 "Find file other window" ,#'find-file-other-window))
     (url
-     (?f "Open" ,#'browse-url)
+     (?b "Browse" ,#'browse-url)
      (?d "Download" ,#'(lambda (url)
 			 (start-process "*Download*" nil "wget" url)))
      (?e "eww" ,#'eww-browse-url))
