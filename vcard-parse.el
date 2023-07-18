@@ -1,6 +1,6 @@
 ;;; vcard-parse.el --- Library for parsing vCards      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2022  Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023  Free Software Foundation, Inc.
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 ;; Maintainer: Eric Abrahamsen <eric@ericabrahamsen.net>
@@ -221,8 +221,8 @@ Returns a list of contact objects."
 				   '(vcard) :error
 				   "Parsing failed with:\n %s"
 				   (buffer-substring-no-properties
-				    (point-at-bol)
-				    (point-at-eol))))))
+				    (line-beginning-position)
+				    (line-end-position))))))
 	(push card out)))
 
     (nreverse out)))
