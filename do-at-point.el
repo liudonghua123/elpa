@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.9 2023/07/18 07:07:17 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.10 2023/07/18 07:09:53 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -56,6 +56,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'pcase))
 (require 'seq)
 
 (defgroup do-at-point '()
@@ -200,7 +201,10 @@ action is selected."
 		  ((assq last-command-event options))
 		  ((read-multiple-choice
 		    (format "Action on %s" thing)
-		    options))))
+		    (mapcar
+		     (pcase-lambda (`(,key ,short ,_func ,long))
+		       (list key short long))
+		     options)))))
 	 (func (cadr (alist-get (car choice) options)))
 	 (bound (cons (overlay-start do-at-point--overlay)
 		      (overlay-end do-at-point--overlay))))
