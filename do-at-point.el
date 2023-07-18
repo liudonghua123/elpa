@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.11 2023/07/18 07:18:43 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.12 2023/07/18 07:23:11 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -181,8 +181,9 @@ invoke `do-at-point' is bound transiently."
   (let ((thing (or (overlay-get do-at-point--overlay 'do-at-point-thing)
 		   (do-at-point--next-thing t))))
     (let ((bound (bounds-of-thing-at-point thing)))
-      (when bound
-	(move-overlay do-at-point--overlay (car bound) (cdr bound))))
+      (if bound
+	  (move-overlay do-at-point--overlay (car bound) (cdr bound))
+	(delete-overlay do-at-point--overlay)))
     (set-transient-map
      (let ((map (make-sparse-keymap)))
        (define-key map (vector (overlay-get do-at-point--overlay 'do-at-point-key))
@@ -194,6 +195,9 @@ invoke `do-at-point' is bound transiently."
 If the optional argument QUICK is non-nil, the first applicable
 action is selected."
   (interactive)
+  (unless (and (overlay-start do-at-point--overlay)
+	       (overlay-end do-at-point--overlay))
+    (user-error "No selected thing"))
   (let* ((thing (overlay-get do-at-point--overlay 'do-at-point-thing))
 	 (options (do-at-point--actions thing))
 	 (choice (cond
