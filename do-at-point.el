@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.7 2023/07/17 14:09:29 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.8 2023/07/17 14:09:59 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -298,6 +298,7 @@ Refer to the command `do-at-point-forward' for more details."
   (interactive "p")
   (do-at-point-forward (- (or n 1))))
 
+;;;###autoload
 (defun do-at-point ()
   "Focus on a thing at point.
 This is the main entry point"
