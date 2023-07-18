@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.8 2023/07/17 14:09:59 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.9 2023/07/18 07:07:17 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -236,9 +236,7 @@ value of the function is always the new \"thing\"."
 	 (things (seq-filter #'thing-at-point (mapcar #'car actions)))
 	 (thing (overlay-get do-at-point--overlay 'do-at-point-thing)))
     (setq thing (or (cadr (memq thing things)) (car things)))
-    (prog1 (overlay-put do-at-point--overlay
-			'do-at-point-thing
-			thing)
+    (prog1 (overlay-put do-at-point--overlay 'do-at-point-thing thing)
       ;; clear and reinitialise the shortcut map
       (setcdr do-at-point--shortcut-map nil)
       (dolist (key (mapcar #'car (do-at-point--actions thing)))
