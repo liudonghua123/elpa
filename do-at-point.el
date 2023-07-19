@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.16 2023/07/19 20:05:11 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.17 2023/07/19 20:06:40 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -163,21 +163,21 @@ The function consults `do-at-point-user-actions',
 `do-at-point-actions' in this order and inherits actions from
 more to less specific entries."
   (seq-reduce
-    (lambda (accum ent)
-      (let ((prev (assq (car ent) accum)))
-	(cons (list (car ent)
-		    (or (cadr ent) (cadr prev))
-		    (or (caddr ent) (caddr prev))
-		    (or (cadddr ent) (cadddr prev)))
-	      (delq prev accum))))
-    (reverse (append
-	      (alist-get thing do-at-point-user-actions)
-	      (alist-get 'region do-at-point-user-actions)
-	      (alist-get thing do-at-point-local-actions)
-	      (alist-get 'region do-at-point-local-actions)
-	      (alist-get thing do-at-point-actions)
-	      (alist-get 'region do-at-point-actions)))
-    '()))
+   (lambda (accum ent)
+     (let ((prev (assq (car ent) accum)))
+       (cons (list (car ent)
+		   (or (cadr ent) (cadr prev))
+		   (or (caddr ent) (caddr prev))
+		   (or (cadddr ent) (cadddr prev)))
+	     (delq prev accum))))
+   (reverse (append
+	     (alist-get thing do-at-point-user-actions)
+	     (alist-get 'region do-at-point-user-actions)
+	     (alist-get thing do-at-point-local-actions)
+	     (alist-get 'region do-at-point-local-actions)
+	     (alist-get thing do-at-point-actions)
+	     (alist-get 'region do-at-point-actions)))
+   '()))
 
 (defvar-local do-at-point--overlay nil
   "Buffer-local overlay object to display the selection overlay.
@@ -246,8 +246,8 @@ See the function `do-at-point-confirm' for more details."
 (defun do-at-point--applicable-things ()
   "Return a list of things that are applicable at point."
   (let ((actions (append do-at-point-user-actions
-			do-at-point-local-actions
-			do-at-point-actions)))
+			 do-at-point-local-actions
+			 do-at-point-actions)))
     (seq-filter #'thing-at-point (mapcar #'car actions))))
 
 (defun do-at-point--next-thing (&optional no-update)
