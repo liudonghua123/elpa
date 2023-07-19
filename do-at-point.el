@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.15 2023/07/19 20:04:56 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.16 2023/07/19 20:05:11 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -243,16 +243,20 @@ See the function `do-at-point-confirm' for more details."
   (do-at-point--mode -1)
   (keyboard-quit))
 
+(defun do-at-point--applicable-things ()
+  "Return a list of things that are applicable at point."
+  (let ((actions (append do-at-point-user-actions
+			do-at-point-local-actions
+			do-at-point-actions)))
+    (seq-filter #'thing-at-point (mapcar #'car actions))))
+
 (defun do-at-point--next-thing (&optional no-update)
   "Select the next possible \"thing\".
 If NO-UPDATE is nil, then the selection overlay is also updated.
 Otherwise the next \"thing\" is just determined.  The return
 value of the function is always the new \"thing\"."
   (interactive)
-  (let* ((actions (append do-at-point-user-actions
-			  do-at-point-local-actions
-			  do-at-point-actions))
-	 (things (seq-filter #'thing-at-point (mapcar #'car actions)))
+  (let* ((things (do-at-point--applicable-things))
 	 (thing (overlay-get do-at-point--overlay 'do-at-point-thing)))
     (setq thing (or (cadr (memq thing things)) (car things)))
     (prog1 (overlay-put do-at-point--overlay 'do-at-point-thing thing)
@@ -292,12 +296,7 @@ instead."
   :lighter ((:eval (do-at-point--lighter)))
   :interactive nil
   (if do-at-point--mode
-      (let ((ov (or do-at-point--overlay
-		    (let ((ov (make-overlay 0 0)))
-		      (delete-overlay ov)
-		      (overlay-put ov 'face 'highlight)
-		      (overlay-put ov 'face 'highlight)
-		      ov))))
+      (let ((ov do-at-point--overlay))
 	(overlay-put ov 'do-at-point-key last-command-event)
 	(add-hook 'post-command-hook #'do-at-point--update 90 t)
 	(setq do-at-point--overlay ov)
@@ -319,10 +318,20 @@ Refer to the command `do-at-point-forward' for more details."
   (do-at-point-forward (- (or n 1))))
 
 ;;;###autoload
-(defun do-at-point ()
-  "Focus on a thing at point.
-This is the main entry point"
-  (interactive)
+(defun do-at-point (&optional thing)
+  "Focus on a THING at point.
+If invoked interactively with a prefix argument or with the
+optional argument THING, one can set the initial thing to be
+selected."
+  (interactive
+   (let ((things (do-at-point--applicable-things)))
+     (if (null current-prefix-arg) '()
+       (unless things
+	 (user-error "Nothing applicable at point to choose"))
+       (list (intern (completing-read "Thing: " things nil t))))))
+  (when thing
+    (setq do-at-point--overlay (copy-overlay do-at-point--overlay))
+    (overlay-put do-at-point--overlay 'do-at-point-thing thing))
   (when do-at-point--mode
     (do-at-point--mode -1))
   (do-at-point--mode 1))
