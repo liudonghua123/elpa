@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.17 2023/07/19 20:06:40 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.18 2023/07/19 20:07:31 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -281,7 +281,6 @@ The lighter depends on the current \"thing\" being selected."
 (defvar do-at-point--mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map do-at-point--shortcut-map)
-    (define-key map (kbd "<return>") #'do-at-point-confirm-quick)
     (define-key map (kbd "C-<return>") #'do-at-point-confirm)
     (define-key map [remap keyboard-quit] #'do-at-point-quit)
     (define-key map (kbd "M-n") #'do-at-point-forward)
