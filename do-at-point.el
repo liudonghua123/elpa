@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.19 2023/07/19 20:07:52 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.20 2023/07/19 20:08:58 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -66,8 +66,10 @@
 (defconst do-at-point-actions-type
   '(alist :value-type
 	  (alist :value-type
-		 (list :tag "Action"
-		       (string :tag "Description") function)
+		 (choice
+		  (const :tag "Inherit" nil)
+		  (list :tag "Action"
+			(string :tag "Description") function))
 		 :key-type character)
 	  :key-type symbol)
   "User option type for `do-at-point' actions.")
