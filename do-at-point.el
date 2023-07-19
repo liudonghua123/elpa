@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.14 2023/07/19 20:01:11 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.15 2023/07/19 20:04:56 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -141,7 +141,7 @@ Refer to the user option `do-at-point-actions' for details on the
 structure of the values of this user option."
   :type do-at-point-actions-type)
 
-(defcustom do-at-point-quick-bindings nil
+(defcustom do-at-point-quick-bindings t
   "Non-nil means that quick bindings are enabled.
 Quick bindings allow for the user to operate on a selection
 without having to have confirmed the first.  This might interfere with "
