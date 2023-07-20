@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.23 2023/07/20 12:14:27 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.24 2023/07/20 12:18:53 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -153,7 +153,7 @@ but not `do-at-point-user-actions'.  Refer to the user option
 `do-at-point-actions' for details on the structure of the values
 of this variable.")
 
-(defvar do-at-point--shortcut-map (make-sparse-keymap))
+(defvar do-at-point--quick-map (make-sparse-keymap))
 
 (defun do-at-point--actions (thing)
   "Return possible actions for THING.
@@ -265,11 +265,11 @@ value of the function is always the new \"thing\"."
     (setq thing (or (cadr (memq thing things)) (car things)))
     (prog1 (overlay-put do-at-point--overlay 'do-at-point-thing thing)
       ;; clear and reinitialise the shortcut map
-      (setcdr do-at-point--shortcut-map nil)
+      (setcdr do-at-point--quick-map nil)
       (when do-at-point-quick-bindings
 	(dolist (key (mapcar #'car (do-at-point--actions thing)))
-	  (define-key do-at-point--shortcut-map (vector key) #'do-at-point-confirm))
-	(define-key do-at-point--shortcut-map (kbd "<return>")
+	  (define-key do-at-point--quick-map (vector key) #'do-at-point-confirm))
+	(define-key do-at-point--quick-map (kbd "<return>")
 		    #'do-at-point-confirm-quick))
       (let ((default (cadar (do-at-point--actions thing))))
 	(message "Act on `%s' (%s by default)?" thing default))
@@ -284,7 +284,7 @@ The lighter depends on the current \"thing\" being selected."
 
 (defvar do-at-point--mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map do-at-point--shortcut-map)
+    (set-keymap-parent map do-at-point--quick-map)
     (define-key map (kbd "C-<return>") #'do-at-point-confirm)
     (define-key map [remap keyboard-quit] #'do-at-point-quit)
     (define-key map (kbd "M-n") #'do-at-point-forward)
