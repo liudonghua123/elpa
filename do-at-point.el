@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.20 2023/07/19 20:08:58 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.21 2023/07/19 20:14:19 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -181,7 +181,12 @@ more to less specific entries."
 	     (alist-get 'region do-at-point-actions)))
    '()))
 
-(defvar-local do-at-point--overlay nil
+(defvar-local do-at-point--overlay
+    (let ((ov (make-overlay 0 0)))
+      (delete-overlay ov)
+      (overlay-put ov 'face 'highlight)
+      (overlay-put ov 'face 'highlight)
+      ov)
   "Buffer-local overlay object to display the selection overlay.
 The overlay is also used to store properties like the current
 thing being selected and the key used to invoke `do-at-point'.")
