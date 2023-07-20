@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.24 2023/07/20 12:18:53 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.25 2023/07/20 15:23:52 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -180,9 +180,8 @@ more to less specific entries."
 
 (defvar-local do-at-point--overlay
     (let ((ov (make-overlay 0 0)))
+      (overlay-put ov 'face 'highlight)
       (delete-overlay ov)
-      (overlay-put ov 'face 'highlight)
-      (overlay-put ov 'face 'highlight)
       ov)
   "Buffer-local overlay object to display the selection overlay.
 The overlay is also used to store properties like the current
