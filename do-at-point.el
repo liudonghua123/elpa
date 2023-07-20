@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.22 2023/07/20 09:04:08 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.23 2023/07/20 12:14:27 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -105,10 +105,7 @@
 			 (start-process "*Download*" nil "wget" url)))
      (?e "eww" ,#'eww-browse-url))
     (number
-     (?* "Calc" ,(lambda ()
-		   (declare-function calc-embedded-word "calc-embed")
-		   (require 'calc-embed)
-		   (calc-embedded-word))))
+     (?* "Calc" ,(lambda () (calc-embedded '(t)))))
     (word
      (?$ "Spell check" ,(lambda () (ispell-word)))
      (?d "Dictionary" ,#'dictionary-search))
