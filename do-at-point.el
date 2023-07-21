@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.28 2023/07/21 07:47:21 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.29 2023/07/21 07:48:52 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -74,6 +74,20 @@
 	  :key-type symbol)
   "User option type for `do-at-point' actions.")
 
+
+(defcustom do-at-point-user-actions '()
+  "Custom association of things and their respective actions.
+Refer to the user option `do-at-point-actions' for details on the
+structure of the values of this user option."
+  :type do-at-point--actions-type)
+
+(defvar-local do-at-point-local-actions '()
+  "Actions that can be added by a major or minor mode.
+These are prioritised to the user option `do-at-point-actions',
+but not `do-at-point-user-actions'.  Refer to the user option
+`do-at-point-actions' for details on the structure of the values
+of this variable.")
+
 (defcustom do-at-point-actions
   `((region
      (?\s "Mark" ,(lambda (start end)
@@ -137,24 +151,11 @@ variable `do-at-point-local-actions' take precedence over this
 user option."
   :type do-at-point--actions-type)
 
-(defcustom do-at-point-user-actions '()
-  "Custom association of things and their respective actions.
-Refer to the user option `do-at-point-actions' for details on the
-structure of the values of this user option."
-  :type do-at-point--actions-type)
-
 (defcustom do-at-point-quick-bindings t
   "Non-nil means that quick bindings are enabled.
 Quick bindings allow for the user to operate on a selection
 without having to have confirmed the first."
   :type 'boolean)
-
-(defvar-local do-at-point-local-actions '()
-  "Actions that can be added by a major or minor mode.
-These are prioritised to the user option `do-at-point-actions',
-but not `do-at-point-user-actions'.  Refer to the user option
-`do-at-point-actions' for details on the structure of the values
-of this variable.")
 
 (defvar do-at-point--quick-map (make-sparse-keymap))
 
