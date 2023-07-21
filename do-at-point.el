@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.26 2023/07/20 15:25:26 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.27 2023/07/21 07:44:32 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -63,7 +63,7 @@
   "Generic context-sensitive action dispatcher."
   :group 'convenience)
 
-(defconst do-at-point-actions-type
+(defconst do-at-point--actions-type
   '(alist :value-type
 	  (alist :value-type
 		 (choice
@@ -132,13 +132,13 @@ does not require any actions to be associated with it, if it just
 serves as a specific kind of region worth selecting.  The order
 of element in the list correspond to the order in which
 `do-at-point' will prompt the user for possible things at point."
-  :type do-at-point-actions-type)
+  :type do-at-point--actions-type)
 
 (defcustom do-at-point-user-actions '()
   "Custom association of things and their respective actions.
 Refer to the user option `do-at-point-actions' for details on the
 structure of the values of this user option."
-  :type do-at-point-actions-type)
+  :type do-at-point--actions-type)
 
 (defcustom do-at-point-quick-bindings t
   "Non-nil means that quick bindings are enabled.
