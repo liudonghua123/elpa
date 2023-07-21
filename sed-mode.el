@@ -1,9 +1,9 @@
-;;; sed-mode.el --- Major mode to edit sed scripts  -*- lexical-binding: t; -*-
+;;; sed-mode.el --- Major mode to edit sed scripts  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016  Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 1.0
+;; Version: 1.1
 ;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -21,12 +21,22 @@
 
 ;;; Commentary:
 
-;; If you need this major mode, you might also want to
-;; consider spending some time with `M-x doctor'.
+;; This major mode provides basic support for Sed scripts.  Despite its
+;; simplicity, I hope this major mode will be overkill for you.
+;; The functionality supported is:
+;; - Font-locking
+;; - Auto-indentation
+
+;;; News:
+
+;; Since V1.0:
+
+;; - Improve the `Commentary'.
+
+;; Version 1.0: Initial release.
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'smie)
 
 (defgroup sed-mode nil
