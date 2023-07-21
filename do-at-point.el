@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.29 2023/07/21 07:48:52 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.30 2023/07/21 07:49:24 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -58,6 +58,7 @@
 
 (eval-when-compile (require 'pcase))
 (require 'seq)
+(require 'thingatpt)
 
 (defgroup do-at-point '()
   "Generic context-sensitive action dispatcher."
