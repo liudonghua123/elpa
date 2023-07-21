@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.25 2023/07/20 15:23:52 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.26 2023/07/20 15:25:26 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -113,7 +113,7 @@
      (?. "Xref" ,#'xref-find-definitions)
      (?o "Occur" ,(lambda (str)
 		    (occur (concat "\\_<\\(" (regexp-quote str) "\\)\\_>")))))
-    (string) (sexp) (paragraph (?$))
+    (string) (sexp) (line) (paragraph (?$))
     (defun
 	(?e "Evaluate" ,(lambda () (eval-defun nil)))))
   "Association of things and their respective actions.
