@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.27 2023/07/21 07:44:32 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.28 2023/07/21 07:47:21 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -131,7 +131,10 @@ fallback into the entry for `region'.  This is why a an entry
 does not require any actions to be associated with it, if it just
 serves as a specific kind of region worth selecting.  The order
 of element in the list correspond to the order in which
-`do-at-point' will prompt the user for possible things at point."
+`do-at-point' will prompt the user for possible things at point.
+Note that the user option `do-at-point-user-actions' and the
+variable `do-at-point-local-actions' take precedence over this
+user option."
   :type do-at-point--actions-type)
 
 (defcustom do-at-point-user-actions '()
