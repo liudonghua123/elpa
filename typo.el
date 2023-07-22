@@ -109,7 +109,9 @@ single-letter typos are searched."
      ((hash-table-p collection)
       (maphash
        (lambda (key _freq)
-	 (when (typo--test word key)
+         (when (typo--test word key)
+	   (push key new-words))
+         (when (and (stringp key) (typo--test word key))
 	   (push key new-words)))
        collection)
       new-words)
