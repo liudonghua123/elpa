@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.30 2023/07/21 07:49:24 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.31 2023/07/21 07:50:59 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -40,19 +40,6 @@
 ;; `do-at-point-actions' and `do-at-point-user-actions'.  A mode may
 ;; use `do-at-point-local-actions' to add additional things and/or
 ;; actions.
-
-;;; Relation to "Embark"
-
-;; A similar package, that served as inspiration for `do-at-point' is
-;; called Embark (https://github.com/oantolin/embark), by Omar Antolín
-;; Camarena.  I'll be honest, I don't get the hype but I find the core
-;; functionality nice.  This package is a fraction of the size of
-;; Embark, but does pretty much exactly what I would want to use
-;; Embark for + it dispatches actions using `read-multiple-choice'
-;; instead of popping up a buffer of using `completing-read' -- which
-;; is a bad choice for users who aren't using narrowing-selecting
-;; completion frameworks.  Also `do-at-point' is not interested in any
-;; special features regarding completion.
 
 ;;; Code:
 
