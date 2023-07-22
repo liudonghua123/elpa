@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.31 2023/07/21 07:50:59 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.32 2023/07/22 13:27:56 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -61,7 +61,6 @@
 		 :key-type character)
 	  :key-type symbol)
   "User option type for `do-at-point' actions.")
-
 
 (defcustom do-at-point-user-actions '()
   "Custom association of things and their respective actions.
