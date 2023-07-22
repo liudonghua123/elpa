@@ -95,17 +95,16 @@ single-letter typos are searched."
     (cond
      ((functionp collection)
       (typo-edits word (funcall collection "" pred t) pred))
-     ((and (listp collection) (consp (car collection))) ;alist
+     ((listp collection)
       (dolist (entry collection new-words)
-	(let ((key (car entry)))
-	  (when (symbolp key)
-	    (setq key (symbol-name key)))
+        ;; We cannot reliably distinguish between a alist and a
+        ;; "regular" list, since an alist may contain cons-cells,
+        ;; where completion is only interested in the car.
+	(let ((key (if (consp entry) (car entry) entry)))
+          (when (symbolp key)
+            (setq key (symbol-name key)))
 	  (when (typo--test word key)
 	    (push key new-words)))))
-     ((listp collection)		;regular list
-      (dolist (entry collection new-words)
-	(when (typo--test word entry)
-	  (push entry new-words))))
      ((hash-table-p collection)
       (maphash
        (lambda (key _freq)
