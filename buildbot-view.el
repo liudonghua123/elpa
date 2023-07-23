@@ -323,13 +323,28 @@ return `buildbot-builders' from that buffer."
                (buffer-list))))
     (buffer-local-value 'buildbot-builders found-buffer)))
 
+(defun buildbot-get-builders-smart (&optional host)
+  "Get builders in a smart way.
+
+If the optional HOST is nil, use the value of the buffer-local
+`buildbot-host', and if the latter is nil, use the value of the
+global `buildbot-default-host'.
+
+First try the buffer-local `buildbot-builders' if the host is the
+same.
+Then try `buildbot-builders' from another buffer with the same host.
+Finally, call `buildbot-get-all-builders' to get the builders."
+  (unless host (setq host (or buildbot-host buildbot-default-host)))
+  (or (when (equal host buildbot-host) buildbot-builders)
+      (buildbot-builders-same-host host)
+      (let ((buildbot-host host)) (buildbot-get-all-builders))))
+
 (defun buildbot-view-open (type data &optional force)
   "Open a view of TYPE using DATA.
 
 With a non-nil FORCE, reload the view buffer if exists."
   (let ((buffer-name (buildbot-view-buffer-name type data))
-        (host buildbot-host)
-        (builders buildbot-builders))
+        (host buildbot-host))
     (when (or force (not (get-buffer buffer-name)))
       (with-current-buffer (get-buffer-create buffer-name)
         (buildbot-view-mode)
@@ -338,9 +353,7 @@ With a non-nil FORCE, reload the view buffer if exists."
               buildbot-host
               (or host buildbot-default-host)
               buildbot-builders
-              (or builders
-                  (buildbot-builders-same-host buildbot-host)
-                  (buildbot-get-all-builders)))
+              (buildbot-get-builders-smart))
         (buildbot-view-update)))
     (switch-to-buffer buffer-name)))
 
@@ -349,29 +362,73 @@ With a non-nil FORCE, reload the view buffer if exists."
   (interactive)
   (buildbot-view-update))
 
-;;;###autoload
-(defun buildbot-revision-open (revision)
-  "Open a REVISION view."
-  (interactive "sRevision (e.g. commit hash): ")
+(defun buildbot-open-with-host (open-fun)
+  "Cal OPEN-FUN after reading a specified host."
+  (let ((buildbot-host (read-string "Buildbot host: ")))
+    (funcall open-fun)))
+
+(defun buildbot-revision-open-internal (revision)
+  "Open a revision view of REVISION id."
   (buildbot-view-open 'revision `((revision . ,revision))))
 
-;;;###autoload
-(defun buildbot-branch-open (branch)
-  "Open a BRANCH view."
-  (interactive "sBranch name: ")
+(defun buildbot-branch-open-internal (branch)
+  "Open a branch view of BRANCH name."
   (buildbot-view-open 'branch `((branch . ,branch))))
 
-;;;###autoload
-(defun buildbot-builder-open (builder-name)
+(defun buildbot-builder-open-internal (builder-name)
   "Open a builder view of BUILDER-NAME."
-  (interactive (list (completing-read
-                      "Builder name: "
-                      (mapcar
-                       (lambda (builder) (alist-get 'name builder))
-                       buildbot-builders))))
-  (buildbot-view-open 'builder
-                      (list (cons 'builder
-                                  (buildbot-builder-by-name builder-name)))))
+  (buildbot-view-open
+   'builder
+   (list (cons 'builder
+               (buildbot-builder-by-name builder-name)))))
+
+;;;###autoload
+(defun buildbot-revision-open (&optional read-host)
+  "Open a revision view.
+
+With a nonnil prefix arg READ-HOST, will prompt for the host
+first."
+  (interactive "P")
+  (let ((thunk (lambda ()
+                 (buildbot-revision-open-internal
+                  (read-string "Revision (e.g. commit hash): ")))))
+    (if read-host
+        (buildbot-open-with-host thunk)
+      (funcall thunk))))
+
+;;;###autoload
+(defun buildbot-branch-open (&optional read-host)
+  "Open a branch view.
+
+With a nonnil prefix arg READ-HOST, will prompt for the host
+first."
+  (interactive "P")
+  (let ((thunk (lambda ()
+                 (buildbot-branch-open-internal
+                  (read-string "Branch: ")))))
+    (if read-host
+        (buildbot-open-with-host thunk)
+      (funcall thunk))))
+
+;;;###autoload
+(defun buildbot-builder-open (read-host)
+  "Open a builder view.
+
+With a nonnil prefix arg READ-HOST, will prompt for the host
+first."
+  (interactive "P")
+  (let ((thunk (lambda ()
+                 (let ((buildbot-builders
+                        (buildbot-get-builders-smart)))
+                   (buildbot-builder-open-internal
+                    (completing-read
+                     "Builder name: "
+                     (mapcar
+                      (lambda (builder) (alist-get 'name builder))
+                      buildbot-builders)))))))
+    (if read-host
+        (buildbot-open-with-host thunk)
+      (funcall thunk))))
 
 (defun buildbot-view-update ()
   "Refresh a view."
