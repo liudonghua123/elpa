@@ -69,59 +69,31 @@ When enabled typo-based completion will also be applied to the
 frameworks)."
   :type 'boolean)
 
-(define-inline typo--test (word key)
-  (inline-letevals (word key)
-    (inline-quote
-     (let* ((len-word (length ,word))
-	    (len-key (length ,key))
-	    (typo-level
-	     (cond
-	      ((functionp typo-level)
-	       (ceiling (funcall typo-level len-word)))
-	      ((natnump typo-level)
-	       typo-level)
-	      ((error "Invalid `typo-level' %S" typo-level)))))
-       (and (<= (- len-word len-key) typo-shrink)
-            (<= (- len-key len-word) typo-expand)
-	    (<= (string-distance ,word ,key)
-		typo-level))))))
-
 (defun typo-edits (word collection pred)
   "Generate a list of all multi-edit typos of WORD.
 Only words that are in the COLLECTION and satisfy PRED will be
 returned.  The variable `typo-level' specifies how many
 single-letter typos are searched."
-  (let (new-words)
-    (cond
-     ((functionp collection)
-      (typo-edits word (funcall collection "" pred t) pred))
-     ((listp collection)
-      (dolist (entry collection new-words)
-        ;; We cannot reliably distinguish between a alist and a
-        ;; "regular" list, since an alist may contain cons-cells,
-        ;; where completion is only interested in the car.
-	(let ((key (if (consp entry) (car entry) entry)))
-          (when (symbolp key)
-            (setq key (symbol-name key)))
-	  (when (typo--test word key)
-	    (push key new-words)))))
-     ((hash-table-p collection)
-      (maphash
-       (lambda (key _freq)
-         (when (typo--test word key)
-	   (push key new-words))
-         (when (and (stringp key) (typo--test word key))
-	   (push key new-words)))
-       collection)
-      new-words)
-     ((obarrayp collection)
-      (mapatoms
-       (lambda (atom)
-	 (setq atom (symbol-name atom))
-	 (when (typo--test word atom)
-	   (push atom new-words)))
-       collection)
-      new-words))))
+  (let* ((len-word (length word))
+         (typo-level
+          (cond
+	   ((functionp typo-level)
+	    (ceiling (funcall typo-level len-word)))
+	   ((natnump typo-level)
+	    typo-level)
+	   ((error "Invalid value for `typo-level': %S" typo-level)))))
+    (all-completions
+     "" collection                      ;N.B. ∀s.""⊆s
+     (lambda (key &optional _)
+       (and (or (not pred) (funcall pred key))
+            (let* ((key (cond ((consp key) (car key))
+                              ((symbolp key) (symbol-name key))
+                              (key)))
+	           (len-key (length key)))
+              (and (<= (- len-word len-key) typo-shrink)
+                   (<= (- len-key len-word) typo-expand)
+	           (<= (string-distance word key)
+	               typo-level))))))))
 
 ;;;###autoload
 (defun typo-all-completions (string collection pred _point)
