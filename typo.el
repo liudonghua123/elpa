@@ -86,9 +86,8 @@ single-letter typos are searched."
      "" collection                      ;N.B. ∀s.""⊆s
      (lambda (key &optional _)
        (and (or (not pred) (funcall pred key))
-            (let* ((key (cond ((consp key) (car key))
-                              ((symbolp key) (symbol-name key))
-                              (key)))
+            (let* ((key (if (consp key) (car key) key))
+                   (key (if (symbolp key) (symbol-name key) key))
 	           (len-key (length key)))
               (and (<= (- len-word len-key) typo-shrink)
                    (<= (- len-key len-word) typo-expand)
