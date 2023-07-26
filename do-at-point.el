@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.32 2023/07/22 13:27:56 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.33 2023/07/22 13:35:32 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -87,6 +87,10 @@ of this variable.")
 	    (isearch-yank-string str)))
      (?o "Occur" ,(lambda (str) (occur (regexp-quote str))))
      (?w "Kill-Save" ,#'kill-new)
+     (?W "Write region"
+	 ,(lambda (beg end)
+	    (let ((file (read-file-name "File: ")))
+	      (write-region beg end file))))
      (?k "Kill" ,#'kill-region)
      (?n "Narrow" ,#'narrow-to-region)
      (?$ "Spell check" ,#'ispell-region)
