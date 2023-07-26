@@ -380,6 +380,11 @@ otherwise pass the value from the current buffer."
                buildbot-host
                (alist-get 'builderid build)
                (alist-get 'number build))))
+    ('builder
+     (format "%s/#/builders/%d"
+             buildbot-host
+             (alist-get 'builderid
+                        (alist-get 'builder buildbot-view-data))))
     (_ (error "Unsupported type for formatting url: %s"
               buildbot-view-type))))
 
