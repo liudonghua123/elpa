@@ -2309,6 +2309,11 @@ the uid and gid from FILENAME."
 		;; Save exit.
 		(ignore-errors (delete-file tmpfile)))))))))
 
+      ;; When newname did exist, we have wrong cached values.
+      (when t2
+	(with-parsed-tramp-file-name newname v2
+	  (tramp-flush-file-properties v2 v2-localname)))
+
       ;; Set the time and mode.  Mask possible errors.
       (ignore-errors
 	  (when keep-date
@@ -2807,7 +2812,8 @@ the result will be a local, non-Tramp, file name."
   ;; there could be the false positive "/:".
   (if (or (and (eq system-type 'windows-nt)
 	       (string-match-p
-		(tramp-compat-rx bol (| (: alpha ":") (: (literal null-device) eol)))
+		(tramp-compat-rx
+		 bol (| (: alpha ":") (: (literal (or null-device "")) eol)))
 		name))
 	  (and (not (tramp-tramp-file-p name))
 	       (not (tramp-tramp-file-p dir))))

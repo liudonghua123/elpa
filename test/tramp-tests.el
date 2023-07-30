@@ -6076,7 +6076,9 @@ INPUT, if non-nil, is a string sent to the process."
 	;; Unset the variable.
 	(let ((tramp-remote-process-environment
 	       (cons (concat envvar "=foo") tramp-remote-process-environment)))
-	  ;; Set the initial value, we want to unset below.
+	  ;; Refill the cache; we don't want to run into timeouts.
+	  (file-truename default-directory)
+	  ;; Check the initial value, we want to unset below.
 	  (should
 	   (string-match-p
 	    "foo"
@@ -8014,6 +8016,7 @@ Since it unloads Tramp, it shall be the last test to run."
 	      (and (functionp x) (null (autoloadp (symbol-function x))))
 	      (macrop x))
 	  (string-prefix-p "tramp" (symbol-name x))
+	  (string-match-p (rx bol "with" (| "tramp" "parsed")) (symbol-name x))
 	  ;; `tramp-completion-mode' is autoloaded in Emacs < 28.1.
 	  (not (eq 'tramp-completion-mode x))
 	  ;; `tramp-register-archive-file-name-handler' is autoloaded

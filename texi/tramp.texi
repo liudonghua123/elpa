@@ -289,9 +289,11 @@ accumulated in the buffer, then decodes that output to produce the
 file's contents.
 
 For external transfers, @value{tramp} sends a command as follows:
+
 @example
-$ rcp user@@host:/path/to/remote/file /tmp/tramp.4711
+$ scp user@@host:/path/to/remote/file /tmp/tramp.4711
 @end example
+
 @value{tramp} reads the local temporary file @file{/tmp/tramp.4711}
 into a buffer, and then deletes the temporary file.
 
