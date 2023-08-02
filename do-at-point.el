@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.34 2023/07/26 09:39:54 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.35 2023/08/02 15:22:49 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -200,7 +200,8 @@ invoke `do-at-point' is bound transiently."
 If the optional argument QUICK is non-nil, the first applicable
 action is selected."
   (interactive)
-  (unless (and (overlay-start do-at-point--overlay)
+  (unless (and do-at-point--overlay
+	       (overlay-start do-at-point--overlay)
 	       (overlay-end do-at-point--overlay))
     (user-error "No selected thing"))
   (let* ((thing (overlay-get do-at-point--overlay 'do-at-point-thing))
@@ -299,7 +300,8 @@ instead."
 	(do-at-point--update))
     (remove-hook 'post-command-hook #'do-at-point--update t)
     (overlay-put do-at-point--overlay 'do-at-point-thing nil)
-    (delete-overlay do-at-point--overlay)))
+    (delete-overlay do-at-point--overlay)
+    (setq do-at-point--overlay nil)))
 
 (defun do-at-point-forward (n)
   "Move focus N things ahead.
