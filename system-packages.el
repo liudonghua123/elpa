@@ -313,9 +313,13 @@ to the command.")
     (while managers
       (progn
         (setq manager (pop managers))
-        (if (executable-find (symbol-name (car manager)))
-            (setq managers nil)
-          (setq manager nil))))
+        (let ((found (executable-find (symbol-name (car manager)))))
+          (if (and found
+                   ;; The package manager named "pacman" conflicts
+                   ;; with the game binary on non-Arch systems.
+                   (not (string-match (rx "games/pacman" eos) found)))
+              (setq managers nil)
+            (setq manager nil)))))
     (car manager))
   "Symbol naming the package manager to use.
 See `system-packages-supported-package-managers' for the list of
