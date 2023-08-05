@@ -353,7 +353,7 @@ Tries to be smart for selecting the default."
 (defun system-packages-get-command (action &optional pack args)
   "Return a command to run as a string.
 ACTION should be in
-`system-packages-supported-package-managers' (e.g. 'install).
+`system-packages-supported-package-managers' (e.g. \='install).
 PACK is used to operate on a specific package, and ARGS is a way
 of passing additional arguments to the package manager."
   (let ((command
