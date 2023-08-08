@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.35 2023/08/02 15:22:49 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.36 2023/08/02 15:40:43 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -226,6 +226,10 @@ action is selected."
       (2 (funcall func (car bound) (cdr bound)))
       (_ (error "Unsupported signature: %S" func)))))
 
+;; We add an alias for to avoid confusing `substitute-key-definition'
+;; later on.
+(defalias 'do-at-point-confirm* #'do-at-point-confirm)
+
 (defun do-at-point-confirm-quick ()
   "Quickly select the first action for the selected \"thing\".
 See the function `do-at-point-confirm' for more details."
@@ -263,7 +267,10 @@ value of the function is always the new \"thing\"."
 	(define-key do-at-point--quick-map (kbd "<return>")
 		    #'do-at-point-confirm-quick))
       (let ((default (cadar (do-at-point--actions thing))))
-	(message "Act on `%s' (%s by default)?" thing default))
+	(message
+	 (substitute-command-keys
+	  "Act on `%s' (%s by default).  Select using \\[do-at-point-confirm*]")
+	 thing default))
       (unless no-update
 	(do-at-point--update)))))
 
@@ -276,7 +283,7 @@ The lighter depends on the current \"thing\" being selected."
 (defvar do-at-point--mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map do-at-point--quick-map)
-    (define-key map (kbd "C-<return>") #'do-at-point-confirm)
+    (define-key map (kbd "C-<return>") #'do-at-point-confirm*)
     (define-key map [remap keyboard-quit] #'do-at-point-quit)
     (define-key map (kbd "M-n") #'do-at-point-forward)
     (define-key map (kbd "M-p") #'do-at-point-backward)
