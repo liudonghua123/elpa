@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.36 2023/08/02 15:40:43 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.37 2023/08/08 06:55:26 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -269,7 +269,7 @@ value of the function is always the new \"thing\"."
       (let ((default (cadar (do-at-point--actions thing))))
 	(message
 	 (substitute-command-keys
-	  "Act on `%s' (%s by default).  Select using \\[do-at-point-confirm*]")
+	  "Act on `%s' (%s by default), select using \\[do-at-point-confirm*].")
 	 thing default))
       (unless no-update
 	(do-at-point--update)))))
