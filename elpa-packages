@@ -533,8 +533,6 @@
   :ignored-files ("LICENSE"))
  (persist             	:url "https://gitlab.com/phillord/persist")
  (phpinspect		:url "https://github.com/hugot/phpinspect.el")
- ;; FIXME: Waiting for copyright paperwork.
- ;; (phpinspect		:url "https://git.sr.ht/~hugot/phpinspect.el")
  (phps-mode		:url "https://github.com/cjohansson/emacs-phps-mode"
   ;; Christian Johansson works on a private Git and pushes to both Github
   ;; and elpa.git anyway, so there's no need to auto-sync.
