@@ -444,7 +444,7 @@
           unresolved
           ;; Some advised function causing arguments count change, ignore them
           redefine))
-  (if (version< emacs-version "25.0")
+  (if (< emacs-major-version 25)
       (setq byte-compile-warnings
             (append byte-compile-warnings '(free-vars callargs)))))
 ;;(eval-when-compile (require 'cl-lib))
@@ -481,34 +481,39 @@
 
 (defvar brief-selection-op-legacy nil)
 
-(cl-eval-when (compile load eval)
+(defmacro brief-is-x ()
+  `(eq (framep (selected-frame)) 'x))
 
-  (defmacro brief-is-x ()
-    `(eq (framep (selected-frame)) 'x))
+(defmacro brief-is-terminal ()
+  `(eq (framep (selected-frame)) 't))
 
-  (defmacro brief-is-terminal ()
-    `(eq (framep (selected-frame)) 't))
+(defmacro brief-is-winnt ()
+  `(or (eq system-type 'windows-nt) ;; Is there a terminal mode Emacs for winnt?
+       (eq (framep (selected-frame)) 'w32)   ;; Win64 Emacs still return w32
+       (eq (framep (selected-frame)) 'w64))) ;; for future, just in case
 
-  (defmacro brief-is-winnt ()
-    `(or (eq system-type 'windows-nt) ;; Is there a terminal mode Emacs for winnt?
-         (eq (framep (selected-frame)) 'w32)   ;; Win64 Emacs still return w32
-         (eq (framep (selected-frame)) 'w64))) ;; for future, just in case
+;; FIXME: Can we drop support for Emacs<24?
+(defmacro brief-input-pending-p ()
+  (if (< emacs-major-version 24)
+      `(input-pending-p)
+    `(input-pending-p t)))
 
-  (defmacro brief-input-pending-p ()
-    (if (version< emacs-version "24.0")
-        `(input-pending-p)
-      `(input-pending-p t)))
+(defmacro brief--bookmark-jump-wrapper (bmk func regionp)
+  ;; A wrapper to ignore arguments
+  (if (< emacs-major-version 24)
+      `(bookmark-jump ,bmk ,func)
+    `(bookmark-jump ,bmk ,func ,regionp)))
 
+(eval-when-compile
   ;; Define macros for all cases, byte-compilation, interpreting, or loading.
-  (if (and (version< emacs-version "25.1")
-           ;; in case some backward compatibility layer already loaded
-           (not (fboundp 'save-mark-and-excursion)))
+  (if (not (fboundp 'save-mark-and-excursion))
       (defmacro save-mark-and-excursion (&rest body)
         "A backward compatibility macro for Emacs version below 25.1.
 This macro behaves exactly like `save-excursion' before Emacs 25.1.
 After Emacs 25.1 `save-excursion' no longer save mark and point."
-        `(save-excursion ,@body)))
+        `(save-excursion ,@body))))
 
+(eval-and-compile
   ;; Emacs <= v25
   (unless (boundp 'inhibit-message)
     (defvar inhibit-message nil))
@@ -525,7 +530,7 @@ process."
                  '(run open listen connect stop)))))
 
   ;; Backward compatibility functions for Emacs23
-  (when (version< emacs-version "24.0")
+  (when (< emacs-major-version 24)
 
     (if (and (not (fboundp 'x-get-selection-value))
              (fboundp 'x-get-selection))
@@ -555,15 +560,8 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
                        chars)))
           c))))
 
-  (if (version< emacs-version "24.0")
-      ;; a wrapper function to ignore arguments
-      (defmacro bookmark-jump-wrapper (bmk func _regionp)
-        `(bookmark-jump ,bmk ,func))
-    (defmacro bookmark-jump-wrapper (bmk func regionp)
-      `(bookmark-jump ,bmk ,func ,regionp)))
-
   ;; Selection/clipboard related functions and variables
-  (when (version< emacs-version "25.1")
+  (when (< emacs-major-version 25)
 
     ;;(unless (boundp 'saved-region-selection) ;; Legacy code for XEmacs
     ;;  (defvar saved-region-selection nil))
@@ -693,7 +691,7 @@ Also, under terminal mode it can't actually get the slowdown."
      (t (setq brief-slowdown-factor 8.0)))))
 
 ;;(defvar brief-debugging t) ;; enable debugging here
-(cl-eval-when (compile load eval)
+(eval-and-compile
   (if (boundp 'brief-debugging)
       (defun brief-dbg-message (&rest args)
         (let ((inhibit-message t)
@@ -879,20 +877,17 @@ does not load the scroll-lock package."
 ;; Some X systems use 'PRIMARY while some use 'CLIPBOARD.
 ;; Enabling both can ensure data sync but night become slow when
 ;; clipboard data is huge.
-(defcustom brief-select-enable-primary t
-  "On XWinodws enable Brief to use 'PRIMARY selection.
-For Windows NT systems we always use 'CLIPBOARD and this option has
-no effect."
+(defcustom brief-select-enable-primary (not (brief-is-winnt))
+  ;; On Windows only 'CLIPBOARD works, 'PRIMARY does not work
+  "Enable Brief to use `PRIMARY' selection."
   :type  'boolean)
 
-(defcustom brief-select-enable-clipboard nil
-  "On XWindows enable Brief to use 'CLIPBOARD selection.
-For Windows NT systems we always use 'CLIPBOARD and this option has
-no effect."
+(defcustom brief-select-enable-clipboard (brief-is-winnt)
+  ;; On Windows only 'CLIPBOARD works, 'PRIMARY does not work
+  "Enable Brief to use `CLIPBOARD' selection."
   :type  'boolean)
 
-(cl-eval-when
- (compile eval load)
+(eval-and-compile
  ;; This variable is used by macro `brief-key' so we need this variable
  ;; to be available early in compile time.
 
@@ -900,7 +895,7 @@ no effect."
    "Map all Meta key related commands to be prefixed by ESC key as well.
 This is especially useful in terminal mode, or under GUI environments
 that intercept hotkeys before reaching Emacs.  For example, Alt-F4
-(M-f4) is usually mapped as \"closing window\" in KDE, Windows and
+\(M-f4) is usually mapped as \"closing window\" in KDE, Windows and
 others; therefore, if you want to issue M-f4, with this flag enabled
 you can issue two separate key sequence <ESC> <F4> to achieve the same
 effect.
@@ -1017,7 +1012,7 @@ is also possible, but might also lead to some unexpected result if the
 coding system does not match your buffer.  For a complete list of
 available coding system symbols, check the completion list (press
 \\[minibuffer-complete]) when running `set-buffer-file-coding-system'
-(\\[set-buffer-file-coding-system])"
+\(\\[set-buffer-file-coding-system])"
   :type  'symbol)
 
 (defcustom brief-cygwin-use-clipboard-dev t
@@ -1079,12 +1074,12 @@ in hideif mode.")
 
 (defun brief-xclipboard-cmd-search ()
   "Search for external Xclipboard helper program.
-Find either 'xsel' or 'xclip', if both exists in favor of 'xsel' when
+Find either `xsel' or `xclip', if both exists in favor of `xsel' when
 `brief-in-favor-of-xsel' is non-nil.  If none-exists only Emacs
 internal Xselection functions will be used and terminal mode won't
 react to Xselection change.
 However, care need to be taken that in some Linux environment, using
-'xsel' sometimes produce some extra bytes when getting data from the
+`xsel' sometimes produce some extra bytes when getting data from the
 Xclipboard."
   (let* ((xsel  (executable-find "xsel"))
          (xclip (executable-find "xclip"))
@@ -1115,7 +1110,7 @@ Xclipboard."
 
 (defun brief-set:brief-in-favor-of-xsel (sym val)
   "Reset `brief-xclipboard-cmd' and `brief-xclipboard-args' so that
-it won't stick on 'xclip'."
+it won't stick on `xclip'."
   (set sym val)
   ;; Reset and search again
   (setq brief-xclipboard-cmd nil
@@ -1355,14 +1350,6 @@ Information is a list of:
   ;;TODO: font/fontsize/scaled-size/ruler-mode/user-defined-hook
 ")
 
-(cl-eval-when (compile load eval)
-  ;; In case `text-scale-mode' not loaded yet, but not working when Emacs
-  ;; starts-up and restoring desktop, we can still see the following warning,
-  ;; why??
-  ;;   Warning (bytecomp): assignment to free variable ‘text-scale-mode-amount’
-  ;; Hence we can only later use an `eval' to `setq' it at run-time
-  (defvar text-scale-mode-amount))
-
 (defun brief-kill-current-buffer ()
   "Kill current buffer, or restore latest killed file buffer if prefixed.
 When prefix argument presents (\\[universal-argument]) it will try to restore the latest
@@ -1409,13 +1396,11 @@ modified."
               (and (setq item (pop brief-latest-killed-buffer-info))
                    (boundp 'display-line-numbers-mode)
                    (call-interactively #'display-line-numbers-mode))
-              (and (setq item (pop brief-latest-killed-buffer-info))
-                   (fboundp 'text-scale-mode)
-                   (boundp 'text-scale-mode-amount)
-                   ;; The above (defvar text-scale-mode-amount) fail to fix
-                   ;; the warning described above, hence we delay it to run-time
-                   (eval '(setq text-scale-mode-amount item))
-                   (text-scale-mode 1)))
+              (when (and (setq item (pop brief-latest-killed-buffer-info))
+                         (fboundp 'text-scale-mode)
+                         (boundp 'text-scale-mode-amount))
+                (setq text-scale-mode-amount item)
+                (text-scale-mode 1)))
             (setq inhibit-message nil)
             (message "Killed buffer %S restored" filename))))
 
@@ -1573,9 +1558,9 @@ If ARG is non-NIL, insert results at point."
 
 (defmacro brief-meta-l-key (updown key)
   "Define M-L associated key function and map in `brief-prefix-meta-l'.
-UPDOWN is either 'up' or 'down' (with no (') quote) indicating the
+UPDOWN is either `up' or `down' (with no (') quote) indicating the
 direction of the key.
-A key function name `brief-call-mark-line-[up|down]-with-<key>' is
+A key function name `brief-call-mark-line-UPDOWN-with-KEY' is
 created and mapped into `brief-prefix-meta-l'"
   (let* ((dir     (symbol-name updown))
          (keydesc (key-description key))
@@ -1614,9 +1599,9 @@ mode to access root frame windows."
 
 (defun brief-bookmark-try-switch-frame-window (bookmark)
   "Try to find a window containing BOOKMARK then jump to the frame and window.
-If found, return 't; if not found, jump to the first frame/window
-containing the buffer and return symbol 'frame.  If no such buffer/
-window/frame exists, keep current frame/window and return NIL.
+If found, return t; if not found, jump to the first frame/window
+containing the buffer and return symbol `frame'.  If no such buffer/
+window/frame exists, keep current frame/window and return nil.
 
   Custom variable `brief-bookmark-jump-switch-frame-window' controls the
 activation of this behavior and prefix command C-u can force it behaves in an
@@ -1625,13 +1610,13 @@ opposite way.
   This can be used to advice all bookmark jumping functions. For
 example, add the following into .emacs:
 
-  (defun bookmark-jump-restoring-frame-window (bookmark &rest args)
+  (defun bookmark-jump-restoring-frame-window (bookmark &rest _)
     (brief-bookmark-try-switch-frame-window bookmark))
 
-  (advice-add 'bookmark-jump
-              :before #'bookmark-jump-restoring-frame-window)
-  (advice-add 'bookmark-jump-other-window
-              :before #'bookmark-jump-restoring-frame-window)"
+  (advice-add \\='bookmark-jump
+              :before #\\='bookmark-jump-restoring-frame-window)
+  (advice-add \\='bookmark-jump-other-window
+              :before #\\='bookmark-jump-restoring-frame-window)"
 
   (when (brief-xor brief-bookmark-jump-switch-frame-window
                    brief-override-bookmark-try-switch-frame-window)
@@ -1718,9 +1703,9 @@ example, add the following into .emacs:
 
     (condition-case nil
         (progn
-          (bookmark-jump-wrapper bookmark
-                                 'switch-to-buffer
-                                 (brief-use-region))
+          (brief--bookmark-jump-wrapper bookmark
+                                        #'switch-to-buffer
+                                        (brief-use-region))
           (if (fboundp 'bmkp-light-bookmark)
               (bmkp-light-bookmark (bookmark-get-bookmark bookmark)))
           (message "Jump to bookmark %S" bookmark))
@@ -2305,7 +2290,7 @@ soon as possible in order not to cause any delay when editing."
             (nbutlast brief-fast-line-number-list (- len q)))))
   t)
 
-;;(add-hook 'before-change-functions 'brief-trim-fast-line-number-list)
+;;(add-hook 'before-change-functions #'brief-trim-fast-line-number-list)
 
 (defun brief-fast-count-physical-lines (start end)
   "Return number of lines between START and END.
@@ -2602,19 +2587,18 @@ The hook function take one argument for the restored frame.")
 (defvar brief--deleted-frame-param nil
   "Frame parameters of the latest deleted frame, for restoring.
 Deleted frame info is a list containing:
-The first item is the original `frame-parameters' after applied
+
+    ((FILTERED-FRAME-PARAMETERS)
+     ACTIVE-BUFFER
+     USER-EXTEND1
+     USER-EXTEND2
+     ...)
+
+FILTERED-FRAME-PARAMETERS is the original `frame-parameters' after applied
 all `brief-deleted-frame-parm-filters'.
-The 2nd element is the selected buffer that frame was editing.
-The rest of the list are extended by users and can be utilized by
-`brief-restore-deleted-frame-hook':
-Format:
-(
-  (filtered-frame-parameters)
-  active-buffer
-  user-extend1
-  user-extend2
-  ...
-)")
+ACTIVE-BUFFER is the selected buffer that frame was editing.
+USER-EXTENDs are extended by users and can be utilized by
+`brief-restore-deleted-frame-hook'.")
 
 (defun brief-save-deleted-frame-param (frame)
   "Hook function for storing parameters of the to be deleted frame."
@@ -2900,7 +2884,7 @@ This flag is used by `brief-copy-to-clipboard-on-keyup' and
 ;; Hence we use a more conservative value 0.25 here.
 (defvar brief-postpone-copy-to-clipboard-idle-period 0.25
   "Keyboard idle period for postponing copying data into clipboard.
-This emulates the 'key up' event. We copy things into clipboard only when
+This emulates the \"key up\" event. We copy things into clipboard only when
 keyboard is idle.")
 
 (defvar brief-postponed-mark-selection-copy-completed nil
@@ -2911,7 +2895,7 @@ is huge it's just a waste of time.")
 
 (defun brief-copy-to-clipboard-on-keyup (&optional thetext)
   "Postpone `brief-copy-region-into-clipboard' till key-up.
-The 'key-up' is actually emulated by running an idle timer."
+The \"key-up\" is actually emulated by running an idle timer."
   (brief-dbg-message "enter brief-copy-to-clipboard-on-keyup")
 
   (if (not brief-enable-postpone-selection)
@@ -2968,10 +2952,8 @@ The 'key-up' is actually emulated by running an idle timer."
         ;; the option "Clipboard may use PRIMARY selection" in its context menu
         ;; need to be turned ON).  These values are used by `gui-select-text'
         ;; and `cua-copy-region'.
-        (select-enable-primary   (and (not (brief-is-winnt))
-                                      brief-select-enable-primary))
-        (select-enable-clipboard (or (brief-is-winnt)
-                                     brief-select-enable-clipboard))
+        (select-enable-primary brief-select-enable-primary)
+        (select-enable-clipboard brief-select-enable-clipboard)
         ;; Hide global `kill-ring' here otherwise `cua-copy-region' will
         ;; insert the temp selection into kill-ring.
         kill-ring
@@ -3007,7 +2989,7 @@ The 'key-up' is actually emulated by running an idle timer."
 
                   t ;; do nothing
 
-                (if (and (or (version< emacs-version "24.0")
+                (if (and (or (< emacs-major-version 24)
                              (brief-is-terminal))
                          (minibufferp))
                     ;; Known case, for Emacs23 when try searching in a region.
@@ -3269,13 +3251,13 @@ before creating new process."
 
 (defun brief-external-get-selection (&optional type mode)
   "Helper function for `brief-gui-get-selection' using an external program.
-TYPE is clipboard type, can be either 'PRIMARY, 'CLIPBOARD or 'SECONDARY.
-MODE is either 'interrupt (default) or 'timeout.  With 'interrupt MODE
-user is able to break this function by the 'quit signal (\\[keyboard-quit]).
+TYPE is clipboard type, can be either `PRIMARY', `CLIPBOARD', or `SECONDARY'.
+MODE is either `interrupt' (default) or `timeout'.  With `interrupt', MODE
+user is able to break this function by the `quit' signal (\\[keyboard-quit]).
 
 This function does not support native Win32/Win64; but it does support
 Cygwin.  For Cygwin if the customized option `brief-cygwin-use-clipboard-dev'
-is set to non-NIL (default value 't'), it will use Cygwin's '/dev/clipboard'
+is set to non-nil (default value t), it will use Cygwin's `/dev/clipboard'
 virtual device instead and which is much faster then forking a helper
 program."
 
@@ -3375,8 +3357,8 @@ program."
                         :connection-type 'pipe
                         :noquery t
                         ;; Prevent extern process status message get into the buffer
-                        :filter   'brief--external-clipboard-filter
-                        :sentinel 'brief--external-clipboard-sentinel
+                        :filter   #'brief--external-clipboard-filter
+                        :sentinel #'brief--external-clipboard-sentinel
                         :stderr   stderr)))
 
                ;; Prevent message if already inhibited or in minibuffer
@@ -3563,7 +3545,7 @@ program."
 (defconst brief-external-send-blocksize  65536 ;; (* 2 65536)
   ;; The old value (* 2 65536) make the send progress x32 times slower!
   "Maximum block size when sending string to external Xselection.
-The block size is counted in 'characters' with the current buffer
+The block size is counted in characters with the current buffer
 encoding, not in bytes.")
 
 (defvar brief-external-set-selection-prev-proc nil
@@ -3849,10 +3831,8 @@ This function does not support native Win32/Win64."
 Conditionally set `gui--last-selected-text-primary' and
 `gui--last-selected-text-clipboard'.  If our previous external clipboard
 invoking was interrupted, clear them."
-  (let ((select-enable-primary   (and (not (brief-is-winnt))
-                                      brief-select-enable-primary))
-        (select-enable-clipboard (or (brief-is-winnt)
-                                     brief-select-enable-clipboard)))
+  (let ((select-enable-primary brief-select-enable-primary)
+        (select-enable-clipboard brief-select-enable-clipboard))
     (setq brief-external-set-selection-interrupted nil)
     (when select-enable-primary
       (gui-set-selection 'PRIMARY text)
@@ -4065,7 +4045,7 @@ able to restore it back if we have no backups.")
 
 ;; This will sometimes make `wg-restore-window' fails. I modified
 ;; `wg-restore-window' and add a advice function in init.el to prevent this.
-;;(add-hook 'activate-mark-hook 'brief-region-backup-clipboard-selection)
+;;(add-hook 'activate-mark-hook #'brief-region-backup-clipboard-selection)
 
 ;;
 ;; Xselection backup and restore
@@ -4100,10 +4080,8 @@ able to restore it back if we have no backups.")
           (x-select-enable-primary 't)
           (x-select-enable-clipboard 'nil)
           ;; Emacs >= 25.1
-          (select-enable-primary   (and (not (brief-is-winnt))
-                                        brief-select-enable-primary))
-          (select-enable-clipboard (or (brief-is-winnt)
-                                       brief-select-enable-clipboard)))
+          (select-enable-primary brief-select-enable-primary)
+          (select-enable-clipboard brief-select-enable-clipboard))
 
       (unless (zerop (length text))
         ;;(x-set-selection brief-X-selection-target text)
@@ -4199,8 +4177,8 @@ restored, otherwise NIL."
   ;;      (pop brief-garbage-collection-message-stack))
   t)
 
-;;(add-hook 'activate-mark-hook   'brief-postpone-gui-set-selection 't)
-;;(add-hook 'deactivate-mark-hook 'brief-resume-gui-set-selection)
+;;(add-hook 'activate-mark-hook   #'brief-postpone-gui-set-selection 't)
+;;(add-hook 'deactivate-mark-hook #'brief-resume-gui-set-selection)
 
 ;;
 ;; Various advice functions
@@ -4211,8 +4189,7 @@ restored, otherwise NIL."
 ;; do this these advice functions will be removed.
 
 ;; [2017-07-10 Mon] Even Emacs 23.3.1 still having `activate-mark-hook' called.
-;; (defadvice cua-set-rectangle-mark (before brief-cua-set-rectangle-mark ()
-;;                                           activate compile)
+;; (advice-add 'cua-set-rectangle-mark :before
 ;;   ;; [2017-07-10 Mon] The following comments was written on 2015-05-13 commit
 ;;   ;; 5579b35d, but seems not valid. My local tests shows even for Emacs
 ;;   ;; 24.4.50, `activate-mark-hook' still got invoked.
@@ -4220,18 +4197,18 @@ restored, otherwise NIL."
 ;;   ;; cua-set-rectangle-mark will not invoke activate-mark-hook so we do it
 ;;   ;; using advice
 ;;   ;; TODO: is there a better way without using advice?
-;;   (brief-region-backup-clipboard-selection)))
+;;   (lambda (&rest _) (brief-region-backup-clipboard-selection)))
 
 ;; When undo restored the cua rectangle, we need to backup the clipboard or the
 ;; same issue happens
-;; (defadvice cua--rect-undo-handler (around brief-cua--rect-undo-handler
-;;                                           activate compile)
-;;   (let ((backup-clipboard (use-region-p)))
-;;     (or backup-clipboard
-;;         (brief-region-backup-clipboard-selection))
-;;     ad-do-it
-;;     (or backup-clipboard
-;;         (brief-region-backup-clipboard-selection))))
+;; (advice-add 'cua--rect-undo-handler :around
+;;   (lambda (org-fun &restargs)
+;;     (let ((backup-clipboard (use-region-p)))
+;;       (or backup-clipboard
+;;           (brief-region-backup-clipboard-selection))
+;;       (apply orig-fun args)
+;;       (or backup-clipboard
+;;           (brief-region-backup-clipboard-selection)))))
 
 (defun brief-reset-for-command-cancellation (&rest _)
   "Restore selection and reset internal variables due to command cancellation."
@@ -4418,27 +4395,6 @@ ARG behaves the same as `beginning-of-line'."
     ;;(push-mark newmark t t)
     (set-mark newmark)))
 
-;; ;; 04/15/'08 add function for `brief-kill-line'
-(unless (fboundp 'move-to-column)
-  (defun move-to-column (column
-                         &optional insert-white) ;; [06/12/2008] ins &optional
-    "Goto column number in current line.
-This is a backward compatibility function for older Emacs versions."
-    (let ((i 0) (max-column 0))
-      (save-excursion
-        (end-of-line)
-        (setq max-column (current-column)))
-      (beginning-of-line)
-      (while (and (< i column) (< (current-column) column))
-        (if (= (current-column) max-column)
-            (progn
-              (if (not insert-white)    ;; [06/12/2008] ins 2
-                  (setq i (1- column))  ; set exit while condition
-                (insert " ") ;; fill with spaces
-                (setq max-column (1+ max-column))))
-          (brief-forward-1-char-noerror))
-        (setq i (1+ i))))))
-
 ;;
 ;; Line Oriented Commands
 ;;
@@ -4461,8 +4417,8 @@ The basic logic are:
         ---------+-----------------||--------
             F    |        F        ||   F
             F    |        T        ||   T
-          '(4)   |        F        ||   T
-          '(4)   |        T        ||   F
+          \\='(4)   |        F        ||   T
+          \\='(4)   |        T        ||   F
         ---------+-----------------||--------
            #n    |        F        ||   F
            #n    |        T        ||   T
@@ -5158,7 +5114,7 @@ without affecting the overylay.  Used by `brief-search-replace'.")
        (delete-overlay brief--search-overlay))
   t)
 
-;;(add-hook 'deactivate-mark-hook 'brief-delete-search-overlay)
+;;(add-hook 'deactivate-mark-hook #'brief-delete-search-overlay)
 
 ;;(defvar-local brief-last-query-replace-region nil)
 (defvar-local brief-last-search-region nil ; (is-rect is-region count/beg end)
@@ -5979,7 +5935,7 @@ toggled by `brief-toggle-search-replace-regexp' (\\[brief-toggle-search-replace-
               (move-to-column (1+ (cua--rectangle-right)))
               (setq reg-end (point)))
             (setq result
-                  (if (not (version< emacs-version "25.1"))
+                  (if (not (< emacs-major-version 25))
                       ;; Emacs 25.1 and above
                       (if (and pattern to)
                           (funcall (if brief-search-replace-using-regexp
@@ -6731,7 +6687,7 @@ global buffer list instead of a per-window/frame buffer list."
 (defun brief-color-message (text &optional color)
   "Same as `message' but with specified foreground COLOR.
 COLOR could be either a string like \"red\" or an existing face
-like 'font-lock-warning-face."
+like `font-lock-warning-face'."
   (or color
       (setq color "white"))
   (message "%s"
@@ -7393,7 +7349,7 @@ toggle brief-mode."
           (setq query-replace-to-history-variable
                 brief-orig-query-replace-to-history-variable)
 
-          (if (version< emacs-version "24.0")
+          (if (< emacs-major-version 24)
               (setq brief--prev-brief-mode nil)))
       ;;
       ;; Enable Brief mode
@@ -7519,7 +7475,7 @@ toggle brief-mode."
 "\n(Note: neither 'xsel' nor 'xclip' is found in system, please install one.)"))))
         (if (not (zerop (length initmsg)))
            (brief-color-message initmsg 'minibuffer-prompt)))
-      (if (version< emacs-version "24.0")
+      (if (< emacs-major-version 24)
           (setq brief--prev-brief-mode t))))
 
   ;; calibrate current system UI performance
@@ -7733,7 +7689,7 @@ toggle brief-mode."
 ;;
 
 (defun brief-set:brief-replace-emacs-func:line-number-at-pos (sym val)
-  "Method 'set' of variable `brief-replace-emacs-func:line-number-at-pos'.
+  "Method `set' of variable `brief-replace-emacs-func:line-number-at-pos'.
 This function dynamically override `line-number-at-pos' according to
 the VAL.  Notice this works only if functions like `custom-set-variables'
 are used to set this custom variable."
@@ -7753,7 +7709,7 @@ are used to set this custom variable."
   (set sym val))
 
 (defcustom brief-replace-emacs-func:line-number-at-pos
-  ;;(and (version< emacs-version "26.1")
+  ;;(and (< emacs-major-version 26)
   ;;     (not (boundp 'display-line-numbers)))
   ;; Although Emacs 26.1 supports native line numbering, for relative window
   ;; position calculation line numbers are still heavily in use so keep this
@@ -7767,30 +7723,27 @@ matter if brief-mode is enabled or not."
   :type  'boolean
   :set   #'brief-set:brief-replace-emacs-func:line-number-at-pos)
 
-(cl-eval-when (compile eval load)
-  (when (and (>= emacs-major-version 27)
-             ;; prevent failure before load
-             (boundp 'brief-replace-emacs-func:line-number-at-pos)
-             brief-replace-emacs-func:line-number-at-pos)
-     ;; Global replacement, no matter if Brief mode is enabled or not.
-     ;; Notice that it dynamically overrides the `line-number-at-pos' function
-     ;; according to `brief-replace-emacs-func:line-number-at-pos'.
-     ;; `custom-set-variables' must be used to change this custom value.
-     ;; Normal `setq', `set' and `set-default' will only change the value but
-     ;; will not change the replacement status of `line-number-at-pos'.
-     ;; Its :set method already do this; here is just in case the user
-     ;; using `setq' to set the value.
-     (advice-add 'line-number-at-pos
-                 :override #'brief-fast-line-number-at-pos)))
+(when (and (>= emacs-major-version 27)  ;FIXME: Why?
+           brief-replace-emacs-func:line-number-at-pos)
+  ;; Global replacement, no matter if Brief mode is enabled or not.
+  ;; Notice that it dynamically overrides the `line-number-at-pos' function
+  ;; according to `brief-replace-emacs-func:line-number-at-pos'.
+  ;; `custom-set-variables' must be used to change this custom value.
+  ;; Normal `setq', `set' and `set-default' will only change the value but
+  ;; will not change the replacement status of `line-number-at-pos'.
+  ;; Its :set method already do this; here is just in case the user
+  ;; using `setq' to set the value.
+  (advice-add 'line-number-at-pos
+              :override #'brief-fast-line-number-at-pos))
 
 ;;;###autoload
 (defun brief-easy-start ()
   "Emulate Brief by changing less favored Emacs settings for programmers.
 Before enabling brief mode this sets the following:
- 1) No line wrapping by setting `truncate-lines' 't.
+ 1) No line wrapping by setting `truncate-lines' to t.
  2) No jumppy scrolling in both vertical and horizontal directions.
  3) Smaller borders.
-This function is used by the quick launcher 'b' script."
+This function is used by the quick launcher `b' script."
   (interactive)
   (setq-default truncate-lines t)  ;; disable line wrapping
   ;;(setq-default global-visual-line-mode t)
