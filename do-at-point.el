@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.37 2023/08/08 06:55:26 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.38 2023/08/08 09:06:53 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -98,7 +98,9 @@ of this variable.")
 	 ,(lambda (beg end)
 	    (let ((cmd (read-shell-command "Command: ")))
 	      (shell-command-on-region beg end cmd nil t))))
-     (?! "Shell command" ,#'shell-command))
+     (?! "Shell command" ,(if (fboundp 'shell-command+)
+			      #'shell-command+
+			    (lambda (cmd) (shell-command cmd)))))
     (email
      (?m "Compose message" ,(lambda (to) (compose-mail to))))
     (existing-filename
