@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.38 2023/08/08 09:06:53 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.39 2023/08/25 19:10:59 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -109,7 +109,7 @@ of this variable.")
     (url
      (?b "Browse" ,#'browse-url)
      (?d "Download" ,#'(lambda (url)
-			 (start-process "*Download*" nil "wget" url)))
+			 (start-process "*Download*" nil "wget" "-q" "-c" url)))
      (?e "eww" ,#'eww-browse-url))
     (number
      (?* "Calc" ,(lambda () (calc-embedded '(t)))))
