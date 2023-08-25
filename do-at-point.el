@@ -5,7 +5,7 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; URL: https://wwwcip.cs.fau.de/~oj14ozun/src+etc/do-at-point.el
-;; Version: $Id: do-at-point.el,v 1.39 2023/08/25 19:10:59 oj14ozun Exp oj14ozun $
+;; Version: $Id: do-at-point.el,v 1.40 2023/08/25 19:11:27 oj14ozun Exp oj14ozun $
 ;; Package-Version: 1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience
@@ -149,6 +149,10 @@ user option."
 Quick bindings allow for the user to operate on a selection
 without having to have confirmed the first."
   :type 'boolean)
+
+(defcustom do-at-point-selection-face 'highlight
+  "Face to use to highlight the selected thing."
+  :type 'face)
 
 (defvar do-at-point--quick-map (make-sparse-keymap))
 
@@ -300,7 +304,7 @@ instead."
   :interactive nil
   (if do-at-point--mode
       (let ((ov (let ((ov (make-overlay 0 0)))
-		  (overlay-put ov 'face 'highlight)
+		  (overlay-put ov 'face do-at-point-selection-face)
 		  (delete-overlay ov)
 		  ov)))
 	(overlay-put ov 'do-at-point-key last-command-event)
