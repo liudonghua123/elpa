@@ -52,13 +52,13 @@
 
 (defconst do-at-point--actions-type
   '(alist :value-type
-	  (alist :value-type
-		 (choice
-		  (const :tag "Inherit" nil)
-		  (list :tag "Action"
-			(string :tag "Description") function))
-		 :key-type character)
-	  :key-type symbol)
+          (alist :value-type
+                 (choice
+                  (const :tag "Inherit" nil)
+                  (list :tag "Action"
+                        (string :tag "Description") function))
+                 :key-type character)
+          :key-type symbol)
   "User option type for `do-at-point' actions.")
 
 (defcustom do-at-point-user-actions '()
@@ -77,29 +77,29 @@ of this variable.")
 (defcustom do-at-point-actions
   `((region
      (?\s "Mark" ,(lambda (start end)
-		    (set-mark start)
-		    (goto-char end)))
+                    (set-mark start)
+                    (goto-char end)))
      (?\C-i "Indent" ,#'indent-region)
      (?s "Isearch"
-	 ,(lambda (str)
-	    (isearch-mode t)
-	    (isearch-yank-string str)))
+         ,(lambda (str)
+            (isearch-mode t)
+            (isearch-yank-string str)))
      (?o "Occur" ,(lambda (str) (occur (regexp-quote str))))
      (?w "Kill-Save" ,#'kill-new)
      (?W "Write region"
-	 ,(lambda (beg end)
-	    (let ((file (read-file-name "File: ")))
-	      (write-region beg end file))))
+         ,(lambda (beg end)
+            (let ((file (read-file-name "File: ")))
+              (write-region beg end file))))
      (?k "Kill" ,#'kill-region)
      (?n "Narrow" ,#'narrow-to-region)
      (?$ "Spell check" ,#'ispell-region)
      (?| "Pipe command"
-	 ,(lambda (beg end)
-	    (let ((cmd (read-shell-command "Command: ")))
-	      (shell-command-on-region beg end cmd nil t))))
+         ,(lambda (beg end)
+            (let ((cmd (read-shell-command "Command: ")))
+              (shell-command-on-region beg end cmd nil t))))
      (?! "Shell command" ,(if (fboundp 'shell-command+)
-			      #'shell-command+
-			    (lambda (cmd) (shell-command cmd)))))
+                              #'shell-command+
+                            (lambda (cmd) (shell-command cmd)))))
     (email
      (?m "Compose message" ,(lambda (to) (compose-mail to))))
     (existing-filename
@@ -108,7 +108,7 @@ of this variable.")
     (url
      (?b "Browse" ,#'browse-url)
      (?d "Download" ,#'(lambda (url)
-			 (start-process "*Download*" nil "wget" "-q" "-c" url)))
+                         (start-process "*Download*" nil "wget" "-q" "-c" url)))
      (?e "eww" ,#'eww-browse-url))
     (number
      (?* "Calc" ,(lambda () (calc-embedded '(t)))))
@@ -118,10 +118,10 @@ of this variable.")
     (symbol
      (?. "Xref" ,#'xref-find-definitions)
      (?o "Occur" ,(lambda (str)
-		    (occur (concat "\\_<\\(" (regexp-quote str) "\\)\\_>")))))
+                    (occur (concat "\\_<\\(" (regexp-quote str) "\\)\\_>")))))
     (string) (sexp) (line) (paragraph (?$))
     (defun
-	(?e "Evaluate" ,(lambda () (eval-defun nil)))))
+        (?e "Evaluate" ,(lambda () (eval-defun nil)))))
   "Association of things and their respective actions.
 Each element of the list has the form (THING . ACTIONS), where
 THING is a symbol as interpreted by `thing-at-point' and ACTIONS
@@ -165,17 +165,17 @@ more to less specific entries."
    (lambda (accum ent)
      (let ((prev (assq (car ent) accum)))
        (cons (list (car ent)
-		   (or (cadr ent) (cadr prev))
-		   (or (caddr ent) (caddr prev))
-		   (or (cadddr ent) (cadddr prev)))
-	     (delq prev accum))))
+                   (or (cadr ent) (cadr prev))
+                   (or (caddr ent) (caddr prev))
+                   (or (cadddr ent) (cadddr prev)))
+             (delq prev accum))))
    (reverse (append
-	     (alist-get thing do-at-point-user-actions)
-	     (alist-get 'region do-at-point-user-actions)
-	     (alist-get thing do-at-point-local-actions)
-	     (alist-get 'region do-at-point-local-actions)
-	     (alist-get thing do-at-point-actions)
-	     (alist-get 'region do-at-point-actions)))
+             (alist-get thing do-at-point-user-actions)
+             (alist-get 'region do-at-point-user-actions)
+             (alist-get thing do-at-point-local-actions)
+             (alist-get 'region do-at-point-local-actions)
+             (alist-get thing do-at-point-actions)
+             (alist-get 'region do-at-point-actions)))
    '()))
 
 (defvar-local do-at-point--overlay nil
@@ -189,15 +189,15 @@ This means updating and moving the selection overlay and ensuring
 that the repeat key, i.e. the key which was used to initially
 invoke `do-at-point' is bound transiently."
   (let ((thing (or (overlay-get do-at-point--overlay 'do-at-point-thing)
-		   (do-at-point--next-thing t))))
+                   (do-at-point--next-thing t))))
     (let ((bound (bounds-of-thing-at-point thing)))
       (if bound
-	  (move-overlay do-at-point--overlay (car bound) (cdr bound))
-	(delete-overlay do-at-point--overlay)))
+          (move-overlay do-at-point--overlay (car bound) (cdr bound))
+        (delete-overlay do-at-point--overlay)))
     (set-transient-map
      (let ((map (make-sparse-keymap)))
        (define-key map (vector (overlay-get do-at-point--overlay 'do-at-point-key))
-		   #'do-at-point--next-thing)
+                   #'do-at-point--next-thing)
        map))))
 
 (defun do-at-point-confirm (&optional quick)
@@ -206,25 +206,25 @@ If the optional argument QUICK is non-nil, the first applicable
 action is selected."
   (interactive)
   (unless (and do-at-point--overlay
-	       (overlay-start do-at-point--overlay)
-	       (overlay-end do-at-point--overlay))
+               (overlay-start do-at-point--overlay)
+               (overlay-end do-at-point--overlay))
     (user-error "No selected thing"))
   (let* ((thing (overlay-get do-at-point--overlay 'do-at-point-thing))
-	 (options (do-at-point--actions thing))
-	 (choice (cond
-		  (quick (car options))
-		  ((assq last-command-event options))
-		  ((read-multiple-choice
-		    (format "Action on %s" thing)
-		    (mapcar
-		     (pcase-lambda (`(,key ,short ,_func ,long))
-		       (list key short long))
-		     options)))))
-	 (func (cadr (alist-get (car choice) options)))
-	 (bound (cons (overlay-start do-at-point--overlay)
-		      (overlay-end do-at-point--overlay))))
+         (options (do-at-point--actions thing))
+         (choice (cond
+                  (quick (car options))
+                  ((assq last-command-event options))
+                  ((read-multiple-choice
+                    (format "Action on %s" thing)
+                    (mapcar
+                     (pcase-lambda (`(,key ,short ,_func ,long))
+                       (list key short long))
+                     options)))))
+         (func (cadr (alist-get (car choice) options)))
+         (bound (cons (overlay-start do-at-point--overlay)
+                      (overlay-end do-at-point--overlay))))
     (do-at-point--mode -1)
-    (message nil)		;clear mini buffer
+    (message nil)               ;clear mini buffer
     (pcase (car (func-arity func))
       (0 (funcall func))
       (1 (funcall func (buffer-substring (car bound) (cdr bound))))
@@ -250,8 +250,8 @@ See the function `do-at-point-confirm' for more details."
 (defun do-at-point--applicable-things ()
   "Return a list of things that are applicable at point."
   (let ((actions (append do-at-point-user-actions
-			 do-at-point-local-actions
-			 do-at-point-actions)))
+                         do-at-point-local-actions
+                         do-at-point-actions)))
     (seq-filter #'thing-at-point (mapcar #'car actions))))
 
 (defun do-at-point--next-thing (&optional no-update)
@@ -261,23 +261,23 @@ Otherwise the next \"thing\" is just determined.  The return
 value of the function is always the new \"thing\"."
   (interactive)
   (let* ((things (do-at-point--applicable-things))
-	 (thing (overlay-get do-at-point--overlay 'do-at-point-thing)))
+         (thing (overlay-get do-at-point--overlay 'do-at-point-thing)))
     (setq thing (or (cadr (memq thing things)) (car things)))
     (prog1 (overlay-put do-at-point--overlay 'do-at-point-thing thing)
       ;; clear and reinitialise the shortcut map
       (setcdr do-at-point--quick-map nil)
       (when do-at-point-quick-bindings
-	(dolist (key (mapcar #'car (do-at-point--actions thing)))
-	  (define-key do-at-point--quick-map (vector key) #'do-at-point-confirm))
-	(define-key do-at-point--quick-map (kbd "<return>")
-		    #'do-at-point-confirm-quick))
+        (dolist (key (mapcar #'car (do-at-point--actions thing)))
+          (define-key do-at-point--quick-map (vector key) #'do-at-point-confirm))
+        (define-key do-at-point--quick-map (kbd "<return>")
+                    #'do-at-point-confirm-quick))
       (let ((default (cadar (do-at-point--actions thing))))
-	(message
-	 (substitute-command-keys
-	  "Act on `%s' (%s by default), select using \\[do-at-point-confirm*].")
-	 thing default))
+        (message
+         (substitute-command-keys
+          "Act on `%s' (%s by default), select using \\[do-at-point-confirm*].")
+         thing default))
       (unless no-update
-	(do-at-point--update)))))
+        (do-at-point--update)))))
 
 (defun do-at-point--lighter ()
   "Determine the lighter for `do-at-point--mode'.
@@ -303,13 +303,13 @@ instead."
   :interactive nil
   (if do-at-point--mode
       (let ((ov (let ((ov (make-overlay 0 0)))
-		  (overlay-put ov 'face do-at-point-selection-face)
-		  (delete-overlay ov)
-		  ov)))
-	(overlay-put ov 'do-at-point-key last-command-event)
-	(add-hook 'post-command-hook #'do-at-point--update 90 t)
-	(setq do-at-point--overlay ov)
-	(do-at-point--update))
+                  (overlay-put ov 'face do-at-point-selection-face)
+                  (delete-overlay ov)
+                  ov)))
+        (overlay-put ov 'do-at-point-key last-command-event)
+        (add-hook 'post-command-hook #'do-at-point--update 90 t)
+        (setq do-at-point--overlay ov)
+        (do-at-point--update))
     (remove-hook 'post-command-hook #'do-at-point--update t)
     (overlay-put do-at-point--overlay 'do-at-point-thing nil)
     (delete-overlay do-at-point--overlay)
@@ -337,7 +337,7 @@ selected."
    (let ((things (do-at-point--applicable-things)))
      (if (null current-prefix-arg) '()
        (unless things
-	 (user-error "Nothing applicable at point to choose"))
+         (user-error "Nothing applicable at point to choose"))
        (list (intern (completing-read "Thing: " things nil t))))))
   (when thing
     (setq do-at-point--overlay (copy-overlay do-at-point--overlay))
