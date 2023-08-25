@@ -220,6 +220,7 @@
  (disk-usage		:url "https://gitlab.com/ambrevar/emacs-disk-usage")
  (dismal		:url nil)
  (djvu			:url nil)
+ (do-at-point           :url "https://git.sr.ht/~pkal/do-at-point")
  (doc-toc		:url "https://github.com/dalanicolai/doc-tools-toc"
   :ignored-files ("LICENSE"))
  (docbook		:url nil)
