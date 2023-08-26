@@ -346,5 +346,7 @@ selected."
     (do-at-point--mode -1))
   (do-at-point--mode 1))
 
+;;;###autoload (put 'do-at-point 'setup-func 'do-at-point)
+
 (provide 'do-at-point)
 ;;; do-at-point.el ends here
