@@ -99,7 +99,14 @@ of this variable.")
               (shell-command-on-region beg end cmd nil t))))
      (?! "Shell command" ,(if (fboundp 'shell-command+)
                               #'shell-command+
-                            (lambda (cmd) (shell-command cmd)))))
+                            (lambda (cmd) (shell-command cmd))))
+     (?h "Highlight" ,(eval-when-compile
+                        (require 'hi-lock)
+                        (lambda (str)
+                          (let ((hi-lock-auto-select-face t))
+                            (highlight-regexp
+                             (regexp-quote str)
+                             (hi-lock-read-face-name)))))))
     (email
      (?m "Compose message" ,(lambda (to) (compose-mail to))))
     (existing-filename
