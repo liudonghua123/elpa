@@ -215,7 +215,6 @@ action is selected."
   (unless (and do-at-point--overlay
                (overlay-start do-at-point--overlay)
                (overlay-end do-at-point--overlay))
-    (do-at-point--mode -1)
     (user-error "No selected thing"))
   (let* ((thing (overlay-get do-at-point--overlay 'do-at-point-thing))
          (options (do-at-point--actions thing))
