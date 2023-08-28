@@ -326,13 +326,20 @@ instead."
   "Move focus N things ahead.
 By default, this will move one thing ahead."
   (interactive "p")
-  (forward-thing (overlay-get do-at-point--overlay 'do-at-point-thing) n))
+  (when (and do-at-point--overlay
+             (overlay-end do-at-point--overlay))
+    (goto-char (overlay-end do-at-point--overlay))
+    (forward-thing (overlay-get do-at-point--overlay 'do-at-point-thing) n)))
 
 (defun do-at-point-backward (n)
   "Move focus N things back.
 Refer to the command `do-at-point-forward' for more details."
   (interactive "p")
-  (do-at-point-forward (- (or n 1))))
+  (when (and do-at-point--overlay
+             (overlay-start do-at-point--overlay))
+    (goto-char (overlay-start do-at-point--overlay))
+    (forward-thing (overlay-get do-at-point--overlay 'do-at-point-thing)
+                   (- (or n 1)))))
 
 ;;;###autoload
 (defun do-at-point (&optional thing)
