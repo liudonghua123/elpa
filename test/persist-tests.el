@@ -61,6 +61,14 @@
   "Test saving string."
   (persist-test-persist-save "foo" "foo" (set sym "bar") "bar"))
 
+(ert-deftest test-persist-save-hash ()
+  "Test saving hash table."
+  (let* ((hash (make-hash-table))
+         (default (copy-hash-table hash)))
+    (persist-test-persist-save hash default
+                               (puthash 'foo "bar" (symbol-value sym))
+                               "#s(hash-table size 65 test eql rehash-size 1.5 rehash-threshold 0.8125 data (foo \"bar\"))")))
+
 (ert-deftest test-persist-load ()
   (with-local-temp-persist
    (let ((sym (cl-gensym)))

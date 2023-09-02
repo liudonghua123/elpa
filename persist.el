@@ -118,7 +118,9 @@ to load a previously saved location."
   (let ((initvalue (or initvalue (symbol-value symbol))))
     (add-to-list 'persist--symbols symbol)
     (put symbol 'persist t)
-    (put symbol 'persist-default initvalue)))
+    (if (hash-table-p initvalue)
+        (put symbol 'persist-default (copy-hash-table initvalue))
+      (put symbol 'persist-default initvalue))))
 
 (defun persist--persistant-p (symbol)
   "Return non-nil if SYMBOL is a persistant variable."
@@ -133,8 +135,8 @@ variables persist automatically when Emacs exits."
     (error (format
             "Symbol %s is not persistant" symbol)))
   (let ((symbol-file-loc (persist--file-location symbol)))
-    (if (equal (symbol-value symbol)
-               (persist-default symbol))
+    (if (persist-equal (symbol-value symbol)
+                       (persist-default symbol))
         (when (file-exists-p symbol-file-loc)
           (delete-file symbol-file-loc))
       (let ((dir-loc
@@ -186,6 +188,26 @@ This does not remove any saved value of SYMBOL."
 ;; Save on kill-emacs-hook anyway
 (add-hook 'kill-emacs-hook
           'persist--save-all)
+
+(defun persist-equal (a b)
+  "Return non-nil when the values of A and B are equal.
+A and B are compared using `equal' unless they are both hash
+tables. In that case, the following are compared:
+
+- hash table count
+- hash table predicate
+- values, using `persist-equal'"
+  (if (and (hash-table-p a) (hash-table-p b))
+      (and (= (hash-table-count a) (hash-table-count b))
+           (eq (hash-table-test a) (hash-table-test b))
+           (catch 'done
+             (maphash
+              (lambda (key a-value)
+                (unless (persist-equal a-value (gethash key b (not a-value)))
+                  (throw 'done nil)))
+              a)
+             t))
+    (equal a b)))
 
 (provide 'persist)
 ;;; persist.el ends here
