@@ -215,6 +215,8 @@
 
 (declare-function log-view-current-entry "log-view" (&optional pos move))
 (declare-function log-view-current-tag "log-view" (&optional pos))
+(declare-function magit-status-setup-buffer "magit" (&optional directory))
+(declare-function magit-refresh "magit" ())
 
 (defvar compilation-in-progress)
 (defvar diff-file-header-re)
@@ -2488,11 +2490,17 @@ or bug ranges, with default to `debbugs-gnu-default-bug-number-list'."
   :type 'directory
   :version "30.1")
 
+(defcustom debbugs-gnu-apply-patch-prefers-magit nil
+  "Non-nil means prefer using Magit instead of VC.
+If Magit is not available, fall back to VC."
+  :type 'boolean
+  :version "30.1")
+
 (defvar debbugs-gnu-current-directory nil
   "The current source tree directory.")
 
 (defun debbugs-gnu-init-current-directory (&optional branch)
-"Initialize `debbugs-gnu-current-directory'."
+  "Initialize `debbugs-gnu-current-directory'."
   (setq debbugs-gnu-current-directory
 	(if branch
 	    debbugs-gnu-branch-directory
@@ -2502,6 +2510,10 @@ or bug ranges, with default to `debbugs-gnu-default-bug-number-list'."
 	  (read-file-name
 	   "Emacs repository location: "
 	   debbugs-gnu-current-directory nil t nil #'file-directory-p))))
+
+(defun debbugs-gnu-apply-patch-prefers-magit ()
+  (and debbugs-gnu-apply-patch-prefers-magit
+       (require 'magit nil t)))
 
 (defun debbugs-gnu-apply-patch (&optional branch selectively)
   "Apply the patch from the current message.
@@ -2581,25 +2593,32 @@ If SELECTIVELY, query the user before applying the patch."
      (format "cd %s; %s"
 	     debbugs-gnu-current-directory
 	     debbugs-gnu-compile-command))
-    (vc-dir debbugs-gnu-current-directory)
-    (vc-dir-hide-up-to-date)
-    (goto-char (point-min))
-    (sit-for 1)
-    (vc-diff)
-    ;; All these commands are asynchronous, so just wait a bit.  This
-    ;; should be done properly a different way.
-    (sit-for 2)
-    ;; We've now done everything, so arrange the windows we need to see.
-    (delete-other-windows)
-    (switch-to-buffer output-buffer)
-    (split-window)
-    (split-window)
-    (other-window 1)
-    (switch-to-buffer "*compilation*")
-    (goto-char (point-max))
-    (other-window 1)
-    (switch-to-buffer "*vc-diff*")
-    (goto-char (point-min))))
+    (let (buf)
+      (if (debbugs-gnu-apply-patch-prefers-magit)
+          (progn
+            (magit-status-setup-buffer debbugs-gnu-current-directory)
+            (sit-for 1)
+            (magit-refresh))
+        (vc-dir debbugs-gnu-current-directory)
+        (vc-dir-hide-up-to-date)
+        (goto-char (point-min))
+        (sit-for 1)
+        (vc-diff))
+      ;; All these commands are asynchronous, so just wait a bit.  This
+      ;; should be done properly a different way.
+      (sit-for 2)
+      (setq buf (current-buffer))
+      ;; We've now done everything, so arrange the windows we need to see.
+      (delete-other-windows)
+      (switch-to-buffer output-buffer)
+      (split-window)
+      (split-window)
+      (other-window 1)
+      (switch-to-buffer "*compilation*")
+      (goto-char (point-max))
+      (other-window 1)
+      (switch-to-buffer buf)
+      (goto-char (point-min)))))
 
 (defun debbugs-gnu-diff-hunk-target-name (dir)
   (let ((names nil))
