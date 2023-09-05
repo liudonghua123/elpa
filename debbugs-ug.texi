@@ -803,6 +803,10 @@ creates a ChangeLog entry with all needed information.  A final
 @kbd{M-m} in the @samp{ChangeLog} buffer commits the patch via
 @samp{*vc-log*}.
 
+  If the user option @code{debbugs-gnu-apply-patch-prefers-magit} is
+non-@code{nil}, the third-party package Magit will be used instead of
+VC when you hit @kbd{M-m} in the GNUS ephemeral group.  Note that the
+rest of the workflow described above is not yet supported.
 
 @node Posting Patches
 @section Posting Patches to Debbugs from the Emacs Repository
