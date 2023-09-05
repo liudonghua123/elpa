@@ -99,6 +99,7 @@
  (bnf-mode		:url "https://github.com/sergeyklay/bnf-mode")
  (boxy			:url "https://gitlab.com/tygrdev/boxy")
  (boxy-headings		:url "https://gitlab.com/tygrdev/boxy-headings")
+ (breadcrumb		:url "https://github.com/joaotavora/breadcrumb")
  (brief			:url nil)
  (buffer-env		:url "https://github.com/astoff/buffer-env")
  (buffer-expose		:url "https://github.com/clemera/buffer-expose")
