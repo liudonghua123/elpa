@@ -552,6 +552,7 @@
  (polymode		:url "https://github.com/polymode/polymode"
   :ignored-files ("targets" "template" "tests")
   :readme "readme.md")
+ (popper                :url "https://github.com/karthink/popper")
  (posframe		:url "https://github.com/tumashu/posframe")
  (pq			:url "https://github.com/anse1/emacs-libpq"
   :readme "README.org")
