@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: stream, laziness, sequences
-;; Version: 2.2.5
+;; Version: 2.3.0
 ;; Package-Requires: ((emacs "25"))
 ;; Package: stream
 
