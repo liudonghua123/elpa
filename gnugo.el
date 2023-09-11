@@ -1,9 +1,9 @@
 ;;; gnugo.el --- play GNU Go in a buffer         -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023  Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
-;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Version: 3.1.2
 ;; Package-Requires: ((ascii-art-to-unicode "1.5") (xpm "1.0.1") (cl-lib "0.5"))
 ;; Keywords: games, processes
