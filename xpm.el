@@ -1,9 +1,9 @@
 ;;; xpm.el --- edit XPM images               -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
-;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Version: 1.0.5
 ;; Package-Requires: ((cl-lib "0.5") (queue "0.2"))
 ;; Keywords: multimedia, xpm
