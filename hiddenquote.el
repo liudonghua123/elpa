@@ -1,6 +1,6 @@
 ;;; hiddenquote.el --- Major mode for doing hidden quote puzzles -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2022  Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023  Free Software Foundation, Inc.
 
 ;; Author: Mauro Aranda <maurooaranda@gmail.com>
 ;; Maintainer: Mauro Aranda <maurooaranda@gmail.com>
@@ -1657,9 +1657,10 @@ every word."
                                :elapsed-time elapsed-time)))
     (oset puzzle saved edits)
     (with-temp-buffer
-      (insert (hiddenquote-puzzle-to-ipuz puzzle))
-      (hiddenquote-ensure-file-exists (oref puzzle file))
-      (write-file (oref puzzle file)))
+      (let ((backup-inhibited t))
+        (insert (hiddenquote-puzzle-to-ipuz puzzle))
+        (hiddenquote-ensure-file-exists (oref puzzle file))
+        (write-file (oref puzzle file))))
     (message "Saved puzzle in %s" (oref puzzle file))))
 
 (defun hiddenquote-give-up (&optional noprompt)
